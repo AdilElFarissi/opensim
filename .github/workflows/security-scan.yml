@@ -10,7 +10,6 @@ on:
   workflow_dispatch: 
 
 jobs:
-  # Job 1: Deep Security Analysis using GitHub CodeQL
   codeql-analysis:
     name: CodeQL Vulnerability Scan
     runs-on: ubuntu-latest
@@ -21,15 +20,26 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v5 # Upgraded from v4 for Node 24 compatibility
+        uses: actions/checkout@v5
 
       - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v5 # Upgraded from v4 for Node 24 compatibility
+        uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: '8.0.422' 
+          dotnet-version: '8.0.x'
+
+      # Forces MSBuild and NuGet to strictly use .NET 8 instead of the global SDK v10
+      - name: Pin .NET SDK Version
+        run: |
+          echo '{"sdk":{"version":"8.0.100","rollForward":"latestFeature"}}' > global.json
+
+      # Essential step: Generates all the missing .csproj files required by OpenSim.sln
+      - name: Generate OpenSim Project Files
+        run: |
+          chmod +x runprebuild.sh
+          ./runprebuild.sh
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v4 # Upgraded from v3 for Node 24 compatibility
+        uses: github/codeql-action/init@v4
         with:
           languages: 'csharp'
           queries: security-extended,security-and-quality 
@@ -40,11 +50,10 @@ jobs:
           dotnet build OpenSim.sln --configuration Debug
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v4 # Upgraded from v3 for Node 24 compatibility
+        uses: github/codeql-action/analyze@v4
         with:
           category: "/language:csharp"
 
-  # Job 2: Rapid Bug and Code-Smell Detection using Semgrep
   semgrep-analysis:
     name: Semgrep Bug Scan
     runs-on: ubuntu-latest
@@ -58,14 +67,14 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v5 # Upgraded from v4 for Node 24 compatibility
+        uses: actions/checkout@v5
 
       - name: Run Semgrep Scan
         run: |
           semgrep scan --config auto --sarif --output semgrep-results.sarif
 
       - name: Upload Semgrep Results to GitHub
-        uses: github/codeql-action/upload-sarif@v4 # Upgraded from v3 for Node 24 compatibility
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: semgrep-results.sarif
         if: always() 
