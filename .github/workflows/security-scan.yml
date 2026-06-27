@@ -7,7 +7,6 @@ on:
     branches: [ "master", "main" ]
   workflow_dispatch: 
 
-# GRANTS WRITE PERMISSIONS TO THE ENTIRE WORKFLOW
 permissions:
   contents: write
   pull-requests: write
@@ -80,6 +79,8 @@ jobs:
           cat << 'EOF' > fix_code.py
           import os
           import json
+          import re
+          import time
           from openai import OpenAI
 
           client = OpenAI(
@@ -111,38 +112,53 @@ jobs:
                       if uri.startswith("file://"):
                           uri = uri.replace("file://", "")
                       
-                      if uri and os.path.exists(uri):
-                          print(f"🤖 AI is repairing file: {uri}")
+                      if uri and os.path.exists(uri) and uri.endswith(".cs"):
+                          print(f"🤖 AI processing C# file: {uri}")
+                          
                           with open(uri, "r") as f_code:
                               original_code = f_code.read()
 
                           try:
+                              # Direct routing to stable Qwen 2.5 Coder Free to limit translation layers
                               response = client.chat.completions.create(
-                                  model="openrouter/free",
+                                  model="qwen/qwen-2.5-coder-7b-instruct:free",
                                   messages=[
-                                      {"role": "system", "content": f"You are an expert C# compiler assistant. Fix the following code vulnerability. Adhere strictly to these architecture guidelines:\n{rules}\nReturn ONLY the raw fixed code. Do not include markdown code block syntax (like ```csharp)."},
-                                      {"role": "user", "content": f"Vulnerability Details: {msg}\n\nFile Content:\n{original_code}"}
+                                      {"role": "system", "content": f"You are a strict C# compilation system. Fix the requested bug. Do NOT return markdown formatting tags, html tags, explanations, or web pages. Return ONLY valid, pure C# code.\nGuidelines:\n{rules}"},
+                                      {"role": "user", "content": f"Security Issue: {msg}\n\nOriginal Source Code:\n{original_code}"}
                                   ]
                               )
                               
-                              if isinstance(response, str):
-                                  fixed_code = response.strip()
-                              elif hasattr(response, 'choices') and response.choices:
-                                  fixed_code = response.choices.message.content.strip()
-                              else:
-                                  fixed_code = response['choices']['message']['content'].strip()
+                              fixed_code = response.choices.message.content.strip()
 
-                              if fixed_code.startswith("```"):
-                                  fixed_code = "\n".join(fixed_code.split("\n")[1:-1])
+                              # HARD TRIPWIRE check for OpenRouter rate-limiting HTML response pages
+                              cleaned_check = fixed_code.lower().strip()
+                              if cleaned_check.startswith("<!doctype html") or "<html" in cleaned_check or "<div" in cleaned_check or "next/static" in cleaned_check:
+                                  print(f"🛑 CRITICAL REJECTION: OpenRouter returned an HTML error webpage for {uri}. Skipping modification to protect source files.")
+                                  continue
+
+                              # Extra syntax guard: ensure the AI actually returned C# code blocks
+                              code_match = re.search(r'```(?:csharp)?(.*?)```', fixed_code, re.DOTALL | re.IGNORECASE)
+                              if code_match:
+                                  fixed_code = code_match.group(1).strip()
+
+                              if len(fixed_code) < 20 or "using " not in fixed_code:
+                                  print(f"⚠️ Warning: Output for {uri} appears corrupted or short-cut. Preserving original file.")
+                                  continue
 
                               with open(uri, "w") as f_code_w:
                                   f_code_w.write(fixed_code)
+                              
+                              print(f"✅ Successfully patched: {uri}")
                               fixed_count += 1
                               
+                              # CRITICAL: Sleep for 5 seconds to bypass API rate-limiting rules
+                              time.sleep(5)
+                              
                           except Exception as e:
-                              print(f"Failed to patch file {uri} due to API format mismatch: {e}")
+                              print(f"Failed to patch file {uri}: {e}")
+                              time.sleep(5)
 
-          print(f"Code repair cycle completed. Total files patched: {fixed_count}")
+          print(f"Code repair cycle completed. Total files safely patched: {fixed_count}")
           EOF
           python fix_code.py
           rm fix_code.py
