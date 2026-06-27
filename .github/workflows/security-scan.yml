@@ -7,15 +7,17 @@ on:
     branches: [ "master", "main" ]
   workflow_dispatch: 
 
+# GRANTS WRITE PERMISSIONS TO THE ENTIRE WORKFLOW
+permissions:
+  contents: write
+  pull-requests: write
+  actions: read
+  security-events: write
+
 jobs:
   codeql-analysis:
     name: CodeQL Vulnerability Scan
     runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v5
@@ -53,12 +55,6 @@ jobs:
   semgrep-and-autofix:
     name: Semgrep Scan & OpenRouter Free Fix
     runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-      pull-requests: write
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v5
@@ -70,7 +66,7 @@ jobs:
 
       - name: Install Semgrep & AI Dependencies
         run: |
-          pip install semgrep openai==1.58.0 # Lock version to prevent breakout API behavior
+          pip install semgrep openai==1.58.0 
 
       - name: Run Semgrep Scan
         run: |
@@ -129,14 +125,12 @@ jobs:
                                   ]
                               )
                               
-                              # Safety check to process both raw string responses and structured object responses
                               if isinstance(response, str):
                                   fixed_code = response.strip()
                               elif hasattr(response, 'choices') and response.choices:
-                                  fixed_code = response.choices[0].message.content.strip()
+                                  fixed_code = response.choices.message.content.strip()
                               else:
-                                  # Handles dictionary responses sometimes thrown by openrouter integrations
-                                  fixed_code = response['choices'][0]['message']['content'].strip()
+                                  fixed_code = response['choices']['message']['content'].strip()
 
                               if fixed_code.startswith("```"):
                                   fixed_code = "\n".join(fixed_code.split("\n")[1:-1])
