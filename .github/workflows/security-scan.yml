@@ -103,6 +103,13 @@ jobs:
           runs = sarif_data.get("runs", [])
           fixed_count = 0
 
+          # A collection of stable free coding models to rotate through if one fails
+          models_pool = [
+              "deepseek/deepseek-r1:free",
+              "qwen/qwen-2.5-coder-7b-instruct:free",
+              "meta-llama/llama-3-8b-instruct:free"
+          ]
+
           for run in runs:
               for result in run.get("results", []):
                   msg = result.get("message", {}).get("text", "")
@@ -119,53 +126,57 @@ jobs:
                           with open(uri, "r") as f_code:
                               lines = f_code.readlines()
 
-                          # To protect token windows, extract a context block around the bug line
                           start_idx = max(0, line_num - 40)
                           end_idx = min(len(lines), line_num + 40)
                           context_snippet = "".join(lines[start_idx:end_idx])
 
-                          try:
-                              response = client.chat.completions.create(
-                                  model="openrouter/free",
-                                  messages=[
-                                      {"role": "system", "content": f"You are an expert C# refactoring tool. Fix the bug within the provided snippet. Return ONLY the fully corrected code snippet replacing the original block. Do not write text, explanations, HTML, or markdown code gates.\nRules:\n{rules}"},
-                                      {"role": "user", "content": f"Vulnerability Type: {msg}\nTarget Line Number: {line_num}\n\nCode Snippet:\n{context_snippet}"}
-                                  ]
-                              )
-                              
-                              # Safe object format resolution
-                              if isinstance(response, str):
-                                  raw_content = response
-                              elif hasattr(response, 'choices') and response.choices:
-                                  raw_content = response.choices[0].message.content
-                              else:
-                                  raw_content = str(response)
+                          fixed_snippet = None
+                          
+                          # Try each model in the pool until one succeeds without throwing an HTML error
+                          for current_model in models_pool:
+                              try:
+                                  print(f"  -> Attempting fix using model: {current_model}")
+                                  response = client.chat.completions.create(
+                                      model=current_model,
+                                      messages=[
+                                          {"role": "system", "content": f"You are an expert C# refactoring tool. Fix the bug within the provided snippet. Return ONLY the fully corrected code snippet replacing the original block. Do not write text, explanations, HTML, or markdown code gates.\nRules:\n{rules}"},
+                                          {"role": "user", "content": f"Vulnerability Type: {msg}\nTarget Line Number: {line_num}\n\nCode Snippet:\n{context_snippet}"}
+                                      ]
+                                  )
+                                  
+                                  if isinstance(response, str):
+                                      raw_content = response
+                                  elif hasattr(response, 'choices') and response.choices:
+                                      raw_content = response.choices.message.content
+                                  else:
+                                      raw_content = str(response)
 
-                              cleaned_check = raw_content.lower().strip()
-                              if "<html" in cleaned_check or "<!doctype" in cleaned_check:
-                                  print(f"🛑 REJECTED: HTML Error Page detected for {uri}.")
-                                  continue
+                                  cleaned_check = raw_content.lower().strip()
+                                  if "<html" in cleaned_check or "<a href=" in cleaned_check or "<!doctype" in cleaned_check or "next/static" in cleaned_check:
+                                      print(f"  ⚠️ Model {current_model} was blocked by an OpenRouter server HTML error page. Switching model...")
+                                      time.sleep(4)
+                                      continue
+                                  
+                                  # If we got clean code back, remove loose code block ticks
+                                  fixed_snippet = re.sub(r'```(?:csharp)?', '', raw_content, flags=re.IGNORECASE).strip()
+                                  if len(fixed_snippet) > 10:
+                                      break # Success! Break out of the model testing loop
+                                      
+                              except Exception as e:
+                                  print(f"  ⚠️ Connection issue with {current_model}: {e}. Trying fallback...")
+                                  time.sleep(4)
 
-                              # Strips out any loose code fencing tags the model might output
-                              fixed_snippet = re.sub(r'```(?:csharp)?', '', raw_content, flags=re.IGNORECASE).strip()
-
-                              if len(fixed_snippet) < 10:
-                                  print(f"⚠️ Empty rewrite for {uri}, skipping.")
-                                  continue
-
-                              # Rebuild the file structure by swapping the code block
+                          # Apply the fix if a model successfully generated code
+                          if fixed_snippet:
                               lines[start_idx:end_idx] = [fixed_snippet + "\n"]
-                              
                               with open(uri, "w") as f_code_w:
                                   f_code_w.writelines(lines)
                               
                               print(f"✅ Successfully patched: {uri}")
                               fixed_count += 1
-                              time.sleep(6) # 6 second break to satisfy free tier limits
-                              
-                          except Exception as e:
-                              print(f"Failed to patch file {uri}: {e}")
-                              time.sleep(6)
+                              time.sleep(5) # Cooldown to protect rate limits
+                          else:
+                              print(f"❌ Failed to patch {uri} because all OpenRouter free models were heavily overloaded.")
 
           print(f"Code repair cycle completed. Total files safely patched: {fixed_count}")
           EOF
