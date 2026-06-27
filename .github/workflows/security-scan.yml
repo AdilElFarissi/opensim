@@ -84,7 +84,6 @@ jobs:
           import time
           from groq import Groq
 
-          # FIXED: Using Groq SDK natively bypasses the 405 endpoint pathing issue entirely
           client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
           rules = ""
@@ -102,9 +101,10 @@ jobs:
           runs = sarif_data.get("runs", [])
           fixed_count = 0
 
+          # FIXED: Using currently active Groq model identifiers
           models_pool = [
-              "llama-3.3-70b-specdec",
-              "llama3-70b-8192"
+              "llama-3.3-70b-versatile",
+              "llama-3.1-8b-instant"
           ]
 
           for run in runs:
