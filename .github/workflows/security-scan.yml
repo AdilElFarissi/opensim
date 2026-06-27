@@ -118,7 +118,7 @@ jobs:
 
                           try:
                               response = client.chat.completions.create(
-                                  model="qwen/qwen3-coder-next:free",
+                                  model="openrouter/free",
                                   messages=[
                                       {"role": "system", "content": f"You are an expert C# compiler assistant. Fix the following code vulnerability. Adhere strictly to these architecture guidelines:\n{rules}\nReturn ONLY the raw fixed code. Do not include markdown code block syntax (like ```csharp)."},
                                       {"role": "user", "content": f"Vulnerability Details: {msg}\n\nFile Content:\n{original_code}"}
