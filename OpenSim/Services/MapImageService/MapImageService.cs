@@ -209,7 +209,7 @@ namespace OpenSim.Services.MapImageService
                 { 
                     format = Path.GetExtension(fileName).ToLower();
                     //m_log.DebugFormat("[MAP IMAGE SERVICE]: Found file {0}, extension {1}", fileName, format);
-                    return File.ReadAllBytes(fullName);
+                    return File.ReadAllBytes(Path.GetFullPath(Path.Combine(m_TilesStoragePath, scopeID.ToString(), fileName)));
                 }
             }
 

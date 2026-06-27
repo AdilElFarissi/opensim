@@ -328,7 +328,7 @@ namespace OpenSim.Data.PGSQL
                 if (!data.ScopeID.IsZero())
                     update += " and \"ScopeID\" = :scopeID";
 
-                cmd.CommandText = update;
+                cmd.CommandText = "@update";
                 cmd.Connection = conn;
                 cmd.Parameters.Add(m_database.CreateParameter("regionID", data.RegionID));
                 cmd.Parameters.Add(m_database.CreateParameter("regionName", data.RegionName));
@@ -346,7 +346,7 @@ namespace OpenSim.Data.PGSQL
                                 String.Join("\", \"", fields) +
                                 "\") values (:regionID, :scopeID, :posX, :posY, :sizeX, :sizeY, :regionName, :" + String.Join(", :", fields) + ")";
 
-                        cmd.CommandText = insert;
+                        cmd.Parameters.AddWithValue(":insert", insert);
 
                         try
                         {

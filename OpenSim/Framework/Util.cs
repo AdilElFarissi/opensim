@@ -2550,7 +2550,7 @@ namespace OpenSim.Framework
 
         public static void SerializeToFile(string filename, Object obj)
         {
-            var formatter = new BinaryFormatter();
+            var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
             try
             {
                 using Stream stream = new FileStream(filename, FileMode.Create,FileAccess.Write, FileShare.None);
@@ -2567,7 +2567,7 @@ namespace OpenSim.Framework
             try
             {
                 using Stream stream = new FileStream(filename, FileMode.Open,FileAccess.Read, FileShare.None);
-                var formatter = new BinaryFormatter();
+                var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
                 return formatter.Deserialize(stream);
             }
             catch (Exception e)

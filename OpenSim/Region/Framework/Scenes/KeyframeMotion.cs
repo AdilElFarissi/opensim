@@ -314,7 +314,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 using (MemoryStream ms = new MemoryStream(data))
                 {
-                    BinaryFormatter fmt = new BinaryFormatter();
+                    new BinaryFormatter(SecurityPolicyLevel.None);
                     newMotion = (KeyframeMotion)fmt.Deserialize(ms);
                 }
 
@@ -837,6 +837,19 @@ namespace OpenSim.Region.Framework.Scenes
             using (MemoryStream ms = new MemoryStream())
             {
                 BinaryFormatter fmt = new BinaryFormatter();
+ 
+
+should be replaced with:
+
+
+BinaryFormatter fmt = new BinaryFormatter();
+ 
+
+However, since the BinaryFormatter type is not recommended for data processing, it would be better to replace it with a safer serialization method, such as `JsonSerializer` from the `System.Text.Json` namespace:
+
+
+JsonSerializerOptions options = new JsonSerializerOptions();
+JsonSerializer fmt = new JsonSerializer(options);
                 if (!m_selected && tmp != null)
                     m_serializedPosition = tmp.AbsolutePosition;
                 fmt.Serialize(ms, this);

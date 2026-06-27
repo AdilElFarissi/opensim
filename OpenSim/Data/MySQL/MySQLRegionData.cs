@@ -322,7 +322,7 @@ namespace OpenSim.Data.MySQL
                 if (!data.ScopeID.IsZero())
                     update += " and ScopeID = ?scopeID";
 
-                cmd.CommandText = update;
+                cmd.CommandText = "update `" + m_Realm + "` set locX=@posX, locY=@posY, sizeX=@sizeX, sizeY=@sizeY";
                 cmd.Parameters.AddWithValue("?regionID", data.RegionID.ToString());
                 cmd.Parameters.AddWithValue("?regionName", data.RegionName);
                 cmd.Parameters.AddWithValue("?scopeID", data.ScopeID.ToString());
@@ -337,7 +337,7 @@ namespace OpenSim.Data.MySQL
                             String.Join("`, `", fields) +
                             "`) values ( ?regionID, ?scopeID, ?posX, ?posY, ?sizeX, ?sizeY, ?regionName, ?" + String.Join(", ?", fields) + ")";
 
-                    cmd.CommandText = insert;
+                    cmd.Parameters.AddWithValue("?insert", insert);
 
                     if (ExecuteNonQuery(cmd) < 1)
                     {

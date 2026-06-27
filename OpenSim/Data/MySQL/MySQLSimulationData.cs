@@ -301,7 +301,7 @@ namespace OpenSim.Data.MySQL
                         else
                             sqlparams = $"='{uuids[0]}'";
 
-                        cmd.CommandText = "delete from primshapes where UUID " + sqlparams;
+                        cmd.CommandText = "delete from primshapes where UUID @uuid";
                         ExecuteNonQuery(cmd);
 
                         cmd.CommandText = "delete from primitems where primID " + sqlparams;

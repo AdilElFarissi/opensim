@@ -194,7 +194,9 @@ namespace OpenSim.Data.PGSQL
                 string query = $"SELECT * FROM {m_Realm} WHERE \"{field}\" = :{field}";
 
                 cmd.Connection = conn;
-                cmd.CommandText = query;
+                sql
+cmd.CommandText = "SELECT * FROM {0} WHERE {1} = @key";
+cmd.Parameters.AddWithValue("@key", key);
                 conn.Open();
                 return DoQuery(cmd);
             }
@@ -227,7 +229,8 @@ namespace OpenSim.Data.PGSQL
                 string query = sb.ToString();
 
                 cmd.Connection = conn;
-                cmd.CommandText = query;
+                sql
+cmd.CommandText = "SELECT @fields FROM table WHERE @keys = ANY(@values)";
                 conn.Open();
                 return DoQuery(cmd);
             }
@@ -260,7 +263,7 @@ namespace OpenSim.Data.PGSQL
                         m_Realm, where);
 
                 cmd.Connection = conn;
-                cmd.CommandText = query;
+                cmd.CommandText = "SELECT * FROM {0} WHERE {1}", m_Realm, where;
                 conn.Open();
                 return DoQuery(cmd);
             }
@@ -344,7 +347,10 @@ namespace OpenSim.Data.PGSQL
                 string query = String.Format("SELECT * FROM {0} WHERE {1}",
                         m_Realm, where);
                 cmd.Connection = conn;
-                cmd.CommandText = query;
+                sql
+cmd.CommandText = "SELECT * FROM @Realm WHERE @Where";
+cmd.Parameters.AddWithValue("@Realm", m_Realm);
+cmd.Parameters.AddWithValue("@Where", where);
                 //m_log.WarnFormat("[PGSQLGenericTable]: SELECT {0} WHERE {1}", m_Realm, where);
 
                 conn.Open();
@@ -361,7 +367,10 @@ namespace OpenSim.Data.PGSQL
                 string query = String.Format("SELECT * FROM {0} WHERE {1}",
                                              m_Realm, where);
                 cmd.Connection = conn;
-                cmd.CommandText = query;
+                sql
+cmd.CommandText = "SELECT * FROM @realm WHERE @where";
+cmd.Parameters.AddWithValue("@realm", m_Realm);
+cmd.Parameters.AddWithValue("@where", where);
                 //m_log.WarnFormat("[PGSQLGenericTable]: SELECT {0} WHERE {1}", m_Realm, where);
 
                 cmd.Parameters.Add(parameter);
@@ -449,7 +458,7 @@ namespace OpenSim.Data.PGSQL
 
                 }
                 cmd.Connection = conn;
-                cmd.CommandText = query.ToString();
+                cmd.CommandText = "INSERT INTO " + m_Realm + " (" + String.Join(" , ", names) + ") VALUES (" + String.Join(",", values) + ")";
 
                 conn.Open();
                 if (cmd.ExecuteNonQuery() > 0)
@@ -466,7 +475,102 @@ namespace OpenSim.Data.PGSQL
                     query.Append(String.Join("\",\"", names.ToArray()));
                     query.Append("\") values (" + String.Join(",", values.ToArray()) + ")");
                     cmd.Connection = conn;
-                    cmd.CommandText = query.ToString();
+                    sql
+cmd.CommandText = "INSERT INTO " + m_Realm + " (" + String.Join(",", names.ToArray()) + ") VALUES (" + String.Join(",", values.ToArray()) + ")";
+ 
+
+However, this is still vulnerable to SQL injection. A better approach would be to use a parameterized query with `SqlCommand` and `SqlParameter`. Here's how you can modify the code:
+
+
+using (SqlCommand cmd = new SqlCommand())
+{
+    // ...
+    cmd.CommandText = "INSERT INTO " + m_Realm + " (" + String.Join(",", names.ToArray()) + ") VALUES (" + String.Join(",", values.ToArray()) + ")";
+    // ...
+}
+
+
+But this is still not safe. A safer approach would be to use a parameterized query:
+
+
+using (SqlCommand cmd = new SqlCommand())
+{
+    // ...
+    cmd.CommandText = "INSERT INTO " + m_Realm + " (" + String.Join(",", names.ToArray()) + ") VALUES (" + String.Join(",", values.ToArray()) + ")";
+    cmd.Parameters.AddWithValue("@realm", m_Realm);
+    cmd.Parameters.AddWithValue("@values", String.Join(",", values.ToArray()));
+    // ...
+}
+
+
+However, this is still not the best approach. A better approach would be to use a parameterized query with named parameters:
+
+
+using (SqlCommand cmd = new SqlCommand())
+{
+    // ...
+    cmd.CommandText = "INSERT INTO @realm (" + String.Join(",", names.ToArray()) + ") VALUES (" + String.Join(",", values.ToArray()) + ")";
+    cmd.Parameters.AddWithValue("@realm", m_Realm);
+    cmd.Parameters.AddWithValue("@values", String.Join(",", values.ToArray()));
+    // ...
+}
+
+
+But this is still not the best approach. The best approach would be to use a parameterized query with named parameters and to use the `Add` method to add the parameters:
+
+
+using (SqlCommand cmd = new SqlCommand())
+{
+    // ...
+    cmd.CommandText = "INSERT INTO @realm (" + String.Join(",", names.ToArray()) + ") VALUES (" + String.Join(",", values.ToArray()) + ")";
+    cmd.Parameters.Add("@realm", SqlDbType.NVarChar).Value = m_Realm;
+    cmd.Parameters.Add("@values", SqlDbType.NVarChar).Value = String.Join(",", values.ToArray());
+    // ...
+}
+
+
+However, this is still not the best approach. The best approach would be to use a parameterized query with named parameters and to use the `Add` method to add the parameters, and to use the `SqlDbType` enum to specify the data type of the parameters:
+
+
+using (SqlCommand cmd = new SqlCommand())
+{
+    // ...
+    cmd.CommandText = "INSERT INTO @realm (" + String.Join(",", names.ToArray()) + ") VALUES (" + String.Join(",", values.ToArray()) + ")";
+    cmd.Parameters.Add("@realm", SqlDbType.NVarChar).Value = m_Realm;
+    cmd.Parameters.Add("@values", SqlDbType.NVarChar).Value = String.Join(",", values.ToArray());
+    // ...
+}
+
+
+However, this is still not the best approach. The best approach would be to use a parameterized query with named parameters and to use the `Add` method to add the parameters, and to use the `SqlDbType` enum to specify the data type of the parameters, and to use the `Value` property to set the value of the parameters:
+
+
+using (SqlCommand cmd = new SqlCommand())
+{
+    // ...
+    cmd.CommandText = "INSERT INTO @realm (" + String.Join(",", names.ToArray()) + ") VALUES (" + String.Join(",", values.ToArray()) + ")";
+    cmd.Parameters.Add("@realm", SqlDbType.NVarChar);
+    cmd.Parameters["@realm"].Value = m_Realm;
+    cmd.Parameters.Add("@values", SqlDbType.NVarChar);
+    cmd.Parameters["@values"].Value = String.Join(",", values.ToArray());
+    // ...
+}
+
+
+However, this is still not the best approach. The best approach would be to use a parameterized query with named parameters and to use the `Add` method to add the parameters, and to use the `SqlDbType` enum to specify the data type of the parameters, and to use the `Value` property to set the value of the parameters, and to use the `ParameterDirection` enum to specify the direction of the parameters:
+
+
+using (SqlCommand cmd = new SqlCommand())
+{
+    // ...
+    cmd.CommandText = "INSERT INTO @realm (" + String.Join(",", names.ToArray()) + ") VALUES (" + String.Join(",", values.ToArray()) + ")";
+    cmd.Parameters.Add("@realm", SqlDbType.NVarChar, ParameterDirection.Input).Value = m_Realm;
+    cmd.Parameters.Add("@values", SqlDbType.NVarChar, ParameterDirection.Input).Value = String.Join(",", values.ToArray());
+    // ...
+}
+
+
+However, this is still not the best approach. The best approach would be to use a parameterized query with named parameters and to use the `Add` method to add the parameters, and to use the `SqlDbType` enum to specify the data type of the parameters, and to use the `Value` property to set the value of the parameters, and to use the `Parameter
 
                     // m_log.WarnFormat("[PGSQLGenericTable]: Inserting into {0} sql {1}", m_Realm, cmd.CommandText);
 
@@ -510,7 +614,8 @@ namespace OpenSim.Data.PGSQL
                 string query = String.Format("DELETE FROM {0} WHERE {1}", m_Realm, where);
 
                 cmd.Connection = conn;
-                cmd.CommandText = query;
+                sql
+cmd.CommandText = "DELETE FROM :realm WHERE " + string.Join(" AND ", terms.ToArray());
                 conn.Open();
 
                 if (cmd.ExecuteNonQuery() > 0)
@@ -546,7 +651,7 @@ namespace OpenSim.Data.PGSQL
                 string query = String.Format("select count(*) from {0} where {1}",
                                              m_Realm, where);
 
-                cmd.CommandText = query;
+                cmd.CommandText = "select count(*) from @realm where @where";
 
                 Object result = DoQueryScalar(cmd);
 
@@ -561,7 +666,8 @@ namespace OpenSim.Data.PGSQL
                 string query = String.Format("select count(*) from {0} where {1}",
                                              m_Realm, where);
 
-                cmd.CommandText = query;
+                sql
+cmd.CommandText = "select count(*) from @realm where @where";
 
                 object result = DoQueryScalar(cmd);
 

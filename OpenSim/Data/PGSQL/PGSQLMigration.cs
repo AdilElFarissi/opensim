@@ -54,7 +54,8 @@ namespace OpenSim.Data.PGSQL
             {
                 try
                 {
-                    cmd.CommandText = "select version from migrations where name = '" + type + "' " +
+                    sql
+cmd.CommandText = "select version from migrations where name = @name order by version desc limit 1";
                                       " order by version desc limit 1"; //Must be
                     using (NpgsqlDataReader reader = cmd.ExecuteReader())
                     {

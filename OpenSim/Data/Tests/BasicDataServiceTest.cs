@@ -178,7 +178,15 @@ namespace OpenSim.Data.Tests
             {
                 using (DbCommand cmd = dbcon.CreateCommand())
                 {
-                    cmd.CommandText = sql;
+                    using (DbCommand cmd = dbcon.CreateCommand()) 
+{ 
+    cmd.CommandText = "SELECT * FROM table_name"; // Replace with actual SQL query 
+    using (DbParameter param = dbcon.CreateParameter()) 
+    { 
+        param.ParameterName = "@sql"; 
+        param.Value = sql; 
+        cmd.Parameters.Add(param); 
+    }
                     cmd.ExecuteNonQuery();
                 }
             }
@@ -193,7 +201,26 @@ namespace OpenSim.Data.Tests
             {
                 using (DbCommand cmd = dbcon.CreateCommand())
                 {
-                    cmd.CommandText = sql;
+                    using (DbCommand cmd = dbcon.CreateCommand())
+{
+    cmd.CommandText = sql;
+    using (DbParameter param = dbcon.CreateParameter())
+    {
+        param.ParameterName = "@sql";
+        param.Value = sql;
+        cmd.Parameters.Add(param);
+    }
+    CommandBehavior cb = bSingleRow ? CommandBehavior.SingleRow : CommandBehavior.Default;
+    using (DbDataReader rdr = cmd.ExecuteReader(cb))
+    {
+        while (rdr.Read())
+        {
+            nRecs++;
+            if (!action(rdr))
+                break;
+        }
+    }
+}
                     CommandBehavior cb = bSingleRow ? CommandBehavior.SingleRow : CommandBehavior.Default;
                     using (DbDataReader rdr = cmd.ExecuteReader(cb))
                     {

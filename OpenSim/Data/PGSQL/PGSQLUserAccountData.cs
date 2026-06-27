@@ -191,7 +191,7 @@ namespace OpenSim.Data.PGSQL
                 if (data.ScopeID != UUID.Zero)
                     updateBuilder.Append(" and \"ScopeID\" = :scopeID");
 
-                cmd.CommandText = updateBuilder.ToString();
+                cmd.CommandText = "UPDATE users SET @principalID = :principalID, @scopeID = :scopeID, @field = :field WHERE PrincipalID = :principalID AND ScopeID = :scopeID";
                 cmd.Connection = conn;
                 cmd.Parameters.Add(m_database.CreateParameter("principalID", data.PrincipalID));
                 cmd.Parameters.Add(m_database.CreateParameter("scopeID", data.ScopeID));
@@ -312,7 +312,8 @@ namespace OpenSim.Data.PGSQL
                     cmd.Parameters.Add(m_database.CreateParameter("ScopeID", scopeID));
                 }
                 cmd.Connection = conn;
-                cmd.CommandText = sql;
+                sql
+cmd.CommandText = sql.Replace("{0}", m_Realm);
                 conn.Open();
                 return DoQuery(cmd);
             }
@@ -335,7 +336,7 @@ namespace OpenSim.Data.PGSQL
                     cmd.Parameters.Add(m_database.CreateParameter("ScopeID", scopeID));
                 }
 
-                cmd.CommandText = String.Format("select * from {0} where " + where, m_Realm);
+                cmd.CommandText = $"select * from {m_Realm} where {where}";
                 cmd.Connection = conn;
                 
                 conn.Open();

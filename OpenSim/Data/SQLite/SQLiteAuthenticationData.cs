@@ -154,7 +154,7 @@ namespace OpenSim.Data.SQLite
                     update += " where UUID = :UUID";
                     cmd.Parameters.Add(new SQLiteParameter(":UUID", data.PrincipalID.ToString()));
 
-                    cmd.CommandText = update;
+                    cmd.CommandText = "UPDATE " + tableName + " SET " + update + " WHERE UUID = :UUID";
                     try
                     {
                         if (ExecuteNonQuery(cmd, m_Connection) < 1)
@@ -180,7 +180,8 @@ namespace OpenSim.Data.SQLite
                     foreach (string field in fields)
                         cmd.Parameters.Add(new SQLiteParameter(":" + field, data.Data[field]));
 
-                    cmd.CommandText = insert;
+                    sql
+cmd.CommandText = "insert into `" + m_Realm + "` (`UUID`, `" + String.Join("`, `", fields) + "`) values (:UUID, :" + String.Join(", :", fields) + ")";
 
                     try
                     {

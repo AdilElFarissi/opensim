@@ -142,7 +142,8 @@ namespace OpenSim.Data.SQLite
                 string query = String.Format("select * from {0} where {1}",
                         m_Realm, where);
 
-                cmd.CommandText = query;
+                sql
+cmd.CommandText = "select * from @Realm where " + string.Join(" and ", terms.ToArray());
 
                 return DoQuery(cmd);
             }
@@ -217,7 +218,8 @@ namespace OpenSim.Data.SQLite
                 string query = String.Format("select * from {0} where {1}",
                         m_Realm, where);
 
-                cmd.CommandText = query;
+                sql
+cmd.CommandText = "select * from @realm where @where";
 
                 return DoQuery(cmd);
             }
@@ -253,7 +255,7 @@ namespace OpenSim.Data.SQLite
 
                 query = String.Format("replace into {0} (`", m_Realm) + String.Join("`,`", names.ToArray()) + "`) values (" + String.Join(",", values.ToArray()) + ")";
 
-                cmd.CommandText = query;
+                cmd.CommandText = "replace into " + m_Realm + " (`" + String.Join("`,`", names.ToArray()) + "`) values (" + String.Join(",", values.ToArray()) + ")";
 
                 if (ExecuteNonQuery(cmd, m_Connection) > 0)
                     return true;
@@ -286,7 +288,8 @@ namespace OpenSim.Data.SQLite
 
                 string query = String.Format("delete from {0} where {1}", m_Realm, where);
 
-                cmd.CommandText = query;
+                sql
+cmd.CommandText = $"DELETE FROM {m_Realm} WHERE {String.Join(" AND ", terms.Select(t => $"`{t}` = :{t.Substring(3)}"))}";
 
                 return ExecuteNonQuery(cmd, m_Connection) > 0;
             }

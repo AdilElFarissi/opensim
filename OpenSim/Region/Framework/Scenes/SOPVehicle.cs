@@ -600,7 +600,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             v.FromXml2(xreader, out error);
 
-            xreader.Close();
+            xreader.Dispose();
 
             if (error)
             {

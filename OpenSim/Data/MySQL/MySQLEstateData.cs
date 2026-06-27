@@ -108,7 +108,18 @@ namespace OpenSim.Data.MySQL
 
             using (MySqlCommand cmd = new MySqlCommand())
             {
-                cmd.CommandText = sql;
+                sql
+cmd.CommandText = "select estate_settings." + String.Join(",estate_settings.", FieldList) +
+    " from estate_map left join estate_settings on estate_settings.EstateID = estate_map.EstateID where estate_settings.EstateID is not null and RegionID = @RegionID";
+
+
+However, since you're using `MySqlCommand` which is a part of `System.Data.SqlClient`, you should use `AddWithValue` method to add parameters to the command. But in this case, it's better to use `Add` method with the parameter name to avoid confusion with the parameter name in the SQL query.
+
+
+cmd.CommandText = "select estate_settings." + String.Join(",estate_settings.", FieldList) +
+    " from estate_map left join estate_settings on estate_settings.EstateID = estate_map.EstateID where estate_settings.EstateID is not null and RegionID = @RegionID";
+
+cmd.Parameters.AddWithValue("@RegionID", regionID.ToString());
                 cmd.Parameters.AddWithValue("?RegionID", regionID.ToString());
 
                 EstateSettings e = DoLoad(cmd, regionID, create);
@@ -205,7 +216,7 @@ namespace OpenSim.Data.MySQL
                 dbcon.Open();
                 using (MySqlCommand cmd2 = dbcon.CreateCommand())
                 {
-                    cmd2.CommandText = sql;
+                    cmd2.CommandText = "insert into estate_settings (" + String.Join(",", names.ToArray()) + ") values ( @?" + String.Join(", @?", names.ToArray()) + ")";
                     cmd2.Parameters.Clear();
 
                     foreach (string name in FieldList)
@@ -254,7 +265,25 @@ namespace OpenSim.Data.MySQL
 
                 using (MySqlCommand cmd = dbcon.CreateCommand())
                 {
-                    cmd.CommandText = sql;
+                    using (MySqlCommand cmd = dbcon.CreateCommand())
+{
+    cmd.CommandText = "replace into estate_settings (" + String.Join(",", FieldList) + ") values ( @values )";
+    cmd.Parameters.AddWithValue("@values", string.Join(",", FieldList.Select(name => m_FieldMap[name].GetValue(es).ToString())));
+
+    foreach (string name in FieldList)
+    {
+        if (m_FieldMap[name].GetValue(es) is bool)
+        {
+            if ((bool)m_FieldMap[name].GetValue(es))
+                cmd.Parameters.AddWithValue("@" + name, "1");
+            else
+                cmd.Parameters.AddWithValue("@" + name, "0");
+        }
+        else
+        {
+            cmd.Parameters.AddWithValue("@" + name, m_FieldMap[name].GetValue(es).ToString());
+        }
+    }
 
                     foreach (string name in FieldList)
                     {
@@ -353,14 +382,14 @@ namespace OpenSim.Data.MySQL
 
                 using (MySqlCommand cmd = dbcon.CreateCommand())
                 {
-                    cmd.CommandText = "delete from " + table + " where EstateID = ?EstateID";
+                    cmd.CommandText = $"delete from {table} where EstateID = @EstateID";
                     cmd.Parameters.AddWithValue("?EstateID", EstateID.ToString());
 
                     cmd.ExecuteNonQuery();
 
                     cmd.Parameters.Clear();
 
-                    cmd.CommandText = "insert into " + table + " (EstateID, uuid) values ( ?EstateID, ?uuid )";
+                    cmd.CommandText = $"insert into {table} (EstateID, uuid) values (@EstateID, @uuid)";
 
                     foreach (UUID uuid in data)
                     {
@@ -385,7 +414,7 @@ namespace OpenSim.Data.MySQL
 
                 using (MySqlCommand cmd = dbcon.CreateCommand())
                 {
-                    cmd.CommandText = "select uuid from " + table + " where EstateID = ?EstateID";
+                    cmd.CommandText = $"select uuid from {table} where EstateID = @EstateID";
                     cmd.Parameters.AddWithValue("?EstateID", EstateID);
 
                     using (IDataReader r = cmd.ExecuteReader())
@@ -409,7 +438,7 @@ namespace OpenSim.Data.MySQL
             {
                 string sql = "select estate_settings." + String.Join(",estate_settings.", FieldList) + " from estate_settings where EstateID = ?EstateID";
 
-                cmd.CommandText = sql;
+                cmd.CommandText = "select estate_settings." + String.Join(",estate_settings.", FieldList) + " from estate_settings where EstateID = @EstateID";
                 cmd.Parameters.AddWithValue("?EstateID", estateID);
 
                 EstateSettings e =  DoLoad(cmd, UUID.Zero, false);

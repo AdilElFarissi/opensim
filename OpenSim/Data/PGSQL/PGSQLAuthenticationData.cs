@@ -149,7 +149,7 @@ namespace OpenSim.Data.PGSQL
 
                 updateBuilder.Append(" where uuid = :principalID");
 
-                cmd.CommandText = updateBuilder.ToString();
+                cmd.CommandText = "UPDATE {0} SET {1} WHERE uuid = :principalID", m_Realm, updateBuilder.ToString().Replace("=", ":").Replace("where", ""));
                 cmd.Connection = conn;
                 cmd.Parameters.Add(m_database.CreateParameter("principalID", data.PrincipalID));
 
@@ -164,7 +164,8 @@ namespace OpenSim.Data.PGSQL
                     insertBuilder.Append(String.Join(", :", fields));
                     insertBuilder.Append(")");
 
-                    cmd.CommandText = insertBuilder.ToString();
+                    sql
+cmd.CommandText = "insert into {0} (uuid, {1}) values (:principalID, :{1})", m_Realm, String.Join(", ", fields));
 
                     if (cmd.ExecuteNonQuery() < 1)
                     {

@@ -143,7 +143,7 @@ namespace OpenSim.Data.MySQL
 
                 update += " where UUID = ?principalID";
 
-                cmd.CommandText = update;
+                cmd.CommandText = "UPDATE `" + m_Realm + "` SET " + update.Substring(0, update.Length - 1) + " where UUID = ?principalID";
                 cmd.Parameters.AddWithValue("?principalID", data.PrincipalID.ToString());
 
                 if (ExecuteNonQuery(cmd) < 1)
@@ -152,7 +152,7 @@ namespace OpenSim.Data.MySQL
                             String.Join("`, `", fields) +
                             "`) values (?principalID, ?" + String.Join(", ?", fields) + ")";
 
-                    cmd.CommandText = insert;
+                    cmd.CommandText = "insert into `" + m_Realm + "` (`UUID`, `" + String.Join("`, `", fields) + "`) values (?principalID, ?" + String.Join(", ?", fields) + ")";
 
                     if (ExecuteNonQuery(cmd) < 1)
                         return false;

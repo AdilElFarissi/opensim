@@ -189,7 +189,25 @@ namespace OpenSim.Data.SQLite
             try {
                 using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
                 {
-                    cmd.CommandText = query;
+                    using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
+{
+    cmd.CommandText = "INSERT INTO Classifieds (ClassifiedId, CreatorId, CreatedDate, ExpirationDate, Category, Name, Description, ParcelId, ParentEstate, SnapshotId, SimName, GlobalPos, ParcelName, Flags, ListingPrice) VALUES (@ClassifiedId, @CreatorId, @CreatedDate, @ExpirationDate, @Category, @Name, @Description, @ParcelId, @ParentEstate, @SnapshotId, @SimName, @GlobalPos, @ParcelName, @Flags, @ListingPrice)";
+    cmd.Parameters.AddWithValue("@ClassifiedId", ad.ClassifiedId);
+    cmd.Parameters.AddWithValue("@CreatorId", ad.CreatorId);
+    cmd.Parameters.AddWithValue("@CreatedDate", ad.CreationDate);
+    cmd.Parameters.AddWithValue("@ExpirationDate", ad.ExpirationDate);
+    cmd.Parameters.AddWithValue("@Category", ad.Category);
+    cmd.Parameters.AddWithValue("@Name", ad.Name);
+    cmd.Parameters.AddWithValue("@Description", ad.Description);
+    cmd.Parameters.AddWithValue("@ParcelId", ad.ParcelId);
+    cmd.Parameters.AddWithValue("@ParentEstate", ad.ParentEstate);
+    cmd.Parameters.AddWithValue("@SnapshotId", ad.SnapshotId);
+    cmd.Parameters.AddWithValue("@SimName", ad.SimName);
+    cmd.Parameters.AddWithValue("@GlobalPos", ad.GlobalPos);
+    cmd.Parameters.AddWithValue("@ParcelName", ad.ParcelName);
+    cmd.Parameters.AddWithValue("@Flags", ad.Flags);
+    cmd.Parameters.AddWithValue("@ListingPrice", ad.Price);
+}
                     cmd.Parameters.AddWithValue(":ClassifiedId", ad.ClassifiedId.ToString());
                     cmd.Parameters.AddWithValue(":CreatorId", ad.CreatorId.ToString());
                     cmd.Parameters.AddWithValue(":CreatedDate", ad.CreationDate.ToString());
@@ -229,7 +247,7 @@ namespace OpenSim.Data.SQLite
             {
                 using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
                 {
-                    cmd.CommandText = query;
+                    cmd.CommandText = "DELETE FROM classifieds WHERE classifieduuid = @ClassifiedId";
                     cmd.Parameters.AddWithValue(":ClassifiedId", recordId.ToString());
 
                     cmd.ExecuteNonQuery();
@@ -256,7 +274,8 @@ namespace OpenSim.Data.SQLite
             {
                 using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
                 {
-                    cmd.CommandText = query;
+                    sql
+cmd.CommandText = "SELECT * FROM classifieds WHERE classifieduuid = @AdId";
                     cmd.Parameters.AddWithValue(":AdId", ad.ClassifiedId.ToString());
 
                     using (reader = cmd.ExecuteReader())
@@ -302,7 +321,12 @@ namespace OpenSim.Data.SQLite
             {
                 using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
                 {
-                    cmd.CommandText = query;
+                    using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
+{
+    cmd.CommandText = "SELECT `pickuuid`,`name` FROM userpicks WHERE creatoruuid = @Id";
+    cmd.Parameters.AddWithValue("@Id", avatarId.ToString());
+
+    // ... rest of the code remains the same ...
                     cmd.Parameters.AddWithValue(":Id", avatarId.ToString());
 
                     using (reader = cmd.ExecuteReader())
@@ -339,7 +363,8 @@ namespace OpenSim.Data.SQLite
             {
                 using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
                 {
-                    cmd.CommandText = query;
+                    sql
+cmd.CommandText = "SELECT * FROM userpicks WHERE creatoruuid = @CreatorId AND pickuuid = @PickId";
                     cmd.Parameters.AddWithValue(":CreatorId", avatarId.ToString());
                     cmd.Parameters.AddWithValue(":PickId", pickId.ToString());
 
@@ -420,7 +445,7 @@ namespace OpenSim.Data.SQLite
                     int enabled;
                     int.TryParse(pick.Enabled.ToString(), out enabled);
 
-                    cmd.CommandText = query;
+                    cmd.CommandText = "INSERT INTO Picks (PickId, CreatorId, TopPick, ParcelId, Name, Desc, SnapshotId, User, Original, SimName, GlobalPos, SortOrder, Enabled) VALUES (@PickId, @CreatorId, @TopPick, @ParcelId, @Name, @Desc, @SnapshotId, @User, @Original, @SimName, @GlobalPos, @SortOrder, @Enabled)";
                     cmd.Parameters.AddWithValue(":PickId", pick.PickId.ToString());
                     cmd.Parameters.AddWithValue(":CreatorId", pick.CreatorId.ToString());
                     cmd.Parameters.AddWithValue(":TopPick", top_pick);
@@ -458,7 +483,7 @@ namespace OpenSim.Data.SQLite
             {
                 using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
                 {
-                    cmd.CommandText = query;
+                    cmd.CommandText = "DELETE FROM userpicks WHERE pickuuid = @PickId";
                     cmd.Parameters.AddWithValue(":PickId", pickId.ToString());
                     cmd.ExecuteNonQuery();
                 }
@@ -486,7 +511,7 @@ namespace OpenSim.Data.SQLite
             {
                 using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
                 {
-                    cmd.CommandText = query;
+                    cmd.CommandText = "SELECT `notes` FROM usernotes WHERE useruuid = @Id AND targetuuid = @TargetId";
                     cmd.Parameters.AddWithValue(":Id", notes.UserId.ToString());
                     cmd.Parameters.AddWithValue(":TargetId", notes.TargetId.ToString());
 
@@ -532,7 +557,7 @@ namespace OpenSim.Data.SQLite
             {
                 using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
                 {
-                    cmd.CommandText = query;
+                    cmd.CommandText = "INSERT OR REPLACE INTO usernotes VALUES ( @UserId, @TargetId, @Notes )";
 
                     if(!remove)
                         cmd.Parameters.AddWithValue(":Notes", note.Notes);
@@ -561,7 +586,8 @@ namespace OpenSim.Data.SQLite
 
                 using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
                 {
-                    cmd.CommandText = query;
+                    sql
+cmd.CommandText = "SELECT * FROM userprofile WHERE useruuid = @Id";
                     cmd.Parameters.AddWithValue(":Id", props.UserId.ToString());
 
 
@@ -677,7 +703,7 @@ namespace OpenSim.Data.SQLite
             {
                 using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
                 {
-                    cmd.CommandText = query;
+                    cmd.CommandText = "UPDATE userprofile SET profileURL=@profileURL, profileImage=@image, profileAboutText=@abouttext, profileFirstImage=@firstlifeimage, profileFirstText=@firstlifetext WHERE useruuid=@uuid";
                     cmd.Parameters.AddWithValue(":profileURL", props.WebUrl);
                     cmd.Parameters.AddWithValue(":image", props.ImageId.ToString());
                     cmd.Parameters.AddWithValue(":abouttext", props.AboutText);
@@ -714,7 +740,7 @@ namespace OpenSim.Data.SQLite
             {
                 using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
                 {
-                    cmd.CommandText = query;
+                    cmd.CommandText = "UPDATE userprofile SET profileWantToMask=:WantMask, profileWantToText=:WantText,profileSkillsMask=:SkillsMask,profileSkillsText=:SkillsText, profileLanguages=:Languages WHERE useruuid=:uuid";
                     cmd.Parameters.AddWithValue(":WantMask", up.WantToMask);
                     cmd.Parameters.AddWithValue(":WantText", up.WantToText);
                     cmd.Parameters.AddWithValue(":SkillsMask", up.SkillsMask);
@@ -750,7 +776,7 @@ namespace OpenSim.Data.SQLite
             {
                 using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
                 {
-                    cmd.CommandText = query;
+                    cmd.CommandText = "UPDATE usersettings SET imviaemail=@ImViaEmail, visible=@Visible, email=@EMail WHERE useruuid=@uuid";
                     cmd.Parameters.AddWithValue(":ImViaEmail", pref.IMViaEmail);
                     cmd.Parameters.AddWithValue(":Visible", pref.Visible);
                     cmd.Parameters.AddWithValue(":EMail", pref.EMail);
@@ -784,7 +810,8 @@ namespace OpenSim.Data.SQLite
             {
                 using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
                 {
-                    cmd.CommandText = query;
+                    sql
+cmd.CommandText = "SELECT imviaemail,visible,email FROM usersettings WHERE useruuid = @Id";
                     cmd.Parameters.AddWithValue("?Id", pref.UserId.ToString());
 
                     using (reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
@@ -834,7 +861,10 @@ namespace OpenSim.Data.SQLite
             {
                 using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
                 {
-                    cmd.CommandText = query;
+                    sql
+cmd.CommandText = "SELECT * FROM `userdata` WHERE UserId = @Id AND TagId = @TagId";
+cmd.Parameters.AddWithValue("@Id", props.UserId.ToString());
+cmd.Parameters.AddWithValue("@TagId", props.TagId.ToString());
                     cmd.Parameters.AddWithValue(":Id", props.UserId.ToString());
                     cmd.Parameters.AddWithValue (":TagId", props.TagId.ToString());
 
@@ -890,7 +920,7 @@ namespace OpenSim.Data.SQLite
             {
                 using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
                 {
-                    cmd.CommandText = query;
+                    cmd.CommandText = "UPDATE userdata SET TagId = @TagId, DataKey = @DataKey, DataVal = @DataVal WHERE UserId = @UserId AND TagId = @TagId";
                     cmd.Parameters.AddWithValue(":UserId", props.UserId.ToString());
                     cmd.Parameters.AddWithValue(":TagId", props.TagId.ToString ());
                     cmd.Parameters.AddWithValue(":DataKey", props.DataKey.ToString ());
@@ -920,7 +950,7 @@ namespace OpenSim.Data.SQLite
             {
                 using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
                 {
-                    cmd.CommandText = string.Format(query, "\"classifieds\"");
+                    cmd.CommandText = query.Replace(":Id", "\"classifieds\"");
                     cmd.Parameters.AddWithValue(":Id", avatarId.ToString());
 
                     using (reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
@@ -934,7 +964,7 @@ namespace OpenSim.Data.SQLite
 
                 using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
                 {
-                    cmd.CommandText = string.Format(query, "\"userpicks\"");
+                    cmd.CommandText = query.Replace(":Id", "\"userpicks\"");
                     cmd.Parameters.AddWithValue(":Id", avatarId.ToString());
 
                     using (reader = cmd.ExecuteReader(CommandBehavior.SingleRow))

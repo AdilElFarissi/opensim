@@ -119,7 +119,7 @@ namespace OpenSim.Data.MySQL
             using (MySqlCommand cmd = new MySqlCommand())
             {
                 cmd.Parameters.AddWithValue(field, key);
-                cmd.CommandText = $"select * from {m_Realm} where `{field}` = ?{field}";
+                cmd.CommandText = $"select * from {m_Realm} where {field} = @field";
                 return DoQuery(cmd);
             }
         }
@@ -146,7 +146,8 @@ namespace OpenSim.Data.MySQL
                     else
                         sb.Append(")");
                 }
-                cmd.CommandText = sb.ToString();
+                sql
+cmd.CommandText = "select * from @realm where @field IN (@params)";
                 return DoQuery(cmd);
             }
         }
@@ -178,7 +179,9 @@ namespace OpenSim.Data.MySQL
                 }
 
                 sb.Append(options);
-                cmd.CommandText = sb.ToString();
+                sql
+cmd.CommandText = "select * from @realm where " + options;
+cmd.Parameters.AddWithValue("@realm", m_Realm);
 
                 return DoQuery(cmd);
             }
@@ -283,7 +286,8 @@ namespace OpenSim.Data.MySQL
         {
             using (MySqlCommand cmd = new MySqlCommand())
             {
-                cmd.CommandText = $"select * from {m_Realm} where {where}"; ;
+                sql
+cmd.CommandText = $"SELECT * FROM {m_Realm} WHERE {where}";
 
                 return DoQuery(cmd);
             }
@@ -329,7 +333,7 @@ namespace OpenSim.Data.MySQL
 
                 query = $"replace into {m_Realm} (`" + String.Join("`,`", names.ToArray()) + "`) values (" + String.Join(",", values.ToArray()) + ")";
 
-                cmd.CommandText = query;
+                cmd.CommandText = "replace into " + m_Realm + " (" + String.Join("`,`", names.ToArray()) + ") values (" + String.Join(",", values.ToArray()) + ")";
 
                 if (ExecuteNonQuery(cmd) > 0)
                     return true;
@@ -368,7 +372,13 @@ namespace OpenSim.Data.MySQL
                         sb.AppendFormat("`{0}` = ?{0}", fields[i]);
                 }
 
-                cmd.CommandText = sb.ToString();
+                sql
+cmd.CommandText = "delete from @realm where " + string.Join(" and ", fields.Select((field, i) => $"{field} = @{i}"));
+cmd.Parameters.AddWithValue("@realm", m_Realm);
+foreach (var pair in fields.Zip(keys, (field, key) => new { field, key }))
+{
+    cmd.Parameters.AddWithValue($"@{pair.field}", pair.key);
+}
                 return ExecuteNonQuery(cmd) > 0;
             }
         }
@@ -399,7 +409,7 @@ namespace OpenSim.Data.MySQL
                         sb.AppendFormat("`{0}` = ?{0}", fields[i]);
                 }
 
-                cmd.CommandText = sb.ToString();
+                cmd.CommandText = "select count(*) from @realm where @where";
                 object result = DoQueryScalar(cmd);
 
                 return Convert.ToInt64(result);
@@ -413,7 +423,8 @@ namespace OpenSim.Data.MySQL
                 string query = String.Format("select count(*) from {0} where {1}",
                                              m_Realm, where);
 
-                cmd.CommandText = query;
+                sql
+cmd.CommandText = "select count(*) from @realm where @where";
 
                 object result = DoQueryScalar(cmd);
 

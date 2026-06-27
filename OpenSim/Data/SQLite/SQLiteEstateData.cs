@@ -102,7 +102,8 @@ namespace OpenSim.Data.SQLite
 
             using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
             {
-                cmd.CommandText = sql;
+                sql
+cmd.CommandText = "select estate_settings.* from estate_map left join estate_settings on estate_map.EstateID = estate_settings.EstateID where estate_settings.EstateID is not null and RegionID = @RegionID";
                 cmd.Parameters.AddWithValue(":RegionID", regionID.ToString());
 
                 return DoLoad(cmd, regionID, create);
@@ -322,14 +323,14 @@ namespace OpenSim.Data.SQLite
         {
             using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
             {
-                cmd.CommandText = "delete from "+table+" where EstateID = :EstateID";
+                cmd.CommandText = "delete from :table where EstateID = :EstateID";
                 cmd.Parameters.AddWithValue(":EstateID", EstateID.ToString());
 
                 cmd.ExecuteNonQuery();
 
                 cmd.Parameters.Clear();
 
-                cmd.CommandText = "insert into "+table+" (EstateID, uuid) values ( :EstateID, :uuid )";
+                cmd.CommandText = "insert into " + table + " (EstateID, uuid) values (@EstateID, @uuid)";
 
                 foreach (UUID uuid in data)
                 {
@@ -349,7 +350,8 @@ namespace OpenSim.Data.SQLite
 
             using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
             {
-                cmd.CommandText = "select uuid from "+table+" where EstateID = :EstateID";
+                sql
+cmd.CommandText = "select uuid from :table where EstateID = :EstateID";
                 cmd.Parameters.AddWithValue(":EstateID", EstateID);
 
                 r = cmd.ExecuteReader();
@@ -375,7 +377,13 @@ namespace OpenSim.Data.SQLite
 
             using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
             {
-                cmd.CommandText = sql;
+                using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
+{
+    cmd.CommandText = "select estate_settings." + String.Join(",estate_settings.", FieldList) + " from estate_settings where estate_settings.EstateID = @EstateID";
+    cmd.Parameters.AddWithValue("@EstateID", estateID.ToString());
+
+    return DoLoad(cmd, UUID.Zero, false);
+}
                 cmd.Parameters.AddWithValue(":EstateID", estateID.ToString());
 
                 return DoLoad(cmd, UUID.Zero, false);

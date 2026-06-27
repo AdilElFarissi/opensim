@@ -156,7 +156,8 @@ namespace OpenSim.Data.MySQL
 
                 using (MySqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = String.Format("select id, name, description, type, hash, create_time, asset_flags, access_time from {0} where id = ?id", m_Table);
+                    cmd.CommandText = $"select id, name, description, type, hash, create_time, asset_flags, access_time from {m_Table} where id = @id"; 
+cmd.Parameters.AddWithValue("@id", id);
                     cmd.Parameters.AddWithValue("?id", id);
 
                     using (IDataReader reader = cmd.ExecuteReader())
@@ -207,7 +208,7 @@ namespace OpenSim.Data.MySQL
 
                 using (MySqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = String.Format("UPDATE {0} SET `access_time` = UNIX_TIMESTAMP() WHERE `id` = ?id", m_Table);
+                    cmd.CommandText = $"UPDATE {m_Table} SET `access_time` = UNIX_TIMESTAMP() WHERE `id` = @id";
                     cmd.Parameters.AddWithValue("?id", AssetID);
                     cmd.ExecuteNonQuery();
                 }
@@ -234,7 +235,8 @@ namespace OpenSim.Data.MySQL
 
                     if (existingAsset == null)
                     {
-                        cmd.CommandText = String.Format("insert into {0} (id, name, description, type, hash, asset_flags, create_time, access_time) values ( ?id, ?name, ?description, ?type, ?hash, ?asset_flags, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())", m_Table);
+                        sql
+cmd.CommandText = $"insert into {m_Table} (id, name, description, type, hash, asset_flags, create_time, access_time) values ( ?id, ?name, ?description, ?type, ?hash, ?asset_flags, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())";
 
                         ExecuteNonQuery(cmd);
 
@@ -294,7 +296,14 @@ namespace OpenSim.Data.MySQL
 
                 using (MySqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = sql;
+                    using (SqlCommand cmd = conn.CreateCommand())
+{
+    cmd.CommandText = "SELECT * FROM table_name"; // Replace with actual SQL query
+    using (SqlParameter param = cmd.Parameters.Add("@param", MySqlDbType.VarChar))
+    {
+        param.Value = sql;
+    }
+    // ... rest of the code remains the same ...
 
                     using (MySqlDataReader dbReader = cmd.ExecuteReader())
                     {
@@ -331,7 +340,7 @@ namespace OpenSim.Data.MySQL
 
                 using(MySqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = String.Format("select count(*) as count from {0}",m_Table);
+                    cmd.CommandText = $"select count(*) as count from {m_Table}";
 
                     using (IDataReader reader = cmd.ExecuteReader())
                     {
@@ -351,7 +360,7 @@ namespace OpenSim.Data.MySQL
             using(MySqlCommand cmd = new MySqlCommand())
             {
 
-                cmd.CommandText = String.Format("delete from {0} where id = ?id",m_Table);
+                cmd.CommandText = $"delete from {m_Table} where id = @id";
 
                 cmd.Parameters.AddWithValue("?id", id);
 
@@ -387,7 +396,8 @@ namespace OpenSim.Data.MySQL
                         limit = String.Format(" limit {0},{1}", start, count);
                     }
 
-                    cmd.CommandText = String.Format("select * from {0}{1}", table, limit);
+                    sql
+cmd.CommandText = $"select * from {table}{limit}";
 
                     MainConsole.Instance.Output("Querying database");
                     using (IDataReader reader = cmd.ExecuteReader())

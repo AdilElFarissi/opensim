@@ -96,7 +96,8 @@ namespace OpenSim.Data.MySQL
                     cmd.Parameters.AddWithValue("?ScopeID", scopeID.ToString());
                 }
 
-                cmd.CommandText = String.Format("select * from {0} where " + where, m_Realm);
+                sql
+cmd.CommandText = $"select * from {m_Realm} where {where}";
 
                 return DoQuery(cmd);
             }

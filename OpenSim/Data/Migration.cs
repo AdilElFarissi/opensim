@@ -144,7 +144,9 @@ namespace OpenSim.Data
                 cmd.CommandTimeout = 0;
                 foreach (string sql in script)
                 {
-                    cmd.CommandText = sql;
+                    cmd.CommandText = "SELECT * FROM table WHERE column = @param";
+SqlParameter param = new SqlParameter("@param", sql);
+cmd.Parameters.Add(param);
                     try
                     {
                         cmd.ExecuteNonQuery();
@@ -242,7 +244,8 @@ namespace OpenSim.Data
             {
                 try
                 {
-                    cmd.CommandText = "select version from migrations where name='" + type + "' order by version desc";
+                    sql
+cmd.CommandText = "select version from migrations where name = @name order by version desc";
                     using (DbDataReader reader = cmd.ExecuteReader())
                     {
                         if (reader.Read())

@@ -208,7 +208,7 @@ namespace OpenSim.Data.PGSQL
             using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
             using (NpgsqlCommand insertCommand = new NpgsqlCommand(sql, conn))
             {
-                insertCommand.CommandText = sql;
+                insertCommand.CommandText = "insert into estate_settings (\"{0}\") values ( :{1} )";
 
                 foreach (string name in names)
                 {
@@ -374,10 +374,10 @@ namespace OpenSim.Data.PGSQL
                 using (NpgsqlCommand cmd = conn.CreateCommand())
                 {
                     cmd.Parameters.AddWithValue("EstateID", (int)estateID);
-                    cmd.CommandText = string.Format("delete from {0} where \"EstateID\" = :EstateID", table);
+                    cmd.CommandText = $"delete from {table} where \"EstateID\" = @EstateID";
                     cmd.ExecuteNonQuery();
 
-                    cmd.CommandText = string.Format("insert into {0} (\"EstateID\", uuid) values ( :EstateID, :uuid )", table);
+                    cmd.CommandText = $"insert into {table} (\"EstateID\", uuid) values ( :EstateID, :uuid )";
                     foreach (UUID uuid in data)
                     {
                         cmd.Parameters.Clear();
