@@ -103,7 +103,6 @@ jobs:
           runs = sarif_data.get("runs", [])
           fixed_count = 0
 
-          # A collection of stable free coding models to rotate through if one fails
           models_pool = [
               "deepseek/deepseek-r1:free",
               "qwen/qwen-2.5-coder-7b-instruct:free",
@@ -132,7 +131,6 @@ jobs:
 
                           fixed_snippet = None
                           
-                          # Try each model in the pool until one succeeds without throwing an HTML error
                           for current_model in models_pool:
                               try:
                                   print(f"  -> Attempting fix using model: {current_model}")
@@ -154,19 +152,17 @@ jobs:
                                   cleaned_check = raw_content.lower().strip()
                                   if "<html" in cleaned_check or "<a href=" in cleaned_check or "<!doctype" in cleaned_check or "next/static" in cleaned_check:
                                       print(f"  ⚠️ Model {current_model} was blocked by an OpenRouter server HTML error page. Switching model...")
-                                      time.sleep(4)
+                                      time.sleep(5) # Upgraded switch buffer to 5 seconds
                                       continue
                                   
-                                  # If we got clean code back, remove loose code block ticks
                                   fixed_snippet = re.sub(r'```(?:csharp)?', '', raw_content, flags=re.IGNORECASE).strip()
                                   if len(fixed_snippet) > 10:
-                                      break # Success! Break out of the model testing loop
+                                      break 
                                       
                               except Exception as e:
                                   print(f"  ⚠️ Connection issue with {current_model}: {e}. Trying fallback...")
-                                  time.sleep(4)
+                                  time.sleep(5) # Upgraded switch buffer to 5 seconds
 
-                          # Apply the fix if a model successfully generated code
                           if fixed_snippet:
                               lines[start_idx:end_idx] = [fixed_snippet + "\n"]
                               with open(uri, "w") as f_code_w:
@@ -174,7 +170,7 @@ jobs:
                               
                               print(f"✅ Successfully patched: {uri}")
                               fixed_count += 1
-                              time.sleep(5) # Cooldown to protect rate limits
+                              time.sleep(10) # UPGRADED: Increased cool down to 10 seconds between files
                           else:
                               print(f"❌ Failed to patch {uri} because all OpenRouter free models were heavily overloaded.")
 
@@ -182,7 +178,7 @@ jobs:
           EOF
           python fix_code.py
           rm fix_code.py
-
+          
       - name: Create Pull Request with AI Fixes
         uses: peter-evans/create-pull-request@v6
         with:
