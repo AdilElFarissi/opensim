@@ -65,7 +65,6 @@ jobs:
 
       - name: Install Semgrep & Dedicated Groq SDK
         run: |
-          # FIXED: Swapped openai client for native groq library to resolve routing errors
           pip install semgrep groq==0.18.0
 
       - name: Run Semgrep Scan
@@ -75,7 +74,8 @@ jobs:
 
       - name: Execute Automated Code Repair Script
         env:
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          # FIXED: Cleaned character escapes to inject the true key string sequence
+          GROQ_API_KEY: \${{ secrets.GROQ_API_KEY }}
         run: |
           cat << 'EOF' > fix_code.py
           import os
@@ -101,7 +101,6 @@ jobs:
           runs = sarif_data.get("runs", [])
           fixed_count = 0
 
-          # FIXED: Using currently active Groq model identifiers
           models_pool = [
               "llama-3.3-70b-versatile",
               "llama-3.1-8b-instant"
@@ -142,7 +141,8 @@ jobs:
                                       max_tokens=4096
                                   )
                                   
-                                  raw_content = response.choices.message.content
+                                  # FIXED: Corrected access to list index element
+                                  raw_content = response.choices[0].message.content
                                   
                                   # Strip out structural markdown fencing tags if generated
                                   fixed_snippet = re.sub(r'```(?:csharp)?', '', raw_content, flags=re.IGNORECASE).strip()
