@@ -75,7 +75,7 @@ jobs:
 
       - name: Execute Automated Code Repair Script
         env:
-          GROQ_API_KEY: \${{ secrets.GROQ_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: |
           cat << 'EOF' > fix_code.py
           import os
