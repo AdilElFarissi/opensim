@@ -74,7 +74,7 @@ jobs:
 
       - name: Execute Automated Code Repair Script
         env:
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_API_KEY: \${{ secrets.OPENROUTER_API_KEY }}
         run: |
           cat << 'EOF' > fix_code.py
           import os
@@ -108,55 +108,64 @@ jobs:
                   msg = result.get("message", {}).get("text", "")
                   for loc in result.get("locations", []):
                       uri = loc.get("physicalLocation", {}).get("artifactLocation", {}).get("uri", "")
+                      line_num = loc.get("physicalLocation", {}).get("region", {}).get("startLine", 1)
                       
                       if uri.startswith("file://"):
                           uri = uri.replace("file://", "")
                       
                       if uri and os.path.exists(uri) and uri.endswith(".cs"):
-                          print(f"🤖 AI processing C# file: {uri}")
+                          print(f"🤖 AI processing C# file: {uri} around line {line_num}")
                           
                           with open(uri, "r") as f_code:
-                              original_code = f_code.read()
+                              lines = f_code.readlines()
+
+                          # To protect token windows, extract a context block around the bug line
+                          start_idx = max(0, line_num - 40)
+                          end_idx = min(len(lines), line_num + 40)
+                          context_snippet = "".join(lines[start_idx:end_idx])
 
                           try:
-                              # Direct routing to stable Qwen 2.5 Coder Free to limit translation layers
                               response = client.chat.completions.create(
-                                  model="qwen/qwen-2.5-coder-7b-instruct:free",
+                                  model="deepseek/deepseek-r1:free",
                                   messages=[
-                                      {"role": "system", "content": f"You are a strict C# compilation system. Fix the requested bug. Do NOT return markdown formatting tags, html tags, explanations, or web pages. Return ONLY valid, pure C# code.\nGuidelines:\n{rules}"},
-                                      {"role": "user", "content": f"Security Issue: {msg}\n\nOriginal Source Code:\n{original_code}"}
+                                      {"role": "system", "content": f"You are an expert C# refactoring tool. Fix the bug within the provided snippet. Return ONLY the fully corrected code snippet replacing the original block. Do not write text, explanations, HTML, or markdown code gates.\nRules:\n{rules}"},
+                                      {"role": "user", "content": f"Vulnerability Type: {msg}\nTarget Line Number: {line_num}\n\nCode Snippet:\n{context_snippet}"}
                                   ]
                               )
                               
-                              fixed_code = response.choices.message.content.strip()
+                              # Safe object format resolution
+                              if isinstance(response, str):
+                                  raw_content = response
+                              elif hasattr(response, 'choices') and response.choices:
+                                  raw_content = response.choices[0].message.content
+                              else:
+                                  raw_content = str(response)
 
-                              # HARD TRIPWIRE check for OpenRouter rate-limiting HTML response pages
-                              cleaned_check = fixed_code.lower().strip()
-                              if cleaned_check.startswith("<!doctype html") or "<html" in cleaned_check or "<div" in cleaned_check or "next/static" in cleaned_check:
-                                  print(f"🛑 CRITICAL REJECTION: OpenRouter returned an HTML error webpage for {uri}. Skipping modification to protect source files.")
+                              cleaned_check = raw_content.lower().strip()
+                              if "<html" in cleaned_check or "<!doctype" in cleaned_check:
+                                  print(f"🛑 REJECTED: HTML Error Page detected for {uri}.")
                                   continue
 
-                              # Extra syntax guard: ensure the AI actually returned C# code blocks
-                              code_match = re.search(r'```(?:csharp)?(.*?)```', fixed_code, re.DOTALL | re.IGNORECASE)
-                              if code_match:
-                                  fixed_code = code_match.group(1).strip()
+                              # Strips out any loose code fencing tags the model might output
+                              fixed_snippet = re.sub(r'```(?:csharp)?', '', raw_content, flags=re.IGNORECASE).strip()
 
-                              if len(fixed_code) < 20 or "using " not in fixed_code:
-                                  print(f"⚠️ Warning: Output for {uri} appears corrupted or short-cut. Preserving original file.")
+                              if len(fixed_snippet) < 10:
+                                  print(f"⚠️ Empty rewrite for {uri}, skipping.")
                                   continue
 
+                              # Rebuild the file structure by swapping the code block
+                              lines[start_idx:end_idx] = [fixed_snippet + "\n"]
+                              
                               with open(uri, "w") as f_code_w:
-                                  f_code_w.write(fixed_code)
+                                  f_code_w.writelines(lines)
                               
                               print(f"✅ Successfully patched: {uri}")
                               fixed_count += 1
-                              
-                              # CRITICAL: Sleep for 5 seconds to bypass API rate-limiting rules
-                              time.sleep(5)
+                              time.sleep(6) # 6 second break to satisfy free tier limits
                               
                           except Exception as e:
                               print(f"Failed to patch file {uri}: {e}")
-                              time.sleep(5)
+                              time.sleep(6)
 
           print(f"Code repair cycle completed. Total files safely patched: {fixed_count}")
           EOF
