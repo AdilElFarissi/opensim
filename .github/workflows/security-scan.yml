@@ -74,7 +74,6 @@ jobs:
 
       - name: Execute Automated Code Repair Script
         env:
-          # FIXED: Cleaned character escapes to inject the true key string sequence
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: |
           cat << 'EOF' > fix_code.py
@@ -122,11 +121,17 @@ jobs:
                           with open(uri, "r") as f_code:
                               lines = f_code.readlines()
 
-                          start_idx = max(0, line_num - 40)
-                          end_idx = min(len(lines), line_num + 40)
-                          context_snippet = "".join(lines[start_idx:end_idx])
+                          # Target line offset correction (Python arrays start at 0)
+                          target_idx = line_num - 1
+                          if target_idx >= len(lines):
+                              continue
 
-                          fixed_snippet = None
+                          start_idx = max(0, line_num - 15)
+                          end_idx = min(len(lines), line_num + 15)
+                          context_snippet = "".join(lines[start_idx:end_idx])
+                          specific_line = lines[target_idx]
+
+                          fixed_line = None
                           
                           for current_model in models_pool:
                               try:
@@ -134,31 +139,29 @@ jobs:
                                   response = client.chat.completions.create(
                                       model=current_model,
                                       messages=[
-                                          {"role": "system", "content": f"You are an expert C# refactoring tool. Fix the bug within the provided snippet. Return ONLY the fully corrected code snippet replacing the original block. Do not write text, explanations, or markdown code gates.\nRules:\n{rules}"},
-                                          {"role": "user", "content": f"Vulnerability Type: {msg}\nTarget Line Number: {line_num}\n\nCode Snippet:\n{context_snippet}"}
+                                          {"role": "system", "content": f"You are an expert C# refactoring tool. Fix the vulnerability inside the single target line provided. Return ONLY the single corrected line of code to replace it. Do not return the whole file, surrounding context, explanations, or markdown code gates.\nRules:\n{rules}"},
+                                          {"role": "user", "content": f"Vulnerability Type: {msg}\nSurrounding Context:\n{context_snippet}\n\nTarget Line to Fix:\n{specific_line}"}
                                       ],
-                                      temperature=0.2,
-                                      max_tokens=4096
+                                      temperature=0.1,
+                                      max_tokens=1024
                                   )
                                   
-                                  # FIXED: Corrected access to list index element
                                   raw_content = response.choices[0].message.content
-                                  
-                                  # Strip out structural markdown fencing tags if generated
-                                  fixed_snippet = re.sub(r'```(?:csharp)?', '', raw_content, flags=re.IGNORECASE).strip()
-                                  if len(fixed_snippet) > 10:
+                                  fixed_line = re.sub(r'```(?:csharp)?', '', raw_content, flags=re.IGNORECASE).strip()
+                                  if len(fixed_line) > 2:
                                       break 
                                       
                               except Exception as e:
                                   print(f"  ⚠️ Issue with {current_model}: {e}. Retrying with next model...")
                                   time.sleep(3)
 
-                          if fixed_snippet:
-                              lines[start_idx:end_idx] = [fixed_snippet + "\n"]
+                          if fixed_line:
+                              # FIXED: Only replace the single targeted line array element
+                              lines[target_idx] = fixed_line + "\n"
                               with open(uri, "w") as f_code_w:
                                   f_code_w.writelines(lines)
                               
-                              print(f"✅ Successfully patched: {uri}")
+                              print(f"✅ Successfully patched line {line_num}: {uri}")
                               fixed_count += 1
                               time.sleep(4) 
                           else:
