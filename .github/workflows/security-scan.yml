@@ -126,7 +126,7 @@ jobs:
 
                           try:
                               response = client.chat.completions.create(
-                                  model="deepseek/deepseek-r1:free",
+                                  model="openrouter/free",
                                   messages=[
                                       {"role": "system", "content": f"You are an expert C# refactoring tool. Fix the bug within the provided snippet. Return ONLY the fully corrected code snippet replacing the original block. Do not write text, explanations, HTML, or markdown code gates.\nRules:\n{rules}"},
                                       {"role": "user", "content": f"Vulnerability Type: {msg}\nTarget Line Number: {line_num}\n\nCode Snippet:\n{context_snippet}"}
