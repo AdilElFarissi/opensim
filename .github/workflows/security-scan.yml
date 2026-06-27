@@ -63,9 +63,10 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install Semgrep & AI Dependencies
+      - name: Install Semgrep & Dedicated Groq SDK
         run: |
-          pip install semgrep openai==1.58.0 
+          # FIXED: Swapped openai client for native groq library to resolve routing errors
+          pip install semgrep groq==0.18.0
 
       - name: Run Semgrep Scan
         run: |
@@ -81,14 +82,10 @@ jobs:
           import json
           import re
           import time
-          from openai import OpenAI
+          from groq import Groq
 
-          # Connect directly to Groq's official API infrastructure
-          # FIXED: Updated base_url to the correct OpenAI-compatible routing path
-          client = OpenAI(
-              base_url="https://groq.com",
-              api_key=os.environ.get("GROQ_API_KEY")
-          )
+          # FIXED: Using Groq SDK natively bypasses the 405 endpoint pathing issue entirely
+          client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
           rules = ""
           if os.path.exists(".github/copilot-instructions.md"):
@@ -105,7 +102,6 @@ jobs:
           runs = sarif_data.get("runs", [])
           fixed_count = 0
 
-          # Utilizes Groq's high-capacity, free production models
           models_pool = [
               "llama-3.3-70b-specdec",
               "llama3-70b-8192"
@@ -141,7 +137,9 @@ jobs:
                                       messages=[
                                           {"role": "system", "content": f"You are an expert C# refactoring tool. Fix the bug within the provided snippet. Return ONLY the fully corrected code snippet replacing the original block. Do not write text, explanations, or markdown code gates.\nRules:\n{rules}"},
                                           {"role": "user", "content": f"Vulnerability Type: {msg}\nTarget Line Number: {line_num}\n\nCode Snippet:\n{context_snippet}"}
-                                      ]
+                                      ],
+                                      temperature=0.2,
+                                      max_tokens=4096
                                   )
                                   
                                   raw_content = response.choices.message.content
@@ -162,7 +160,7 @@ jobs:
                               
                               print(f"✅ Successfully patched: {uri}")
                               fixed_count += 1
-                              time.sleep(4) # Short cooldown for Groq's rapid-fire token architecture
+                              time.sleep(4) 
                           else:
                               print(f"❌ Failed to patch {uri} via Groq.")
 
