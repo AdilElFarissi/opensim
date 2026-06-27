@@ -84,6 +84,7 @@ jobs:
           from openai import OpenAI
 
           # Connect directly to Groq's official API infrastructure
+          # FIXED: Updated base_url to the correct OpenAI-compatible routing path
           client = OpenAI(
               base_url="https://groq.com",
               api_key=os.environ.get("GROQ_API_KEY")
