@@ -78,3 +78,33 @@ jobs:
         with:
           sarif_file: semgrep-results.sarif
         if: always() 
+
+  strix-openrouter-autofix:
+    name: Free OpenRouter AI Autofix
+    runs-on: ubuntu-latest
+    needs: [codeql-analysis, semgrep-analysis] # Ensures the scanners finish first
+    if: always() # Runs even if vulnerabilities are caught
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Strix AI Engine
+        run: |
+          pip install strix-cli
+
+      - name: Run Strix Patch Generator via OpenRouter
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          AI_PROVIDER: "openrouter"
+          # Dynamically selects the absolute best available free coding model
+          AI_MODEL: "openrouter/free" 
+        run: |
+          strix autofix --sarif-file semgrep-results.sarif --repo-path . --create-pr
+
