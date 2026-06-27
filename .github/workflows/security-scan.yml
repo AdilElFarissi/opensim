@@ -106,7 +106,8 @@ jobs:
           models_pool = [
               "deepseek/deepseek-r1:free",
               "qwen/qwen-2.5-coder-7b-instruct:free",
-              "meta-llama/llama-3-8b-instruct:free"
+              "meta-llama/llama-3-8b-instruct:free",
+              "opentouter/free"
           ]
 
           for run in runs:
