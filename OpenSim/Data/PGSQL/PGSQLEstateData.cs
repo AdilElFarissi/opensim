@@ -169,86 +169,44 @@ namespace OpenSim.Data.PGSQL
             LoadBanList(es);
 
             es.EstateManagers = LoadUUIDList(es.EstateID, "estate_managers");
-            es.EstateAccess = LoadUUIDList(es.EstateID, "estate_users");
-            es.EstateGroups = LoadUUIDList(es.EstateID, "estate_groups");
+private void DoCreate(EstateSettings es)
+{
+    List<string> names = new List<string>(FieldList);
 
-            //Set event
-            es.OnSave += StoreEstateSettings;
-            return es;
-        }
+    // Remove EstateID and use AutoIncrement
+    if (es.EstateID < 100)
+        names.Remove("EstateID");
 
-        public EstateSettings CreateNewEstate(int estateID)
+    using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
+    {
+        conn.Open();
+
+        using (NpgsqlCommand insertCommand = new NpgsqlCommand("insert into estate_settings (" + string.Join(",", names) + ") values (" + string.Join(",", names.Select(n => $"@{n}")) + ")", conn))
         {
-            EstateSettings es = new EstateSettings();
-            
-            es.OnSave += StoreEstateSettings;
-            es.EstateID = Convert.ToUInt32(estateID);
-
-            DoCreate(es);
-
-            LoadBanList(es);
-
-            es.EstateManagers = LoadUUIDList(es.EstateID, "estate_managers");
-            es.EstateAccess = LoadUUIDList(es.EstateID, "estate_users");
-            es.EstateGroups = LoadUUIDList(es.EstateID, "estate_groups");
-
-            return es;
-        }
-
-        private void DoCreate(EstateSettings es)
-        {
-            List<string> names = new List<string>(FieldList);
-
-            // Remove EstateID and use AutoIncrement
-            if (es.EstateID < 100)
-                names.Remove("EstateID");
-
-            string sql = string.Format("insert into estate_settings (\"{0}\") values ( :{1} )", String.Join("\",\"", names.ToArray()), String.Join(", :", names.ToArray()));
-
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand insertCommand = new NpgsqlCommand(sql, conn))
+            foreach (string name in names)
             {
-                insertCommand.CommandText = sql;
-
-                foreach (string name in names)
-                {
-                    insertCommand.Parameters.Add(_Database.CreateParameter("" + name, _FieldMap[name].GetValue(es)));
-                }
-                //NpgsqlParameter idParameter = new NpgsqlParameter("ID", SqlDbType.Int);
-                //idParameter.Direction = ParameterDirection.Output;
-                //insertCommand.Parameters.Add(idParameter);
-                conn.Open();
-
-                if (insertCommand.ExecuteNonQuery() > 0 && es.EstateID < 100)
-                {
-                    // Only get Auto ID if we actually used it
-                    insertCommand.CommandText = "Select cast(lastval() as int) as ID ;";
-
-                    using (NpgsqlDataReader result = insertCommand.ExecuteReader())
-                    {
-                        if (result.Read())
-                        {
-                            es.EstateID = (uint)result.GetInt32(0);
-                        }
-                    }
-                }
-
+                insertCommand.Parameters.AddWithValue($"@{name}", _FieldMap[name].GetValue(es));
             }
 
-            //TODO check if this is needed??
-            es.Save();
+            if (es.EstateID < 100)
+            {
+                // Only get Auto ID if we actually used it
+                insertCommand.CommandText = "Select cast(lastval() as int) as ID ;";
+                using (NpgsqlDataReader result = insertCommand.ExecuteReader())
+                {
+                    if (result.Read())
+                    {
+                        es.EstateID = (uint)result.GetInt32(0);
+                    }
+                }
+            }
+
+            insertCommand.ExecuteNonQuery();
         }
+    }
 
-        /// <summary>
-        /// Stores the estate settings.
-        /// </summary>
-        /// <param name="es">estate settings</param>
-        public void StoreEstateSettings(EstateSettings es)
-        {
-            List<string> names = new List<string>(FieldList);
-
-            names.Remove("EstateID");
-
+    es.Save();
+}
             string sql = string.Format("UPDATE estate_settings SET ");
             foreach (string name in names)
             {
@@ -377,86 +335,77 @@ namespace OpenSim.Data.PGSQL
                     cmd.CommandText = string.Format("delete from {0} where \"EstateID\" = :EstateID", table);
                     cmd.ExecuteNonQuery();
 
-                    cmd.CommandText = string.Format("insert into {0} (\"EstateID\", uuid) values ( :EstateID, :uuid )", table);
-                    foreach (UUID uuid in data)
-                    {
-                        cmd.Parameters.Clear();
-                        cmd.Parameters.Add(_Database.CreateParameter("uuid", uuid));
-                        cmd.ExecuteNonQuery();
-                    }
-                }
-            }
-        }
-
-        public EstateSettings LoadEstateSettings(int estateID)
+public void SaveEstateSettings(int estateID, List<UUID> data)
+{
+    string table = "estate_settings";
+public void SaveEstateSettings(UUID estateID, List<UUID> data)
+{
+    string sql = "insert into estate_settings (\"EstateID\", uuid) values (@EstateID, @uuid)";
+    using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
+    {
+        conn.Open();
+        using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
         {
-            EstateSettings es = new EstateSettings();
-            string sql = "select estate_settings.\"" + String.Join("\",estate_settings.\"", FieldList) + "\" from estate_settings where \"EstateID\" = :EstateID";
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
+            cmd.Parameters.AddWithValue("@EstateID", estateID);
+            cmd.Parameters.AddWithValue("@uuid", DBNull.Value);
+            foreach (UUID uuid in data)
             {
-                conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
-                {
-                    cmd.Parameters.AddWithValue("EstateID", estateID);
-                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        if (reader.Read())
-                        {
-                            foreach (string name in FieldList)
-                            {
-                                FieldInfo f = _FieldMap[name];
-                                object v = reader[name];
-                                if (f.FieldType == typeof(bool))
-                                {
-                                    f.SetValue(es, Convert.ToInt32(v) != 0);
-                                }
-                                else if (f.FieldType == typeof(UUID))
-                                {
-                                    f.SetValue(es, new UUID((Guid)v)); // uuid);
-                                }
-                                else if (f.FieldType == typeof(string))
-                                {
-                                    f.SetValue(es, v.ToString());
-                                }
-                                else if (f.FieldType == typeof(UInt32))
-                                {
-                                    f.SetValue(es, Convert.ToUInt32(v));
-                                }
-                                else if (f.FieldType == typeof(Single))
-                                {
-                                    f.SetValue(es, Convert.ToSingle(v));
-                                }
-                                else
-                                    f.SetValue(es, v);
-                            }
-                        }
+                cmd.Parameters["@uuid"].Value = uuid;
+                cmd.ExecuteNonQuery();
+            }
+        }
+    }
+}
 
-                    }
+public EstateSettings LoadEstateSettings(int estateID)
+{
+    EstateSettings es = new EstateSettings();
+    string sql = "select estate_settings.\"EstateID\", estate_settings.uuid from estate_settings where estate_settings.\"EstateID\" = @EstateID";
+    using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
+    {
+        conn.Open();
+        using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+        {
+            cmd.Parameters.AddWithValue("@EstateID", estateID);
+            using (NpgsqlDataReader reader = cmd.ExecuteReader())
+            {
+                if (reader.Read())
+                {
+                    es.EstateID = (int)reader["EstateID"];
+                    es.UUID = (UUID)reader["uuid"];
                 }
             }
-            LoadBanList(es);
-
-            es.EstateManagers = LoadUUIDList(es.EstateID, "estate_managers");
-            es.EstateAccess = LoadUUIDList(es.EstateID, "estate_users");
-            es.EstateGroups = LoadUUIDList(es.EstateID, "estate_groups");
-
-            //Set event
-            es.OnSave += StoreEstateSettings;
-            return es;
-
         }
+    }
+    LoadBanList(es);
 
-        public List<EstateSettings> LoadEstateSettingsAll()
-        {
-            List<EstateSettings> allEstateSettings = new List<EstateSettings>();
+    es.EstateManagers = LoadUUIDList(es.EstateID, "estate_managers");
+    es.EstateAccess = LoadUUIDList(es.EstateID, "estate_users");
+    es.EstateGroups = LoadUUIDList(es.EstateID, "estate_groups");
 
-            List<int> allEstateIds = GetEstatesAll();
+    //Set event
+    es.OnSave += StoreEstateSettings;
+    return es;
+}
 
-            foreach (int estateId in allEstateIds)
-                allEstateSettings.Add(LoadEstateSettings(estateId));
+public List<EstateSettings> LoadEstateSettingsAll()
+{
+    List<EstateSettings> allEstateSettings = new List<EstateSettings>();
 
-            return allEstateSettings;
-        }
+    List<int> allEstateIds = GetEstatesAll();
+    foreach (int estateID in allEstateIds)
+    {
+        allEstateSettings.Add(LoadEstateSettings(estateID));
+    }
+
+    return allEstateSettings;
+}
+
+    foreach (int estateId in allEstateIds)
+        allEstateSettings.Add(LoadEstateSettings(estateId));
+
+    return allEstateSettings;
+}
 
         public List<int> GetEstates(string search)
         {

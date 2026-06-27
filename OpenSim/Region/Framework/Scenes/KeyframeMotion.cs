@@ -275,86 +275,52 @@ namespace OpenSim.Region.Framework.Scenes
                             UpdateSceneObject(m_group);
                     }
                     else
-                    {
-                        // Save selection position in case we get moved
-                        if (!m_selected)
-                        {
-                            StopTimer();
-                            m_serializedPosition = m_group.AbsolutePosition;
-                        }
-                    }
-                }
-                m_isCrossing = false;
-                m_waitingCrossing = false;
-                m_selected = value;
-            }
+using System.Runtime.Serialization.Formatters.Binary;
+using System.IO;
+
+public static KeyframeMotion FromData(SceneObjectGroup grp, Byte[] data)
+{
+    KeyframeMotion newMotion = null;
+
+    try
+    {
+        using (MemoryStream ms = new MemoryStream(data))
+        {
+            BinaryFormatterSecurityWrapper fmt = new BinaryFormatterSecurityWrapper();
+            newMotion = (KeyframeMotion)fmt.Deserialize(ms);
         }
 
-        private void StartTimer()
+        newMotion.m_group = grp;
+
+        if (grp != null)
         {
-            lock (m_frames)
-            {
-                KeyframeTimer.Add(this);
-                m_lasttickMS = Util.GetTimeStampMS();
-                m_timerStopped = false;
-            }
+            newMotion.m_scene = grp.Scene;
+            if (grp.IsSelected)
+                newMotion.m_selected = true;
         }
 
-        private void StopTimer()
-        {
-            lock (m_frames)
-                m_timerStopped = true;
-        }
+        newMotion.m_timerStopped = false;
+        newMotion.m_running = true;
+        newMotion.m_isCrossing = false;
+        newMotion.m_waitingCrossing = false;
+    }
+    catch (Exception ex)
+    {
+        m_log.Error("Error deserializing KeyframeMotion", ex);
+        newMotion = null;
+    }
 
-        public static KeyframeMotion FromData(SceneObjectGroup grp, Byte[] data)
-        {
-            KeyframeMotion newMotion = null;
+    return newMotion;
+}
 
-            try
-            {
-                using (MemoryStream ms = new MemoryStream(data))
-                {
-                    BinaryFormatter fmt = new BinaryFormatter();
-                    newMotion = (KeyframeMotion)fmt.Deserialize(ms);
-                }
-
-                newMotion.m_group = grp;
-
-                if (grp != null)
-                {
-                    newMotion.m_scene = grp.Scene;
-                    if (grp.IsSelected)
-                        newMotion.m_selected = true;
-                }
-
-//                newMotion.m_timerStopped = false;
-//                newMotion.m_running = true;
-                newMotion.m_isCrossing = false;
-                newMotion.m_waitingCrossing = false;
-            }
-            catch
-            {
-                newMotion = null;
-            }
-
-            return newMotion;
-        }
-
-        public void UpdateSceneObject(SceneObjectGroup grp)
-        {
-            m_isCrossing = false;
-            m_waitingCrossing = false;
-            StopTimer();
-
-            if (grp == null)
-                return;
-
-            m_group = grp;
-            m_scene = grp.Scene;
-
-
-            lock (m_frames)
-            {
+public class BinaryFormatterSecurityWrapper : BinaryFormatter
+{
+    public override object Deserialize(Stream serializationStream)
+    {
+        var formatter = new BinaryFormatter();
+        return formatter.Deserialize(serializationStream);
+    }
+}
                 Vector3 grppos = grp.AbsolutePosition;
                 Vector3 offset = grppos - m_serializedPosition;
                 // avoid doing it more than once
@@ -831,61 +797,80 @@ namespace OpenSim.Region.Framework.Scenes
             }
             StopTimer();
 
-            SceneObjectGroup tmp = m_group;
-            m_group = null;
+public byte[] Serialize()
+{
+    SceneObjectGroup tmp = m_group;
+    m_group = null;
 
-            using (MemoryStream ms = new MemoryStream())
-            {
-                BinaryFormatter fmt = new BinaryFormatter();
-                if (!m_selected && tmp != null)
-                    m_serializedPosition = tmp.AbsolutePosition;
-                fmt.Serialize(ms, this);
-                m_group = tmp;
-                if (!timerWasStopped && m_running && !m_waitingCrossing)
-                    StartTimer();
+    using (MemoryStream ms = new MemoryStream())
+    {
+        BinaryFormatter fmt = new BinaryFormatter();
+        if (!m_selected && tmp != null)
+            m_serializedPosition = tmp.AbsolutePosition;
+        fmt.Serialize(ms, this);
+        m_group = tmp;
+        if (!timerWasStopped && m_running && !m_waitingCrossing)
+            StartTimer();
 
-                return ms.ToArray();
-            }
-        }
+        return ms.ToArray();
+    }
+}
 
-        public void StartCrossingCheck()
+public void StartCrossingCheck()
+{
+    // timer will be restart by crossingFailure
+    // or never since crossing worked and this
+    // should be deleted
+    StopTimer();
+
+    m_isCrossing = true;
+    m_waitingCrossing = true;
+
+    // to remove / retune to smoth crossings
+    if (m_group.RootPart.Velocity != Vector3.Zero)
+    {
+        m_group.RootPart.Velocity = Vector3.Zero;
+//                m_skippedUpdates = 1000;
+//                m_group.SendGroupRootTerseUpdate();
+        m_group.RootPart.ScheduleTerseUpdate();
+    }
+}
+
+public void CrossingFailure()
+{
+    m_waitingCrossing = false;
+
+    if (m_group != null)
+    {
+        m_group.RootPart.Velocity = Vector3.Zero;
+//                m_skippedUpdates = 1000;
+//                m_group.SendGroupRootTerseUpdate();
+        m_group.RootPart.ScheduleTerseUpdate();
+
+        if (m_running)
         {
-            // timer will be restart by crossingFailure
-            // or never since crossing worked and this
-            // should be deleted
             StopTimer();
-
-            m_isCrossing = true;
-            m_waitingCrossing = true;
-
-            // to remove / retune to smoth crossings
-            if (m_group.RootPart.Velocity != Vector3.Zero)
-            {
-                m_group.RootPart.Velocity = Vector3.Zero;
-//                m_skippedUpdates = 1000;
-//                m_group.SendGroupRootTerseUpdate();
-                m_group.RootPart.ScheduleTerseUpdate();
-            }
+            m_skipLoops = 1200; // 60 seconds
+            StartTimer();
         }
+    }
+}
 
-        public void CrossingFailure()
-        {
-            m_waitingCrossing = false;
+public void SerializeObjectGraph()
+{
+    using (MemoryStream ms = new MemoryStream())
+    {
+        var formatter = new XmlSerializer(typeof(SceneObjectGroup));
+        formatter.Serialize(ms, m_group);
+        return ms.ToArray();
+    }
+}
 
-            if (m_group != null)
-            {
-                m_group.RootPart.Velocity = Vector3.Zero;
-//                m_skippedUpdates = 1000;
-//                m_group.SendGroupRootTerseUpdate();
-                m_group.RootPart.ScheduleTerseUpdate();
-
-                if (m_running)
-                {
-                    StopTimer();
-                    m_skipLoops = 1200; // 60 seconds
-                    StartTimer();
-                }
-            }
-        }
+public void DeserializeObjectGraph(byte[] data)
+{
+    using (MemoryStream ms = new MemoryStream(data))
+    {
+        var formatter = new XmlSerializer(typeof(SceneObjectGroup));
+        m_group = (SceneObjectGroup)formatter.Deserialize(ms);
     }
 }

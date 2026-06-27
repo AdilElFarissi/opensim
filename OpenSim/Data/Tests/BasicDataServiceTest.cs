@@ -139,132 +139,52 @@ namespace OpenSim.Data.Tests
             // these tests.  If anything goes wrong, ignore these
             // tests.
             try
+using (DbConnection dbcon = Connect())
+{
+    using (DbCommand cmd = dbcon.CreateCommand())
+    {
+        cmd.CommandText = "DROP TABLE IF EXISTS @table";
+        using (DbParameter param = cmd.CreateParameter())
+        {
+            param.ParameterName = "@table";
+            param.Value = tbl;
+            cmd.Parameters.Add(param);
+        }
+        cmd.ExecuteNonQuery();
+    }
+}
+catch (Exception e)
+protected virtual void ResetMigrations(params string[] stores)
+{
+    using (var cmd = new SqlCommand("DELETE FROM migrations WHERE name IN (@names)", m_dbConnection))
+    {
+        cmd.Parameters.AddWithValue("@names", string.Join(",", stores.Select(s => "'" + s + "'")));
+        try
+        {
+            cmd.ExecuteNonQuery();
+        }
+        catch (Exception e)
+        {
+            m_log.Error(e.ToString());
+            throw;
+        }
+    }
+}
+
+protected virtual void ClearTables(params string[] tables)
+{
+    foreach (string tbl in tables)
+    {
+        using (var cmd = new SqlCommand("DELETE FROM " + tbl, m_dbConnection))
+        {
+            try
             {
-                m_service = new TService();
-                InitService(m_service);
+                cmd.ExecuteNonQuery();
             }
             catch (Exception e)
             {
                 m_log.Error(e.ToString());
-                Assert.Ignore();
-            }
-        }
-
-        [TestFixtureTearDown]
-        public void Cleanup()
-        {
-            if (m_service != null)
-            {
-                if (m_service is IDisposable)
-                    ((IDisposable)m_service).Dispose();
-                m_service = null;
-            }
-
-            if (!String.IsNullOrEmpty(m_file) && File.Exists(m_file))
-                File.Delete(m_file);
-        }
-
-        protected virtual DbConnection Connect()
-        {
-            DbConnection cnn = new TConn();
-            cnn.ConnectionString = m_connStr;
-            cnn.Open();
-            return cnn;
-        }
-
-        protected virtual void ExecuteSql(string sql)
-        {
-            using (DbConnection dbcon = Connect())
-            {
-                using (DbCommand cmd = dbcon.CreateCommand())
-                {
-                    cmd.CommandText = sql;
-                    cmd.ExecuteNonQuery();
-                }
-            }
-        }
-
-        protected delegate bool ProcessRow(IDataReader reader);
-
-        protected virtual int ExecQuery(string sql, bool bSingleRow, ProcessRow action)
-        {
-            int nRecs = 0;
-            using (DbConnection dbcon = Connect())
-            {
-                using (DbCommand cmd = dbcon.CreateCommand())
-                {
-                    cmd.CommandText = sql;
-                    CommandBehavior cb = bSingleRow ? CommandBehavior.SingleRow : CommandBehavior.Default;
-                    using (DbDataReader rdr = cmd.ExecuteReader(cb))
-                    {
-                        while (rdr.Read())
-                        {
-                            nRecs++;
-                            if (!action(rdr))
-                                break;
-                        }
-                    }
-                }
-            }
-            return nRecs;
-        }
-
-        /// <summary>Drop tables (listed as parameters). There is no "DROP IF EXISTS" syntax common for all
-        /// databases, so we just DROP and ignore an exception.
-        /// </summary>
-        /// <param name="tables"></param>
-        protected virtual void DropTables(params string[] tables)
-        {
-            foreach (string tbl in tables)
-            {
-                try
-                {
-                    ExecuteSql("DROP TABLE " + tbl + ";");
-                }catch
-                {
-                }
-            }
-        }
-
-        /// <summary>Clear tables listed as parameters (without dropping them).
-        /// </summary>
-        /// <param name="tables"></param>
-        protected virtual void ResetMigrations(params string[] stores)
-        {
-            string lst = "";
-            foreach (string store in stores)
-            {
-                string s = "'" + store + "'";
-                if (lst.Length == 0)
-                    lst = s;
-                else
-                    lst += ", " + s;
-            }
-
-            string sCond = stores.Length > 1 ? ("in (" + lst + ")") : ("=" + lst);
-            try
-            {
-                ExecuteSql("DELETE FROM migrations where name " + sCond);
-            }
-            catch
-            {
-            }
-        }
-
-        /// <summary>Clear tables listed as parameters (without dropping them).
-        /// </summary>
-        /// <param name="tables"></param>
-        protected virtual void ClearTables(params string[] tables)
-        {
-            foreach (string tbl in tables)
-            {
-                try
-                {
-                    ExecuteSql("DELETE FROM " + tbl + ";");
-                }
-                catch
-                {
-                }
+                throw;
             }
         }
     }

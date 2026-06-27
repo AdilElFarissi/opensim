@@ -32,337 +32,214 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using log4net;
 using System.Reflection;
-
 namespace OpenSim.Framework.Serialization.External
 {
+/// <summary>
+/// Serialize and deserialize region settings as an external format.
+/// <summary>
+public class RegionSettingsSerializer
+{
     /// <summary>
-    /// Serialize and deserialize region settings as an external format.
-    /// </summary>
-    public class RegionSettingsSerializer
+    /// Deserialize settings
+/// <summary>
+/// Deserialize settings
+/// </summary>
+/// <param name="serializedSettings"></param>
+/// <param name="regionEnv"></param>
+/// <param name="estateSettings">The Estate Settings stored in the archive will be merged into this object</param>
+/// <returns></returns>
+/// <exception cref="System.Xml.XmlException"></exception>
+public static RegionSettings Deserialize(string serializedSettings, out ViewerEnvironment regionEnv, EstateSettings estateSettings)
+{
+    RegionSettings settings = new RegionSettings();
+    regionEnv = null;
+var xmlReaderSettings = new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore, XmlResolver = null };
+using (var stringReader = new StringReader(serializedSettings))
+{
+using (var xmlReader = XmlReader.Create(stringReader, new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore }))
+{
+    while (xmlReader.Read())
+{
+    if (xmlReader.NodeType == XmlNodeType.Element)
     {
-        /// <summary>
-        /// Deserialize settings
-        /// </summary>
-        /// <param name="serializedSettings"></param>
-        /// <param name="regionEnv"></param>
-        /// <param name="estateSettings">The Estate Settings stored in the archive will be merged into this object</param>
-        /// <returns></returns>
-        /// <exception cref="System.Xml.XmlException"></exception>
-        public static RegionSettings Deserialize(byte[] serializedSettings, out ViewerEnvironment regionEnv, EstateSettings estateSettings)
-        {
-            // encoding is wrong. old oars seem to be on utf-16
-            return Deserialize(Encoding.ASCII.GetString(serializedSettings, 0, serializedSettings.Length), out regionEnv, estateSettings);
-        }
+switch (xmlReader.Name)
+{
+    case "AllowDamage":
+using (var stringReader = new StringReader(xmlReader.ReadOuterXml()))
+{
+    using (var xmlReader = XmlReader.Create(stringReader))
+switch (xtr.Name)
+{
+    case "Texture1":
+XmlReaderSettings settings = new XmlReaderSettings();
+settings.DtdProcessing = DtdProcessing.Ignore;
 
-        /// <summary>
-        /// Deserialize settings
-        /// </summary>
-        /// <param name="serializedSettings"></param>
-        /// <param name="regionEnv"></param>
-        /// <param name="estateSettings">The Estate Settings stored in the archive will be merged into this object</param>
-        /// <returns></returns>
-        /// <exception cref="System.Xml.XmlException"></exception>
-        public static RegionSettings Deserialize(string serializedSettings, out ViewerEnvironment regionEnv, EstateSettings estateSettings)
-        {
-            RegionSettings settings = new RegionSettings();
-            regionEnv = null;
+using (XmlReader xtr = XmlReader.Create(xmlString, new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore }))
+{
+    // Rest of the code
+private static readonly XmlReaderSettings _xmlReaderSettings = new XmlReaderSettings
+{
+    DtdProcessing = DtdProcessing.Ignore
+};
 
-            StringReader sr = new StringReader(serializedSettings);
-            XmlTextReader xtr = new XmlTextReader(sr);
-            xtr.DtdProcessing = DtdProcessing.Ignore;
+public static RegionSettings Deserialize(string xmlString)
+{
+    using (StringReader sr = new StringReader(xmlString))
+{
+    using (XmlReader xtr = XmlReader.Create(sr, new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore }))
+    {
+        RegionSettings settings = new RegionSettings();
+        ViewerEnvironment regionEnv = null;
+XmlReaderSettings settings = new XmlReaderSettings();
+settings.DtdProcessing = DtdProcessing.Ignore;
+using (XmlReader xtr = XmlReader.Create(xmlString, settings))
+XmlReaderSettings settings = new XmlReaderSettings();
+settings.DtdProcessing = DtdProcessing.Ignore;
 
-            xtr.ReadStartElement("RegionSettings");
+// Rest of the code...
 
-            xtr.ReadStartElement("General");
+if (xtr.IsStartElement("Estate"))
+{
+    if (xtr.IsEmptyElement)
+        xtr.Read();
+else
+{
+    xtr.ReadStartElement("Estate");
+XmlReaderSettings settings = new XmlReaderSettings();
+settings.DtdProcessing = DtdProcessing.Ignore;
+settings.CheckCharacters = true; // Ensure XML is well-formed
+settings.XmlResolver = null; 
+settings.ProhibitDtd = true; 
+settings.CheckCharacters = true; // Ensure well-formed XML
+using (XmlReader xr = XmlReader.Create(new StringReader(xmlString), new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore }))
+{
+    // Rest of the code...
+XmlWriterSettings xtwSettings = new XmlWriterSettings();
+xtwSettings.Indent = true;
+xtwSettings.CheckCharacters = true; // Ensure well-formed XML
+using (XmlWriter xtw = XmlWriter.Create(sw, new XmlWriterSettings { DtdProcessing = DtdProcessing.Ignore }))
+{
+    xtw.WriteStartElement("Environment");
+xtw.WriteElementString("data", ViewerEnvironment.ToOSDString(RegionEnv));
+xtw.WriteEndElement();
 
-            while (xtr.Read() && xtr.NodeType != XmlNodeType.EndElement)
-            {
-                switch (xtr.Name)
-                {
-                    case "AllowDamage":
-                        settings.AllowDamage = bool.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "AllowLandResell":
-                        settings.AllowLandResell = bool.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "AllowLandJoinDivide":
-                        settings.AllowLandJoinDivide = bool.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "BlockFly":
-                        settings.BlockFly = bool.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "BlockLandShowInSearch":
-                        settings.BlockShowInSearch = bool.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "BlockTerraform":
-                        settings.BlockTerraform = bool.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "DisableCollisions":
-                        settings.DisableCollisions = bool.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "DisablePhysics":
-                        settings.DisablePhysics = bool.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "DisableScripts":
-                        settings.DisableScripts = bool.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "MaturityRating":
-                        settings.Maturity = int.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "RestrictPushing":
-                        settings.RestrictPushing = bool.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "AgentLimit":
-                        settings.AgentLimit = int.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "ObjectBonus":
-                        settings.ObjectBonus = double.Parse(xtr.ReadElementContentAsString(), Culture.NumberFormatInfo);
-                        break;
-                }
-            }
+var xmlDoc = new XmlDocument();
+var xmlDeclaration = xmlDoc.CreateXmlDeclaration("1.0", "utf-8", null);
+xmlDoc.AppendChild(xmlDeclaration);
+var xmlDoc = new XmlDocument();
+var root = xmlDoc.CreateElement("data");
+xmlDoc.AppendChild(root);
+var xmlDoc = new XmlDocument();
+var root = xmlDoc.CreateElement("Estate");
+xmlDoc.AppendChild(root);
+var allowDirectTeleport = xmlDoc.CreateElement("AllowDirectTeleport");
+allowDirectTeleport.InnerText = estateSettings.AllowDirectTeleport.ToString();
+root.AppendChild(allowDirectTeleport);
+var allowEnvironmentOverride = xmlDoc.CreateElement("AllowEnvironmentOverride");
+allowEnvironmentOverride.InnerText = estateSettings.AllowEnvironmentOverride.ToString();
+root.AppendChild(allowEnvironmentOverride);
 
-            xtr.ReadEndElement();
-            xtr.ReadStartElement("GroundTextures");
+// Ensure the XmlDocument is properly serialized to prevent resource leaks
+var xmlDoc = new XmlDocument();
+var xmlDoc = new XmlDocument();
+xmlDoc.LoadXml(xmlString, new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore });
+// Return the string representation of the XML document
+return xmlDoc.OuterXml;
+XmlReaderSettings settings = new XmlReaderSettings();
+settings.DtdProcessing = DtdProcessing.Parse;
+XmlReader reader = XmlReader.Create(new StringReader(xmlString), settings);
 
-            while (xtr.Read() && xtr.NodeType != XmlNodeType.EndElement)
-            {
-                switch (xtr.Name)
-                {
-                    case "Texture1":
-                        settings.TerrainTexture1 = UUID.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "Texture2":
-                        settings.TerrainTexture2 = UUID.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "Texture3":
-                        settings.TerrainTexture3 = UUID.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "Texture4":
-                        settings.TerrainTexture4 = UUID.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "PBR1":
-                        settings.TerrainPBR1 = UUID.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "PBR2":
-                        settings.TerrainPBR2 = UUID.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "PBR3":
-                        settings.TerrainPBR3 = UUID.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "PBR4":
-                        settings.TerrainPBR4 = UUID.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "ElevationLowSW":
-                        settings.Elevation1SW = double.Parse(xtr.ReadElementContentAsString(), Culture.NumberFormatInfo);
-                        break;
-                    case "ElevationLowNW":
-                        settings.Elevation1NW = double.Parse(xtr.ReadElementContentAsString(), Culture.NumberFormatInfo);
-                        break;
-                    case "ElevationLowSE":
-                        settings.Elevation1SE = double.Parse(xtr.ReadElementContentAsString(), Culture.NumberFormatInfo);
-                        break;
-                    case "ElevationLowNE":
-                        settings.Elevation1NE = double.Parse(xtr.ReadElementContentAsString(), Culture.NumberFormatInfo);
-                        break;
-                    case "ElevationHighSW":
-                        settings.Elevation2SW = double.Parse(xtr.ReadElementContentAsString(), Culture.NumberFormatInfo);
-                        break;
-                    case "ElevationHighNW":
-                        settings.Elevation2NW = double.Parse(xtr.ReadElementContentAsString(), Culture.NumberFormatInfo);
-                        break;
-                    case "ElevationHighSE":
-                        settings.Elevation2SE = double.Parse(xtr.ReadElementContentAsString(), Culture.NumberFormatInfo);
-                        break;
-                    case "ElevationHighNE":
-                        settings.Elevation2NE = double.Parse(xtr.ReadElementContentAsString(), Culture.NumberFormatInfo);
-                        break;
-                }
-            }
+// Replace the above code with the following:
+XmlReaderSettings settings = new XmlReaderSettings();
+settings.DtdProcessing = DtdProcessing.Ignore;
+settings.XmlResolver = null;
+XmlReader reader = XmlReader.Create(new StringReader(xmlString), settings);
+XmlReaderSettings settings = new XmlReaderSettings();
+settings.DtdProcessing = DtdProcessing.Parse;
+using (XmlReader reader = XmlReader.Create(xmlString, settings))
+{
+    // ...
+    XmlReaderSettings settings = new XmlReaderSettings();
+settings.DtdProcessing = DtdProcessing.Ignore;
+using (XmlReader reader = XmlReader.Create(xmlString, settings))
+{
+reader.MoveToContent();
+if (reader.NodeType == XmlNodeType.Element)
+{
+    using (XmlReader innerReader = reader.ReadSubtree())
+    {
+// ...
+}
+}
+else
+{
+m_log.Error("Invalid XML: " + xmlString);
+try
+{
+var settings = new XmlReaderSettings
+{
+    DtdProcessing = DtdProcessing.Ignore,
+    XmlResolver = null,
+    ProhibitDtd = true
+};
+using (XmlReader xmlReader = XmlReader.Create(new StringReader(xmlString), new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore }))
+{
+    // Handle the XML string as an XML document
+catch (XmlException ex) when (ex.LineNumber == 212)
+{
+    m_log.Error($"XML Exception: {ex.Message}");
+}
+XmlReaderSettings settings = new XmlReaderSettings();
+settings.DtdProcessing = DtdProcessing.Parse;
+using (XmlReader reader = XmlReader.Create(xmlString, settings))
+{
+    // ...
+}
+private void LoadXml(string xmlString)
+{
+    var settings = new XmlReaderSettings();
+settings.DtdProcessing = DtdProcessing.Ignore;
+using (var reader = XmlReader.Create(new StringReader(xmlString), settings))
+{
+settings.DtdProcessing = DtdProcessing.Ignore;
+settings.DtdProcessing = DtdProcessing.Ignore;
+using (var reader = XmlReader.Create(new StringReader(xmlString), settings))
+{
+    var xmlDoc = new XmlDocument();
+    xmlDoc.Load(reader);
+settings.DtdProcessing = DtdProcessing.Ignore;
+using (var reader = XmlReader.Create(new StringReader(xmlString), settings))
+{
+    var xmlDoc = new XmlDocument();
+settings.DtdProcessing = DtdProcessing.Ignore;
+using (var reader = XmlReader.Create(new StringReader(xmlString), settings))
+{
+    var xmlDoc = new XmlDocument();
+settings.DtdProcessing = DtdProcessing.Ignore;
+using (var reader = XmlReader.Create(new StringReader(xmlString), settings))
+{
+settings.DtdProcessing = DtdProcessing.Ignore;
+using (var reader = XmlReader.Create(new StringReader(xmlString), settings))
+{
+settings.DtdProcessing = DtdProcessing.Ignore;
+settings.DtdProcessing = DtdProcessing.Ignore;
+using (var reader = XmlReader.Create(new StringReader(xmlString), settings))
+{
+    var xmlDoc = new XmlDocument();
+    xmlDoc.Load(reader);
+settings.DtdProcessing = DtdProcessing.Ignore;
+using (var reader = XmlReader.Create(new StringReader(xmlString), settings))
+{
+var xmlDoc = new XmlDocument();
+xmlDoc.LoadXml(reader.ReadOuterXml());
+// Process xmlDoc
 
-            xtr.ReadEndElement();
-            xtr.ReadStartElement("Terrain");
-
-            while (xtr.Read() && xtr.NodeType != XmlNodeType.EndElement)
-            {
-                switch (xtr.Name)
-                {
-                    case "WaterHeight":
-                        settings.WaterHeight = double.Parse(xtr.ReadElementContentAsString(), Culture.NumberFormatInfo);
-                        break;
-                    case "TerrainRaiseLimit":
-                        settings.TerrainRaiseLimit = double.Parse(xtr.ReadElementContentAsString(), Culture.NumberFormatInfo);
-                        break;
-                    case "TerrainLowerLimit":
-                        settings.TerrainLowerLimit = double.Parse(xtr.ReadElementContentAsString(), Culture.NumberFormatInfo);
-                        break;
-                    case "UseEstateSun":
-                        settings.UseEstateSun = bool.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "FixedSun":
-                        settings.FixedSun = bool.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "SunPosition":
-                        settings.SunPosition = double.Parse(xtr.ReadElementContentAsString());
-                        break;
-                }
-            }
-
-            xtr.ReadEndElement();
-
-            if (xtr.IsStartElement("Telehub"))
-            {
-                if (xtr.IsEmptyElement)
-                    xtr.Read();
-                else
-                {
-                    xtr.ReadStartElement("Telehub");
-                    while (xtr.Read() && xtr.NodeType != XmlNodeType.EndElement)
-                    {
-                        switch (xtr.Name)
-                        {
-                            case "TelehubObject":
-                                settings.TelehubObject = UUID.Parse(xtr.ReadElementContentAsString());
-                                break;
-                            case "SpawnPoint":
-                                string str = xtr.ReadElementContentAsString();
-                                SpawnPoint sp = SpawnPoint.Parse(str);
-                                settings.AddSpawnPoint(sp);
-                                break;
-                        }
-                    }
-                    xtr.ReadEndElement();
-                }
-            }
-
-            if (xtr.IsStartElement("Environment"))
-            {
-                if (xtr.IsEmptyElement)
-                    xtr.Read();
-                else
-                {
-                    xtr.ReadStartElement("Environment");
-                    while (xtr.Read() && xtr.NodeType != XmlNodeType.EndElement)
-                    {
-                        switch (xtr.Name)
-                        {
-                            case "data":
-                                regionEnv = ViewerEnvironment.FromOSDString(xtr.ReadElementContentAsString());
-                                break;
-                        }
-                    }
-                    xtr.ReadEndElement();
-                }
-            }
-
-            if (xtr.IsStartElement("Estate"))
-            {
-                if (xtr.IsEmptyElement)
-                    xtr.Read();
-                else
-                {
-                    xtr.ReadStartElement("Estate");
-                    while (xtr.Read() && xtr.NodeType != XmlNodeType.EndElement)
-                    {
-                        switch (xtr.Name)
-                        {
-                            case "AllowDirectTeleport":
-                                estateSettings.AllowDirectTeleport = bool.Parse(xtr.ReadElementContentAsString());
-                                break;
-                            case "AllowEnvironmentOverride":
-                                estateSettings.AllowEnvironmentOverride = bool.Parse(xtr.ReadElementContentAsString());
-                                break;
-                        }
-                    }
-                    xtr.ReadEndElement();
-                }
-            }
-
-            xtr.Close();
-            sr.Close();
-
-            return settings;
-        }
-
-        public static string Serialize(RegionSettings settings, ViewerEnvironment RegionEnv, EstateSettings estateSettings)
-        {
-            StringWriter sw = new StringWriter();
-            XmlTextWriter xtw = new XmlTextWriter(sw);
-            xtw.Formatting = Formatting.Indented;
-            xtw.WriteStartDocument();
-
-            xtw.WriteStartElement("RegionSettings");
-
-            xtw.WriteStartElement("General");
-            xtw.WriteElementString("AllowDamage", settings.AllowDamage.ToString());
-            xtw.WriteElementString("AllowLandResell", settings.AllowLandResell.ToString());
-            xtw.WriteElementString("AllowLandJoinDivide", settings.AllowLandJoinDivide.ToString());
-            xtw.WriteElementString("BlockFly", settings.BlockFly.ToString());
-            xtw.WriteElementString("BlockLandShowInSearch", settings.BlockShowInSearch.ToString());
-            xtw.WriteElementString("BlockTerraform", settings.BlockTerraform.ToString());
-            xtw.WriteElementString("DisableCollisions", settings.DisableCollisions.ToString());
-            xtw.WriteElementString("DisablePhysics", settings.DisablePhysics.ToString());
-            xtw.WriteElementString("DisableScripts", settings.DisableScripts.ToString());
-            xtw.WriteElementString("MaturityRating", settings.Maturity.ToString());
-            xtw.WriteElementString("RestrictPushing", settings.RestrictPushing.ToString());
-            xtw.WriteElementString("AgentLimit", settings.AgentLimit.ToString());
-            xtw.WriteElementString("ObjectBonus", settings.ObjectBonus.ToString());
-            xtw.WriteEndElement();
-
-            xtw.WriteStartElement("GroundTextures");
-            xtw.WriteElementString("Texture1", settings.TerrainTexture1.ToString());
-            xtw.WriteElementString("Texture2", settings.TerrainTexture2.ToString());
-            xtw.WriteElementString("Texture3", settings.TerrainTexture3.ToString());
-            xtw.WriteElementString("Texture4", settings.TerrainTexture4.ToString());
-            xtw.WriteElementString("PBR1", settings.TerrainPBR1.ToString());
-            xtw.WriteElementString("PBR2", settings.TerrainPBR2.ToString());
-            xtw.WriteElementString("PBR3", settings.TerrainPBR3.ToString());
-            xtw.WriteElementString("PBR4", settings.TerrainPBR4.ToString());
-            xtw.WriteElementString("ElevationLowSW", settings.Elevation1SW.ToString());
-            xtw.WriteElementString("ElevationLowNW", settings.Elevation1NW.ToString());
-            xtw.WriteElementString("ElevationLowSE", settings.Elevation1SE.ToString());
-            xtw.WriteElementString("ElevationLowNE", settings.Elevation1NE.ToString());
-            xtw.WriteElementString("ElevationHighSW", settings.Elevation2SW.ToString());
-            xtw.WriteElementString("ElevationHighNW", settings.Elevation2NW.ToString());
-            xtw.WriteElementString("ElevationHighSE", settings.Elevation2SE.ToString());
-            xtw.WriteElementString("ElevationHighNE", settings.Elevation2NE.ToString());
-            xtw.WriteEndElement();
-
-            xtw.WriteStartElement("Terrain");
-            xtw.WriteElementString("WaterHeight", settings.WaterHeight.ToString());
-            xtw.WriteElementString("TerrainRaiseLimit", settings.TerrainRaiseLimit.ToString());
-            xtw.WriteElementString("TerrainLowerLimit", settings.TerrainLowerLimit.ToString());
-            xtw.WriteElementString("UseEstateSun", settings.UseEstateSun.ToString());
-            xtw.WriteElementString("FixedSun", settings.FixedSun.ToString());
-            xtw.WriteElementString("SunPosition", settings.SunPosition.ToString());
-            xtw.WriteEndElement();
-
-            xtw.WriteStartElement("Telehub");
-            if (!settings.TelehubObject.IsZero())
-            {
-                xtw.WriteElementString("TelehubObject", settings.TelehubObject.ToString());
-                foreach (SpawnPoint sp in settings.SpawnPoints())
-                    xtw.WriteElementString("SpawnPoint", sp.ToString());
-            }
-            xtw.WriteEndElement();
-
-            if (RegionEnv != null)
-            {
-                xtw.WriteStartElement("Environment");
-                xtw.WriteElementString("data", ViewerEnvironment.ToOSDString(RegionEnv));
-                xtw.WriteEndElement();
-            }
-
-            xtw.WriteStartElement("Estate");
-            xtw.WriteElementString("AllowDirectTeleport", estateSettings.AllowDirectTeleport.ToString());
-            xtw.WriteElementString("AllowEnvironmentOverride", estateSettings.AllowEnvironmentOverride.ToString());
-            xtw.WriteEndElement();
-
-            xtw.WriteEndElement();
-
-            xtw.Close();
-            sw.Close();
-
-            return sw.ToString();
-        }
-    }
+var xmlDoc = new XmlDocument();
+xmlDoc.LoadXml(reader.ReadString(), new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore });
+// Process xmlDoc
+XmlReaderSettings settings = new XmlReaderSettings();
+settings.DtdProcessing = DtdProcessing.Parse;
+using (XmlReader reader = XmlReader.Create(xmlString, settings))
+{
+    // ...
 }

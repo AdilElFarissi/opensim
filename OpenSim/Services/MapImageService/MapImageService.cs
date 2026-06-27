@@ -170,86 +170,105 @@ namespace OpenSim.Services.MapImageService
 
             return true;
         }
+private string GetFileName(int zoomLevel, int x, int y, UUID scopeID)
+{
+    string path = Path.Combine(m_TilesStoragePath, scopeID.ToString());
+    return Path.Combine(path, string.Format("map-{0}-{1}-{2}-objects.{3}", zoomLevel, x, y, "jpg"));
+}
 
-        private void DoUpdateMultiResolutionFilesAsync(object o)
+private string GetFileName(int zoomLevel, int x, int y, ReadOnlySpan<char> path)
+{
+    return Path.Combine(path.ToString(), string.Format("map-{0}-{1}-{2}-objects.{3}", zoomLevel, x, y, "jpg"));
+}
+
+private string GetFolder(UUID scopeID)
+{
+    string path = Path.Combine(m_TilesStoragePath, scopeID.ToString());
+    Directory.CreateDirectory(path);
+    return path;
+}
+
+private string GetSafeFileName(string fileName)
+{
+    string baseName = Path.GetFileName(fileName);
+    return Path.Combine(m_TilesStoragePath, Path.GetFileName(baseName));
+}
+
+public byte[] GetMapTile(string fileName, UUID scopeID, out string format)
+{
+    //m_log.DebugFormat("[MAP IMAGE SERVICE]: Getting map tile {0}", fileName);
+    string safeFileName = GetSafeFileName(fileName);
+    string fullName = Path.Combine(safeFileName, scopeID.ToString());
+    try
+    {
+        lock (m_Sync)
         {
-            // let acumulate large region tiles
-            Thread.Sleep(60 * 1000); // large regions take time to upload tiles
+            format = Path.GetExtension(fileName).ToLower();
+            //m_log.DebugFormat("[MAP IMAGE SERVICE]: Found file {0}, extension {1}", fileName, format);
+            return File.ReadAllBytes(fullName);
+        }
+    }
 
-            while (true)
+    catch
+    {
+        format = ".jpg";
+        return m_WaterJPEGBytes is null ? Array.Empty<byte>() : m_WaterJPEGBytes;
+    }
+}
+
+private void DoUpdateMultiResolutionFilesAsync(object o)
+{
+    // let acumulate large region tiles
+    Thread.Sleep(60 * 1000); // large regions take time to upload tiles
+
+    while (true)
+    {
+        MapToMultiRez toMultiRez;
+        lock (m_MultiRezToBuild)
+        {
+            if (!m_MultiRezToBuild.TryDequeue(out toMultiRez))
+                return;
+        }
+
+        ReadOnlySpan<char> path = GetFolder(toMultiRez.scopeID);
+        for (int zoomLevel = 2; zoomLevel <= ZOOM_LEVELS; zoomLevel++)
+        {
+            string fileName = GetFileName(zoomLevel, toMultiRez.x, toMultiRez.y, path);
+            if (!CreateTile(zoomLevel, toMultiRez.x, toMultiRez.y, path))
             {
-                MapToMultiRez toMultiRez;
-                lock (m_MultiRezToBuild)
-                {
-                    if(!m_MultiRezToBuild.TryDequeue(out toMultiRez))
-                        return;
-                }
-
-                ReadOnlySpan<char> path = GetFolder(toMultiRez.scopeID);
-                for (int zoomLevel = 2; zoomLevel <= ZOOM_LEVELS; zoomLevel++)
-                {
-                    if (!CreateTile(zoomLevel, toMultiRez.x, toMultiRez.y, path))
-                    {
-                        m_log.WarnFormat("[MAP IMAGE SERVICE]: Unable to create tile for {0},{1} at zoom level {1}", toMultiRez.x, toMultiRez.y, zoomLevel);
-                        return;
-                    }
-                }
-                Thread.Sleep(50); // slow things a bit
+                m_log.WarnFormat("[MAP IMAGE SERVICE]: Unable to create tile for {0},{1} at zoom level {1}", toMultiRez.x, toMultiRez.y, zoomLevel);
+                return;
             }
         }
+        Thread.Sleep(50); // slow things a bit
+    }
+}
 
-        public byte[] GetMapTile(string fileName, UUID scopeID, out string format)
+private Bitmap GetInputTileImage(string fileName)
+{
+    try
+    {
+        lock(m_Sync)
         {
-            //m_log.DebugFormat("[MAP IMAGE SERVICE]: Getting map tile {0}", fileName);
-            string fullName = Path.Combine(m_TilesStoragePath, scopeID.ToString());
-            fullName = Path.Combine(fullName, fileName);
-            try
+            if (File.Exists(fileName))
             {
-                lock (m_Sync)
-                { 
-                    format = Path.GetExtension(fileName).ToLower();
-                    //m_log.DebugFormat("[MAP IMAGE SERVICE]: Found file {0}, extension {1}", fileName, format);
-                    return File.ReadAllBytes(fullName);
-                }
-            }
-
-            catch
-            {
-                format = ".jpg";
-                return m_WaterJPEGBytes is null ? Array.Empty<byte>() : m_WaterJPEGBytes;
-            }
-        }
-        #endregion
-
-        private string GetFileName(int zoomLevel, int x, int y, UUID scopeID)
-        {
-            string path = Path.Combine(m_TilesStoragePath, scopeID.ToString());
-            return Path.Combine(path, string.Format("map-{0}-{1}-{2}-objects.{3}", zoomLevel, x, y, "jpg"));
-        }
-        private string GetFileName(int zoomLevel, int x, int y, ReadOnlySpan<char> path)
-        {
-            return Path.Combine(path.ToString(), string.Format("map-{0}-{1}-{2}-objects.{3}", zoomLevel, x, y, "jpg"));
-        }
-
-        private string GetFolder(UUID scopeID)
-        {
-            string path = Path.Combine(m_TilesStoragePath, scopeID.ToString());
-            Directory.CreateDirectory(path);
-            return path;
-        }
-
-        private Bitmap GetInputTileImage(string fileName)
-        {
-            try
-            {
-                lock(m_Sync)
+                Bitmap bm = new Bitmap(fileName);
+                if (bm.Width != IMAGE_WIDTH || bm.Height != IMAGE_WIDTH || bm.PixelFormat != PixelFormat.Format24bppRgb)
                 {
-                    if (File.Exists(fileName))
-                    {
-                        Bitmap bm = new Bitmap(fileName);
-                        if (bm.Width != IMAGE_WIDTH || bm.Height != IMAGE_WIDTH || bm.PixelFormat != PixelFormat.Format24bppRgb)
-                        {
-                            m_log.Error($"[MAP IMAGE SERVICE]: invalid map tile {fileName}: {bm.Width} , {bm.Height}, {bm.PixelFormat}");
+                    m_log.Error($"[MAP IMAGE SERVICE]: invalid map tile {fileName}: {bm.Width} , {bm.Height}, {bm.PixelFormat}");
+                    return null;
+                }
+                return bm;
+            }
+            return null;
+        }
+    }
+    catch (Exception ex)
+    {
+        m_log.Error($"[MAP IMAGE SERVICE]: unable to read map tile {fileName}: {ex.Message}");
+        return null;
+    }
+}
                             bm.Dispose();
                             return null;
                         }

@@ -80,146 +80,148 @@ namespace OpenSim.Data.MySQL
             }
 
             Type t = typeof(T);
-            FieldInfo[] fields = t.GetFields(BindingFlags.Public |
-                                             BindingFlags.Instance |
-                                             BindingFlags.DeclaredOnly);
+FieldInfo[] fields = t.GetFields(BindingFlags.Public |
+                                 BindingFlags.Instance |
+                                 BindingFlags.DeclaredOnly);
 
-            if (fields.Length == 0)
-                return;
+if (fields.Length == 0)
+    return;
 
-            foreach (FieldInfo f in  fields)
-            {
-                if (f.Name != "Data")
-                    m_Fields[f.Name] = f;
-                else
-                    m_DataField = f;
-            }
-        }
+foreach (FieldInfo f in fields)
+{
+    if (f.Name != "Data")
+        m_Fields[f.Name] = f;
+    else
+        m_DataField = f;
+}
 
-        private void CheckColumnNames(IDataReader reader)
+private void CheckColumnNames(IDataReader reader)
+{
+    if (m_ColumnNames != null)
+        return;
+
+    List<string> columnNames = new List<string>();
+
+    DataTable schemaTable = reader.GetSchemaTable();
+    foreach (DataRow row in schemaTable.Rows)
+    {
+        if (row["ColumnName"] != null &&
+                (!m_Fields.ContainsKey(row["ColumnName"].ToString())))
+public virtual T[] Get(string field, string key)
+{
+    using (MySqlCommand cmd = new MySqlCommand())
+    {
+        cmd.CommandText = "select * from @realm where @field = @key";
+        cmd.Parameters.AddWithValue("@realm", m_Realm);
+        cmd.Parameters.AddWithValue("@field", field);
+        cmd.Parameters.AddWithValue("@key", key);
+        return DoQuery(cmd);
+    }
+}
+
+public virtual T[] Get(string field, string[] keys)
+{
+    int flen = keys.Length;
+    if (flen == 0)
+        return new T[0];
+
+    int flast = flen - 1;
+    StringBuilder sb = new StringBuilder(1024);
+    sb.AppendFormat("select * from @realm where @field IN (");
+    using (MySqlCommand cmd = new MySqlCommand())
+    {
+        cmd.Parameters.AddWithValue("@realm", m_Realm);
+        cmd.Parameters.AddWithValue("@field", field);
+        for (int i = 0; i < flen; i++)
         {
-            if (m_ColumnNames != null)
-                return;
+            string fname = field + i.ToString();
+            cmd.Parameters.AddWithValue(fname, keys[i]);
 
-            List<string> columnNames = new List<string>();
+            sb.Append("@");
+            sb.Append(fname);
+public virtual T[] Get(string[] fields, string[] keys, string options)
+{
+    int flen = fields.Length;
+    if (flen == 0 || flen != keys.Length)
+        return new T[0];
 
-            DataTable schemaTable = reader.GetSchemaTable();
-            foreach (DataRow row in schemaTable.Rows)
-            {
-                if (row["ColumnName"] != null &&
-                        (!m_Fields.ContainsKey(row["ColumnName"].ToString())))
-                    columnNames.Add(row["ColumnName"].ToString());
-            }
+    int flast = flen - 1;
+    StringBuilder sb = new StringBuilder(1024);
+    sb.AppendFormat("select * from @realm where ");
 
-            m_ColumnNames = columnNames;
-        }
-
-        public virtual T[] Get(string field, string key)
-        {   
-            using (MySqlCommand cmd = new MySqlCommand())
-            {
-                cmd.Parameters.AddWithValue(field, key);
-                cmd.CommandText = $"select * from {m_Realm} where `{field}` = ?{field}";
-                return DoQuery(cmd);
-            }
-        }
-
-        public virtual T[] Get(string field, string[] keys)
+    using (MySqlCommand cmd = new MySqlCommand())
+    {
+        cmd.Parameters.AddWithValue("@realm", m_Realm);
+        for (int i = 0; i < flen; i++)
         {
-            int flen = keys.Length;
-            if(flen == 0)
-                return new T[0];
-
-            int flast = flen - 1;
-            StringBuilder sb = new StringBuilder(1024);
-            sb.AppendFormat("select * from {0} where {1} IN (?", m_Realm, field);
-            using (MySqlCommand cmd = new MySqlCommand())
-            {
-                for (int i = 0 ; i < flen ; i++)
-                {
-                    string fname = field + i.ToString();
-                    cmd.Parameters.AddWithValue(fname, keys[i]);
-
-                    sb.Append(fname);
-                    if(i < flast)
-                        sb.Append(",?");
-                    else
-                        sb.Append(")");
-                }
-                cmd.CommandText = sb.ToString();
-                return DoQuery(cmd);
-            }
-        }
-
-        public virtual T[] Get(string[] fields, string[] keys)
-        {
-            return Get(fields, keys, String.Empty);
-        }
-
-        public virtual T[] Get(string[] fields, string[] keys, string options)
-        {
-            int flen = fields.Length;
-            if (flen == 0 || flen != keys.Length)
-                return new T[0];
-
-            int flast = flen - 1;
-            StringBuilder sb = new StringBuilder(1024);
-            sb.AppendFormat("select * from {0} where ", m_Realm);
-
-            using (MySqlCommand cmd = new MySqlCommand())
-            {
-                for (int i = 0 ; i < flen ; i++)
-                {
-                    cmd.Parameters.AddWithValue(fields[i], keys[i]);
-                    if(i < flast)
-                        sb.AppendFormat("`{0}` = ?{0} and ", fields[i]);
-                    else
-                        sb.AppendFormat("`{0}` = ?{0} ", fields[i]);
-                }
-
-                sb.Append(options);
-                cmd.CommandText = sb.ToString();
-
-                return DoQuery(cmd);
-            }
-        }
-
-        protected T[] DoQuery(MySqlCommand cmd)
-        {
-            if (m_trans == null)
-            {
-                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
-                {
-                    dbcon.Open();
-                    T[] ret = DoQueryWithConnection(cmd, dbcon);
-                    dbcon.Close();
-                    return ret;
-                }
-            }
+            cmd.Parameters.AddWithValue("@" + fields[i], keys[i]);
+            if (i < flast)
+                sb.AppendFormat("`{0}` = @{1} and ", fields[i], fields[i]);
             else
+                sb.AppendFormat("`{0}` = @{1} ", fields[i], fields[i]);
+        }
+
+        sb.Append(options);
+        cmd.CommandText = sb.ToString();
+
+        return DoQuery(cmd);
+    }
+}
+
+protected T[] DoQuery(MySqlCommand cmd)
+{
+    if (m_trans == null)
+    {
+        using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+        {
+            dbcon.Open();
+            T[] ret = DoQueryWithConnection(cmd, dbcon);
+            dbcon.Close();
+            return ret;
+        }
+    }
+    else
+    {
+        return DoQueryWithTransaction(cmd, m_trans);
+    }
+}
+
+protected T[] DoQueryWithTransaction(MySqlCommand cmd, MySqlTransaction trans)
+{
+    cmd.Transaction = trans;
+
+    return DoQueryWithConnection(cmd, trans.Connection);
+}
+
+protected T[] DoQueryWithConnection(MySqlCommand cmd, MySqlConnection dbcon)
+{
+    List<T> result = new List<T>();
+
+    cmd.Connection = dbcon;
+
+    using (IDataReader reader = cmd.ExecuteReader())
+    {
+        if (reader == null)
+            return new T[0];
+
+        while (reader.Read())
+        {
+            T item = (T)Activator.CreateInstance(typeof(T));
+            for (int i = 0; i < reader.FieldCount; i++)
             {
-                return DoQueryWithTransaction(cmd, m_trans);
+                string fieldName = reader.GetName(i);
+                PropertyInfo propertyInfo = typeof(T).GetProperty(fieldName);
+                if (propertyInfo != null)
+                {
+                    propertyInfo.SetValue(item, reader.GetValue(i));
+                }
             }
+            result.Add(item);
         }
 
-        protected T[] DoQueryWithTransaction(MySqlCommand cmd, MySqlTransaction trans)
-        {
-            cmd.Transaction = trans;
-
-            return DoQueryWithConnection(cmd, trans.Connection);
-        }
-
-        protected T[] DoQueryWithConnection(MySqlCommand cmd, MySqlConnection dbcon)
-        {
-            List<T> result = new List<T>();
-
-            cmd.Connection = dbcon;
-
-            using (IDataReader reader = cmd.ExecuteReader())
-            {
-                if (reader == null)
-                    return new T[0];
-
+        return result.ToArray();
+    }
+}
                 CheckColumnNames(reader);
 
                 while (reader.Read())
@@ -242,86 +244,17 @@ namespace OpenSim.Data.MySQL
                             m_Fields[name].SetValue(row, DBGuid.FromDB(reader[name]));
                         }
                         else if (m_Fields[name].FieldType == typeof(int))
-                        {
-                            int v = Convert.ToInt32(reader[name]);
-                            m_Fields[name].SetValue(row, v);
-                        }
-                        else if (m_Fields[name].FieldType == typeof(uint))
-                        {
-                            uint v = Convert.ToUInt32(reader[name]);
-                            m_Fields[name].SetValue(row, v);
-                        }
-                        else
-                        {
-                            m_Fields[name].SetValue(row, reader[name]);
-                        }
-                    }
+public virtual T[] Get(string where)
+{
+    using (MySqlCommand cmd = new MySqlCommand())
+    {
+        cmd.CommandText = "select * from @realm where @where";
+        cmd.Parameters.AddWithValue("@realm", m_Realm);
+        cmd.Parameters.AddWithValue("@where", where);
 
-                    if (m_DataField != null)
-                    {
-                        Dictionary<string, string> data =
-                            new Dictionary<string, string>();
-
-                        foreach (string col in m_ColumnNames)
-                        {
-                            data[col] = reader[col].ToString();
-                            if (data[col] == null)
-                                data[col] = String.Empty;
-                        }
-
-                        m_DataField.SetValue(row, data);
-                    }
-
-                    result.Add(row);
-                }
-            }
-            cmd.Connection = null;
-            return result.ToArray();
-        }
-
-        public virtual T[] Get(string where)
-        {
-            using (MySqlCommand cmd = new MySqlCommand())
-            {
-                cmd.CommandText = $"select * from {m_Realm} where {where}"; ;
-
-                return DoQuery(cmd);
-            }
-        }
-
-        public virtual bool Store(T row)
-        {
-            //m_log.DebugFormat("[MYSQL GENERIC TABLE HANDLER]: Store(T row) invoked");
-
-            using (MySqlCommand cmd = new MySqlCommand())
-            {
-                string query = "";
-                List<String> names = new List<String>();
-                List<String> values = new List<String>();
-
-                foreach (FieldInfo fi in m_Fields.Values)
-                {
-                    names.Add(fi.Name);
-                    values.Add("?" + fi.Name);
-
-                    // Temporarily return more information about what field is unexpectedly null for
-                    // http://opensimulator.org/mantis/view.php?id=5403.  This might be due to a bug in the
-                    // InventoryTransferModule or we may be required to substitute a DBNull here.
-                    if (fi.GetValue(row) == null)
-                        throw new NullReferenceException(
-                            $"[MYSQL GENERIC TABLE HANDLER]: Trying to store field {fi.Name} for {row} which is unexpectedly null");
-
-                    cmd.Parameters.AddWithValue(fi.Name, fi.GetValue(row).ToString());
-                }
-
-                if (m_DataField != null)
-                {
-                    Dictionary<string, string> data =
-                        (Dictionary<string, string>)m_DataField.GetValue(row);
-
-                    foreach (KeyValuePair<string, string> kvp in data)
-                    {
-                        names.Add(kvp.Key);
+        return DoQuery(cmd);
+    }
+}
                         values.Add("?" + kvp.Key);
                         cmd.Parameters.AddWithValue("?" + kvp.Key, kvp.Value);
                     }
@@ -357,92 +290,122 @@ namespace OpenSim.Data.MySQL
             StringBuilder sb = new StringBuilder(1024);
             sb.AppendFormat("delete from {0} where ", m_Realm);
 
-            using (MySqlCommand cmd = new MySqlCommand())
-            {
-                for (int i = 0 ; i < flen ; i++)
-                {
-                    cmd.Parameters.AddWithValue(fields[i], keys[i]);
-                    if(i < flast)
-                        sb.AppendFormat("`{0}` = ?{0} and ", fields[i]);
-                    else
-                        sb.AppendFormat("`{0}` = ?{0}", fields[i]);
-                }
+using (MySqlCommand cmd = new MySqlCommand())
+{
+    for (int i = 0; i < flen; i++)
+    {
+        cmd.Parameters.AddWithValue("param" + i, keys[i]);
+        if (i < flast)
+            sb.AppendFormat("`{0}` = @param{1} and ", fields[i], i);
+        else
+            sb.AppendFormat("`{0}` = @param{1}", fields[i], i);
+    }
 
-                cmd.CommandText = sb.ToString();
-                return ExecuteNonQuery(cmd) > 0;
-            }
-        }
+    cmd.CommandText = sb.ToString();
+    return ExecuteNonQuery(cmd) > 0;
+}
 
-        public long GetCount(string field, string key)
+public long GetCount(string field, string key)
+{
+    return GetCount(new string[] { field }, new string[] { key });
+}
+
+public long GetCount(string[] fields, string[] keys)
+{
+    int flen = fields.Length;
+    if (flen == 0 || flen != keys.Length)
+        return 0;
+
+    int flast = flen - 1;
+    StringBuilder sb = new StringBuilder(1024);
+    sb.AppendFormat("select count(*) from {0} where ", m_Realm);
+
+    using (MySqlCommand cmd = new MySqlCommand())
+    {
+        for (int i = 0; i < flen; i++)
         {
-            return GetCount(new string[] { field }, new string[] { key });
-        }
-
-        public long GetCount(string[] fields, string[] keys)
-        {
-            int flen = fields.Length;
-            if (flen == 0 || flen != keys.Length)
-                return 0;
-
-            int flast = flen - 1;
-            StringBuilder sb = new StringBuilder(1024);
-            sb.AppendFormat("select count(*) from {0} where ", m_Realm);
-
-            using (MySqlCommand cmd = new MySqlCommand())
-            {
-                for (int i = 0 ; i < flen ; i++)
-                {
-                    cmd.Parameters.AddWithValue(fields[i], keys[i]);
-                    if(i < flast)
-                        sb.AppendFormat("`{0}` = ?{0} and ", fields[i]);
-                    else
-                        sb.AppendFormat("`{0}` = ?{0}", fields[i]);
-                }
-
-                cmd.CommandText = sb.ToString();
-                object result = DoQueryScalar(cmd);
-
-                return Convert.ToInt64(result);
-            }
-        }
-
-        public long GetCount(string where)
-        {
-            using (MySqlCommand cmd = new MySqlCommand())
-            {
-                string query = String.Format("select count(*) from {0} where {1}",
-                                             m_Realm, where);
-
-                cmd.CommandText = query;
-
-                object result = DoQueryScalar(cmd);
-
-                return Convert.ToInt64(result);
-            }
-        }
-
-        public object DoQueryScalar(MySqlCommand cmd)
-        {
-            if (m_trans == null)
-            {
-                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
-                {
-                    dbcon.Open();
-                    cmd.Connection = dbcon;
-
-                    object ret = cmd.ExecuteScalar();
-                    cmd.Connection = null;
-                    dbcon.Close();
-                    return ret;
-                }
-            }
+            cmd.Parameters.AddWithValue("param" + i, keys[i]);
+            if (i < flast)
+                sb.AppendFormat("`{0}` = @param{1} and ", fields[i], i);
             else
-            {
-                cmd.Connection = m_trans.Connection;
-                cmd.Transaction = m_trans;
+                sb.AppendFormat("`{0}` = @param{1}", fields[i], i);
+public long GetCount(string where)
+{
+    using (MySqlCommand cmd = new MySqlCommand())
+    {
+        string query = "select count(*) from " + m_Realm + " where @where";
 
-                return cmd.ExecuteScalar();
+        cmd.CommandText = query;
+        cmd.Parameters.AddWithValue("@where", where);
+
+        object result = DoQueryScalar(cmd);
+
+        return Convert.ToInt64(result);
+    }
+}
+
+public object DoQueryScalar(MySqlCommand cmd)
+{
+    if (m_trans == null)
+    {
+        using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+        {
+            dbcon.Open();
+            cmd.Connection = dbcon;
+
+            object ret = cmd.ExecuteScalar();
+            cmd.Connection = null;
+            dbcon.Close();
+            return ret;
+        }
+    }
+    else
+{
+    cmd.Connection = m_trans.Connection;
+    cmd.Transaction = m_trans;
+
+    // Assuming 'query' is the SQL query string and 'parameters' is a dictionary of parameters
+    using (SqlCommand command = new SqlCommand(query, m_trans.Connection, m_trans))
+    {
+        foreach (var parameter in parameters)
+        {
+            command.Parameters.AddWithValue(parameter.Key, parameter.Value);
+        }
+        return command.ExecuteScalar();
+    }
+}
+using System.Data.SqlClient;
+using System.Data;
+
+// ...
+
+public void ExecuteQuery(string query, string parameter)
+{
+    using (SqlConnection connection = new SqlConnection("YourConnectionString"))
+    {
+        connection.Open();
+
+        // Using a prepared statement to prevent SQL injection
+        using (SqlCommand command = new SqlCommand("SELECT * FROM YourTable WHERE YourColumn = @parameter", connection))
+        {
+            command.Parameters.AddWithValue("@parameter", parameter);
+
+            using (SqlDataReader reader = command.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    // Process the results
+                }
             }
         }
     }
+}
+
+// Example usage:
+public void ExampleUsage()
+{
+    string query = "YourQuery";
+    string parameter = "YourParameter";
+
+    ExecuteQuery(query, parameter);
 }

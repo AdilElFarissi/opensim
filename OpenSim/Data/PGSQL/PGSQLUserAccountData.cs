@@ -152,86 +152,70 @@ namespace OpenSim.Data.PGSQL
                         return ret;
                     }
                 }
-            }
-            return null;
+public override bool Store(UserAccountData data)
+{
+    if (data.Data.ContainsKey("PrincipalID"))
+        data.Data.Remove("PrincipalID");
+    if (data.Data.ContainsKey("ScopeID"))
+        data.Data.Remove("ScopeID");
+
+    string[] fields = new List<string>(data.Data.Keys).ToArray();
+
+    using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
+    using (NpgsqlCommand cmd = new NpgsqlCommand())
+    {
+        m_log.DebugFormat("[USER]: Try to update user {0} {1}", data.FirstName, data.LastName);
+
+        string updateQuery = $"update {m_Realm} set {String.Join(", ", fields.Select(f => $"\"{f}\" = :{f}"))} where \"PrincipalID\" = :principalID";
+        if (data.ScopeID != UUID.Zero)
+            updateQuery += $" and \"ScopeID\" = :scopeID";
+
+        cmd.CommandText = updateQuery;
+        cmd.Connection = conn;
+
+        foreach (string field in fields)
+        {
+            cmd.Parameters.Add(m_database.CreateParameter(field, data.Data[field]));
+        }
+        cmd.Parameters.Add(m_database.CreateParameter("principalID", data.PrincipalID));
+        cmd.Parameters.Add(m_database.CreateParameter("scopeID", data.ScopeID));
+
+        m_log.DebugFormat("[USER]: SQL update user {0} ", cmd.CommandText);
+
+        conn.Open();
+
+        m_log.DebugFormat("[USER]: CON opened update user {0} ", cmd.CommandText);
+
+        int conta = 0;
+        try
+        {
+            conta = cmd.ExecuteNonQuery();
+        }
+        catch (Exception e)
+        {
+            m_log.ErrorFormat("[USER]: ERROR opened update user {0} ", e.Message);
         }
 
-        public override bool Store(UserAccountData data)
+        if (conta < 1)
         {
-            if (data.Data.ContainsKey("PrincipalID"))
-                data.Data.Remove("PrincipalID");
-            if (data.Data.ContainsKey("ScopeID"))
-                data.Data.Remove("ScopeID");
+            m_log.DebugFormat("[USER]: Try to insert user {0} {1}", data.FirstName, data.LastName);
 
-            string[] fields = new List<string>(data.Data.Keys).ToArray();
+            string insertQuery = $"insert into {m_Realm} (\"PrincipalID\", \"ScopeID\", \"FirstName\", \"LastName\", {String.Join(", ", fields.Select(f => $"\"{f}\""))}) values (:principalID, :scopeID, :FirstName, :LastName, {String.Join(", :", fields)})";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand())
+            cmd.CommandText = insertQuery;
+
+            cmd.Parameters.Add(m_database.CreateParameter("FirstName", data.FirstName));
+            cmd.Parameters.Add(m_database.CreateParameter("LastName", data.LastName));
+
+            if (cmd.ExecuteNonQuery() < 1)
             {
-                m_log.DebugFormat("[USER]: Try to update user {0} {1}", data.FirstName, data.LastName);
+                return false;
+            }
+        }
 
-                StringBuilder updateBuilder = new StringBuilder();
-                updateBuilder.AppendFormat("update {0} set ", m_Realm);
-                bool first = true;
-                foreach (string field in fields)
-                {
-                    if (!first)
-                        updateBuilder.Append(", ");
-                    updateBuilder.AppendFormat("\"{0}\" = :{0}", field);
-
-                    first = false;
-                    if (m_FieldTypes.ContainsKey(field))
-                        cmd.Parameters.Add(m_database.CreateParameter("" + field, data.Data[field], m_FieldTypes[field]));
-                    else
-                        cmd.Parameters.Add(m_database.CreateParameter("" + field, data.Data[field]));
-                }
-
-                updateBuilder.Append(" where \"PrincipalID\" = :principalID");
-
-                if (data.ScopeID != UUID.Zero)
-                    updateBuilder.Append(" and \"ScopeID\" = :scopeID");
-
-                cmd.CommandText = updateBuilder.ToString();
-                cmd.Connection = conn;
-                cmd.Parameters.Add(m_database.CreateParameter("principalID", data.PrincipalID));
-                cmd.Parameters.Add(m_database.CreateParameter("scopeID", data.ScopeID));
-
-                m_log.DebugFormat("[USER]: SQL update user {0} ", cmd.CommandText);
-
-                conn.Open();
-
-                m_log.DebugFormat("[USER]: CON opened update user {0} ", cmd.CommandText);
-
-                int conta = 0;
-                try
-                {
-                    conta = cmd.ExecuteNonQuery();
-                }
-                catch (Exception e){
-                    m_log.ErrorFormat("[USER]: ERROR opened update user {0} ", e.Message);
-                }
-
-
-                if (conta < 1)
-                {
-                    m_log.DebugFormat("[USER]: Try to insert user {0} {1}", data.FirstName, data.LastName);
-
-                    StringBuilder insertBuilder = new StringBuilder();
-                    insertBuilder.AppendFormat(@"insert into {0} (""PrincipalID"", ""ScopeID"", ""FirstName"", ""LastName"", """, m_Realm);
-                    insertBuilder.Append(String.Join(@""", """, fields));
-                    insertBuilder.Append(@""") values (:principalID, :scopeID, :FirstName, :LastName, :");
-                    insertBuilder.Append(String.Join(", :", fields));
-                    insertBuilder.Append(");");
-
-                    cmd.Parameters.Add(m_database.CreateParameter("FirstName", data.FirstName));
-                    cmd.Parameters.Add(m_database.CreateParameter("LastName", data.LastName));
-
-                    cmd.CommandText = insertBuilder.ToString();
-
-                    if (cmd.ExecuteNonQuery() < 1)
-                    {
-                        return false;
-                    }
+        return true;
+    }
+}
                 }
                 else
                     m_log.DebugFormat("[USER]: User {0} {1} exists", data.FirstName, data.LastName);
@@ -289,58 +273,62 @@ namespace OpenSim.Data.PGSQL
             if (words.Length == 0)
                 return new UserAccountData[0];
 
-            if (words.Length > 2)
-                return new UserAccountData[0];
+public UserAccountData[] GetUsersWhere(UUID scopeID, string[] words)
+{
+    using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
+    using (NpgsqlCommand cmd = new NpgsqlCommand())
+    {
+        if (words.Length > 2)
+            return new UserAccountData[0];
 
-            string sql = "";
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand())
-            {
-                if (words.Length == 1)
-                {
-                    sql = String.Format(@"select * from {0} where (""ScopeID""=:ScopeID or ""ScopeID""=:UUIDZero) and (LOWER(""FirstName"" COLLATE ""en_US.utf8"") like LOWER(:search) or LOWER(""LastName"" COLLATE ""en_US.utf8"") like LOWER(:search))", m_Realm);
-                    cmd.Parameters.Add(m_database.CreateParameter("ScopeID", scopeID));
-                    cmd.Parameters.Add (m_database.CreateParameter("UUIDZero", UUID.Zero));
-                    cmd.Parameters.Add(m_database.CreateParameter("search", "%" + words[0] + "%"));
-                }
-                else
-                {
-                    sql = String.Format(@"select * from {0} where (""ScopeID""=:ScopeID or ""ScopeID""=:UUIDZero) and (LOWER(""FirstName"" COLLATE ""en_US.utf8"") like LOWER(:searchFirst) or LOWER(""LastName"" COLLATE ""en_US.utf8"") like LOWER(:searchLast))", m_Realm);
-                    cmd.Parameters.Add(m_database.CreateParameter("searchFirst", "%" + words[0] + "%"));
-                    cmd.Parameters.Add(m_database.CreateParameter("searchLast", "%" + words[1] + "%"));
-                    cmd.Parameters.Add (m_database.CreateParameter("UUIDZero", UUID.Zero));
-                    cmd.Parameters.Add(m_database.CreateParameter("ScopeID", scopeID));
-                }
-                cmd.Connection = conn;
-                cmd.CommandText = sql;
-                conn.Open();
-                return DoQuery(cmd);
-            }
-        }
-
-        public UserAccountData[] GetUsersWhere(UUID scopeID, string where)
+        string sql = "";
+        if (words.Length == 1)
         {
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand())
-            {
-                // Fix case sensitivity for PostgreSQL column names
-                where = where.Replace("PrincipalID", "\"PrincipalID\"")
-                            .Replace("ScopeID", "\"ScopeID\"")
-                            .Replace("FirstName", "\"FirstName\"")
-                            .Replace("LastName", "\"LastName\"");
-                            
-                if (!scopeID.IsZero())
-                {
-                    where = "(\"ScopeID\"=:ScopeID or \"ScopeID\"='00000000-0000-0000-0000-000000000000') and (" + where + ")";
-                    cmd.Parameters.Add(m_database.CreateParameter("ScopeID", scopeID));
-                }
-
-                cmd.CommandText = String.Format("select * from {0} where " + where, m_Realm);
-                cmd.Connection = conn;
-                
-                conn.Open();
-                return DoQuery(cmd);
-            }
+            sql = @"
+                select * from {0} 
+                where (""ScopeID""=:ScopeID or ""ScopeID""=:UUIDZero) 
+                and (LOWER(""FirstName"" COLLATE ""en_US.utf8"") like LOWER(:search) or LOWER(""LastName"" COLLATE ""en_US.utf8"") like LOWER(:search))
+            ";
+            cmd.Parameters.Add(m_database.CreateParameter("ScopeID", scopeID));
+            cmd.Parameters.Add(m_database.CreateParameter("UUIDZero", UUID.Zero));
+            cmd.Parameters.Add(m_database.CreateParameter("search", "%" + words[0] + "%"));
         }
+        else
+        {
+            sql = @"
+public UserAccountData[] GetUsersWhere(UUID scopeID, string where)
+{
+    using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
+    using (NpgsqlCommand cmd = new NpgsqlCommand())
+    {
+        // Fix case sensitivity for PostgreSQL column names
+        string query = @"
+            select * from {0} 
+            where (LOWER(""ScopeID"" COLLATE ""en_US.utf8"") = :ScopeID or LOWER(""ScopeID"" COLLATE ""en_US.utf8"") = :UUIDZero) 
+            and (LOWER(""FirstName"" COLLATE ""en_US.utf8"") like LOWER(:searchFirst) or LOWER(""LastName"" COLLATE ""en_US.utf8"") like LOWER(:searchLast))
+        ";
+
+        if (!scopeID.IsZero())
+        {
+            query = @"
+                select * from {0} 
+                where (LOWER(""ScopeID"" COLLATE ""en_US.utf8"") = :ScopeID or LOWER(""ScopeID"" COLLATE ""en_US.utf8"") = :UUIDZero) 
+                and (LOWER(""FirstName"" COLLATE ""en_US.utf8"") like LOWER(:searchFirst) or LOWER(""LastName"" COLLATE ""en_US.utf8"") like LOWER(:searchLast))
+            ";
+        }
+
+        cmd.CommandText = query;
+        cmd.Connection = conn;
+
+        cmd.Parameters.Add(m_database.CreateParameter("searchFirst", "%" + words[0] + "%"));
+        cmd.Parameters.Add(m_database.CreateParameter("searchLast", "%" + words[1] + "%"));
+        cmd.Parameters.Add(m_database.CreateParameter("UUIDZero", UUID.Zero));
+        if (!scopeID.IsZero())
+        {
+            cmd.Parameters.Add(m_database.CreateParameter("ScopeID", scopeID));
+        }
+
+        conn.Open();
+        return DoQuery(cmd);
     }
 }

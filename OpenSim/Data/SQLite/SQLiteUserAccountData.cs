@@ -32,7 +32,6 @@ using System.Data;
 using OpenMetaverse;
 using OpenSim.Framework;
 using System.Data.SQLite;
-
 namespace OpenSim.Data.SQLite
 {
     public class SQLiteUserAccountData : SQLiteGenericTableHandler<UserAccountData>, IUserAccountData
@@ -64,15 +63,20 @@ namespace OpenSim.Data.SQLite
 
             using (SQLiteCommand cmd = new SQLiteCommand())
             {
+                cmd.CommandText = "select * from UserAccount where (ScopeID=@ScopeID or ScopeID=@WildcardScopeID)";
+
+                cmd.Parameters.AddWithValue("@ScopeID", scopeID.ToString());
+                cmd.Parameters.AddWithValue("@WildcardScopeID", "00000000-0000-0000-0000-000000000000");
+
                 if (words.Length == 1)
                 {
-                    cmd.CommandText = String.Format("select * from {0} where (ScopeID='{1}' or ScopeID='00000000-0000-0000-0000-000000000000') and (FirstName like '{2}%' or LastName like '{2}%')",
-                        m_Realm, scopeID.ToString(), words[0]);
+                    cmd.Parameters.AddWithValue("@FirstName", words[0] + "%");
+                    cmd.Parameters.AddWithValue("@LastName", words[0] + "%");
                 }
                 else
                 {
-                    cmd.CommandText = String.Format("select * from {0} where (ScopeID='{1}' or ScopeID='00000000-0000-0000-0000-000000000000') and (FirstName like '{2}%' or LastName like '{3}%')",
-                        m_Realm, scopeID.ToString(), words[0], words[1]);
+                    cmd.Parameters.AddWithValue("@FirstName", words[0] + "%");
+                    cmd.Parameters.AddWithValue("@LastName", words[1] + "%");
                 }
 
                 return DoQuery(cmd);

@@ -110,116 +110,116 @@ namespace OpenSim.Data.PGSQL
             data.Data.Remove("UUID");
             data.Data.Remove("uuid");
 
-            /*
-            Dictionary<string, object> oAuth = new Dictionary<string, object>();
+public bool SetDataItem(UUID principalID, string item, string value)
+{
+    string sql = "update {0} set {1} = :{1} where uuid = :UUID";
+    using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
+    using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+    {
+        cmd.Parameters.AddWithValue(":realm", m_Realm);
+        cmd.Parameters.AddWithValue(":" + item, value);
+        cmd.Parameters.AddWithValue(":UUID", principalID);
+        conn.Open();
+        if (cmd.ExecuteNonQuery() > 0)
+            return true;
+    }
+    return false;
+}
+public bool SetData(UUID principalID, Dictionary<string, object> data)
+{
+    string[] fields = new List<string>(data.Keys).ToArray();
+    StringBuilder updateBuilder = new StringBuilder();
 
-            foreach (KeyValuePair<string, object> oDado in data.Data)
+    using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
+    using (NpgsqlCommand cmd = new NpgsqlCommand())
+    {
+        updateBuilder.AppendFormat("update {0} set ", m_Realm);
+
+        bool first = true;
+        foreach (string field in fields)
+        {
+            if (!first)
+                updateBuilder.Append(", ");
+            updateBuilder.AppendFormat("\"{0}\" = :{0}", field);
+
+            first = false;
+
+            cmd.Parameters.AddWithValue(":" + field, data[field]);
+        }
+
+        updateBuilder.Append(" where uuid = :principalID");
+
+        cmd.CommandText = updateBuilder.ToString();
+        cmd.Connection = conn;
+        cmd.Parameters.AddWithValue(":principalID", principalID);
+
+        conn.Open();
+        if (cmd.ExecuteNonQuery() < 1)
+        {
+            StringBuilder insertBuilder = new StringBuilder();
+
+            insertBuilder.AppendFormat("insert into {0} (uuid, \"", m_Realm);
+            insertBuilder.Append(String.Join("\", \"", fields));
+            insertBuilder.Append("\") values (:principalID, :");
+            insertBuilder.Append(String.Join(", :", fields));
+            insertBuilder.Append(")");
+
+            cmd.CommandText = insertBuilder.ToString();
+
+            if (cmd.ExecuteNonQuery() < 1)
             {
-                if (oDado.Key != oDado.Key.ToLower())
-                {
-                    oAuth.Add(oDado.Key.ToLower(), oDado.Value);
-                }
+                return false;
             }
-            foreach (KeyValuePair<string, object> oDado in data.Data)
-            {
-                if (!oAuth.ContainsKey(oDado.Key.ToLower())) {
-                    oAuth.Add(oDado.Key.ToLower(), oDado.Value);
-                }
-            }
-            */
-            string[] fields = new List<string>(data.Data.Keys).ToArray();
-            StringBuilder updateBuilder = new StringBuilder();
+        }
+    }
+    return true;
+}
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand())
-            {
-                updateBuilder.AppendFormat("update {0} set ", m_Realm);
+public bool CreateToken(UUID principalID, string token, int lifetime)
+{
+    if (System.Environment.TickCount - m_LastExpire > 30000)
+        DoExpire();
 
-                bool first = true;
-                foreach (string field in fields)
-                {
-                    if (!first)
-                        updateBuilder.Append(", ");
-                    updateBuilder.AppendFormat("\"{0}\" = :{0}",field);
+    string sql = "insert into tokens (uuid, token, validity) values (:principalID, :token, :lifetime)";
+    using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
+    using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+    {
+        cmd.Parameters.Add(m_database.CreateParameter("principalID", principalID));
+        cmd.Parameters.Add(m_database.CreateParameter("token", token));
+        cmd.Parameters.Add(m_database.CreateParameter("lifetime", DateTime.Now.AddMinutes(lifetime)));
+        conn.Open();
 
-                    first = false;
-
-                    cmd.Parameters.Add(m_database.CreateParameter("" + field, data.Data[field]));
-                }
-
-                updateBuilder.Append(" where uuid = :principalID");
-
-                cmd.CommandText = updateBuilder.ToString();
-                cmd.Connection = conn;
-                cmd.Parameters.Add(m_database.CreateParameter("principalID", data.PrincipalID));
-
-                conn.Open();
-                if (cmd.ExecuteNonQuery() < 1)
-                {
-                    StringBuilder insertBuilder = new StringBuilder();
-
-                    insertBuilder.AppendFormat("insert into {0} (uuid, \"", m_Realm);
-                    insertBuilder.Append(String.Join("\", \"", fields));
-                    insertBuilder.Append("\") values (:principalID, :");
-                    insertBuilder.Append(String.Join(", :", fields));
-                    insertBuilder.Append(")");
-
-                    cmd.CommandText = insertBuilder.ToString();
-
-                    if (cmd.ExecuteNonQuery() < 1)
-                    {
-                        return false;
-                    }
-                }
-            }
+        if (cmd.ExecuteNonQuery() > 0)
+        {
             return true;
         }
+    }
+    return false;
+}
 
-        public bool SetDataItem(UUID principalID, string item, string value)
+public bool CheckToken(UUID principalID, string token, int lifetime)
+{
+    if (System.Environment.TickCount - m_LastExpire > 30000)
+        DoExpire();
+
+    DateTime validDate = DateTime.Now.AddMinutes(lifetime);
+    string sql = "update tokens set validity = :validDate where uuid = :principalID and token = :token and validity > (CURRENT_DATE + CURRENT_TIME)";
+
+    using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
+    using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+    {
+        cmd.Parameters.Add(m_database.CreateParameter("principalID", principalID));
+        cmd.Parameters.Add(m_database.CreateParameter("token", token));
+        cmd.Parameters.Add(m_database.CreateParameter("validDate", validDate));
+        conn.Open();
+
+        if (cmd.ExecuteNonQuery() > 0)
         {
-            string sql = string.Format("update {0} set {1} = :{1} where uuid = :UUID", m_Realm, item);
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
-            {
-                cmd.Parameters.Add(m_database.CreateParameter("\"" + item + "\"", value));
-                conn.Open();
-                if (cmd.ExecuteNonQuery() > 0)
-                    return true;
-            }
-            return false;
+            return true;
         }
-
-        public bool SetToken(UUID principalID, string token, int lifetime)
-        {
-            if (System.Environment.TickCount - m_LastExpire > 30000)
-                DoExpire();
-
-            string sql = "insert into tokens (uuid, token, validity) values (:principalID, :token, :lifetime)";
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
-            {
-                cmd.Parameters.Add(m_database.CreateParameter("principalID", principalID));
-                cmd.Parameters.Add(m_database.CreateParameter("token", token));
-                cmd.Parameters.Add(m_database.CreateParameter("lifetime", DateTime.Now.AddMinutes(lifetime)));
-                conn.Open();
-
-                if (cmd.ExecuteNonQuery() > 0)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        public bool CheckToken(UUID principalID, string token, int lifetime)
-        {
-            if (System.Environment.TickCount - m_LastExpire > 30000)
-                DoExpire();
-
-            DateTime validDate = DateTime.Now.AddMinutes(lifetime);
-            string sql = "update tokens set validity = :validDate where uuid = :principalID and token = :token and validity > (CURRENT_DATE + CURRENT_TIME)";
-
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
+    }
+    return false;
+}
             using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
             {
                 cmd.Parameters.Add(m_database.CreateParameter("principalID", principalID));

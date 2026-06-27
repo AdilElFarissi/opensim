@@ -104,127 +104,59 @@ namespace OpenSim.Data.MySQL
                     }
                 }
             }
-        }
+public bool SetDataItem(UUID principalID, string item, string value)
+{
+    using (MySqlCommand cmd = new MySqlCommand("update `" + m_Realm + "` set @item = @value where UUID = @UUID"))
+    {
+        cmd.Parameters.AddWithValue("@item", item);
+        cmd.Parameters.AddWithValue("@value", value);
+        cmd.Parameters.AddWithValue("@UUID", principalID.ToString());
 
-        private void CheckColumnNames(IDataReader result)
-        {
-            if (m_ColumnNames != null)
-                return;
+        if (ExecuteNonQuery(cmd) > 0)
+return true;
+}
 
-            List<string> columnNames = new List<string>();
+return false;
+}
+                    "insert into tokens (UUID, token, validity) values (@principalID, @token, date_add(now(), interval @lifetime minute))"))
+{
+    cmd.Parameters.AddWithValue("@principalID", principalID.ToString());
+    cmd.Parameters.AddWithValue("@token", token);
+    cmd.Parameters.AddWithValue("@lifetime", lifetime.ToString());
 
-            DataTable schemaTable = result.GetSchemaTable();
-            foreach (DataRow row in schemaTable.Rows)
-                columnNames.Add(row["ColumnName"].ToString());
+    if (ExecuteNonQuery(cmd) > 0)
+        return true;
+}
 
-            m_ColumnNames = columnNames;
-        }
+return false;
+}
 
-        public bool Store(AuthenticationData data)
-        {
-            data.Data.Remove("UUID");
+public bool CheckToken(UUID principalID, string token, int lifetime)
+{
+    if (System.Environment.TickCount - m_LastExpire > 30000)
+        DoExpire();
 
-            string[] fields = new List<string>(data.Data.Keys).ToArray();
+    using (MySqlCommand cmd
+        = new MySqlCommand(
+            "update tokens set validity = date_add(now(), interval @lifetime minute) where UUID = @principalID and token = @token and validity > now()"))
+    {
+        cmd.Parameters.AddWithValue("@principalID", principalID.ToString());
+        cmd.Parameters.AddWithValue("@token", token);
+        cmd.Parameters.AddWithValue("@lifetime", lifetime.ToString());
 
-            using (MySqlCommand cmd = new MySqlCommand())
-            {
-                string update = "update `"+m_Realm+"` set ";
-                bool first = true;
-                foreach (string field in fields)
-                {
-                    if (!first)
-                        update += ", ";
-                    update += "`" + field + "` = ?"+field;
-
-                    first = false;
-
-                    cmd.Parameters.AddWithValue("?"+field, data.Data[field]);
-                }
-
-                update += " where UUID = ?principalID";
-
-                cmd.CommandText = update;
-                cmd.Parameters.AddWithValue("?principalID", data.PrincipalID.ToString());
-
-                if (ExecuteNonQuery(cmd) < 1)
-                {
-                    string insert = "insert into `" + m_Realm + "` (`UUID`, `" +
-                            String.Join("`, `", fields) +
-                            "`) values (?principalID, ?" + String.Join(", ?", fields) + ")";
-
-                    cmd.CommandText = insert;
-
-                    if (ExecuteNonQuery(cmd) < 1)
-                        return false;
-                }
-            }
-
+        if (ExecuteNonQuery(cmd) > 0)
             return true;
-        }
-
-        public bool SetDataItem(UUID principalID, string item, string value)
-        {
-            using (MySqlCommand cmd
-                = new MySqlCommand("update `" + m_Realm + "` set `" + item + "` = ?" + item + " where UUID = ?UUID"))
-            {
-                cmd.Parameters.AddWithValue("?"+item, value);
-                cmd.Parameters.AddWithValue("?UUID", principalID.ToString());
-
-                if (ExecuteNonQuery(cmd) > 0)
-                    return true;
-            }
-
-            return false;
-        }
-
-        public bool SetToken(UUID principalID, string token, int lifetime)
-        {
-            if (System.Environment.TickCount - m_LastExpire > 30000)
-                DoExpire();
-
-            using (MySqlCommand cmd
-                = new MySqlCommand(
-                    "insert into tokens (UUID, token, validity) values (?principalID, ?token, date_add(now(), interval ?lifetime minute))"))
-            {
-                cmd.Parameters.AddWithValue("?principalID", principalID.ToString());
-                cmd.Parameters.AddWithValue("?token", token);
-                cmd.Parameters.AddWithValue("?lifetime", lifetime.ToString());
-
-                if (ExecuteNonQuery(cmd) > 0)
-                    return true;
-            }
-
-            return false;
-        }
-
-        public bool CheckToken(UUID principalID, string token, int lifetime)
-        {
-            if (System.Environment.TickCount - m_LastExpire > 30000)
-                DoExpire();
-
-            using (MySqlCommand cmd
-                = new MySqlCommand(
-                    "update tokens set validity = date_add(now(), interval ?lifetime minute) where UUID = ?principalID and token = ?token and validity > now()"))
-            {
-                cmd.Parameters.AddWithValue("?principalID", principalID.ToString());
-                cmd.Parameters.AddWithValue("?token", token);
-                cmd.Parameters.AddWithValue("?lifetime", lifetime.ToString());
-
-                if (ExecuteNonQuery(cmd) > 0)
-                    return true;
-            }
-
-            return false;
-        }
-
-        private void DoExpire()
-        {
-            using (MySqlCommand cmd = new MySqlCommand("delete from tokens where validity < now()"))
-            {
-                ExecuteNonQuery(cmd);
-            }
-
-            m_LastExpire = System.Environment.TickCount;
-        }
     }
+
+    return false;
+}
+
+private void DoExpire()
+{
+    using (MySqlCommand cmd = new MySqlCommand("delete from tokens where validity < now()"))
+    {
+        ExecuteNonQuery(cmd);
+    }
+
+    m_LastExpire = System.Environment.TickCount;
 }

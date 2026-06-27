@@ -262,86 +262,37 @@ namespace OpenSim.Data.MySQL
                     using (MySqlCommand cmd = dbcon.CreateCommand())
                     {
                         cmd.CommandText = "select UUID from prims where SceneGroupID= ?UUID";
-                        cmd.Parameters.AddWithValue("UUID", obj.ToString());
+// ...
 
-                        using (IDataReader reader = ExecuteReader(cmd))
-                        {
-                            while (reader.Read())
-                                uuids.Add(reader["UUID"].ToString());
-                        }
+// delete the main prims
+cmd.CommandText = "delete from prims where SceneGroupID= @UUID";
+cmd.Parameters.AddWithValue("@UUID", obj.ToString());
+ExecuteNonQuery(cmd);
 
-                        if(uuids.Count == 0)
-                        {
-                            dbcon.Close();
-                            return;
-                        }
+cmd.Parameters.Clear();
 
-                        // delete the main prims
-                        cmd.CommandText = "delete from prims where SceneGroupID= ?UUID";
-                        ExecuteNonQuery(cmd);
+if (uuids.Count > 0)
+{
+    string placeholders = string.Join(",", uuids.Select((s, i) => $"@UUID{i}"));
+    cmd.CommandText = $"delete from primshapes where UUID IN ({placeholders})";
+    for (int i = 0; i < uuids.Count; i++)
+    {
+        cmd.Parameters.AddWithValue($"@UUID{i}", uuids[i]);
+    }
+    ExecuteNonQuery(cmd);
 
-                        cmd.Parameters.Clear();
+    cmd.Parameters.Clear();
 
-                        string sqlparams;
-                        if (uuids.Count > 1)
-                        {
-                            StringBuilder sb = new StringBuilder(uuids.Count * 39 + 5);
-                            sb.Append("IN (");
-                            for(int i = 0; i < uuids.Count - 1; ++i )
-                            {
-                                sb.Append('\'');
-                                sb.Append(uuids[i]);
-                                sb.Append("',");
-                            }
-                            sb.Append('\'');
-                            sb.Append(uuids[uuids.Count - 1]);
-                            sb.Append("')");
-                            sqlparams = sb.ToString();
-                        }
-                        else
-                            sqlparams = $"='{uuids[0]}'";
+    cmd.CommandText = $"delete from primitems where primID IN ({placeholders})";
+    for (int i = 0; i < uuids.Count; i++)
+    {
+        cmd.Parameters.AddWithValue($"@UUID{i}", uuids[i]);
+    }
+    ExecuteNonQuery(cmd);
+}
 
-                        cmd.CommandText = "delete from primshapes where UUID " + sqlparams;
-                        ExecuteNonQuery(cmd);
-
-                        cmd.CommandText = "delete from primitems where primID " + sqlparams;
-                        ExecuteNonQuery(cmd);
-
-                        dbcon.Close();
-                    }
-                }
-            }
-        }
-
-        public virtual List<SceneObjectGroup> LoadObjects(UUID regionID)
-        {
-            const int ROWS_PER_QUERY = 5000;
-
-            Dictionary<UUID, SceneObjectPart> prims = new Dictionary<UUID, SceneObjectPart>(ROWS_PER_QUERY);
-            Dictionary<UUID, SceneObjectGroup> objects = new Dictionary<UUID, SceneObjectGroup>();
-            int count = 0;
-
-            #region Prim Loading
-
-            lock (m_dbLock)
-            {
-                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
-                {
-                    dbcon.Open();
-
-                    using (MySqlCommand cmd = dbcon.CreateCommand())
-                    {
-                        cmd.CommandText =
-                            "SELECT * FROM prims LEFT JOIN primshapes ON prims.UUID = primshapes.UUID WHERE RegionUUID = ?RegionUUID";
-                        cmd.Parameters.AddWithValue("RegionUUID", regionID.ToString());
-                        cmd.CommandTimeout = 3600;
-
-                        using (IDataReader reader = ExecuteReader(cmd))
-                        {
-                            while (reader.Read())
-                            {
-                                SceneObjectPart prim = BuildPrim(reader);
-
+dbcon.Close();
+// ...
                                 if (reader["Shape"] is DBNull)
                                     prim.Shape = PrimitiveBaseShape.Default;
                                 else

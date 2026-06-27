@@ -561,86 +561,44 @@ namespace OpenSim.Region.Framework.Scenes
                             xtr.Read();
                     }
                 }
-                else
-                {
-                    // m_log.DebugFormat("[LandDataSerializer]: caught unknown element {0}", nodeName);
-                    xtr.ReadOuterXml(); // ignore
-                }
-            }
+public static SOPVehicle FromXml2(string text)
+{
+    if (text.Length == 0)
+        return null;
 
-            return errors;
-        }
+    UTF8Encoding enc = new UTF8Encoding();
+    MemoryStream ms = new MemoryStream(enc.GetBytes(text));
+    XmlReaderSettings settings = new XmlReaderSettings();
+    settings.DtdProcessing = DtdProcessing.Ignore;
+    XmlReader xreader = XmlReader.Create(ms, settings);
 
+    SOPVehicle v = new SOPVehicle();
+    bool error;
 
-        public string ToXml2()
-        {
-            using (StringWriter sw = new StringWriter())
-            {
-                using (XmlTextWriter xwriter = new XmlTextWriter(sw))
-                {
-                    ToXml2(xwriter);
-                }
+    v.FromXml2(xreader, out error);
 
-                return sw.ToString();
-            }
-        }
+    xreader.Close();
 
-        public static SOPVehicle FromXml2(string text)
-        {
-            if (text.Length == 0)
-                return null;
+    if (error)
+    {
+        v = null;
+        return null;
+    }
+    return v;
+}
 
-            UTF8Encoding enc = new UTF8Encoding();
-            MemoryStream ms = new MemoryStream(enc.GetBytes(text));
-            XmlTextReader xreader = new XmlTextReader(ms);
-            xreader.DtdProcessing = DtdProcessing.Ignore;
+public static SOPVehicle FromXml2(XmlReader reader)
+{
+    SOPVehicle vehicle = new SOPVehicle();
 
-            SOPVehicle v = new SOPVehicle();
-            bool error;
+    bool errors = false;
 
-            v.FromXml2(xreader, out error);
+    vehicle.FromXml2(reader, out errors);
+    if (errors)
+        return null;
 
-            xreader.Close();
-
-            if (error)
-            {
-                v = null;
-                return null;
-            }
-            return v;
-        }
-
-        public static SOPVehicle FromXml2(XmlReader reader)
-        {
-            SOPVehicle vehicle = new SOPVehicle();
-
-            bool errors = false;
-
-            vehicle.FromXml2(reader, out errors);
-            if (errors)
-                return null;
-
-            return vehicle;
-        }
-
-        private void FromXml2(XmlReader _reader, out bool errors)
-        {
-            errors = false;
-            reader = _reader;
-
-            Dictionary<string, Action> m_VehicleXmlProcessors
-            = new Dictionary<string, Action>();
-
-            m_VehicleXmlProcessors.Add("TYPE", ProcessXR_type);
-            m_VehicleXmlProcessors.Add("FLAGS", ProcessXR_flags);
-
-            // Linear properties
-            m_VehicleXmlProcessors.Add("LMDIR", ProcessXR_linearMotorDirection);
-            m_VehicleXmlProcessors.Add("LMFTIME", ProcessXR_linearFrictionTimescale);
-            m_VehicleXmlProcessors.Add("LMDTIME", ProcessXR_linearMotorDecayTimescale);
-            m_VehicleXmlProcessors.Add("LMTIME", ProcessXR_linearMotorTimescale);
-            m_VehicleXmlProcessors.Add("LMOFF", ProcessXR_linearMotorOffset);
-
+    return vehicle;
+}
             //Angular properties
             m_VehicleXmlProcessors.Add("AMDIR", ProcessXR_angularMotorDirection);
             m_VehicleXmlProcessors.Add("AMTIME", ProcessXR_angularMotorTimescale);

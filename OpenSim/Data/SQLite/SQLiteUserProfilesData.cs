@@ -150,86 +150,20 @@ namespace OpenSim.Data.SQLite
             query += ":Category,";
             query += ":Name,";
             query += ":Description,";
-            query += ":ParcelId,";
-            query += ":ParentEstate,";
-            query += ":SnapshotId,";
-            query += ":SimName,";
-            query += ":GlobalPos,";
-            query += ":ParcelName,";
-            query += ":Flags,";
-            query += ":ListingPrice ) ";
-
-            if(string.IsNullOrEmpty(ad.ParcelName))
-                ad.ParcelName = "Unknown";
-            if(string.IsNullOrEmpty(ad.Description))
-                ad.Description = "No Description";
-
-            DateTime epoch = new DateTime(1970, 1, 1);
-            DateTime now = DateTime.Now;
-            TimeSpan epochnow = now - epoch;
-            TimeSpan duration;
-            DateTime expiration;
-            TimeSpan epochexp;
-
-            if(ad.Flags == 2)
-            {
-                duration = new TimeSpan(7,0,0,0);
-                expiration = now.Add(duration);
-                epochexp = expiration - epoch;
-            }
-            else
-            {
-                duration = new TimeSpan(365,0,0,0);
-                expiration = now.Add(duration);
-                epochexp = expiration - epoch;
-            }
-            ad.CreationDate = (int)epochnow.TotalSeconds;
-            ad.ExpirationDate = (int)epochexp.TotalSeconds;
-
-            try {
-                using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
-                {
-                    cmd.CommandText = query;
-                    cmd.Parameters.AddWithValue(":ClassifiedId", ad.ClassifiedId.ToString());
-                    cmd.Parameters.AddWithValue(":CreatorId", ad.CreatorId.ToString());
-                    cmd.Parameters.AddWithValue(":CreatedDate", ad.CreationDate.ToString());
-                    cmd.Parameters.AddWithValue(":ExpirationDate", ad.ExpirationDate.ToString());
-                    cmd.Parameters.AddWithValue(":Category", ad.Category.ToString());
-                    cmd.Parameters.AddWithValue(":Name", ad.Name.ToString());
-                    cmd.Parameters.AddWithValue(":Description", ad.Description.ToString());
-                    cmd.Parameters.AddWithValue(":ParcelId", ad.ParcelId.ToString());
-                    cmd.Parameters.AddWithValue(":ParentEstate", ad.ParentEstate.ToString());
-                    cmd.Parameters.AddWithValue(":SnapshotId", ad.SnapshotId.ToString ());
-                    cmd.Parameters.AddWithValue(":SimName", ad.SimName.ToString());
-                    cmd.Parameters.AddWithValue(":GlobalPos", ad.GlobalPos.ToString());
-                    cmd.Parameters.AddWithValue(":ParcelName", ad.ParcelName.ToString());
-                    cmd.Parameters.AddWithValue(":Flags", ad.Flags.ToString());
-                    cmd.Parameters.AddWithValue(":ListingPrice", ad.Price.ToString ());
-
-                    cmd.ExecuteNonQuery();
-                }
-            }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                  ": ClassifiedesUpdate exception {0}", e.Message);
-                result = e.Message;
-                return false;
-            }
-            return true;
-        }
-        public bool DeleteClassifiedRecord(UUID recordId)
-        {
-            string query = string.Empty;
-
-            query += "DELETE FROM classifieds WHERE ";
-            query += "classifieduuid = :ClasifiedId";
-
-            try
-            {
-                using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
-                {
-                    cmd.CommandText = query;
+using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
+{
+    cmd.CommandText = "DELETE FROM classifieds WHERE classifieduuid = @ClasifiedId";
+    cmd.Parameters.AddWithValue("@ClasifiedId", recordId.ToString());
+    cmd.ExecuteNonQuery();
+}
+catch (Exception e)
+{
+    m_log.ErrorFormat("[PROFILES_DATA]" +
+                      ": ClassifiedesUpdate exception {0}", e.Message);
+    result = e.Message;
+    return false;
+}
+return true;
                     cmd.Parameters.AddWithValue(":ClassifiedId", recordId.ToString());
 
                     cmd.ExecuteNonQuery();
@@ -256,195 +190,180 @@ namespace OpenSim.Data.SQLite
             {
                 using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
                 {
-                    cmd.CommandText = query;
-                    cmd.Parameters.AddWithValue(":AdId", ad.ClassifiedId.ToString());
+public bool GetPickInfo(UUID adId, UUID pickId)
+{
+    IDataReader reader = null;
+    string query = string.Empty;
+    UserProfilePick pick = new UserProfilePick();
 
-                    using (reader = cmd.ExecuteReader())
-                    {
-                        if(reader.Read ())
-                        {
-                            ad.CreatorId = new UUID(reader["creatoruuid"].ToString());
-                            ad.ParcelId = new UUID(reader["parceluuid"].ToString ());
-                            ad.SnapshotId = new UUID(reader["snapshotuuid"].ToString ());
-                            ad.CreationDate = Convert.ToInt32(reader["creationdate"]);
-                            ad.ExpirationDate = Convert.ToInt32(reader["expirationdate"]);
-                            ad.ParentEstate = Convert.ToInt32(reader["parentestate"]);
-                            ad.Flags = (byte) Convert.ToUInt32(reader["classifiedflags"]);
-                            ad.Category = Convert.ToInt32(reader["category"]);
-                            ad.Price = Convert.ToInt16(reader["priceforlisting"]);
-                            ad.Name = reader["name"].ToString();
-                            ad.Description = reader["description"].ToString();
-                            ad.SimName = reader["simname"].ToString();
-                            ad.GlobalPos = reader["posglobal"].ToString();
-                            ad.ParcelName = reader["parcelname"].ToString();
-                        }
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                  ": GetPickInfo exception {0}", e.Message);
-            }
-            return true;
-        }
+    query = "SELECT * FROM userpicks WHERE creatoruuid = @CreatorId AND pickuuid = @PickId";
 
-        public OSDArray GetAvatarPicks(UUID avatarId)
+    try
+    {
+        using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
         {
-            IDataReader reader = null;
-            string query = string.Empty;
+            cmd.CommandText = query;
+            cmd.Parameters.AddWithValue("@CreatorId", adId.ToString());
+            cmd.Parameters.AddWithValue("@PickId", pickId.ToString());
 
-            query += "SELECT `pickuuid`,`name` FROM userpicks WHERE ";
-            query += "creatoruuid = :Id";
-            OSDArray data = new OSDArray();
-
-            try
+            using (reader = cmd.ExecuteReader())
             {
-                using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
+                if (reader.Read())
                 {
-                    cmd.CommandText = query;
-                    cmd.Parameters.AddWithValue(":Id", avatarId.ToString());
+                    pick.CreatorId = new UUID(reader["creatoruuid"].ToString());
+                    pick.ParcelId = new UUID(reader["parceluuid"].ToString());
+                    pick.SnapshotId = new UUID(reader["snapshotuuid"].ToString());
+                    pick.CreationDate = Convert.ToInt32(reader["creationdate"]);
+                    pick.ExpirationDate = Convert.ToInt32(reader["expirationdate"]);
+                    pick.ParentEstate = Convert.ToInt32(reader["parentestate"]);
+                    pick.Flags = (byte)Convert.ToUInt32(reader["classifiedflags"]);
+public UserProfilePick GetPickInfo(UUID avatarId, UUID pickId)
+{
+    string query = "SELECT `description`, `pickuuid`, `creatoruuid`, `parceluuid`, `snapshotuuid` FROM userpicks WHERE creatoruuid = @CreatorId AND pickuuid = @PickId";
 
-                    using (reader = cmd.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            OSDMap record = new OSDMap();
-
-                            record.Add("pickuuid",OSD.FromString((string)reader["pickuuid"]));
-                            record.Add("name",OSD.FromString((string)reader["name"]));
-                            data.Add(record);
-                        }
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                  ": GetAvatarPicks exception {0}", e.Message);
-            }
-            return data;
-        }
-        public UserProfilePick GetPickInfo(UUID avatarId, UUID pickId)
+    try
+    {
+        using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
         {
-            IDataReader reader = null;
-            string query = string.Empty;
-            UserProfilePick pick = new UserProfilePick();
+            cmd.CommandText = query;
+            cmd.Parameters.AddWithValue("@CreatorId", avatarId.ToString());
+            cmd.Parameters.AddWithValue("@PickId", pickId.ToString());
 
-            query += "SELECT * FROM userpicks WHERE ";
-            query += "creatoruuid = :CreatorId AND ";
-            query += "pickuuid =  :PickId";
-
-            try
+            using (IDataReader reader = cmd.ExecuteReader())
             {
-                using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
+                if (reader.Read())
                 {
-                    cmd.CommandText = query;
-                    cmd.Parameters.AddWithValue(":CreatorId", avatarId.ToString());
-                    cmd.Parameters.AddWithValue(":PickId", pickId.ToString());
+                    UserProfilePick pick = new UserProfilePick();
 
-                    using (reader = cmd.ExecuteReader())
-                    {
+                    string description = (string)reader["description"];
 
-                        while (reader.Read())
-                        {
-                            string description = (string)reader["description"];
+                    if (string.IsNullOrEmpty(description))
+                        description = "No description given.";
 
-                            if (string.IsNullOrEmpty(description))
-                                description = "No description given.";
+                    UUID.TryParse((string)reader["pickuuid"], out pick.PickId);
+                    UUID.TryParse((string)reader["creatoruuid"], out pick.CreatorId);
+                    UUID.TryParse((string)reader["parceluuid"], out pick.ParcelId);
+                    UUID.TryParse((string)reader["snapshotuuid"], out pick.SnapshotId);
 
-                            UUID.TryParse((string)reader["pickuuid"], out pick.PickId);
-                            UUID.TryParse((string)reader["creatoruuid"], out pick.CreatorId);
-                            UUID.TryParse((string)reader["parceluuid"], out pick.ParcelId);
-                            UUID.TryParse((string)reader["snapshotuuid"], out pick.SnapshotId);
-                            pick.GlobalPos = (string)reader["posglobal"];
-                            bool.TryParse((string)reader["toppick"].ToString(), out pick.TopPick);
-                            bool.TryParse((string)reader["enabled"].ToString(), out pick.Enabled);
-                            pick.Name = (string)reader["name"];
-                            pick.Desc = description;
-                            pick.ParcelName = (string)reader["user"];
-                            pick.OriginalName = (string)reader["originalname"];
-                            pick.SimName = (string)reader["simname"];
-                            pick.SortOrder = (int)reader["sortorder"];
-                        }
-                    }
+                    pick.Category = Convert.ToInt32(reader["category"]);
+                    pick.Price = Convert.ToInt16(reader["priceforlisting"]);
+                    pick.Name = reader["name"].ToString();
+                    pick.Description = description;
+                    pick.SimName = reader["simname"].ToString();
+                    pick.GlobalPos = reader["posglobal"].ToString();
+                    pick.ParcelName = reader["parcelname"].ToString();
+
+                    return pick;
                 }
             }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                  ": GetPickInfo exception {0}", e.Message);
-            }
-            return pick;
         }
+    }
+    catch (Exception e)
+    {
+        m_log.ErrorFormat("[PROFILES_DATA]" +
+                          ": GetPickInfo exception {0}", e.Message);
+    }
+public UserProfilePick GetPickInfo(string pickId)
+{
+    UserProfilePick pick = new UserProfilePick();
 
-        public bool UpdatePicksRecord(UserProfilePick pick)
+    try
+    {
+        using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
         {
-            string query = string.Empty;
+            cmd.CommandText = "SELECT * FROM userpicks WHERE pickuuid = :PickId";
+            cmd.Parameters.AddWithValue(":PickId", pickId);
 
-            query += "INSERT OR REPLACE INTO userpicks (";
-            query += "pickuuid, ";
-            query += "creatoruuid, ";
-            query += "toppick, ";
-            query += "parceluuid, ";
-            query += "name, ";
-            query += "description, ";
-            query += "snapshotuuid, ";
-            query += "user, ";
-            query += "originalname, ";
-            query += "simname, ";
-            query += "posglobal, ";
-            query += "sortorder, ";
-            query += "enabled ) ";
-            query += "VALUES (";
-            query += ":PickId,";
-            query += ":CreatorId,";
-            query += ":TopPick,";
-            query += ":ParcelId,";
-            query += ":Name,";
-            query += ":Desc,";
-            query += ":SnapshotId,";
-            query += ":User,";
-            query += ":Original,";
-            query += ":SimName,";
-            query += ":GlobalPos,";
-            query += ":SortOrder,";
-            query += ":Enabled) ";
-
-            try
+            using (SQLiteDataReader reader = cmd.ExecuteReader())
             {
-                using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
+                if (reader.Read())
                 {
-                    int top_pick;
-                    int.TryParse(pick.TopPick.ToString(), out top_pick);
-                    int enabled;
-                    int.TryParse(pick.Enabled.ToString(), out enabled);
-
-                    cmd.CommandText = query;
-                    cmd.Parameters.AddWithValue(":PickId", pick.PickId.ToString());
-                    cmd.Parameters.AddWithValue(":CreatorId", pick.CreatorId.ToString());
-                    cmd.Parameters.AddWithValue(":TopPick", top_pick);
-                    cmd.Parameters.AddWithValue(":ParcelId", pick.ParcelId.ToString());
-                    cmd.Parameters.AddWithValue(":Name", pick.Name.ToString());
-                    cmd.Parameters.AddWithValue(":Desc", pick.Desc.ToString());
-                    cmd.Parameters.AddWithValue(":SnapshotId", pick.SnapshotId.ToString());
-                    cmd.Parameters.AddWithValue(":User", pick.ParcelName.ToString());
-                    cmd.Parameters.AddWithValue(":Original", pick.OriginalName.ToString());
-                    cmd.Parameters.AddWithValue(":SimName",pick.SimName.ToString());
-                    cmd.Parameters.AddWithValue(":GlobalPos", pick.GlobalPos);
-                    cmd.Parameters.AddWithValue(":SortOrder", pick.SortOrder.ToString ());
-                    cmd.Parameters.AddWithValue(":Enabled", enabled);
-
-                    cmd.ExecuteNonQuery();
+                    pick.PickId = pickId;
+                    pick.CreatorId = reader["creatoruuid"].ToString();
+                    bool topPick;
+                    bool.TryParse(reader["toppick"].ToString(), out topPick);
+                    pick.TopPick = topPick;
+                    pick.ParcelId = reader["parceluuid"].ToString();
+                    pick.Name = reader["name"].ToString();
+                    pick.Desc = reader["description"].ToString();
+                    pick.SnapshotId = reader["snapshotuuid"].ToString();
+                    pick.ParcelName = reader["user"].ToString();
+                    pick.OriginalName = reader["originalname"].ToString();
+                    pick.SimName = reader["simname"].ToString();
+                    pick.GlobalPos = reader["posglobal"].ToString();
+                    int sortOrder;
+                    int.TryParse(reader["sortorder"].ToString(), out sortOrder);
+                    pick.SortOrder = sortOrder;
+                    bool enabled;
+                    bool.TryParse(reader["enabled"].ToString(), out enabled);
+                    pick.Enabled = enabled;
                 }
             }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                  ": UpdateAvatarNotes exception {0}", e.Message);
-                return false;
-            }
-            return true;
+        }
+public bool UpdatePicksRecord(UserProfilePick pick)
+{
+    string query = @"
+        INSERT OR REPLACE INTO userpicks (
+            pickuuid, 
+            creatoruuid, 
+            toppick, 
+            parceluuid, 
+            name, 
+            description, 
+            snapshotuuid, 
+            user, 
+            originalname, 
+            simname, 
+            posglobal, 
+            sortorder, 
+            enabled 
+        ) 
+        VALUES (
+            :PickId,
+            :CreatorId,
+            :TopPick,
+            :ParcelId,
+            :Name,
+            :Desc,
+            :SnapshotId,
+            :User,
+            :Original,
+            :SimName,
+            :GlobalPos,
+            :SortOrder,
+            :Enabled
+        )";
+
+    try
+    {
+        using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
+        {
+            cmd.CommandText = query;
+
+            cmd.Parameters.AddWithValue(":PickId", pick.PickId.ToString());
+            cmd.Parameters.AddWithValue(":CreatorId", pick.CreatorId.ToString());
+            cmd.Parameters.AddWithValue(":TopPick", pick.TopPick);
+            cmd.Parameters.AddWithValue(":ParcelId", pick.ParcelId.ToString());
+            cmd.Parameters.AddWithValue(":Name", pick.Name.ToString());
+            cmd.Parameters.AddWithValue(":Desc", pick.Desc.ToString());
+            cmd.Parameters.AddWithValue(":SnapshotId", pick.SnapshotId.ToString());
+            cmd.Parameters.AddWithValue(":User", pick.ParcelName.ToString());
+            cmd.Parameters.AddWithValue(":Original", pick.OriginalName.ToString());
+            cmd.Parameters.AddWithValue(":SimName", pick.SimName.ToString());
+            cmd.Parameters.AddWithValue(":GlobalPos", pick.GlobalPos);
+            cmd.Parameters.AddWithValue(":SortOrder", pick.SortOrder.ToString());
+            cmd.Parameters.AddWithValue(":Enabled", pick.Enabled);
+
+            return cmd.ExecuteNonQuery() > 0;
+        }
+    }
+    catch (Exception e)
+    {
+        m_log.ErrorFormat("[PROFILES_DATA]" +
+                          ": UpdatePicksRecord exception {0}", e.Message);
+        return false;
+    }
+}
         }
 
         public bool DeletePicksRecord(UUID pickId)
@@ -462,515 +381,517 @@ namespace OpenSim.Data.SQLite
                     cmd.Parameters.AddWithValue(":PickId", pickId.ToString());
                     cmd.ExecuteNonQuery();
                 }
-            }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                  ": DeleteUserPickRecord exception {0}", e.Message);
-                return false;
-            }
-            return true;
-        }
-
-        public bool GetAvatarNotes(ref UserProfileNotes notes)
+public bool DeleteUserPickRecord()
+{
+    try
+    {
+        using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
         {
-            IDataReader reader = null;
-            string query = string.Empty;
-
-            query += "SELECT `notes` FROM usernotes WHERE ";
-            query += "useruuid = :Id AND ";
-            query += "targetuuid = :TargetId";
-            OSDArray data = new OSDArray();
-
-            try
-            {
-                using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
-                {
-                    cmd.CommandText = query;
-                    cmd.Parameters.AddWithValue(":Id", notes.UserId.ToString());
-                    cmd.Parameters.AddWithValue(":TargetId", notes.TargetId.ToString());
-
-                    using (reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
-                    {
-                        while (reader.Read())
-                        {
-                            notes.Notes = OSD.FromString((string)reader["notes"]);
-                        }
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                  ": GetAvatarNotes exception {0}", e.Message);
-            }
-            return true;
+            cmd.CommandText = "DELETE FROM usernotes WHERE useruuid = :Id AND targetuuid = :TargetId";
+            cmd.Parameters.AddWithValue(":Id", m_userId.ToString());
+            cmd.Parameters.AddWithValue(":TargetId", m_targetId.ToString());
+            cmd.ExecuteNonQuery();
         }
-
-        public bool UpdateAvatarNotes(ref UserProfileNotes note, ref string result)
-        {
-            string query = string.Empty;
-            bool remove;
-
-            if(string.IsNullOrEmpty(note.Notes))
-            {
-                remove = true;
-                query += "DELETE FROM usernotes WHERE ";
-                query += "useruuid=:UserId AND ";
-                query += "targetuuid=:TargetId";
-            }
-            else
-            {
-                remove = false;
-                query += "INSERT OR REPLACE INTO usernotes VALUES ( ";
-                query += ":UserId,";
-                query += ":TargetId,";
-                query += ":Notes )";
-            }
-
-            try
-            {
-                using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
-                {
-                    cmd.CommandText = query;
-
-                    if(!remove)
-                        cmd.Parameters.AddWithValue(":Notes", note.Notes);
-                    cmd.Parameters.AddWithValue(":TargetId", note.TargetId.ToString ());
-                    cmd.Parameters.AddWithValue(":UserId", note.UserId.ToString());
-
-                    cmd.ExecuteNonQuery();
-                }
-            }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                  ": UpdateAvatarNotes exception {0}", e.Message);
-                return false;
-            }
-            return true;
-        }
-
-        public bool GetAvatarProperties(ref UserProfileProperties props, ref string result)
-        {
-            IDataReader reader = null;
-            string query = string.Empty;
-
-            query += "SELECT * FROM userprofile WHERE ";
-            query += "useruuid = :Id";
-
-                using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
-                {
-                    cmd.CommandText = query;
-                    cmd.Parameters.AddWithValue(":Id", props.UserId.ToString());
-
-
-                    try
-                    {
-                        reader = cmd.ExecuteReader();
-                    }
-                    catch(Exception e)
-                    {
-                        m_log.ErrorFormat("[PROFILES_DATA]" +
-                                          ": GetAvatarProperties exception {0}", e.Message);
-                        result = e.Message;
-                        return false;
-                    }
-                        if(reader != null && reader.Read())
-                        {
-                            props.WebUrl = (string)reader["profileURL"];
-                            UUID.TryParse((string)reader["profileImage"], out props.ImageId);
-                            props.AboutText = (string)reader["profileAboutText"];
-                            UUID.TryParse((string)reader["profileFirstImage"], out props.FirstLifeImageId);
-                            props.FirstLifeText = (string)reader["profileFirstText"];
-                            UUID.TryParse((string)reader["profilePartner"], out props.PartnerId);
-                            props.WantToMask = (int)reader["profileWantToMask"];
-                            props.WantToText = (string)reader["profileWantToText"];
-                            props.SkillsMask = (int)reader["profileSkillsMask"];
-                            props.SkillsText = (string)reader["profileSkillsText"];
-                            props.Language = (string)reader["profileLanguages"];
-                        }
-                        else
-                        {
-                            props.WebUrl = string.Empty;
-                            props.ImageId = UUID.Zero;
-                            props.AboutText = string.Empty;
-                            props.FirstLifeImageId = UUID.Zero;
-                            props.FirstLifeText = string.Empty;
-                            props.PartnerId = UUID.Zero;
-                            props.WantToMask = 0;
-                            props.WantToText = string.Empty;
-                            props.SkillsMask = 0;
-                            props.SkillsText = string.Empty;
-                            props.Language = string.Empty;
-                            props.PublishProfile = false;
-                            props.PublishMature = false;
-
-                            query = "INSERT INTO userprofile (";
-                            query += "useruuid, ";
-                            query += "profilePartner, ";
-                            query += "profileAllowPublish, ";
-                            query += "profileMaturePublish, ";
-                            query += "profileURL, ";
-                            query += "profileWantToMask, ";
-                            query += "profileWantToText, ";
-                            query += "profileSkillsMask, ";
-                            query += "profileSkillsText, ";
-                            query += "profileLanguages, ";
-                            query += "profileImage, ";
-                            query += "profileAboutText, ";
-                            query += "profileFirstImage, ";
-                            query += "profileFirstText) VALUES (";
-                            query += ":userId, ";
-                            query += ":profilePartner, ";
-                            query += ":profileAllowPublish, ";
-                            query += ":profileMaturePublish, ";
-                            query += ":profileURL, ";
-                            query += ":profileWantToMask, ";
-                            query += ":profileWantToText, ";
-                            query += ":profileSkillsMask, ";
-                            query += ":profileSkillsText, ";
-                            query += ":profileLanguages, ";
-                            query += ":profileImage, ";
-                            query += ":profileAboutText, ";
-                            query += ":profileFirstImage, ";
-                            query += ":profileFirstText)";
-
-                            using (SQLiteCommand put = (SQLiteCommand)m_connection.CreateCommand())
-                            {
-                                put.CommandText = query;
-                                put.Parameters.AddWithValue(":userId", props.UserId.ToString());
-                                put.Parameters.AddWithValue(":profilePartner", props.PartnerId.ToString());
-                                put.Parameters.AddWithValue(":profileAllowPublish", props.PublishProfile);
-                                put.Parameters.AddWithValue(":profileMaturePublish", props.PublishMature);
-                                put.Parameters.AddWithValue(":profileURL", props.WebUrl);
-                                put.Parameters.AddWithValue(":profileWantToMask", props.WantToMask);
-                                put.Parameters.AddWithValue(":profileWantToText", props.WantToText);
-                                put.Parameters.AddWithValue(":profileSkillsMask", props.SkillsMask);
-                                put.Parameters.AddWithValue(":profileSkillsText", props.SkillsText);
-                                put.Parameters.AddWithValue(":profileLanguages", props.Language);
-                                put.Parameters.AddWithValue(":profileImage", props.ImageId.ToString());
-                                put.Parameters.AddWithValue(":profileAboutText", props.AboutText);
-                                put.Parameters.AddWithValue(":profileFirstImage", props.FirstLifeImageId.ToString());
-                                put.Parameters.AddWithValue(":profileFirstText", props.FirstLifeText);
-
-                                put.ExecuteNonQuery();
-                            }
-                        }
-                }
-            return true;
-        }
-
-        public bool UpdateAvatarProperties(ref UserProfileProperties props, ref string result)
-        {
-            string query = string.Empty;
-
-            query += "UPDATE userprofile SET ";
-            query += "profileURL=:profileURL, ";
-            query += "profileImage=:image, ";
-            query += "profileAboutText=:abouttext,";
-            query += "profileFirstImage=:firstlifeimage,";
-            query += "profileFirstText=:firstlifetext ";
-            query += "WHERE useruuid=:uuid";
-
-            try
-            {
-                using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
-                {
-                    cmd.CommandText = query;
-                    cmd.Parameters.AddWithValue(":profileURL", props.WebUrl);
-                    cmd.Parameters.AddWithValue(":image", props.ImageId.ToString());
-                    cmd.Parameters.AddWithValue(":abouttext", props.AboutText);
-                    cmd.Parameters.AddWithValue(":firstlifeimage", props.FirstLifeImageId.ToString());
-                    cmd.Parameters.AddWithValue(":firstlifetext", props.FirstLifeText);
-                    cmd.Parameters.AddWithValue(":uuid", props.UserId.ToString());
-
-                    cmd.ExecuteNonQuery();
-                }
-            }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                  ": AgentPropertiesUpdate exception {0}", e.Message);
-
-                return false;
-            }
-            return true;
-        }
-
-        public bool UpdateAvatarInterests(UserProfileProperties up, ref string result)
-        {
-            string query = string.Empty;
-
-            query += "UPDATE userprofile SET ";
-            query += "profileWantToMask=:WantMask, ";
-            query += "profileWantToText=:WantText,";
-            query += "profileSkillsMask=:SkillsMask,";
-            query += "profileSkillsText=:SkillsText, ";
-            query += "profileLanguages=:Languages ";
-            query += "WHERE useruuid=:uuid";
-
-            try
-            {
-                using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
-                {
-                    cmd.CommandText = query;
-                    cmd.Parameters.AddWithValue(":WantMask", up.WantToMask);
-                    cmd.Parameters.AddWithValue(":WantText", up.WantToText);
-                    cmd.Parameters.AddWithValue(":SkillsMask", up.SkillsMask);
-                    cmd.Parameters.AddWithValue(":SkillsText", up.SkillsText);
-                    cmd.Parameters.AddWithValue(":Languages", up.Language);
-                    cmd.Parameters.AddWithValue(":uuid", up.UserId.ToString());
-
-                    cmd.ExecuteNonQuery();
-                }
-            }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                  ": AgentInterestsUpdate exception {0}", e.Message);
-                result = e.Message;
-                return false;
-            }
-            return true;
-        }
-
-
-        public bool UpdateUserPreferences(ref UserPreferences pref, ref string result)
-        {
-            string query = string.Empty;
-
-            query += "UPDATE usersettings SET ";
-            query += "imviaemail=:ImViaEmail, ";
-            query += "visible=:Visible, ";
-            query += "email=:EMail ";
-            query += "WHERE useruuid=:uuid";
-
-            try
-            {
-                using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
-                {
-                    cmd.CommandText = query;
-                    cmd.Parameters.AddWithValue(":ImViaEmail", pref.IMViaEmail);
-                    cmd.Parameters.AddWithValue(":Visible", pref.Visible);
-                    cmd.Parameters.AddWithValue(":EMail", pref.EMail);
-                    cmd.Parameters.AddWithValue(":uuid", pref.UserId.ToString());
-
-                    cmd.ExecuteNonQuery();
-                }
-            }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                  ": AgentInterestsUpdate exception {0}", e.Message);
-                result = e.Message;
-                return false;
-            }
-            return true;
-        }
-
-        public bool GetUserPreferences(ref UserPreferences pref, ref string result)
-        {
-            IDataReader reader = null;
-            string query = string.Empty;
-
-            query += "SELECT imviaemail,visible,email FROM ";
-            query += "usersettings WHERE ";
-            query += "useruuid = :Id";
-
-            OSDArray data = new OSDArray();
-
-            try
-            {
-                using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
-                {
-                    cmd.CommandText = query;
-                    cmd.Parameters.AddWithValue("?Id", pref.UserId.ToString());
-
-                    using (reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
-                    {
-                        if(reader.Read())
-                        {
-                            bool.TryParse((string)reader["imviaemail"], out pref.IMViaEmail);
-                            bool.TryParse((string)reader["visible"], out pref.Visible);
-                            pref.EMail = (string)reader["email"];
-                         }
-                         else
-                         {
-                            query = "INSERT INTO usersettings VALUES ";
-                            query += "(:Id,'false','false', :Email)";
-
-                            using (SQLiteCommand put = (SQLiteCommand)m_connection.CreateCommand())
-                            {
-                                put.Parameters.AddWithValue(":Id", pref.UserId.ToString());
-                                put.Parameters.AddWithValue(":Email", pref.EMail);
-                                put.ExecuteNonQuery();
-
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                  ": Get preferences exception {0}", e.Message);
-                result = e.Message;
-                return false;
-            }
-            return true;
-        }
-
-        public bool GetUserAppData(ref UserAppData props, ref string result)
-        {
-            IDataReader reader = null;
-            string query = string.Empty;
-
-            query += "SELECT * FROM `userdata` WHERE ";
-            query += "UserId = :Id AND ";
-            query += "TagId = :TagId";
-
-            try
-            {
-                using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
-                {
-                    cmd.CommandText = query;
-                    cmd.Parameters.AddWithValue(":Id", props.UserId.ToString());
-                    cmd.Parameters.AddWithValue (":TagId", props.TagId.ToString());
-
-                    using (reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
-                    {
-                        if(reader.Read())
-                        {
-                            props.DataKey = (string)reader["DataKey"];
-                            props.DataVal = (string)reader["DataVal"];
-                        }
-                        else
-                        {
-                            query += "INSERT INTO userdata VALUES ( ";
-                            query += ":UserId,";
-                            query += ":TagId,";
-                            query += ":DataKey,";
-                            query +=  ":DataVal) ";
-
-                            using (SQLiteCommand put = (SQLiteCommand)m_connection.CreateCommand())
-                            {
-                                put.Parameters.AddWithValue(":Id", props.UserId.ToString());
-                                put.Parameters.AddWithValue(":TagId", props.TagId.ToString());
-                                put.Parameters.AddWithValue(":DataKey", props.DataKey.ToString());
-                                put.Parameters.AddWithValue(":DataVal", props.DataVal.ToString());
-
-                                put.ExecuteNonQuery();
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                  ": Requst application data exception {0}", e.Message);
-                result = e.Message;
-                return false;
-            }
-            return true;
-        }
-        public bool SetUserAppData(UserAppData props, ref string result)
-        {
-            string query = string.Empty;
-
-            query += "UPDATE userdata SET ";
-            query += "TagId = :TagId, ";
-            query += "DataKey = :DataKey, ";
-            query += "DataVal = :DataVal WHERE ";
-            query += "UserId = :UserId AND ";
-            query += "TagId = :TagId";
-
-            try
-            {
-                using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
-                {
-                    cmd.CommandText = query;
-                    cmd.Parameters.AddWithValue(":UserId", props.UserId.ToString());
-                    cmd.Parameters.AddWithValue(":TagId", props.TagId.ToString ());
-                    cmd.Parameters.AddWithValue(":DataKey", props.DataKey.ToString ());
-                    cmd.Parameters.AddWithValue(":DataVal", props.DataKey.ToString ());
-
-                    cmd.ExecuteNonQuery();
-                }
-            }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                  ": SetUserData exception {0}", e.Message);
-                return false;
-            }
-            return true;
-        }
-        public OSDArray GetUserImageAssets(UUID avatarId)
-        {
-            IDataReader reader = null;
-            OSDArray data = new OSDArray();
-            string query = "SELECT `snapshotuuid` FROM {0} WHERE `creatoruuid` = :Id";
-
-            // Get classified image assets
-
-
-            try
-            {
-                using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
-                {
-                    cmd.CommandText = string.Format(query, "\"classifieds\"");
-                    cmd.Parameters.AddWithValue(":Id", avatarId.ToString());
-
-                    using (reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
-                    {
-                        while(reader.Read())
-                        {
-                            data.Add(new OSDString((string)reader["snapshotuuid"].ToString()));
-                        }
-                    }
-                }
-
-                using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
-                {
-                    cmd.CommandText = string.Format(query, "\"userpicks\"");
-                    cmd.Parameters.AddWithValue(":Id", avatarId.ToString());
-
-                    using (reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
-                    {
-                        if(reader.Read())
-                        {
-                            data.Add(new OSDString((string)reader["snapshotuuid"].ToString ()));
-                        }
-                    }
-                }
-
-                query = "SELECT `profileImage`, `profileFirstImage` FROM `userprofile` WHERE `useruuid` = :Id";
-
-                using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
-                {
-                    cmd.CommandText = query;
-                    cmd.Parameters.AddWithValue(":Id", avatarId.ToString());
-
-                    using (reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
-                    {
-                        if(reader.Read())
-                        {
-                            data.Add(new OSDString((string)reader["profileImage"].ToString ()));
-                            data.Add(new OSDString((string)reader["profileFirstImage"].ToString ()));
-                        }
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                m_log.ErrorFormat("[PROFILES_DATA]" +
-                                  ": GetAvatarNotes exception {0}", e.Message);
-            }
-            return data;
-        }
-        #endregion
+        return true;
+    }
+    catch (Exception e)
+    {
+        m_log.Error("[PROFILES_DATA]: DeleteUserPickRecord exception", e);
+        return false;
     }
 }
 
+public bool GetAvatarNotes(ref UserProfileNotes notes)
+{
+    try
+    {
+        using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
+        {
+            cmd.CommandText = "SELECT `notes` FROM usernotes WHERE useruuid = :Id AND targetuuid = :TargetId";
+            cmd.Parameters.AddWithValue(":Id", notes.UserId.ToString());
+            cmd.Parameters.AddWithValue(":TargetId", notes.TargetId.ToString());
+            using (IDataReader reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
+            {
+                if (reader.Read())
+                {
+                    notes.Notes = OSD.FromString((string)reader["notes"]);
+                }
+            }
+        }
+        return true;
+public bool UpdateAvatarNotes(ref UserProfileNotes note, ref string result)
+{
+    try
+    {
+        using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
+        {
+            if (string.IsNullOrEmpty(note.Notes))
+            {
+                cmd.CommandText = "DELETE FROM usernotes WHERE useruuid = @UserId AND targetuuid = @TargetId";
+                cmd.Parameters.AddWithValue("@UserId", note.UserId.ToString());
+                cmd.Parameters.AddWithValue("@TargetId", note.TargetId.ToString());
+            }
+            else
+            {
+                cmd.CommandText = "INSERT OR REPLACE INTO usernotes VALUES ( @UserId, @TargetId, @Notes )";
+                cmd.Parameters.AddWithValue("@UserId", note.UserId.ToString());
+                cmd.Parameters.AddWithValue("@TargetId", note.TargetId.ToString());
+                cmd.Parameters.AddWithValue("@Notes", note.Notes);
+            }
+            cmd.ExecuteNonQuery();
+        }
+        return true;
+    }
+    catch (Exception e)
+    {
+        m_log.Error("[PROFILES_DATA]: UpdateAvatarNotes exception", e);
+        return false;
+    }
+public bool GetAvatarProperties(ref UserProfileProperties props, ref string result)
+{
+    IDataReader reader = null;
+    string query = string.Empty;
+
+    query += "SELECT * FROM userprofile WHERE ";
+    query += "useruuid = @Id";
+
+    using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
+    {
+        cmd.CommandText = query;
+        cmd.Parameters.AddWithValue("@Id", props.UserId.ToString());
+
+        try
+        {
+            reader = cmd.ExecuteReader();
+        }
+        catch (Exception e)
+        {
+            m_log.Error("[PROFILES_DATA]: GetAvatarProperties exception", e);
+            result = e.Message;
+            return false;
+        }
+
+        if (reader != null && reader.Read())
+        {
+            props.WebUrl = (string)reader["profileURL"];
+            UUID.TryParse((string)reader["profileImage"], out props.ImageId);
+            props.AboutText = (string)reader["profileAboutText"];
+            UUID.TryParse((string)reader["profileFirstImage"], out props.FirstLifeImageId);
+            props.FirstLifeText = (string)reader["profileFirstText"];
+            UUID.TryParse((string)reader["profilePartner"], out props.PartnerId);
+            props.WantToMask = (int)reader["profileWantToMask"];
+            props.WantToText = (string)reader["profileWantToText"];
+            props.SkillsMask = (int)reader["profileSkillsMask"];
+            props.SkillsText = (string)reader["profileSkillsText"];
+            props.Language = (string)reader["profileLanguages"];
+        }
+    }
+    return true;
+}
+
+public bool SaveAvatarProperties(ref UserProfileProperties props, ref string result)
+{
+    string query = "INSERT INTO userprofile (";
+    query += "useruuid, ";
+using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
+{
+    cmd.CommandText = "INSERT INTO profiles_data (profilePartner, profileAllowPublish, profileMaturePublish, profileURL, profileWantToMask, profileWantToText, profileSkillsMask, profileSkillsText, profileLanguages, profileImage, profileAboutText, profileFirstImage, profileFirstText) VALUES (@userId, @profilePartner, @profileAllowPublish, @profileMaturePublish, @profileURL, @profileWantToMask, @profileWantToText, @profileSkillsMask, @profileSkillsText, @profileLanguages, @profileImage, @profileAboutText, @profileFirstImage, @profileFirstText)";
+    cmd.Parameters.AddWithValue("@userId", props.UserId.ToString());
+    cmd.Parameters.AddWithValue("@profilePartner", props.PartnerId);
+    cmd.Parameters.AddWithValue("@profileAllowPublish", props.PublishProfile);
+    cmd.Parameters.AddWithValue("@profileMaturePublish", props.PublishMature);
+    cmd.Parameters.AddWithValue("@profileURL", props.WebUrl);
+    cmd.Parameters.AddWithValue("@profileWantToMask", props.WantToMask);
+    cmd.Parameters.AddWithValue("@profileWantToText", props.WantToText);
+    cmd.Parameters.AddWithValue("@profileSkillsMask", props.SkillsMask);
+    cmd.Parameters.AddWithValue("@profileSkillsText", props.SkillsText);
+    cmd.Parameters.AddWithValue("@profileLanguages", props.Language);
+    cmd.Parameters.AddWithValue("@profileImage", props.ImageId);
+    cmd.Parameters.AddWithValue("@profileAboutText", props.AboutText);
+    cmd.Parameters.AddWithValue("@profileFirstImage", props.FirstLifeImageId);
+    cmd.Parameters.AddWithValue("@profileFirstText", props.FirstLifeText);
+
+    try
+    {
+        cmd.ExecuteNonQuery();
+    }
+    catch (Exception e)
+    {
+        m_log.Error("[PROFILES_DATA]: SaveAvatarProperties exception", e);
+        result = e.Message;
+        return false;
+    }
+}
+public bool UpdateAvatarProperties(ref UserProfileProperties props, ref string result)
+{
+    string query = string.Empty;
+
+    query += "UPDATE userprofile SET ";
+    query += "profileURL=:profileURL, ";
+    query += "profileImage=:image, ";
+    query += "profileAboutText=:abouttext,";
+    query += "profileFirstImage=:firstlifeimage,";
+    query += "profileFirstText=:firstlifetext ";
+    query += "WHERE useruuid=:uuid";
+
+    try
+    {
+        using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
+        {
+            cmd.CommandText = query;
+            cmd.Parameters.AddWithValue(":profileURL", props.WebUrl);
+            cmd.Parameters.AddWithValue(":image", props.ImageId.ToString());
+            cmd.Parameters.AddWithValue(":abouttext", props.AboutText);
+            cmd.Parameters.AddWithValue(":firstlifeimage", props.FirstLifeImageId.ToString());
+            cmd.Parameters.AddWithValue(":firstlifetext", props.FirstLifeText);
+            cmd.Parameters.AddWithValue(":uuid", props.UserId.ToString());
+
+            cmd.ExecuteNonQuery();
+        }
+    }
+    catch (Exception e)
+    {
+        m_log.ErrorFormat("[PROFILES_DATA]" +
+                          ": AgentPropertiesUpdate exception {0}", e.Message);
+
+        return false;
+    }
+    return true;
+}
+
+public bool UpdateAvatarInterests(UserProfileProperties up, ref string result)
+{
+    string query = string.Empty;
+
+    query += "UPDATE userprofile SET ";
+    query += "profileWantToMask=:WantMask, ";
+    query += "profileWantToText=:WantText,";
+    query += "profileSkillsMask=:SkillsMask,";
+    query += "profileSkillsText=:SkillsText, ";
+    query += "profileLanguages=:Languages ";
+    query += "WHERE useruuid=:uuid";
+
+    try
+    {
+        using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
+        {
+            cmd.CommandText = query;
+            cmd.Parameters.AddWithValue(":WantMask", up.WantToMask);
+            cmd.Parameters.AddWithValue(":WantText", up.WantToText);
+            cmd.Parameters.AddWithValue(":SkillsMask", up.SkillsMask);
+            cmd.Parameters.AddWithValue(":SkillsText", up.SkillsText);
+            cmd.Parameters.AddWithValue(":Languages", up.Language);
+            cmd.Parameters.AddWithValue(":uuid", up.UserId.ToString());
+
+            cmd.ExecuteNonQuery();
+        }
+    }
+    catch (Exception e)
+    {
+        m_log.ErrorFormat("[PROFILES_DATA]" +
+                          ": UpdateAvatarInterests exception {0}", e.Message);
+
+        return false;
+    }
+    return true;
+}
+
+public bool UpdateAvatarPropertiesWithPreparedStatements(ref UserProfileProperties props, ref string result)
+{
+    string query = string.Empty;
+
+    query += "UPDATE userprofile SET ";
+    query += "profileURL=@profileURL, ";
+    query += "profileImage=@image, ";
+    query += "profileAboutText=@abouttext,";
+    query += "profileFirstImage=@firstlifeimage,";
+    query += "profileFirstText=@firstlifetext ";
+    query += "WHERE useruuid=@uuid";
+
+    try
+    {
+        using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
+        {
+            cmd.CommandText = query;
+
+            cmd.Parameters.AddWithValue("@profileURL", props.WebUrl);
+            cmd.Parameters.AddWithValue("@image", props.ImageId.ToString());
+            cmd.Parameters.AddWithValue("@abouttext", props.AboutText);
+            cmd.Parameters.AddWithValue("@firstlifeimage", props.FirstLifeImageId.ToString());
+            cmd.Parameters.AddWithValue("@firstlifetext", props.FirstLifeText);
+            cmd.Parameters.AddWithValue("@uuid", props.UserId.ToString());
+
+            cmd.ExecuteNonQuery();
+        }
+    }
+    catch (Exception e)
+    {
+        m_log.ErrorFormat("[PROFILES_DATA]" +
+                          ": AgentPropertiesUpdate exception {0}", e.Message);
+
+        return false;
+    }
+    return true;
+}
+
+public bool UpdateAvatarInterestsWithPreparedStatements(UserProfileProperties up, ref string result)
+{
+    string query = string.Empty;
+
+public bool UpdateUserProfile(UserProfile up, ref string result)
+{
+    string query = string.Empty;
+
+    query += "UPDATE userprofile SET ";
+    query += "profileWantToMask=:WantMask, ";
+    query += "profileWantToText=:WantText,";
+    query += "profileSkillsMask=:SkillsMask,";
+    query += "profileSkillsText=:SkillsText, ";
+    query += "profileLanguages=:Languages ";
+    query += "WHERE useruuid=:uuid";
+
+    try
+    {
+        using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
+        {
+            cmd.CommandText = query;
+
+            cmd.Parameters.AddWithValue(":WantMask", up.WantToMask);
+            cmd.Parameters.AddWithValue(":WantText", up.WantToText);
+            cmd.Parameters.AddWithValue(":SkillsMask", up.SkillsMask);
+            cmd.Parameters.AddWithValue(":SkillsText", up.SkillsText);
+            cmd.Parameters.AddWithValue(":Languages", up.Language);
+            cmd.Parameters.AddWithValue(":uuid", up.UserId.ToString());
+
+            cmd.ExecuteNonQuery();
+        }
+    }
+    catch (Exception e)
+    {
+        m_log.ErrorFormat("[PROFILES_DATA]" +
+                          ": UpdateAvatarInterests exception {0}", e.Message);
+
+        return false;
+    }
+    return true;
+}
+public bool UpdateUserPreferences(UserPreferences pref, ref string result)
+{
+    try
+    {
+        using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
+        {
+            cmd.CommandText = "UPDATE usersettings SET imviaemail = :ImViaEmail, visible = :Visible, email = :EMail WHERE useruuid = :uuid";
+            cmd.Parameters.AddWithValue(":ImViaEmail", pref.IMViaEmail);
+            cmd.Parameters.AddWithValue(":Visible", pref.Visible);
+            cmd.Parameters.AddWithValue(":EMail", pref.EMail);
+            cmd.Parameters.AddWithValue(":uuid", pref.UserId.ToString());
+
+            cmd.ExecuteNonQuery();
+        }
+    }
+    catch (Exception e)
+    {
+        m_log.ErrorFormat("[PROFILES_DATA]" +
+                          ": AgentInterestsUpdate exception {0}", e.Message);
+        result = e.Message;
+        return false;
+    }
+    return true;
+}
+
+public bool GetUserPreferences(UserPreferences pref, ref string result)
+{
+    IDataReader reader = null;
+    try
+    {
+        using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
+        {
+            cmd.CommandText = "SELECT imviaemail, visible, email FROM usersettings WHERE useruuid = :Id";
+            cmd.Parameters.AddWithValue(":Id", pref.UserId.ToString());
+
+            using (reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
+public bool GetUserPreferences(ref UserPreferences pref, ref string result)
+{
+    IDataReader reader = null;
+    string query = string.Empty;
+
+    query += "SELECT * FROM `usersettings` WHERE ";
+    query += "UserId = :Id";
+
+    try
+    {
+        using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
+        {
+            cmd.CommandText = query;
+            cmd.Parameters.AddWithValue(":Id", pref.UserId.ToString());
+
+            using (reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
+            {
+                if (reader.Read())
+                {
+                    pref.IMViaEmail = (bool)reader["imviaemail"];
+                    pref.Visible = (bool)reader["visible"];
+                    pref.EMail = (string)reader["email"];
+                }
+                else
+                {
+                    using (SQLiteCommand put = (SQLiteCommand)m_connection.CreateCommand())
+                    {
+                        put.CommandText = "INSERT INTO usersettings VALUES (:Id, 'false', 'false', :Email)";
+                        put.Parameters.AddWithValue(":Id", pref.UserId.ToString());
+                        put.Parameters.AddWithValue(":Email", pref.EMail);
+                        put.ExecuteNonQuery();
+                    }
+                }
+            }
+public bool GetUserAppData(ref UserAppData props, ref string result)
+{
+    IDataReader reader = null;
+    string query = string.Empty;
+
+    query += "SELECT * FROM `userdata` WHERE ";
+    query += "UserId = @Id AND ";
+    query += "TagId = @TagId";
+
+    try
+    {
+        using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
+        {
+            cmd.CommandText = query;
+            cmd.Parameters.AddWithValue("@Id", props.UserId.ToString());
+            cmd.Parameters.AddWithValue("@TagId", props.TagId.ToString());
+
+            using (reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
+            {
+                if (reader.Read())
+                {
+                    props.DataKey = (string)reader["DataKey"];
+                    props.DataVal = (string)reader["DataVal"];
+                }
+                else
+                {
+                    using (SQLiteCommand put = (SQLiteCommand)m_connection.CreateCommand())
+                    {
+                        put.CommandText = "INSERT INTO userdata VALUES (@UserId, @TagId, @DataKey, @DataVal)";
+                        put.Parameters.AddWithValue("@UserId", props.UserId.ToString());
+                        put.Parameters.AddWithValue("@TagId", props.TagId.ToString());
+                        put.Parameters.AddWithValue("@DataKey", props.DataKey.ToString());
+                        put.Parameters.AddWithValue("@DataVal", props.DataVal.ToString());
+
+                        put.ExecuteNonQuery();
+                    }
+                }
+            }
+        }
+    }
+    catch (Exception e)
+    {
+        m_log.ErrorFormat("[PROFILES_DATA]" +
+                          ": GetUserAppData exception {0}", e.Message);
+        result = e.Message;
+        return false;
+    }
+    return true;
+}
+
+public bool SetUserAppData(UserAppData props, ref string result)
+{
+    string query = "UPDATE userdata SET TagId = @TagId, DataKey = @DataKey, DataVal = @DataVal WHERE UserId = @UserId AND TagId = @TagId";
+
+    try
+    {
+        using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
+        {
+            cmd.CommandText = query;
+            cmd.Parameters.AddWithValue("@UserId", props.UserId.ToString());
+            cmd.Parameters.AddWithValue("@TagId", props.TagId.ToString());
+            cmd.Parameters.AddWithValue("@DataKey", props.DataKey.ToString());
+            cmd.Parameters.AddWithValue("@DataVal", props.DataVal.ToString());
+
+            cmd.ExecuteNonQuery();
+        }
+    }
+    catch (Exception e)
+    {
+        m_log.ErrorFormat("[PROFILES_DATA]" +
+                          ": SetUserAppData exception {0}", e.Message);
+        result = e.Message;
+        return false;
+    }
+    return true;
+}
+
+public OSDArray GetUserImageAssets(UUID avatarId)
+{
+    IDataReader reader = null;
+    OSDArray data = new OSDArray();
+    string query = "SELECT `snapshotuuid` FROM {0} WHERE `creatoruuid` = @Id";
+
+    try
+    {
+        using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
+        {
+            cmd.CommandText = query;
+            cmd.Parameters.AddWithValue("@Id", avatarId.ToString());
+            cmd.Parameters.AddWithValue("@table_name", "\"classifieds\"");
+
+            using (reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
+            {
+                while (reader.Read())
+                {
+                    data.Add(new OSDString((string)reader["snapshotuuid"].ToString()));
+                }
+            }
+        }
+    }
+    catch (Exception e)
+    {
+        m_log.ErrorFormat("[DATABASE]" +
+                          ": GetUserImageAssets exception {0}", e.Message);
+        return null;
+    }
+using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
+{
+    cmd.CommandText = query;
+    cmd.Parameters.AddWithValue(":Id", avatarId.ToString());
+
+    using (reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
+    {
+        if (reader.Read())
+        {
+            data.Add(new OSDString((string)reader["snapshotuuid"]));
+            data.Add(new OSDString((string)reader["profileImage"]));
+            data.Add(new OSDString((string)reader["profileFirstImage"]));
+        }
+    }
+}
+
+query = "SELECT `profileImage`, `profileFirstImage`, `snapshotuuid` FROM `userprofile` WHERE `useruuid` = :Id";
+
+using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
+{
+    cmd.CommandText = query;
+    cmd.Parameters.AddWithValue(":Id", avatarId.ToString());
+
+    using (reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
+    {
+        if (reader.Read())
+        {
+            data.Add(new OSDString((string)reader["snapshotuuid"]));
+            data.Add(new OSDString((string)reader["profileImage"]));
+            data.Add(new OSDString((string)reader["profileFirstImage"]));
+catch (Exception e)
+{
+    m_log.ErrorFormat("[PROFILES_DATA]: GetAvatarNotes exception {0}", e.Message);
+}
+string query = "SELECT * FROM regions WHERE name = '" + regionName + "'";
+SqlCommand command = new SqlCommand(query, connection);
+SqlDataReader reader = command.ExecuteReader();
+
+// ...
+
+string query = "SELECT * FROM regions WHERE name = @name";
+SqlCommand command = new SqlCommand(query, connection);
+command.Parameters.AddWithValue("@name", regionName);
+SqlDataReader reader = command.ExecuteReader();

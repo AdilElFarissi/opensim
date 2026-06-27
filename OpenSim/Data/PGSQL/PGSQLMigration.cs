@@ -15,86 +15,64 @@
  *
  * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
-using Npgsql;
-using System;
-using System.Data;
-using System.Data.Common;
-using System.Reflection;
-
-namespace OpenSim.Data.PGSQL
+protected override int FindVersion(DbConnection conn, string type)
 {
-    public class PGSQLMigration : Migration
+    int version = 0;
+    NpgsqlConnection lcConn = (NpgsqlConnection)conn;
+
+    using (NpgsqlCommand cmd = lcConn.CreateCommand())
     {
-        public PGSQLMigration(NpgsqlConnection conn, Assembly assem, string type)
-            : base(conn, assem, type)
+        try
         {
-        }
-
-        public PGSQLMigration(NpgsqlConnection conn, Assembly assem, string subtype, string type)
-            : base(conn, assem, subtype, type)
-        {
-        }
-
-        protected override int FindVersion(DbConnection conn, string type)
-        {
-            int version = 0;
-            NpgsqlConnection lcConn = (NpgsqlConnection)conn;
-
-            using (NpgsqlCommand cmd = lcConn.CreateCommand())
+            cmd.CommandText = "select version from migrations where name = @name order by version desc limit 1";
+            cmd.Parameters.AddWithValue("@name", type);
+            using (NpgsqlDataReader reader = cmd.ExecuteReader())
             {
-                try
+                if (reader.Read())
                 {
-                    cmd.CommandText = "select version from migrations where name = '" + type + "' " +
-                                      " order by version desc limit 1"; //Must be
-                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        if (reader.Read())
-                        {
-                            version = Convert.ToInt32(reader["version"]);
-                        }
-                        reader.Close();
-                    }
+                    version = Convert.ToInt32(reader["version"]);
                 }
-                catch
-                {
-                    // Return -1 to indicate table does not exist
-                    return -1;
-                }
+                reader.Close();
             }
-            return version;
         }
-
-        protected override void ExecuteScript(DbConnection conn, string[] script)
+        catch
         {
-            if (!(conn is NpgsqlConnection))
-            {
-                base.ExecuteScript(conn, script);
-                return;
-            }
+            // Return -1 to indicate table does not exist
+            return -1;
+        }
+    }
+    return version;
+}
 
-            foreach (string sql in script)
+
+
+protected override void ExecuteScript(DbConnection conn, string[] script)
+{
+    if (!(conn is NpgsqlConnection))
+    {
+        base.ExecuteScript(conn, script);
+        return;
+    }
+
+    foreach (string sql in script)
+    {
+        try
+        {
+            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, (NpgsqlConnection)conn))
             {
-                try
+                foreach (NpgsqlParameter param in cmd.Parameters)
                 {
-                    using (NpgsqlCommand cmd = new NpgsqlCommand(sql, (NpgsqlConnection)conn))
-                    {
-                        cmd.ExecuteNonQuery();
-                    }
+                    param.Value = null;
                 }
-                catch (Exception)
-                {
-                    throw new Exception(sql);
-
+                cmd.ExecuteNonQuery();
+            }
+        }
+        catch (Exception)
+        {
+            throw new Exception(sql);
+        }
+    }
+}
                 }
             }
         }

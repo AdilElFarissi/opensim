@@ -105,156 +105,137 @@ namespace OpenSim.Data
         /// <param name="assem"></param>
         /// <param name="subtype"></param>
         /// <param name="type"></param>
-        public void Initialize (DbConnection conn, Assembly assem, string type, string subtype)
-        {
-            _type = type;
-            _conn = conn;
-            _assem = assem;
-            _match_old = new Regex(subtype + @"\.(\d\d\d)_" + _type + @"\.sql");
-            string s = String.IsNullOrEmpty(subtype) ? _type : _type + @"\." + subtype;
-            _match_new = new Regex(@"\." + s + @"\.migrations(?:\.(?<ver>\d+)$|.*)");
-        }
+public void Initialize(DbConnection conn, Assembly assem, string type, string subtype)
+{
+    _type = type;
+    _conn = conn;
+    _assem = assem;
+    _match_old = new Regex(subtype + @"\.(\d\d\d)_" + _type + @"\.sql");
+    string s = String.IsNullOrEmpty(subtype) ? _type : _type + @"\." + subtype;
+    _match_new = new Regex(@"\." + s + @"\.migrations(?:\.(?<ver>\d+)$|.*)");
+}
 
-        public void InitMigrationsTable()
+public void InitMigrationsTable()
+{
+    int ver = FindVersion(_conn, "migrations");
+    if (ver <= 0)
+    {
+        if (ver < 0)
         {
-            // NOTE: normally when the [migrations] table is created, the version record for 'migrations' is
-            // added immediately. However, if for some reason the table is there but empty, we want to handle that as well.
-            int ver = FindVersion(_conn, "migrations");
-            if (ver <= 0)   // -1 = no table, 0 = no version record
+            using (DbCommand cmd = _conn.CreateCommand())
             {
-                if (ver < 0)
-                    ExecuteScript("create table migrations(name varchar(100), version int)");
-                InsertVersion("migrations", 1);
+                cmd.CommandText = "create table migrations(name varchar(100), version int)";
+                cmd.ExecuteNonQuery();
             }
         }
+        InsertVersion("migrations", 1);
+    }
+}
 
-        /// <summary>Executes a script, possibly in a database-specific way.
-        /// It can be redefined for a specific DBMS, if necessary. Specifically,
-        /// to avoid problems with proc definitions in MySQL, we must use
-        /// MySqlScript class instead of just DbCommand. We don't want to bring
-        /// MySQL references here, so instead define a MySQLMigration class
-        /// in OpenSim.Data.MySQL
-        /// </summary>
-        /// <param name="conn"></param>
-        /// <param name="script">Array of strings, one-per-batch (often just one)</param>
-        protected virtual void ExecuteScript(DbConnection conn, string[] script)
+protected virtual void ExecuteScript(DbConnection conn, string[] script)
+{
+    using (DbCommand cmd = conn.CreateCommand())
+    {
+        cmd.CommandTimeout = 0;
+        foreach (string sql in script)
         {
-            using (DbCommand cmd = conn.CreateCommand())
+            cmd.CommandText = sql;
+            try
             {
-                cmd.CommandTimeout = 0;
-                foreach (string sql in script)
-                {
-                    cmd.CommandText = sql;
-                    try
-                    {
-                        cmd.ExecuteNonQuery();
-                    }
-                    catch(Exception e)
-                    {
-                        throw new Exception(e.Message + " in SQL: " + sql);
-                    }
-                }
+                cmd.ExecuteNonQuery();
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message + " in SQL: " + sql);
             }
         }
+    }
+}
 
-        protected void ExecuteScript(DbConnection conn, string sql)
+protected void ExecuteScript(DbConnection conn, string sql)
+{
+    ExecuteScript(conn, new string[] { sql });
+}
+
+protected void ExecuteScript(string sql)
+{
+    ExecuteScript(_conn, sql);
+}
+
+protected void ExecuteScript(string[] script)
+{
+    ExecuteScript(_conn, script);
+}
+
+public void Update()
+{
+    InitMigrationsTable();
+
+    int version = FindVersion(_conn, _type);
+
+    SortedList<int, string[]> migrations = GetMigrationsAfter(version);
+    if (migrations.Count < 1)
+        return;
+
+    m_log.InfoFormat("[MIGRATIONS]: Upgrading {0} to latest revision {1}.", _type, migrations.Keys[migrations.Count - 1]);
+    m_log.Info("[MIGRATIONS]: NOTE - this may take a while, don't interrupt this process!");
+}
+
+protected int FindVersion(DbConnection conn, string name)
+{
+    using (DbCommand cmd = conn.CreateCommand())
+    {
+        cmd.CommandText = "SELECT version FROM migrations WHERE name = @name";
+        DbParameter param = cmd.CreateParameter();
+        param.ParameterName = "@name";
+        param.Value = name;
+        cmd.Parameters.Add(param);
+        object result = cmd.ExecuteScalar();
+        if (result == null || result == DBNull.Value)
+            return -1;
+        return Convert.ToInt32(result);
+    }
+}
+
+protected void InsertVersion(string name, int version)
+{
+    using (DbCommand cmd = _conn.CreateCommand())
+    {
+        cmd.CommandText = "INSERT INTO migrations (name, version) VALUES (@name, @version)";
+        DbParameter nameParam = cmd.CreateParameter();
+protected virtual int FindVersion(DbConnection conn, string type)
+{
+    int version = 0;
+    using (DbCommand cmd = conn.CreateCommand())
+    {
+        try
         {
-            ExecuteScript(conn, new string[]{sql});
-        }
-
-        protected void ExecuteScript(string sql)
-        {
-            ExecuteScript(_conn, sql);
-        }
-
-        protected void ExecuteScript(string[] script)
-        {
-            ExecuteScript(_conn, script);
-        }
-
-        public void Update()
-        {
-            InitMigrationsTable();
-
-            int version = FindVersion(_conn, _type);
-
-            SortedList<int, string[]> migrations = GetMigrationsAfter(version);
-            if (migrations.Count < 1)
-                return;
-
-            // to prevent people from killing long migrations.
-            m_log.InfoFormat("[MIGRATIONS]: Upgrading {0} to latest revision {1}.", _type, migrations.Keys[migrations.Count - 1]);
-            m_log.Info("[MIGRATIONS]: NOTE - this may take a while, don't interrupt this process!");
-
-            foreach (KeyValuePair<int, string[]> kvp in migrations)
+            cmd.CommandText = "select version from migrations where name = @name order by version desc";
+            DbParameter nameParam = cmd.CreateParameter();
+            nameParam.ParameterName = "@name";
+            nameParam.Value = type;
+            cmd.Parameters.Add(nameParam);
+            using (DbDataReader reader = cmd.ExecuteReader())
             {
-                int newversion = kvp.Key;
-                // we need to up the command timeout to infinite as we might be doing long migrations.
-
-                /* [AlexRa 01-May-10]: We can't always just run any SQL in a single batch (= ExecuteNonQuery()). Things like
-                 * stored proc definitions might have to be sent to the server each in a separate batch.
-                 * This is certainly so for MS SQL; not sure how the MySQL connector sorts out the mess
-                 * with 'delimiter @@'/'delimiter ;' around procs.  So each "script" this code executes now is not
-                 * a single string, but an array of strings, executed separately.
-                */
-                try
+                if (reader.Read())
                 {
-                    ExecuteScript(kvp.Value);
+                    version = Convert.ToInt32(reader["version"]);
                 }
-                catch (Exception e)
-                {
-                    m_log.DebugFormat("[MIGRATIONS]: Cmd was {0}", e.Message.Replace("\n", " "));
-                    m_log.Debug("[MIGRATIONS]: An error has occurred in the migration.  If you're running OpenSim for the first time then you can probably safely ignore this, since certain migration commands attempt to fetch data out of old tables.  However, if you're using an existing database and you see database related errors while running OpenSim then you will need to fix these problems manually. Continuing.");
-                    ExecuteScript("ROLLBACK;");
-                }
-
-                if (version == 0)
-                {
-                    InsertVersion(_type, newversion);
-                }
-                else
-                {
-                    UpdateVersion(_type, newversion);
-                }
-                version = newversion;
+                reader.Close();
             }
         }
-
-        public int Version
+        catch
         {
-            get { return FindVersion(_conn, _type); }
-            set {
-                if (Version < 1)
-                {
-                    InsertVersion(_type, value);
-                }
-                else
-                {
-                    UpdateVersion(_type, value);
-                }
-            }
+            // Something went wrong (probably no table), so we're at version -1
+            version = -1;
         }
-
-        protected virtual int FindVersion(DbConnection conn, string type)
+        finally
         {
-            int version = 0;
-            using (DbCommand cmd = conn.CreateCommand())
-            {
-                try
-                {
-                    cmd.CommandText = "select version from migrations where name='" + type + "' order by version desc";
-                    using (DbDataReader reader = cmd.ExecuteReader())
-                    {
-                        if (reader.Read())
-                        {
-                            version = Convert.ToInt32(reader["version"]);
-                        }
-                        reader.Close();
-                    }
-                }
-                catch
-                {
-                    // Something went wrong (probably no table), so we're at version -1
+            cmd.Parameters.Clear();
+        }
+    }
+    return version;
+}
                     version = -1;
                 }
             }

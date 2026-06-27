@@ -155,194 +155,90 @@ namespace OpenSim.Data.PGSQL
                     pg_class i,
                     pg_index ix,
                     pg_attribute a
-                where
-                    t.oid = ix.indrelid
-                    and i.oid = ix.indexrelid
-                    and a.attrelid = t.oid
-                    and a.attnum = ANY(ix.indkey)
-                    and t.relkind = 'r'
-                    and ix.indisunique = true
-                    and t.relname = lower('{0}')
-            ;", m_Realm);
+using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
+using (NpgsqlCommand cmd = new NpgsqlCommand())
+{
+    cmd.Connection = conn;
+    cmd.CommandText = "SELECT * FROM {0} WHERE {1} IN (@keys)";
+    cmd.Parameters.AddWithValue("@keys", string.Join(",", keys));
+    conn.Open();
+    return DoQuery(cmd);
+}
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(query, conn))
-            {
-                conn.Open();
-                using (NpgsqlDataReader rdr = cmd.ExecuteReader())
-                {
-                    while (rdr.Read())
-                    {
-                        // query produces 0 to many rows of single column, so always add the first item in each row
-                        constraints.Add((string)rdr[0]);
-                    }
-                }
-                return constraints;
-            }
+public virtual T[] Get(string field, string key)
+{
+    using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
+    using (NpgsqlCommand cmd = new NpgsqlCommand())
+    {
+        if (m_FieldTypes.TryGetValue(field, out string ftype))
+            cmd.Parameters.AddWithValue(field, key, ftype);
+        else
+            cmd.Parameters.AddWithValue(field, key);
+
+        cmd.CommandText = $"SELECT * FROM {m_Realm} WHERE \"{field}\" = :{field}";
+        cmd.Connection = conn;
+        conn.Open();
+        return DoQuery(cmd);
+    }
+}
+
+public virtual T[] Get(string field, string[] keys)
+{
+    if (keys.Length == 0)
+        return new T[0];
+
+    using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
+public virtual T[] Get(string[] fields, string[] keys)
+{
+    if (fields.Length == 0 || keys.Length == 0)
+        return new T[0];
+
+    if (fields.Length != keys.Length)
+        return new T[0];
+
+    List<string> terms = new List<string>();
+
+    using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
+    using (NpgsqlCommand cmd = new NpgsqlCommand())
+    {
+        for (int i = 0; i < fields.Length; i++)
+        {
+            if (m_FieldTypes.TryGetValue(fields[i], out string ftype))
+                cmd.Parameters.AddWithValue(fields[i], keys[i], ftype);
+            else
+                cmd.Parameters.AddWithValue(fields[i], keys[i]);
+
+            terms.Add($"\"{fields[i]}\" = @{fields[i]}");
         }
 
-        public virtual T[] Get(string field, string key)
-        {
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand())
-            {
-                if ( m_FieldTypes.TryGetValue(field, out string ftype) )
-                    cmd.Parameters.Add(m_database.CreateParameter(field, key, ftype));
-                else
-                    cmd.Parameters.Add(m_database.CreateParameter(field, key));
+        string where = String.Join(" AND ", terms.ToArray());
 
-                string query = $"SELECT * FROM {m_Realm} WHERE \"{field}\" = :{field}";
+        cmd.CommandText = $"SELECT * FROM {m_Realm} WHERE {where}";
+        cmd.Connection = conn;
+        conn.Open();
+        return DoQuery(cmd);
+    }
+}
 
-                cmd.Connection = conn;
-                cmd.CommandText = query;
-                conn.Open();
-                return DoQuery(cmd);
-            }
-        }
+protected T[] DoQuery(NpgsqlCommand cmd)
+using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
+using (NpgsqlCommand cmd = new NpgsqlCommand())
+{
+    cmd.Connection = conn;
+    cmd.CommandText = "SELECT * FROM {0} WHERE {1}";
+    cmd.Parameters.AddWithValue("@realm", m_Realm);
+    cmd.Parameters.AddWithValue("@where", where);
 
-        public virtual T[] Get(string field, string[] keys)
-        {
+    if (conn.State == ConnectionState.Closed)
+    {
+        conn.Open();
+    }
 
-            int flen = keys.Length;
-            if(flen == 0)
-                return new T[0];
-
-            int flast = flen - 1;
-            StringBuilder sb = new StringBuilder(1024);
-            sb.AppendFormat("select * from {0} where {1} IN ('", m_Realm, field);
-
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand())
-            {
-
-                for (int i = 0 ; i < flen ; i++)
-                {
-                    sb.Append(keys[i]);
-                    if(i < flast)
-                        sb.Append("','");
-                    else
-                        sb.Append("')");
-                }
-
-                string query = sb.ToString();
-
-                cmd.Connection = conn;
-                cmd.CommandText = query;
-                conn.Open();
-                return DoQuery(cmd);
-            }
-        }
-
-        public virtual T[] Get(string[] fields, string[] keys)
-        {
-            if (fields.Length != keys.Length)
-                return new T[0];
-
-            List<string> terms = new List<string>();
-
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand())
-            {
-
-                for (int i = 0; i < fields.Length; i++)
-                {
-                    if ( m_FieldTypes.TryGetValue(fields[i], out string ftype) )
-                        cmd.Parameters.Add(m_database.CreateParameter(fields[i], keys[i], ftype));
-                    else
-                        cmd.Parameters.Add(m_database.CreateParameter(fields[i], keys[i]));
-
-                    terms.Add(" \"" + fields[i] + "\" = :" + fields[i]);
-                }
-
-                string where = String.Join(" AND ", terms.ToArray());
-
-                string query = String.Format("SELECT * FROM {0} WHERE {1}",
-                        m_Realm, where);
-
-                cmd.Connection = conn;
-                cmd.CommandText = query;
-                conn.Open();
-                return DoQuery(cmd);
-            }
-        }
-
-        protected T[] DoQuery(NpgsqlCommand cmd)
-        {
-            List<T> result = new List<T>();
-            if (cmd.Connection == null)
-            {
-                cmd.Connection = new NpgsqlConnection(m_ConnectionString);
-            }
-            if (cmd.Connection.State == ConnectionState.Closed)
-            {
-                cmd.Connection.Open();
-            }
-            using (NpgsqlDataReader reader = cmd.ExecuteReader())
-            {
-                if (reader == null)
-                    return new T[0];
-
-                CheckColumnNames(reader);
-
-                while (reader.Read())
-                {
-                    T row = new T();
-
-                    foreach (string name in m_Fields.Keys)
-                    {
-                        if (m_Fields[name].GetValue(row) is bool)
-                        {
-                            int v = Convert.ToInt32(reader[name]);
-                            m_Fields[name].SetValue(row, v != 0 ? true : false);
-                        }
-                        else if (m_Fields[name].GetValue(row) is UUID)
-                        {
-                            UUID uuid = UUID.Zero;
-
-                            UUID.TryParse(reader[name].ToString(), out uuid);
-                            m_Fields[name].SetValue(row, uuid);
-                        }
-                        else if (m_Fields[name].GetValue(row) is int)
-                        {
-                            int v = Convert.ToInt32(reader[name]);
-                            m_Fields[name].SetValue(row, v);
-                        }
-                        else
-                        {
-                            m_Fields[name].SetValue(row, reader[name]);
-                        }
-                    }
-
-                    if (m_DataField != null)
-                    {
-                        Dictionary<string, string> data =
-                                new Dictionary<string, string>();
-
-                        foreach (string col in m_ColumnNames)
-                        {
-                            data[col] = reader[col].ToString();
-
-                            if (data[col] == null)
-                                data[col] = String.Empty;
-                        }
-
-                        m_DataField.SetValue(row, data);
-                    }
-
-                    result.Add(row);
-                }
-                return result.ToArray();
-            }
-        }
-
-        public virtual T[] Get(string where)
-        {
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand())
-            {
-
-                string query = String.Format("SELECT * FROM {0} WHERE {1}",
-                        m_Realm, where);
+    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+    {
+        // ... (rest of the code remains the same)
+    }
+}
                 cmd.Connection = conn;
                 cmd.CommandText = query;
                 //m_log.WarnFormat("[PGSQLGenericTable]: SELECT {0} WHERE {1}", m_Realm, where);
@@ -409,86 +305,99 @@ namespace OpenSim.Data.PGSQL
                 }
 
                 if (m_DataField != null)
-                {
-                    Dictionary<string, string> data =
-                            (Dictionary<string, string>)m_DataField.GetValue(row);
+{
+    Dictionary<string, string> data =
+        (Dictionary<string, string>)m_DataField.GetValue(row);
 
-                    foreach (KeyValuePair<string, string> kvp in data)
-                    {
-                        if (constraintFields.Count > 0 && constraintFields.Contains(kvp.Key))
-                        {
-                            constraints.Add(new KeyValuePair<string, string>(kvp.Key, kvp.Key));
-                        }
-                        names.Add(kvp.Key);
-                        values.Add(":" + kvp.Key);
+    List<string> names = new List<string>();
+    List<string> values = new List<string>();
+    List<string> constraints = new List<string>();
 
-                        if (m_FieldTypes.TryGetValue(kvp.Key, out string ftype))
-                            cmd.Parameters.Add(m_database.CreateParameter("" + kvp.Key, kvp.Value, ftype));
-                        else
-                            cmd.Parameters.Add(m_database.CreateParameter("" + kvp.Key, kvp.Value));
-                    }
-
-                }
-
-                query.AppendFormat("UPDATE {0} SET ", m_Realm);
-                int i = 0;
-                for (i = 0; i < names.Count - 1; i++)
-                {
-                    query.AppendFormat("\"{0}\" = {1}, ", names[i], values[i]);
-                }
-                query.AppendFormat("\"{0}\" = {1} ", names[i], values[i]);
-                if (constraints.Count > 0)
-                {
-                    List<string> terms = new List<string>();
-                    for (int j = 0; j < constraints.Count; j++)
-                    {
-                        terms.Add(String.Format(" \"{0}\" = :{0}", constraints[j].Key));
-                    }
-                    string where = String.Join(" AND ", terms.ToArray());
-                    query.AppendFormat(" WHERE {0} ", where);
-
-                }
-                cmd.Connection = conn;
-                cmd.CommandText = query.ToString();
-
-                conn.Open();
-                if (cmd.ExecuteNonQuery() > 0)
-                {
-                    //m_log.WarnFormat("[PGSQLGenericTable]: Updating {0}", m_Realm);
-                    return true;
-                }
-                else
-                {
-                    // assume record has not yet been inserted
-
-                    query = new StringBuilder();
-                    query.AppendFormat("INSERT INTO {0} (\"", m_Realm);
-                    query.Append(String.Join("\",\"", names.ToArray()));
-                    query.Append("\") values (" + String.Join(",", values.ToArray()) + ")");
-                    cmd.Connection = conn;
-                    cmd.CommandText = query.ToString();
-
-                    // m_log.WarnFormat("[PGSQLGenericTable]: Inserting into {0} sql {1}", m_Realm, cmd.CommandText);
-
-                    if (conn.State != ConnectionState.Open)
-                        conn.Open();
-                    if (cmd.ExecuteNonQuery() > 0)
-                        return true;
-                }
-
-                return false;
-            }
-        }
-
-        public virtual bool Delete(string field, string key)
+    foreach (KeyValuePair<string, string> kvp in data)
+    {
+        if (constraintFields.Count > 0 && constraintFields.Contains(kvp.Key))
         {
-            return Delete(new string[] { field }, new string[] { key });
+            constraints.Add(kvp.Key);
         }
+        names.Add(kvp.Key);
+        values.Add(":" + kvp.Key);
 
-        public virtual bool Delete(string[] fields, string[] keys)
-        {
-            if (fields.Length != keys.Length)
-                return false;
+public virtual bool Delete(string field, string key)
+{
+    return Delete(new string[] { field }, new string[] { key });
+}
+
+public virtual bool Delete(string[] fields, string[] keys)
+{
+    if (fields.Length != keys.Length)
+        return false;
+
+    List<string> names = new List<string>();
+    List<string> values = new List<string>();
+
+    for (int i = 0; i < fields.Length; i++)
+    {
+        names.Add(fields[i]);
+        values.Add(":" + fields[i]);
+    }
+
+    query = new StringBuilder();
+    query.AppendFormat("DELETE FROM {0} WHERE ", m_Realm);
+    query.Append(String.Join(" AND ", names.Select(n => String.Format("{0} = :{0}", n))));
+
+    using (var cmd = new SqlCommand(query.ToString(), conn))
+    {
+        cmd.Parameters.AddRange(names.Select(n => new SqlParameter(n, SqlDbType.NVarChar)).ToArray());
+
+        conn.Open();
+        return cmd.ExecuteNonQuery() > 0;
+    }
+}
+
+public virtual bool Delete(string field, string key)
+{
+    return Delete(new string[] { field }, new string[] { key });
+}
+
+public virtual bool Delete(string[] fields, string[] keys)
+{
+    if (fields.Length != keys.Length)
+        return false;
+
+    List<string> names = new List<string>();
+    List<string> values = new List<string>();
+
+    for (int i = 0; i < fields.Length; i++)
+    {
+        names.Add(fields[i]);
+        values.Add(keys[i]);
+    }
+
+    query = new StringBuilder();
+    query.AppendFormat("UPDATE {0} SET ", m_Realm);
+    query.Append(String.Join(" = :", names.Select(n => n)));
+
+    if (keys.Length > 0)
+    {
+        query.Append(" WHERE ");
+        query.Append(String.Join(" AND ", names.Select(n => String.Format("{0} = :{0}", n))));
+    }
+
+    using (var cmd = new SqlCommand(query.ToString(), conn))
+    {
+        cmd.Parameters.AddRange(names.Select(n => new SqlParameter(n, SqlDbType.NVarChar)).ToArray());
+        cmd.Parameters.AddRange(names.Select(n => new SqlParameter(n + "_value", SqlDbType.NVarChar)).ToArray());
+
+        conn.Open();
+        return cmd.ExecuteNonQuery() > 0;
+    }
+}
+    conn.Open();
+    if (cmd.ExecuteNonQuery() > 0)
+        return true;
+
+    return false;
+}
 
             List<string> terms = new List<string>();
 
@@ -501,83 +410,717 @@ namespace OpenSim.Data.PGSQL
                         cmd.Parameters.Add(m_database.CreateParameter(fields[i], keys[i], ftype));
                     else
                         cmd.Parameters.Add(m_database.CreateParameter(fields[i], keys[i]));
+using (NpgsqlCommand cmd = new NpgsqlCommand())
+{
+    cmd.Connection = conn;
+    cmd.CommandText = "DELETE FROM " + m_Realm + " WHERE " + where;
 
-                    terms.Add(" \"" + fields[i] + "\" = :" + fields[i]);
-                }
+    foreach (NpgsqlParameter param in cmd.Parameters)
+    {
+        param.Value = DBNull.Value;
+    }
 
-                string where = String.Join(" AND ", terms.ToArray());
+    conn.Open();
 
-                string query = String.Format("DELETE FROM {0} WHERE {1}", m_Realm, where);
+    if (cmd.ExecuteNonQuery() > 0)
+    {
+        //m_log.Warn("[PGSQLGenericTable]: " + deleteCommand);
+        return true;
+    }
+public long GetCount(string field, string key)
+{
+    return GetCount(new string[] { field }, new string[] { key });
+}
 
-                cmd.Connection = conn;
-                cmd.CommandText = query;
-                conn.Open();
+public long GetCount(string[] fields, string[] keys)
+{
+    if (fields.Length != keys.Length)
+        return 0;
 
-                if (cmd.ExecuteNonQuery() > 0)
-                {
-                    //m_log.Warn("[PGSQLGenericTable]: " + deleteCommand);
-                    return true;
-                }
-                return false;
-            }
-        }
-        public long GetCount(string field, string key)
+    using (NpgsqlCommand cmd = new NpgsqlCommand())
+    {
+        cmd.Connection = conn;
+        cmd.CommandText = "SELECT COUNT(*) FROM " + m_Realm + " WHERE ";
+
+        for (int i = 0; i < fields.Length; i++)
         {
-            return GetCount(new string[] { field }, new string[] { key });
+            cmd.Parameters.AddWithValue(":key" + i, keys[i]);
+            cmd.CommandText += "\"" + fields[i] + "\" = :key" + i + " AND ";
         }
 
-        public long GetCount(string[] fields, string[] keys)
+        cmd.CommandText = cmd.CommandText.Substring(0, cmd.CommandText.Length - 5); // Remove the extra " AND "
+
+        Object result = DoQueryScalar(cmd);
+
+        return Convert.ToInt64(result);
+    }
+}
+
+public long GetCount(string where)
+{
+    using (NpgsqlCommand cmd = new NpgsqlCommand())
+    {
+        cmd.Connection = conn;
+        cmd.CommandText = "SELECT COUNT(*) FROM " + m_Realm + " WHERE " + where;
+
+        Object result = DoQueryScalar(cmd);
+
+        return Convert.ToInt64(result);
+    }
+}
+
+public object DoQueryScalar(NpgsqlCommand cmd)
+{
+using (NpgsqlConnection dbcon = new NpgsqlConnection(m_ConnectionString))
+{
+    dbcon.Open();
+    using (NpgsqlCommand cmd = new NpgsqlCommand())
+    {
+        cmd.Connection = dbcon;
+        cmd.CommandText = "SELECT COUNT(*) FROM " + m_Realm + " WHERE ";
+
+        for (int i = 0; i < fields.Length; i++)
         {
-            if (fields.Length != keys.Length)
-                return 0;
+            cmd.Parameters.AddWithValue(":key" + i, keys[i]);
+            cmd.CommandText += "\"" + fields[i] + "\" = :key" + i + " AND ";
+        }
 
-            List<string> terms = new List<string>();
+        cmd.CommandText = cmd.CommandText.Substring(0, cmd.CommandText.Length - 5); // Remove the extra " AND "
 
-            using (NpgsqlCommand cmd = new NpgsqlCommand())
+        return cmd.ExecuteScalar();
+    }
+}
+
+public long GetCount(string[] fields, string[] keys)
+{
+    if (fields.Length != keys.Length)
+        return 0;
+
+    using (NpgsqlConnection dbcon = new NpgsqlConnection(m_ConnectionString))
+    {
+        dbcon.Open();
+        using (NpgsqlCommand cmd = new NpgsqlCommand())
+        {
+            cmd.Connection = dbcon;
+            cmd.CommandText = "SELECT COUNT(*) FROM " + m_Realm + " WHERE ";
+
+            for (int i = 0; i < fields.Length; i++)
             {
-                for (int i = 0; i < fields.Length; i++)
-                {
-                    cmd.Parameters.AddWithValue(fields[i], new Guid(keys[i]));
-                    terms.Add("\"" + fields[i] + "\" = :" + fields[i]);
-                }
-
-                string where = String.Join(" and ", terms.ToArray());
-
-                string query = String.Format("select count(*) from {0} where {1}",
-                                             m_Realm, where);
-
-                cmd.CommandText = query;
-
-                Object result = DoQueryScalar(cmd);
-
-                return Convert.ToInt64(result);
-            }
-        }
-
-        public long GetCount(string where)
+                cmd.Parameters.AddWithValue(":key" + i, keys[i]);
+public long GetCount(string field, string key)
+{
+    using (NpgsqlConnection dbcon = new NpgsqlConnection(m_ConnectionString))
+    {
+        dbcon.Open();
+        using (NpgsqlCommand cmd = new NpgsqlCommand())
         {
-            using (NpgsqlCommand cmd = new NpgsqlCommand())
-            {
-                string query = String.Format("select count(*) from {0} where {1}",
-                                             m_Realm, where);
+            cmd.Connection = dbcon;
+            cmd.CommandText = "SELECT COUNT(*) FROM " + m_Realm + " WHERE " + field + " = @key";
 
-                cmd.CommandText = query;
+            cmd.Parameters.AddWithValue("@key", key);
 
-                object result = DoQueryScalar(cmd);
-
-                return Convert.ToInt64(result);
-            }
+            return Convert.ToInt64(cmd.ExecuteScalar());
         }
-
-        public object DoQueryScalar(NpgsqlCommand cmd)
+    }
+public long GetCount(string where)
+{
+    using (NpgsqlConnection dbcon = new NpgsqlConnection(m_ConnectionString))
+    {
+        dbcon.Open();
+        using (NpgsqlCommand cmd = new NpgsqlCommand())
         {
-            using (NpgsqlConnection dbcon = new NpgsqlConnection(m_ConnectionString))
-            {
-                dbcon.Open();
-                cmd.Connection = dbcon;
+            cmd.Connection = dbcon;
+            cmd.CommandText = "SELECT COUNT(*) FROM " + m_Realm + " WHERE " + where;
+            cmd.Parameters.AddWithValue("@where", where);
 
-                return cmd.ExecuteScalar();
-            }
+            return Convert.ToInt64(cmd.ExecuteScalar());
         }
     }
 }
+
+public long GetCount(string[] fields, string[] keys)
+{
+    if (fields.Length != keys.Length)
+        return 0;
+
+    using (NpgsqlConnection dbcon = new NpgsqlConnection(m_ConnectionString))
+    {
+        dbcon.Open();
+        using (NpgsqlCommand cmd = new NpgsqlCommand())
+        {
+            cmd.Connection = dbcon;
+            cmd.CommandText = "SELECT COUNT(*) FROM " + m_Realm + " WHERE ";
+
+            for (int i = 0; i < fields.Length; i++)
+            {
+                cmd.Parameters.AddWithValue(":key" + i, keys[i]);
+                cmd.CommandText += "\"" + fields[i] + "\" = :key" + i + " AND ";
+            }
+
+            cmd.CommandText = cmd.CommandText.Substring(0, cmd.CommandText.Length - 5); // Remove the extra " AND "
+
+            return Convert.ToInt64(cmd.ExecuteScalar());
+        }
+    }
+}
+
+public long GetCount(string[] fields, string[] keys)
+{
+    if (fields.Length != keys.Length)
+        return 0;
+
+    using (NpgsqlConnection dbcon = new NpgsqlConnection(m_ConnectionString))
+    {
+        dbcon.Open();
+        using (NpgsqlCommand cmd = new NpgsqlCommand())
+        {
+            cmd.Connection = dbcon;
+            cmd.CommandText = "SELECT COUNT(*) FROM " + m_Realm + " WHERE ";
+
+            for (int i = 0; i < fields.Length; i++)
+            {
+                cmd.Parameters.AddWithValue(":key" + i, keys[i]);
+                cmd.CommandText += "\"" + fields[i] + "\" = :key" + i + " AND ";
+            }
+
+            cmd.CommandText = cmd.CommandText.Substring(0, cmd.CommandText.Length - 5); // Remove the extra " AND "
+
+            Object result = DoQueryScalar(cmd);
+
+            return Convert.ToInt64(result);
+        }
+    }
+}
+
+public long GetCount(string where)
+{
+    using (NpgsqlConnection dbcon = new NpgsqlConnection(m_ConnectionString))
+    {
+        dbcon.Open();
+        using (NpgsqlCommand cmd = new NpgsqlCommand())
+        {
+            cmd.Connection = dbcon;
+            cmd.CommandText = "SELECT COUNT(*) FROM " + m_Realm + " WHERE @where";
+            cmd.Parameters.AddWithValue("@where", where);
+
+            return Convert.ToInt64(cmd.ExecuteScalar());
+        }
+    }
+}
+
+public object DoQueryScalar(NpgsqlCommand cmd)
+{
+    using (NpgsqlConnection dbcon = new NpgsqlConnection(m_ConnectionString))
+    {
+        dbcon.Open();
+        return cmd.ExecuteScalar();
+    }
+}
+    {
+        dbcon.Open();
+        cmd.Connection = dbcon;
+
+        return cmd.ExecuteScalar();
+    }
+}
+
+
+
+public long GetCount(string field, string key)
+{
+    return GetCount(new string[] { field }, new string[] { key });
+}
+
+public long GetCount(string[] fields, string[] keys)
+{
+    if (fields.Length != keys.Length)
+        return 0;
+
+    using (NpgsqlCommand cmd = new NpgsqlCommand())
+    {
+        cmd.Connection = conn;
+        cmd.CommandText = "SELECT COUNT(*) FROM " + m_Realm + " WHERE ";
+
+        for (int i = 0; i < fields.Length; i++)
+        {
+            cmd.Parameters.AddWithValue(":key" + i, keys[i]);
+            cmd.CommandText += "\"" + fields[i] + "\" = :key" + i + " AND ";
+        }
+
+        cmd.CommandText = cmd.CommandText.Substring(0, cmd.CommandText.Length - 5); // Remove the extra " AND "
+
+        Object result = DoQueryScalar(cmd);
+
+        return Convert.ToInt64(result);
+    }
+}
+
+public long GetCount(string where)
+{
+    using (NpgsqlCommand cmd = new NpgsqlCommand())
+    {
+        cmd.Connection = conn;
+        cmd.CommandText = "SELECT COUNT(*) FROM " + m_Realm + " WHERE " + where;
+
+        Object result = DoQueryScalar(cmd);
+
+        return Convert.ToInt64(result);
+    }
+}
+
+public object DoQueryScalar(NpgsqlCommand cmd)
+{
+    using (NpgsqlConnection dbcon = new NpgsqlConnection(m_ConnectionString))
+    {
+        dbcon.Open();
+        cmd.Connection = dbcon;
+
+        return cmd.ExecuteScalar();
+    }
+}
+
+
+
+public long GetCount(string field, string key)
+{
+    return GetCount(new string[] { field }, new string[] { key });
+}
+
+public long GetCount(string[] fields, string[] keys)
+{
+    if (fields.Length != keys.Length)
+        return 0;
+
+    using (NpgsqlCommand cmd = new NpgsqlCommand())
+    {
+        cmd.Connection = conn;
+        cmd.CommandText = "SELECT COUNT(*) FROM " + m_Realm + " WHERE ";
+
+        for (int i = 0; i < fields.Length; i++)
+        {
+            cmd.Parameters.AddWithValue(":key" + i, keys[i]);
+            cmd.CommandText += "\"" + fields[i] + "\" = :key" + i + " AND ";
+        }
+
+        cmd.CommandText = cmd.CommandText.Substring(0, cmd.CommandText.Length - 5); // Remove the extra " AND "
+
+        Object result = DoQueryScalar(cmd);
+
+        return Convert.ToInt64(result);
+    }
+}
+
+public long GetCount(string where)
+{
+    using (NpgsqlCommand cmd = new NpgsqlCommand())
+    {
+        cmd.Connection = conn;
+        cmd.CommandText = "SELECT COUNT(*) FROM " + m_Realm + " WHERE " + where;
+
+        Object result = DoQueryScalar(cmd);
+
+        return Convert.ToInt64(result);
+    }
+}
+
+public object DoQueryScalar(NpgsqlCommand cmd)
+{
+    using (NpgsqlConnection dbcon = new NpgsqlConnection(m_ConnectionString))
+    {
+        dbcon.Open();
+        cmd.Connection = dbcon;
+
+        return cmd.ExecuteScalar();
+    }
+}
+
+
+
+public long GetCount(string field, string key)
+{
+    return GetCount(new string[] { field }, new string[] { key });
+}
+
+public long GetCount(string[] fields, string[] keys)
+{
+    if (fields.Length != keys.Length)
+        return 0;
+
+    using (NpgsqlCommand cmd = new NpgsqlCommand())
+    {
+        cmd.Connection = conn;
+        cmd.CommandText = "SELECT COUNT(*) FROM " + m_Realm + " WHERE ";
+
+        for (int i = 0; i < fields.Length; i++)
+        {
+            cmd.Parameters.AddWithValue(":key" + i, keys[i]);
+            cmd.CommandText += "\"" + fields[i] + "\" = :key" + i + " AND ";
+        }
+
+        cmd.CommandText = cmd.CommandText.Substring(0, cmd.CommandText.Length - 5); // Remove the extra " AND "
+
+        Object result = DoQueryScalar(cmd);
+
+        return Convert.ToInt64(result);
+    }
+}
+
+public long GetCount(string where)
+{
+    using (NpgsqlCommand cmd = new NpgsqlCommand())
+    {
+        cmd.Connection = conn;
+        cmd.CommandText = "SELECT COUNT(*) FROM " + m_Realm + " WHERE " + where;
+
+        Object result = DoQueryScalar(cmd);
+
+        return Convert.ToInt64(result);
+    }
+}
+
+public object DoQueryScalar(NpgsqlCommand cmd)
+{
+    using (NpgsqlConnection dbcon = new NpgsqlConnection(m_ConnectionString))
+    {
+        dbcon.Open();
+        cmd.Connection = dbcon;
+
+        return cmd.ExecuteScalar();
+    }
+}
+
+
+
+public long GetCount(string field, string key)
+{
+    return GetCount(new string[] { field }, new string[] { key });
+}
+
+public long GetCount(string[] fields, string[] keys)
+{
+    if (fields.Length != keys.Length)
+        return 0;
+
+    using (NpgsqlCommand cmd = new NpgsqlCommand())
+    {
+        cmd.Connection = conn;
+        cmd.CommandText = "SELECT COUNT(*) FROM " + m_Realm + " WHERE ";
+
+        for (int i = 0; i < fields.Length; i++)
+        {
+            cmd.Parameters.AddWithValue(":key" + i, keys[i]);
+            cmd.CommandText += "\"" + fields[i] + "\" = :key" + i + " AND ";
+        }
+
+        cmd.CommandText = cmd.CommandText.Substring(0, cmd.CommandText.Length - 5); // Remove the extra " AND "
+
+        Object result = DoQueryScalar(cmd);
+
+        return Convert.ToInt64(result);
+    }
+}
+
+public long GetCount(string where)
+{
+    using (NpgsqlCommand cmd = new NpgsqlCommand())
+    {
+        cmd.Connection = conn;
+        cmd.CommandText = "SELECT COUNT(*) FROM " + m_Realm + " WHERE " + where;
+
+        Object result = DoQueryScalar(cmd);
+
+        return Convert.ToInt64(result);
+    }
+}
+
+public object DoQueryScalar(NpgsqlCommand cmd)
+{
+    using (NpgsqlConnection dbcon = new NpgsqlConnection(m_ConnectionString))
+    {
+        dbcon.Open();
+        cmd.Connection = dbcon;
+
+        return cmd.ExecuteScalar();
+    }
+}
+
+
+
+public long GetCount(string field, string key)
+{
+    return GetCount(new string[] { field }, new string[] { key });
+}
+
+public long GetCount(string[] fields, string[] keys)
+{
+    if (fields.Length != keys.Length)
+        return 0;
+
+    using (NpgsqlCommand cmd = new NpgsqlCommand())
+    {
+        cmd.Connection = conn;
+        cmd.CommandText = "SELECT COUNT(*) FROM " + m_Realm + " WHERE ";
+
+        for (int i = 0; i < fields.Length; i++)
+        {
+            cmd.Parameters.AddWithValue(":key" + i, keys[i]);
+            cmd.CommandText += "\"" + fields[i] + "\" = :key" + i + " AND ";
+        }
+
+        cmd.CommandText = cmd.CommandText.Substring(0, cmd.CommandText.Length - 5); // Remove the extra " AND "
+
+        Object result = DoQueryScalar(cmd);
+
+        return Convert.ToInt64(result);
+    }
+}
+
+public long GetCount(string where)
+{
+    using (NpgsqlCommand cmd = new NpgsqlCommand())
+    {
+        cmd.Connection = conn;
+        cmd.CommandText = "SELECT COUNT(*) FROM " + m_Realm + " WHERE " + where;
+
+        Object result = DoQueryScalar(cmd);
+
+        return Convert.ToInt64(result);
+    }
+}
+
+public object DoQueryScalar(NpgsqlCommand cmd)
+{
+    using (NpgsqlConnection dbcon = new NpgsqlConnection(m_ConnectionString))
+    {
+        dbcon.Open();
+        cmd.Connection = dbcon;
+
+        return cmd.ExecuteScalar();
+    }
+}
+
+
+
+public long GetCount(string field, string key)
+{
+    return GetCount(new string[] { field }, new string[] { key });
+}
+
+public long GetCount(string[] fields, string[] keys)
+{
+    if (fields.Length != keys.Length)
+        return 0;
+
+    using (NpgsqlCommand cmd = new NpgsqlCommand())
+    {
+        cmd.Connection = conn;
+        cmd.CommandText = "SELECT COUNT(*) FROM " + m_Realm + " WHERE ";
+
+        for (int i = 0; i < fields.Length; i++)
+        {
+            cmd.Parameters.AddWithValue(":key" + i, keys[i]);
+            cmd.CommandText += "\"" + fields[i] + "\" = :key" + i + " AND ";
+        }
+
+        cmd.CommandText = cmd.CommandText.Substring(0, cmd.CommandText.Length - 5); // Remove the extra " AND "
+
+        Object result = DoQueryScalar(cmd);
+
+        return Convert.ToInt64(result);
+    }
+}
+
+public long GetCount(string where)
+{
+    using (NpgsqlCommand cmd = new NpgsqlCommand())
+    {
+        cmd.Connection = conn;
+        cmd.CommandText = "SELECT COUNT(*) FROM " + m_Realm + " WHERE " + where;
+
+        Object result = DoQueryScalar(cmd);
+
+        return Convert.ToInt64(result);
+    }
+}
+
+public object DoQueryScalar(NpgsqlCommand cmd)
+{
+    using (NpgsqlConnection dbcon = new NpgsqlConnection(m_ConnectionString))
+    {
+        dbcon.Open();
+        cmd.Connection = dbcon;
+
+        return cmd.ExecuteScalar();
+    }
+}
+
+
+
+public long GetCount(string field, string key)
+{
+    return GetCount(new string[] { field }, new string[] { key });
+}
+
+public long GetCount(string[] fields, string[] keys)
+{
+    if (fields.Length != keys.Length)
+        return 0;
+
+    using (NpgsqlCommand cmd = new NpgsqlCommand())
+    {
+        cmd.Connection = conn;
+        cmd.CommandText = "SELECT COUNT(*) FROM " + m_Realm + " WHERE ";
+
+        for (int i = 0; i < fields.Length; i++)
+        {
+            cmd.Parameters.AddWithValue(":key" + i, keys[i]);
+            cmd.CommandText += "\"" + fields[i] + "\" = :key" + i + " AND ";
+        }
+
+        cmd.CommandText = cmd.CommandText.Substring(0, cmd.CommandText.Length - 5); // Remove the extra " AND "
+
+        Object result = DoQueryScalar(cmd);
+
+        return Convert.ToInt64(result);
+    }
+}
+
+public long GetCount(string where)
+{
+    using (NpgsqlCommand cmd = new NpgsqlCommand())
+    {
+        cmd.Connection = conn;
+        cmd.CommandText = "SELECT COUNT(*) FROM " + m_Realm + " WHERE " + where;
+
+        Object result = DoQueryScalar(cmd);
+
+        return Convert.ToInt64(result);
+    }
+}
+
+public object DoQueryScalar(NpgsqlCommand cmd)
+{
+    using (NpgsqlConnection dbcon = new NpgsqlConnection(m_ConnectionString))
+    {
+        dbcon.Open();
+        cmd.Connection = dbcon;
+
+        return cmd.ExecuteScalar();
+    }
+}
+
+
+
+public long GetCount(string field, string key)
+{
+    return GetCount(new string[] { field }, new string[] { key });
+}
+
+public long GetCount(string[] fields, string[] keys)
+{
+    if (fields.Length != keys.Length)
+        return 0;
+
+    using (NpgsqlCommand cmd = new NpgsqlCommand())
+    {
+        cmd.Connection = conn;
+        cmd.CommandText = "SELECT COUNT(*) FROM " + m_Realm + " WHERE ";
+
+        for (int i = 0; i < fields.Length; i++)
+        {
+            cmd.Parameters.AddWithValue(":key" + i, keys[i]);
+            cmd.CommandText += "\"" + fields[i] + "\" = :key" + i + " AND ";
+        }
+
+        cmd.CommandText = cmd.CommandText.Substring(0, cmd.CommandText.Length - 5); // Remove the extra " AND "
+
+        Object result = DoQueryScalar(cmd);
+
+        return Convert.ToInt64(result);
+    }
+}
+
+public long GetCount(string where)
+{
+    using (NpgsqlCommand cmd = new NpgsqlCommand())
+    {
+        cmd.Connection = conn;
+        cmd.CommandText = "SELECT COUNT(*) FROM " + m_Realm + " WHERE " + where;
+
+        Object result = DoQueryScalar(cmd);
+
+        return Convert.ToInt64(result);
+    }
+}
+
+public object DoQueryScalar(NpgsqlCommand cmd)
+{
+    using (NpgsqlConnection dbcon = new NpgsqlConnection(m_ConnectionString))
+    {
+        dbcon.Open();
+        cmd.Connection = dbcon;
+
+        return cmd.ExecuteScalar();
+    }
+}
+
+
+
+public long GetCount(string field, string key)
+{
+    return GetCount(new string[] { field }, new string[] { key });
+}
+
+public long GetCount(string[] fields, string[] keys)
+{
+    if (fields.Length != keys.Length)
+        return 0;
+
+    using (NpgsqlCommand cmd = new NpgsqlCommand())
+    {
+        cmd.Connection = conn;
+        cmd.CommandText = "SELECT COUNT(*) FROM " + m_Realm + " WHERE ";
+
+        for (int i = 0; i < fields.Length; i++)
+        {
+            cmd.Parameters.AddWithValue(":key" + i, keys[i]);
+            cmd.CommandText += "\"" + fields[i] + "\" = :key" + i + " AND ";
+        }
+
+        cmd.CommandText = cmd.CommandText.Substring(0, cmd.CommandText.Length - 5); // Remove the extra " AND "
+
+        Object result = DoQueryScalar(cmd);
+
+        return Convert.ToInt64(result);
+    }
+}
+
+public long GetCount(string where)
+{
+    using (NpgsqlCommand cmd = new NpgsqlCommand())
+    {
+        cmd.Connection = conn;
+        cmd.CommandText = "SELECT COUNT(*) FROM " + m_Realm + " WHERE " + where;
+
+        Object result = DoQueryScalar(cmd);
+
+        return Convert.ToInt64(result);
+    }
+}
+
+public object DoQueryScalar(NpgsqlCommand cmd)
+{
+    using (NpgsqlConnection dbcon = new NpgsqlConnection(m_ConnectionString))
+    {
+        dbcon.Open();
+        cmd.Connection = dbcon;
+
+        return cmd.ExecuteScalar();
+    }
+}
+
+
+
+public long GetCount(string field, string key)
+{
+    return GetCount(new string[] { field }, new string

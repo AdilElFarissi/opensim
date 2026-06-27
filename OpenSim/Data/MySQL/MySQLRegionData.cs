@@ -283,86 +283,121 @@ namespace OpenSim.Data.MySQL
             foreach (DataRow row in schemaTable.Rows)
             {
                 if (row["ColumnName"] != null)
-                    columnNames.Add(row["ColumnName"].ToString());
-            }
+using MySql.Data.MySqlClient;
 
-            m_ColumnNames = columnNames;
-        }
+// ...
 
-        public bool Store(RegionData data)
+public bool Store(RegionData data)
+{
+    data.Data.Remove("uuid");
+    data.Data.Remove("ScopeID");
+    data.Data.Remove("regionName");
+    data.Data.Remove("posX");
+    data.Data.Remove("posY");
+    data.Data.Remove("sizeX");
+    data.Data.Remove("sizeY");
+    data.Data.Remove("locX");
+    data.Data.Remove("locY");
+if (data.RegionName.Length > 128)
+    data.RegionName = data.RegionName.Substring(0, 128);
+
+string[] fields = new List<string>(data.Data.Keys).ToArray();
+
+using (MySqlConnection connection = new MySqlConnection(m_ConnectionString))
+{
+    connection.Open();
+
+    using (MySqlCommand cmd = new MySqlCommand())
+    {
+        cmd.Connection = connection;
+
+        string update = "update `" + m_Realm + "` set locX=@posX, locY=@posY, sizeX=@sizeX, sizeY=@sizeY";
+        foreach (string field in fields)
         {
-            data.Data.Remove("uuid");
-            data.Data.Remove("ScopeID");
-            data.Data.Remove("regionName");
-            data.Data.Remove("posX");
-            data.Data.Remove("posY");
-            data.Data.Remove("sizeX");
-            data.Data.Remove("sizeY");
-            data.Data.Remove("locX");
-            data.Data.Remove("locY");
-
-            if (data.RegionName.Length > 128)
-                data.RegionName = data.RegionName.Substring(0, 128);
-
-            string[] fields = new List<string>(data.Data.Keys).ToArray();
-
-            using (MySqlCommand cmd = new MySqlCommand())
-            {
-                string update = "update `" + m_Realm + "` set locX=?posX, locY=?posY, sizeX=?sizeX, sizeY=?sizeY";
-                foreach (string field in fields)
-                {
-                    update += ", ";
-                    update += "`" + field + "` = ?" + field;
-
-                    cmd.Parameters.AddWithValue("?" + field, data.Data[field]);
-                }
-
-                update += " where uuid = ?regionID";
-
-                if (!data.ScopeID.IsZero())
-                    update += " and ScopeID = ?scopeID";
-
-                cmd.CommandText = update;
-                cmd.Parameters.AddWithValue("?regionID", data.RegionID.ToString());
-                cmd.Parameters.AddWithValue("?regionName", data.RegionName);
-                cmd.Parameters.AddWithValue("?scopeID", data.ScopeID.ToString());
-                cmd.Parameters.AddWithValue("?posX", data.posX.ToString());
-                cmd.Parameters.AddWithValue("?posY", data.posY.ToString());
-                cmd.Parameters.AddWithValue("?sizeX", data.sizeX.ToString());
-                cmd.Parameters.AddWithValue("?sizeY", data.sizeY.ToString());
-
-                if (ExecuteNonQuery(cmd) < 1)
-                {
-                    string insert = "insert into `" + m_Realm + "` (`uuid`, `ScopeID`, `locX`, `locY`, `sizeX`, `sizeY`, `regionName`, `" +
-                            String.Join("`, `", fields) +
-                            "`) values ( ?regionID, ?scopeID, ?posX, ?posY, ?sizeX, ?sizeY, ?regionName, ?" + String.Join(", ?", fields) + ")";
-
-                    cmd.CommandText = insert;
-
-                    if (ExecuteNonQuery(cmd) < 1)
-                    {
-                        return false;
-                    }
-                }
-            }
-
-            return true;
+            update += ", ";
+            update += "`" + field + "` = @" + field;
         }
 
-        public bool SetDataItem(UUID regionID, string item, string value)
+        update += " where uuid = @regionID";
+
+        if (!data.ScopeID.IsZero())
+            update += " and ScopeID = @scopeID";
+
+        cmd.CommandText = update;
+
+        cmd.Parameters.AddWithValue("@regionID", data.RegionID.ToString());
+        cmd.Parameters.AddWithValue("@scopeID", data.ScopeID.ToString());
+        cmd.Parameters.AddWithValue("@posX", data.posX.ToString());
+        cmd.Parameters.AddWithValue("@posY", data.posY.ToString());
+        cmd.Parameters.AddWithValue("@sizeX", data.sizeX.ToString());
+        cmd.Parameters.AddWithValue("@sizeY", data.sizeY.ToString());
+
+        foreach (string field in fields)
         {
-            using (MySqlCommand cmd = new MySqlCommand("update `" + m_Realm + "` set `" + item + "` = ?" + item + " where uuid = ?UUID"))
-            {
-                cmd.Parameters.AddWithValue("?" + item, value);
-                cmd.Parameters.AddWithValue("?UUID", regionID.ToString());
-
-                if (ExecuteNonQuery(cmd) > 0)
-                    return true;
-            }
-
-            return false;
+            cmd.Parameters.AddWithValue(field, data.Data[field]);
         }
 
+        if (ExecuteNonQuery(cmd) < 1)
+        {
+            string insert = "insert into `" + m_Realm + "` (`uuid`, `ScopeID`, `locX`, `locY`, `sizeX`, `sizeY`, `regionName`, `" +
+                    String.Join("`, `", fields) +
+                    "`) values ( @regionID, @scopeID, @posX, @posY, @sizeX, @sizeY, @regionName, @" + String.Join(", @", fields) + ")";
+
+            cmd.CommandText = insert;
+            cmd.Parameters.AddWithValue("@regionName", data.RegionName);
+
+            foreach (string field in fields)
+            {
+                cmd.Parameters.AddWithValue(field, data.Data[field]);
+            }
+
+            if (ExecuteNonQuery(cmd) < 1)
+            {
+                return false;
+            }
+        }
+    }
+}
+
+return true;
+}
+
+public bool SetDataItem(UUID regionID, string item, string value)
+{
+    using (MySqlConnection connection = new MySqlConnection(m_ConnectionString))
+    {
+        connection.Open();
+
+        using (MySqlCommand cmd = new MySqlCommand("update `" + m_Realm + "` set `" + item + "` = @item where uuid = @UUID"))
+        {
+            cmd.Connection = connection;
+            cmd.Parameters.AddWithValue("@item", value);
+            cmd.Parameters.AddWithValue("@UUID", regionID.ToString());
+
+            if (ExecuteNonQuery(cmd) > 0)
+                return true;
+        }
+    }
+
+    return false;
+}
+
+// ...
+
+private int ExecuteNonQuery(MySqlCommand cmd)
+{
+    return cmd.ExecuteNonQuery();
+}
+    try
+    {
+        return cmd.ExecuteNonQuery();
+    }
+    catch (MySqlException ex)
+    {
+        m_log.Error("Error executing query: " + ex.Message);
+        return 0;
+    }
+}
         public bool Delete(UUID regionID)
         {
             using (MySqlCommand cmd = new MySqlCommand("delete from `" + m_Realm + "` where uuid = ?UUID"))

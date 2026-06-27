@@ -69,245 +69,177 @@ namespace OpenSim.Data.MySQL
             try
             {
                 m_log.Info("[REGION DB]: MySql - connecting: " + Util.GetDisplayConnectionString(m_connectionString));
-            }
-            catch (Exception e)
+using System;
+using System.Collections.Generic;
+using System.Reflection;
+using MySql.Data.MySqlClient;
+
+public class EstateSettings
+{
+    private Dictionary<string, FieldInfo> m_FieldMap = new Dictionary<string, FieldInfo>();
+    private FieldInfo[] m_Fields;
+
+    public EstateSettings LoadEstateSettings(UUID regionID, bool create)
+    {
+        string sql = "select estate_settings." + String.Join(",estate_settings.", FieldList) +
+            " from estate_map left join estate_settings on estate_map.EstateID = estate_settings.EstateID where estate_settings.EstateID is not null and RegionID = @RegionID";
+
+        using (MySqlCommand cmd = new MySqlCommand())
+        {
+            cmd.CommandText = sql;
+            cmd.Parameters.AddWithValue("@RegionID", regionID.ToString());
+
+            EstateSettings e = DoLoad(cmd, regionID, create);
+            if (!create && e.EstateID == 0) // Not found
+                return null;
+
+            return e;
+        }
+    }
+
+    private EstateSettings DoLoad(MySqlCommand cmd, UUID regionID, bool create)
+    {
+        EstateSettings es = new EstateSettings();
+        es.OnSave += StoreEstateSettings;
+
+        using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+        {
+            dbcon.Open();
+            cmd.Connection = dbcon;
+
+            bool found = false;
+
+            using (MySqlDataReader reader = cmd.ExecuteReader())
             {
-                m_log.Debug("Exception: password not found in connection string\n" + e.ToString());
-            }
-
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
-            {
-                dbcon.Open();
-
-                Migration m = new Migration(dbcon, Assembly, "EstateStore");
-                m.Update();
-                dbcon.Close();
-
-                Type t = typeof(EstateSettings);
-                m_Fields = t.GetFields(BindingFlags.NonPublic |
-                                       BindingFlags.Instance |
-                                       BindingFlags.DeclaredOnly);
-
-                foreach (FieldInfo f in m_Fields)
+                if (reader.Read())
                 {
-                    if (f.Name.Substring(0, 2) == "m_")
-                        m_FieldMap[f.Name.Substring(2)] = f;
+                    found = true;
+                    foreach (FieldInfo f in m_Fields)
+                    {
+                        if (f.Name.Substring(0, 2) == "m_")
+                        {
+                            string fieldName = f.Name.Substring(2);
+                            int ordinal = reader.GetOrdinal(fieldName);
+                            if (reader.IsDBNull(ordinal))
+                            {
+                                f.SetValue(es, null);
+                            }
+                            else
+                            {
+                                f.SetValue(es, reader[ordinal]);
+                            }
+                        }
+                    }
                 }
             }
-        }
 
-        private string[] FieldList
-        {
-            get { return new List<string>(m_FieldMap.Keys).ToArray(); }
-        }
-
-        public EstateSettings LoadEstateSettings(UUID regionID, bool create)
-        {
-            string sql = "select estate_settings." + String.Join(",estate_settings.", FieldList) +
-                " from estate_map left join estate_settings on estate_map.EstateID = estate_settings.EstateID where estate_settings.EstateID is not null and RegionID = ?RegionID";
-
-            using (MySqlCommand cmd = new MySqlCommand())
+            if (!found && create)
             {
-                cmd.CommandText = sql;
-                cmd.Parameters.AddWithValue("?RegionID", regionID.ToString());
-
-                EstateSettings e = DoLoad(cmd, regionID, create);
-                if (!create && e.EstateID == 0) // Not found
-                    return null;
-
-                return e;
+                DoCreate(es);
             }
-        }
-
-        public EstateSettings CreateNewEstate(int estateID)
-        {
-            EstateSettings es = new EstateSettings();
-
-            es.OnSave += StoreEstateSettings;
-            es.EstateID = Convert.ToUInt32(estateID);
-
-            DoCreate(es);
-
-            LoadBanList(es);
-
-            es.EstateManagers = LoadUUIDList(es.EstateID, "estate_managers");
-            es.EstateAccess = LoadUUIDList(es.EstateID, "estate_users");
-            es.EstateGroups = LoadUUIDList(es.EstateID, "estate_groups");
 
             return es;
         }
+    }
 
-        private EstateSettings DoLoad(MySqlCommand cmd, UUID regionID, bool create)
-        {
-            EstateSettings es = new EstateSettings();
-            es.OnSave += StoreEstateSettings;
+    private string[] FieldList
+    {
+        get { return new List<string>(m_FieldMap.Keys).ToArray(); }
+    }
 
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
-            {
-                dbcon.Open();
-                cmd.Connection = dbcon;
+    public EstateSettings CreateNewEstate(int estateID)
+    {
+        EstateSettings es = new EstateSettings();
 
-                bool found = false;
+        es.OnSave += StoreEstateSettings;
+        es.EstateID = Convert.ToUInt32(estateID);
 
+        DoCreate(es);
+
+        LoadBanList(es);
+
+        es.EstateManagers = LoadUUIDList(es.EstateID, "estate_managers");
+        es.EstateAccess = LoadUUIDList(es.EstateID, "estate_users");
+        es.EstateGroups = LoadUUIDList(es.EstateID, "estate_groups");
+
+        return es;
+    }
+}
                 using (IDataReader r = cmd.ExecuteReader())
-                {
-                    if (r.Read())
-                    {
-                        found = true;
+private void DoCreate(EstateSettings es)
+{
+    // Migration case
+    List<string> names = new List<string>(FieldList);
 
-                        foreach (string name in FieldList)
-                        {
-                            if (m_FieldMap[name].FieldType == typeof(bool))
-                            {
-                                m_FieldMap[name].SetValue(es, Convert.ToInt32(r[name]) != 0);
-                            }
-                            else if (m_FieldMap[name].FieldType == typeof(UUID))
-                            {
-                                m_FieldMap[name].SetValue(es, DBGuid.FromDB(r[name]));
-                            }
-                            else
-                            {
-                                m_FieldMap[name].SetValue(es, r[name]);
-                            }
-                        }
-                    }
+    // Remove EstateID and use AutoIncrement
+    if (es.EstateID < 100)
+        names.Remove("EstateID");
+
+    string sql = "insert into estate_settings (" + String.Join(",", names.ToArray()) + ") values (" + String.Join(",", names.Select(n => $"@{n}").ToArray()) + ")";
+
+    using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+    {
+        dbcon.Open();
+        using (MySqlCommand cmd2 = dbcon.CreateCommand())
+        {
+            cmd2.CommandText = sql;
+            cmd2.Parameters.Clear();
+
+            foreach (string name in FieldList)
+            {
+                if (m_FieldMap[name].GetValue(es) is bool)
+                {
+                    cmd2.Parameters.AddWithValue($"@{name}", (bool)m_FieldMap[name].GetValue(es));
                 }
-                dbcon.Close();
-                cmd.Connection = null;
-
-                if (!found && create)
+                else if (m_FieldMap[name].GetValue(es) is UUID)
                 {
-                    DoCreate(es);
-                    LinkRegion(regionID, (int)es.EstateID);
+                    cmd2.Parameters.AddWithValue($"@{name}", ((UUID)m_FieldMap[name].GetValue(es)).ToString());
+                }
+                else
+                {
+                    cmd2.Parameters.AddWithValue($"@{name}", m_FieldMap[name].GetValue(es).ToString());
                 }
             }
 
-            LoadBanList(es);
-            es.EstateManagers = LoadUUIDList(es.EstateID, "estate_managers");
-            es.EstateAccess = LoadUUIDList(es.EstateID, "estate_users");
-            es.EstateGroups = LoadUUIDList(es.EstateID, "estate_groups");
-            return es;
-        }
+            cmd2.ExecuteNonQuery();
 
-        private void DoCreate(EstateSettings es)
-        {
-            // Migration case
-            List<string> names = new List<string>(FieldList);
-
-            // Remove EstateID and use AutoIncrement
+            // Only get Auto ID if we actually used it else we just get 0
             if (es.EstateID < 100)
-                names.Remove("EstateID");
-
-            string sql = "insert into estate_settings (" + String.Join(",", names.ToArray()) + ") values ( ?" + String.Join(", ?", names.ToArray()) + ")";
-
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
-                dbcon.Open();
-                using (MySqlCommand cmd2 = dbcon.CreateCommand())
+                cmd2.CommandText = "select LAST_INSERT_ID() as id";
+                cmd2.Parameters.Clear();
+                object result = cmd2.ExecuteScalar();
+                if (result != null && result != DBNull.Value)
                 {
-                    cmd2.CommandText = sql;
-                    cmd2.Parameters.Clear();
-
-                    foreach (string name in FieldList)
-                    {
-                        if (m_FieldMap[name].GetValue(es) is bool)
-                        {
-                            if ((bool)m_FieldMap[name].GetValue(es))
-                                cmd2.Parameters.AddWithValue("?" + name, "1");
-                            else
-                                cmd2.Parameters.AddWithValue("?" + name, "0");
-                        }
-                        else
-                        {
-                            cmd2.Parameters.AddWithValue("?" + name, m_FieldMap[name].GetValue(es).ToString());
-                        }
-                    }
-
-                    cmd2.ExecuteNonQuery();
-
-                    // Only get Auto ID if we actually used it else we just get 0
-                    if (es.EstateID < 100)
-                    {
-                        cmd2.CommandText = "select LAST_INSERT_ID() as id";
-                        cmd2.Parameters.Clear();
-
-                        using (IDataReader r = cmd2.ExecuteReader())
-                        {
-                            r.Read();
-                            es.EstateID = Convert.ToUInt32(r["id"]);
-                        }
-
-                        es.Save();
-                    }
+                    es.EstateID = Convert.ToInt32(result);
                 }
-                dbcon.Close();
             }
         }
+using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+{
+    dbcon.Open();
 
-        public void StoreEstateSettings(EstateSettings es)
+    using (MySqlCommand cmd = dbcon.CreateCommand())
+    {
+        cmd.CommandText = "select * from estateban where EstateID = @EstateID";
+        cmd.Parameters.AddWithValue("@EstateID", es.EstateID);
+
+        using (IDataReader r = cmd.ExecuteReader())
         {
-            string sql = "replace into estate_settings (" + String.Join(",", FieldList) + ") values ( ?" + String.Join(", ?", FieldList) + ")";
-
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            while (r.Read())
             {
-                dbcon.Open();
-
-                using (MySqlCommand cmd = dbcon.CreateCommand())
-                {
-                    cmd.CommandText = sql;
-
-                    foreach (string name in FieldList)
-                    {
-                        if (m_FieldMap[name].GetValue(es) is bool)
-                        {
-                            if ((bool)m_FieldMap[name].GetValue(es))
-                                cmd.Parameters.AddWithValue("?" + name, "1");
-                            else
-                                cmd.Parameters.AddWithValue("?" + name, "0");
-                        }
-                        else
-                        {
-                            cmd.Parameters.AddWithValue("?" + name, m_FieldMap[name].GetValue(es).ToString());
-                        }
-                    }
-
-                    cmd.ExecuteNonQuery();
-                }
-                dbcon.Close();
+                EstateBan eb = new EstateBan();
+                eb.BannedUserID = DBGuid.FromDB(r["bannedUUID"]);
+                eb.BannedHostAddress = "0.0.0.0";
+                eb.BannedHostIPMask = "0.0.0.0";
+                eb.BanningUserID = DBGuid.FromDB(r["banningUUID"]);
+                eb.BanTime = Convert.ToInt32(r["banTime"]);
+                es.AddBan(eb);
             }
-
-            SaveBanList(es);
-            SaveUUIDList(es.EstateID, "estate_managers", es.EstateManagers);
-            SaveUUIDList(es.EstateID, "estate_users", es.EstateAccess);
-            SaveUUIDList(es.EstateID, "estate_groups", es.EstateGroups);
         }
-
-        private void LoadBanList(EstateSettings es)
-        {
-            es.ClearBans();
-
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
-            {
-                dbcon.Open();
-
-                using (MySqlCommand cmd = dbcon.CreateCommand())
-                {
-                    cmd.CommandText = "select *  from estateban where EstateID = ?EstateID";
-                    cmd.Parameters.AddWithValue("?EstateID", es.EstateID);
-
-                    using (IDataReader r = cmd.ExecuteReader())
-                    {
-                        while (r.Read())
-                        {
-                            EstateBan eb = new EstateBan();
-                            eb.BannedUserID = DBGuid.FromDB(r["bannedUUID"]);
-                            eb.BannedHostAddress = "0.0.0.0";
-                            eb.BannedHostIPMask = "0.0.0.0";
-                            eb.BanningUserID = DBGuid.FromDB(r["banningUUID"]);
-                            eb.BanTime = Convert.ToInt32(r["banTime"]);
-                            es.AddBan(eb);
-                        }
-                    }
+    }
+    dbcon.Close();
+}
                 }
                 dbcon.Close();
             }
@@ -382,159 +314,165 @@ namespace OpenSim.Data.MySQL
             using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
                 dbcon.Open();
+using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+{
+    dbcon.Open();
 
-                using (MySqlCommand cmd = dbcon.CreateCommand())
+    using (MySqlCommand cmd = dbcon.CreateCommand())
+    {
+        cmd.CommandText = "select uuid from @table where EstateID = @EstateID";
+public List<int> GetEstates(string search)
+{
+    List<int> result = new List<int>();
+
+    using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+    {
+        dbcon.Open();
+
+        using (MySqlCommand cmd = dbcon.CreateCommand())
+        {
+            string sql = "select estateID from estate_settings where estate_name like @search";
+            cmd.CommandText = sql;
+            cmd.Parameters.AddWithValue("@search", "%" + search + "%");
+
+            using (IDataReader reader = cmd.ExecuteReader())
+            {
+                while (reader.Read())
                 {
-                    cmd.CommandText = "select uuid from " + table + " where EstateID = ?EstateID";
-                    cmd.Parameters.AddWithValue("?EstateID", EstateID);
-
-                    using (IDataReader r = cmd.ExecuteReader())
-                    {
-                        while (r.Read())
-                        {
-                            // EstateBan eb = new EstateBan();
-                            uuids.Add(DBGuid.FromDB(r["uuid"]));
-                        }
-                    }
+                    result.Add(Convert.ToInt32(reader["estateID"]));
                 }
-                dbcon.Close();
-            }
-
-            return uuids.ToArray();
-        }
-
-        public EstateSettings LoadEstateSettings(int estateID)
-        {
-            using (MySqlCommand cmd = new MySqlCommand())
-            {
-                string sql = "select estate_settings." + String.Join(",estate_settings.", FieldList) + " from estate_settings where EstateID = ?EstateID";
-
-                cmd.CommandText = sql;
-                cmd.Parameters.AddWithValue("?EstateID", estateID);
-
-                EstateSettings e =  DoLoad(cmd, UUID.Zero, false);
-                if (e.EstateID != estateID)
-                    return null;
-                return e;
+                reader.Close();
             }
         }
+        dbcon.Close();
+    }
+public List<int> GetEstatesBySearch(string search)
+{
+    List<int> result = new List<int>();
 
-        public List<EstateSettings> LoadEstateSettingsAll()
+    using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+    {
+        dbcon.Open();
+
+        using (MySqlCommand cmd = dbcon.CreateCommand())
         {
-            List<EstateSettings> allEstateSettings = new List<EstateSettings>();
+            cmd.CommandText = "select estateID from estate_settings where estateID like @search";
+            cmd.Parameters.AddWithValue("@search", "%" + search + "%");
 
-            List<int> allEstateIds = GetEstatesAll();
-
-            foreach (int estateId in allEstateIds)
-                allEstateSettings.Add(LoadEstateSettings(estateId));
-
-            return allEstateSettings;
-        }
-
-        public List<int> GetEstatesAll()
-        {
-            List<int> result = new List<int>();
-
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            using (IDataReader reader = cmd.ExecuteReader())
             {
-                dbcon.Open();
-
-                using (MySqlCommand cmd = dbcon.CreateCommand())
+                while (reader.Read())
                 {
-                    cmd.CommandText = "select estateID from estate_settings";
-
-                    using (IDataReader reader = cmd.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            result.Add(Convert.ToInt32(reader["EstateID"]));
-                        }
-                        reader.Close();
-                    }
+                    result.Add(Convert.ToInt32(reader["estateID"]));
                 }
-                dbcon.Close();
+                reader.Close();
             }
-
-            return result;
         }
+        dbcon.Close();
+    }
+return result;
+}
 
-        public List<int> GetEstates(string search)
+public List<int> GetEstatesByName(string search)
+{
+    List<int> result = new List<int>();
+
+    using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+    {
+        dbcon.Open();
+
+        using (MySqlCommand cmd = dbcon.CreateCommand())
         {
-            List<int> result = new List<int>();
+            cmd.CommandText = "select estateID from estate_settings where EstateName = @EstateName";
+            cmd.Parameters.AddWithValue("@EstateName", search);
 
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            using (IDataReader reader = cmd.ExecuteReader())
             {
-                dbcon.Open();
-
-                using (MySqlCommand cmd = dbcon.CreateCommand())
+                while (reader.Read())
                 {
-                    cmd.CommandText = "select estateID from estate_settings where EstateName = ?EstateName";
-                    cmd.Parameters.AddWithValue("?EstateName", search);
-
-                    using (IDataReader reader = cmd.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            result.Add(Convert.ToInt32(reader["EstateID"]));
-                        }
-                        reader.Close();
-                    }
+                    result.Add(Convert.ToInt32(reader["estateID"]));
                 }
-                dbcon.Close();
+                reader.Close();
             }
-
-            return result;
         }
+        dbcon.Close();
+    }
 
-        public List<int> GetEstatesByOwner(UUID ownerID)
+    return result;
+}
+
+public List<int> GetEstatesByOwner(UUID ownerID)
+{
+    List<int> result = new List<int>();
+
+    using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+    {
+        dbcon.Open();
+
+        using (MySqlCommand cmd = dbcon.CreateCommand())
         {
-            List<int> result = new List<int>();
+            cmd.CommandText = "select estateID from estate_settings where EstateOwner = @EstateOwner";
+            cmd.Parameters.AddWithValue("@EstateOwner", ownerID.ToString());
 
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            using (IDataReader reader = cmd.ExecuteReader())
             {
-                dbcon.Open();
-
-                using (MySqlCommand cmd = dbcon.CreateCommand())
+                while (reader.Read())
                 {
-                    cmd.CommandText = "select estateID from estate_settings where EstateOwner = ?EstateOwner";
-                    cmd.Parameters.AddWithValue("?EstateOwner", ownerID.ToString());
-
-                    using (IDataReader reader = cmd.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            result.Add(Convert.ToInt32(reader["EstateID"]));
-                        }
-                        reader.Close();
-                    }
+                    result.Add(Convert.ToInt32(reader["estateID"]));
                 }
+                reader.Close();
+            }
+        }
+        dbcon.Close();
+    }
 
-                dbcon.Close();
+    return result;
+}
+
+public bool LinkRegion(UUID regionID, int estateID)
+{
+    using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+    {
+        dbcon.Open();
+        MySqlTransaction transaction = dbcon.BeginTransaction();
+
+        try
+        {
+            // Delete any existing association of this region with an estate.
+            using (MySqlCommand cmd = dbcon.CreateCommand())
+            {
+                cmd.Transaction = transaction;
+                cmd.CommandText = "delete from estate_map where RegionID = @RegionID";
+                cmd.Parameters.AddWithValue("@RegionID", regionID.ToString());
+
+                cmd.ExecuteNonQuery();
             }
 
-            return result;
-        }
-
-        public bool LinkRegion(UUID regionID, int estateID)
-        {
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            using (MySqlCommand cmd = dbcon.CreateCommand())
             {
-                dbcon.Open();
-                MySqlTransaction transaction = dbcon.BeginTransaction();
+                cmd.Transaction = transaction;
+                cmd.CommandText = "insert into estate_map (RegionID, EstateID) values (@RegionID, @EstateID)";
+                cmd.Parameters.AddWithValue("@RegionID", regionID.ToString());
+                cmd.Parameters.AddWithValue("@EstateID", estateID);
 
-                try
-                {
-                    // Delete any existing association of this region with an estate.
-                     using (MySqlCommand cmd = dbcon.CreateCommand())
-                     {
-                        cmd.Transaction = transaction;
-                        cmd.CommandText = "delete from estate_map where RegionID = ?RegionID";
-                        cmd.Parameters.AddWithValue("?RegionID", regionID.ToString());
+                cmd.ExecuteNonQuery();
+            }
 
-                        cmd.ExecuteNonQuery();
-                    }
-
-                    using (MySqlCommand cmd = dbcon.CreateCommand())
+            transaction.Commit();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            m_log.Error("Error linking region to estate", ex);
+            transaction.Rollback();
+            return false;
+        }
+        finally
+        {
+            dbcon.Close();
+        }
+    }
+}
                     {
                         cmd.Transaction = transaction;
                         cmd.CommandText = "insert into estate_map values (?RegionID, ?EstateID)";

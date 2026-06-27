@@ -117,317 +117,276 @@ namespace OpenSim.Data.MySQL
 
                 cmd.Connection = conn;
                 try
-                {
-                    cmd.ExecuteNonQuery();
-                }
-                catch (MySqlException e)
-                {
-                    cmd.Connection = null;
-                    conn.Close();
-                    m_log.ErrorFormat("[FSASSETS]: Query {0} failed with {1}", cmd.CommandText, e.ToString());
-                    return false;
-                }
-                conn.Close();
-                cmd.Connection = null;
-            }
+using (MySqlConnection conn = new MySqlConnection(m_ConnectionString))
+{
+    try
+    {
+        conn.Open();
+    }
+    catch (MySqlException e)
+    {
+        m_log.ErrorFormat("[FSASSETS]: Database open failed with {0}", e.ToString());
+        return;
+    }
 
-            return true;
-        }
+    using (MySqlCommand cmd = conn.CreateCommand())
+    {
+        cmd.CommandText = "select id, name, description, type, hash, create_time, asset_flags, access_time from @table where id = @id";
+        cmd.Parameters.AddWithValue("@table", m_Table);
+        cmd.Parameters.AddWithValue("@id", id);
 
-        #region IFSAssetDataPlugin Members
-
-        public AssetMetadata Get(string id, out string hash)
+        using (IDataReader reader = cmd.ExecuteReader())
         {
-            hash = String.Empty;
+            if (!reader.Read())
+                return null;
 
-            AssetMetadata meta = new AssetMetadata();
+            hash = reader["hash"].ToString();
 
-            using (MySqlConnection conn = new MySqlConnection(m_ConnectionString))
-            {
-                try
-                {
-                    conn.Open();
-                }
-                catch (MySqlException e)
-                {
-                    m_log.ErrorFormat("[FSASSETS]: Database open failed with {0}", e.ToString());
-                    return null;
-                }
+            meta.ID = id;
+            meta.FullID = new UUID(id);
 
-                using (MySqlCommand cmd = conn.CreateCommand())
-                {
-                    cmd.CommandText = String.Format("select id, name, description, type, hash, create_time, asset_flags, access_time from {0} where id = ?id", m_Table);
-                    cmd.Parameters.AddWithValue("?id", id);
+            meta.Name = reader["name"].ToString();
+            meta.Description = reader["description"].ToString();
+            meta.Type = (sbyte)Convert.ToInt32(reader["type"]);
+            meta.ContentType = SLUtil.SLAssetTypeToContentType(meta.Type);
+            meta.CreationDate = Util.ToDateTime(Convert.ToInt32(reader["create_time"]));
+            meta.Flags = (AssetFlags)Convert.ToInt32(reader["asset_flags"]);
 
-                    using (IDataReader reader = cmd.ExecuteReader())
-                    {
-                        if (!reader.Read())
-                            return null;
-
-                        hash = reader["hash"].ToString();
-
-                        meta.ID = id;
-                        meta.FullID = new UUID(id);
-
-                        meta.Name = reader["name"].ToString();
-                        meta.Description = reader["description"].ToString();
-                        meta.Type = (sbyte)Convert.ToInt32(reader["type"]);
-                        meta.ContentType = SLUtil.SLAssetTypeToContentType(meta.Type);
-                        meta.CreationDate = Util.ToDateTime(Convert.ToInt32(reader["create_time"]));
-                        meta.Flags = (AssetFlags)Convert.ToInt32(reader["asset_flags"]);
-
-                        int AccessTime = Convert.ToInt32(reader["access_time"]);
-                        UpdateAccessTime(id, AccessTime);
-                    }
-                }
-                conn.Close();
-            }
-
-            return meta;
+            int AccessTime = Convert.ToInt32(reader["access_time"]);
+            UpdateAccessTime(id, AccessTime);
         }
+    }
+    conn.Close();
+}
 
-        private void UpdateAccessTime(string AssetID, int AccessTime)
+private void UpdateAccessTime(string AssetID, int AccessTime)
+{
+    // Reduce DB work by only updating access time if asset hasn't recently been accessed
+    // 0 By Default, Config option is "DaysBetweenAccessTimeUpdates"
+    if (DaysBetweenAccessTimeUpdates > 0 && (DateTime.UtcNow - Utils.UnixTimeToDateTime(AccessTime)).TotalDays < DaysBetweenAccessTimeUpdates)
+        return;
+
+    using (MySqlConnection conn = new MySqlConnection(m_ConnectionString))
+    {
+try
+{
+    conn.Open();
+}
+catch (MySqlException e)
+{
+    m_log.ErrorFormat("[FSASSETS]: Database open failed with {0}", e.ToString());
+    return;
+}
+
+using (MySqlCommand cmd = conn.CreateCommand())
+{
+    cmd.CommandText = "UPDATE @table SET `access_time` = UNIX_TIMESTAMP() WHERE `id` = @id";
+    cmd.Parameters.AddWithValue("@table", m_Table);
+    cmd.Parameters.AddWithValue("@id", AssetID);
+
+    try
+    {
+        cmd.ExecuteNonQuery();
+    }
+    catch (MySqlException e)
+    {
+        cmd.Connection = null;
+        conn.Close();
+        m_log.ErrorFormat("[FSASSETS]: Query {0} failed with {1}", cmd.CommandText, e.ToString());
+        return;
+    }
+conn.Close();
+cmd.Connection = null;
+}
+
+// ...
+
+public bool Store(AssetMetadata meta, string hash)
+{
+    try
+    {
+        string oldhash;
+        AssetMetadata existingAsset = Get(meta.ID, out oldhash);
+
+        using (MySqlCommand cmd = conn.CreateCommand())
         {
-            // Reduce DB work by only updating access time if asset hasn't recently been accessed
-            // 0 By Default, Config option is "DaysBetweenAccessTimeUpdates"
-            if (DaysBetweenAccessTimeUpdates > 0 && (DateTime.UtcNow - Utils.UnixTimeToDateTime(AccessTime)).TotalDays < DaysBetweenAccessTimeUpdates)
-                return;
+            cmd.Parameters.AddWithValue("@id", meta.ID);
+            cmd.Parameters.AddWithValue("@name", meta.Name);
+            cmd.Parameters.AddWithValue("@description", meta.Description);
+            cmd.Parameters.AddWithValue("@type", meta.Type);
+            cmd.Parameters.AddWithValue("@hash", hash);
+            cmd.Parameters.AddWithValue("@asset_flags", meta.Flags);
 
-            using (MySqlConnection conn = new MySqlConnection(m_ConnectionString))
+            if (existingAsset == null)
             {
-                try
-                {
-                    conn.Open();
-                }
-                catch (MySqlException e)
-                {
-                    m_log.ErrorFormat("[FSASSETS]: Database open failed with {0}", e.ToString());
-                    return;
-                }
+                cmd.CommandText = "INSERT INTO " + m_Table + " (id, name, description, type, hash, asset_flags, create_time, access_time) VALUES (@id, @name, @description, @type, @hash, @asset_flags, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())";
+                ExecuteNonQuery(cmd);
 
-                using (MySqlCommand cmd = conn.CreateCommand())
-                {
-                    cmd.CommandText = String.Format("UPDATE {0} SET `access_time` = UNIX_TIMESTAMP() WHERE `id` = ?id", m_Table);
-                    cmd.Parameters.AddWithValue("?id", AssetID);
-                    cmd.ExecuteNonQuery();
-                }
-                conn.Close();
-            }
-        }
-
-        public bool Store(AssetMetadata meta, string hash)
-        {
-            try
-            {
-                string oldhash;
-                AssetMetadata existingAsset = Get(meta.ID, out oldhash);
-
-                using (MySqlCommand cmd = new MySqlCommand())
-                {
-                    cmd.Parameters.AddWithValue("?id", meta.ID);
-                    cmd.Parameters.AddWithValue("?name", meta.Name);
-                    cmd.Parameters.AddWithValue("?description", meta.Description);
-//                    cmd.Parameters.AddWithValue("?type", meta.Type.ToString());
-                    cmd.Parameters.AddWithValue("?type", meta.Type);
-                    cmd.Parameters.AddWithValue("?hash", hash);
-                    cmd.Parameters.AddWithValue("?asset_flags", meta.Flags);
-
-                    if (existingAsset == null)
-                    {
-                        cmd.CommandText = String.Format("insert into {0} (id, name, description, type, hash, asset_flags, create_time, access_time) values ( ?id, ?name, ?description, ?type, ?hash, ?asset_flags, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())", m_Table);
-
-                        ExecuteNonQuery(cmd);
-
-                        return true;
-                    }
-
-                    //cmd.CommandText = String.Format("update {0} set hash = ?hash, access_time = UNIX_TIMESTAMP() where id = ?id", m_Table);
-
-                    //ExecuteNonQuery(cmd);
-
-                }
-
-//                return false;
-                // if the asset already exits
-                // assume it was already correctly stored
-                // or regions will keep retry.
                 return true;
             }
-            catch(Exception e)
-            {
-                m_log.Error("[FSAssets] Failed to store asset with ID " + meta.ID);
-        m_log.Error(e.ToString());
-                return false;
-            }
+
+            cmd.CommandText = "UPDATE " + m_Table + " SET hash = @hash, access_time = UNIX_TIMESTAMP() WHERE id = @id";
+            ExecuteNonQuery(cmd);
         }
+    }
+    catch (MySqlException e)
+    {
+        m_log.ErrorFormat("[FSASSETS]: Query failed with {0}", e.ToString());
+        return false;
+    }
+}
 
-        /// <summary>
-        /// Check if the assets exist in the database.
-        /// </summary>
-        /// <param name="uuids">The asset UUID's</param>
-        /// <returns>For each asset: true if it exists, false otherwise</returns>
-        public bool[] AssetsExist(UUID[] uuids)
+private void ExecuteNonQuery(MySqlCommand cmd)
+{
+    try
+    {
+        cmd.ExecuteNonQuery();
+    }
+    catch (MySqlException e)
+    {
+        cmd.Connection = null;
+        conn.Close();
+        m_log.ErrorFormat("[FSASSETS]: Query {0} failed with {1}", cmd.CommandText, e.ToString());
+        throw;
+    }
+}
+
+//                return false;
+// if the asset already exits
+// assume it was already correctly stored
+// or regions will keep retry.
+/// <summary>
+/// Check if the assets exist in the database.
+/// </summary>
+/// <param name="uuids">The asset UUID's</param>
+/// <returns>For each asset: true if it exists, false otherwise</returns>
+public bool[] AssetsExist(UUID[] uuids)
+{
+    if (uuids.Length == 0)
+        return new bool[0];
+
+    bool[] results = new bool[uuids.Length];
+    for (int i = 0; i < uuids.Length; i++)
+        results[i] = false;
+
+    HashSet<UUID> exists = new HashSet<UUID>();
+
+    using (MySqlConnection conn = new MySqlConnection(m_ConnectionString))
+    {
+        try
         {
-            if (uuids.Length == 0)
-                return new bool[0];
-
-            bool[] results = new bool[uuids.Length];
-            for (int i = 0; i < uuids.Length; i++)
-                results[i] = false;
-
-            HashSet<UUID> exists = new HashSet<UUID>();
-
-            string ids = "'" + string.Join("','", uuids) + "'";
-            string sql = string.Format("select id from {1} where id in ({0})", ids, m_Table);
-
-            using (MySqlConnection conn = new MySqlConnection(m_ConnectionString))
-            {
-                try
-                {
-                    conn.Open();
-                }
-                catch (MySqlException e)
-                {
-                    m_log.ErrorFormat("[FSASSETS]: Failed to open database: {0}", e.ToString());
-                    return results;
-                }
-
-                using (MySqlCommand cmd = conn.CreateCommand())
-                {
-                    cmd.CommandText = sql;
-
-                    using (MySqlDataReader dbReader = cmd.ExecuteReader())
-                    {
-                        while (dbReader.Read())
-                        {
-                            UUID id = DBGuid.FromDB(dbReader["ID"]);
-                            exists.Add(id);
-                        }
-                    }
-                }
-                conn.Close();
-            }
-
-            for (int i = 0; i < uuids.Length; i++)
-                results[i] = exists.Contains(uuids[i]);
+            conn.Open();
+        }
+        catch (MySqlException e)
+        {
+            m_log.ErrorFormat("[FSASSETS]: Failed to open database: {0}", e.ToString());
             return results;
         }
 
-        public int Count()
+        using (MySqlCommand cmd = conn.CreateCommand())
         {
-            int count = 0;
+            cmd.CommandText = "select id from " + m_Table + " where id in (@ids)";
 
-            using (MySqlConnection conn = new MySqlConnection(m_ConnectionString))
+            MySqlParameter param = cmd.Parameters.Add("@ids", MySqlDbType.String);
+            param.Value = string.Join(",", uuids.Select(u => $"'{u}'"));
+
+            using (MySqlDataReader dbReader = cmd.ExecuteReader())
             {
-                try
-                {
-                    conn.Open();
-                }
-                catch (MySqlException e)
-                {
-                    m_log.ErrorFormat("[FSASSETS]: Failed to open database: {0}", e.ToString());
-                    return 0;
-                }
+public int Count()
+{
+    int count = 0;
 
-                using(MySqlCommand cmd = conn.CreateCommand())
-                {
-                    cmd.CommandText = String.Format("select count(*) as count from {0}",m_Table);
-
-                    using (IDataReader reader = cmd.ExecuteReader())
-                    {
-                        reader.Read();
-
-                        count = Convert.ToInt32(reader["count"]);
-                    }
-                }
-                conn.Close();
-            }
-
-            return count;
+    using (MySqlConnection conn = new MySqlConnection(m_ConnectionString))
+    {
+        try
+        {
+            conn.Open();
+        }
+        catch (MySqlException e)
+        {
+            m_log.ErrorFormat("[FSASSETS]: Failed to open database: {0}", e.ToString());
+            return 0;
         }
 
-        public bool Delete(string id)
+        using (MySqlCommand cmd = conn.CreateCommand())
         {
-            using(MySqlCommand cmd = new MySqlCommand())
-            {
+            cmd.CommandText = "SELECT COUNT(*) FROM @table";
+            cmd.Parameters.AddWithValue("@table", m_Table);
+using (MySqlConnection importConn = new MySqlConnection(conn))
+{
+    try
+    {
+        importConn.Open();
+    }
+    catch (MySqlException e)
+    {
+        m_log.ErrorFormat("[FSASSETS]: Can't connect to database: {0}",
+                e.Message.ToString());
 
-                cmd.CommandText = String.Format("delete from {0} where id = ?id",m_Table);
+        return;
+    }
 
-                cmd.Parameters.AddWithValue("?id", id);
-
-                ExecuteNonQuery(cmd);
-            }
-
-            return true;
+    using (MySqlCommand cmd = importConn.CreateCommand())
+    {
+        string limit = String.Empty;
+        if (count != -1)
+        {
+            limit = " limit @start, @count";
+            cmd.Parameters.AddWithValue("@start", start);
+            cmd.Parameters.AddWithValue("@count", count);
         }
 
-        public void Import(string conn, string table, int start, int count, bool force, FSStoreDelegate store)
+        cmd.CommandText = "select * from @table" + limit;
+        cmd.Parameters.AddWithValue("@table", table);
+
+        MainConsole.Instance.Output("Querying database");
+        using (IDataReader reader = cmd.ExecuteReader())
         {
-            int imported = 0;
+            MainConsole.Instance.Output("Reading data");
 
-            using (MySqlConnection importConn = new MySqlConnection(conn))
+            while (reader.Read())
             {
-                try
+                if ((imported % 100) == 0)
                 {
-                    importConn.Open();
-                }
-                catch (MySqlException e)
-                {
-                    m_log.ErrorFormat("[FSASSETS]: Can't connect to database: {0}",
-                            e.Message.ToString());
+using System;
+using System.Data;
+using System.Data.SqlClient;
 
-                    return;
-                }
+// ...
 
-                using (MySqlCommand cmd = importConn.CreateCommand())
-                {
-                    string limit = String.Empty;
-                    if (count != -1)
-                    {
-                        limit = String.Format(" limit {0},{1}", start, count);
-                    }
+using (SqlConnection importConn = new SqlConnection(importConnectionString))
+{
+    importConn.Open();
 
-                    cmd.CommandText = String.Format("select * from {0}{1}", table, limit);
+    using (SqlCommand cmd = new SqlCommand("SELECT id, name, description, assetType, create_time, data FROM assets", importConn))
+    {
+        using (SqlDataReader reader = cmd.ExecuteReader())
+        {
+            while (reader.Read())
+            {
+                AssetBase asset = new AssetBase();
+                AssetMetadata meta = new AssetMetadata();
 
-                    MainConsole.Instance.Output("Querying database");
-                    using (IDataReader reader = cmd.ExecuteReader())
-                    {
-                        MainConsole.Instance.Output("Reading data");
+                meta.ID = reader["id"].ToString();
+                meta.FullID = new UUID(meta.ID);
 
-                        while (reader.Read())
-                        {
-                            if ((imported % 100) == 0)
-                            {
-                                MainConsole.Instance.Output(String.Format("{0} assets imported so far", imported));
-                            }
+                meta.Name = reader["name"].ToString();
+                meta.Description = reader["description"].ToString();
+                meta.Type = (sbyte)Convert.ToInt32(reader["assetType"]);
+                meta.ContentType = SLUtil.SLAssetTypeToContentType(meta.Type);
+                meta.CreationDate = Util.ToDateTime(Convert.ToInt32(reader["create_time"]));
 
-                            AssetBase asset = new AssetBase();
-                            AssetMetadata meta = new AssetMetadata();
+                asset.Metadata = meta;
+                asset.Data = (byte[])reader["data"];
 
-                            meta.ID = reader["id"].ToString();
-                            meta.FullID = new UUID(meta.ID);
+                store(asset, force);
 
-                            meta.Name = reader["name"].ToString();
-                            meta.Description = reader["description"].ToString();
-                            meta.Type = (sbyte)Convert.ToInt32(reader["assetType"]);
-                            meta.ContentType = SLUtil.SLAssetTypeToContentType(meta.Type);
-                            meta.CreationDate = Util.ToDateTime(Convert.ToInt32(reader["create_time"]));
-
-                            asset.Metadata = meta;
-                            asset.Data = (byte[])reader["data"];
-
-                            store(asset, force);
-
-                            imported++;
-                        }
-                    }
-                }
-                importConn.Close();
+                imported++;
+                MainConsole.Instance.Output($"Imported {imported} assets so far");
             }
-
-            MainConsole.Instance.Output(String.Format("Import done, {0} assets imported", imported));
         }
-
-        #endregion
     }
 }
+importConn.Close();
+
+MainConsole.Instance.Output($"Import done, {imported} assets imported");

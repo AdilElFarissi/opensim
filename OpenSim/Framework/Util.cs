@@ -2511,155 +2511,117 @@ namespace OpenSim.Framework
 
         /// <summary>
         /// Convert an UUID to a raw uuid string.  Right now this is a string without hyphens.
-        /// </summary>
-        /// <param name="UUID"></param>
-        /// <returns></returns>
-        public static String ToRawUuidString(UUID UUID)
-        {
-            return UUID.Guid.ToString("n");
-        }
+public static void SerializeToFile(string filename, Object obj)
+{
+    try
+    {
+        using var stream = new FileStream(filename, FileMode.Create, FileAccess.Write, FileShare.None);
+        using var formatter = new BinaryFormatter();
+        formatter.Serialize(stream, obj);
+    }
+    catch (Exception e)
+    {
+        m_log.Error(e.ToString());
+    }
+}
 
-        public static string CleanString(string input)
-        {
-            for (int i = 0; i < input.Length; i++)
-            {
-                if (input[i] == '\0' || input[i] == '\r' || input[i] == '\n')
-                    return input[..i];
-            }
-            return input;
-        }
+public static Object DeserializeFromFile(string filename)
+{
+    try
+public static object Deserialize(string filename)
+{
+    try
+    {
+        using var stream = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.None);
+        using var formatter = new XmlSerializer(typeof(object));
+        return formatter.Deserialize(stream);
+    }
+    catch (Exception e)
+    {
+        m_log.Error(e.ToString());
+    }
+    return null;
+}
 
-        /// <summary>
-        /// returns the contents of /etc/issue on Unix Systems
-        /// Use this for where it's absolutely necessary to implement platform specific stuff
-        /// </summary>
-        /// <returns></returns>
-        public static string ReadEtcIssue()
-        {
-            try
-            {
-                using StreamReader sr = new("/etc/issue.net");
-                string issue = sr.ReadToEnd();
-                return issue;
-            }
-            catch
-            {
-                return "";
-            }
-        }
+public static string Compress(object data)
+{
+    byte[] buffer = Util.UTF8.GetBytes(data.ToString());
+    using var ms = new MemoryStream();
+    using var gzip = new GZipStream(ms, CompressionMode.Compress);
+    gzip.Write(buffer, 0, buffer.Length);
+    gzip.Close();
+    ms.Position = 0;
+    byte[] compressedBuffer = new byte[ms.Length];
+    ms.Read(compressedBuffer, 0, compressedBuffer.Length);
+    Buffer.BlockCopy(BitConverter.GetBytes(buffer.Length), 0, compressedBuffer, 0, 4);
+    return Convert.ToBase64String(compressedBuffer);
+}
 
-        public static void SerializeToFile(string filename, Object obj)
-        {
-            var formatter = new BinaryFormatter();
-            try
-            {
-                using Stream stream = new FileStream(filename, FileMode.Create,FileAccess.Write, FileShare.None);
-                formatter.Serialize(stream, obj);
-            }
-            catch (Exception e)
-            {
-                m_log.Error(e.ToString());
-            }
-        }
+public static string Decompress(string compressedText)
+{
+    byte[] compressedBuffer = Convert.FromBase64String(compressedText);
+    int msgLength = BitConverter.ToInt32(compressedBuffer, 0);
 
-        public static Object DeserializeFromFile(string filename)
-        {
-            try
-            {
-                using Stream stream = new FileStream(filename, FileMode.Open,FileAccess.Read, FileShare.None);
-                var formatter = new BinaryFormatter();
-                return formatter.Deserialize(stream);
-            }
-            catch (Exception e)
-            {
-                m_log.Error(e.ToString());
-            }
-            return null;
-        }
+    using MemoryStream memory = new();
+    memory.Write(compressedBuffer, 4, compressedBuffer.Length - 4);
 
-        public static string Compress(string text)
-        {
-            using MemoryStream memory = new();
-            using GZipStream compressor = new(memory, CompressionMode.Compress, true);
+    byte[] buffer = new byte[msgLength];
 
-            byte[] buffer = Util.UTF8.GetBytes(text);
-            compressor.Write(buffer, 0, buffer.Length);
+    memory.Position = 0;
+    using GZipStream decompressor = new(memory, CompressionMode.Decompress);
+    decompressor.Read(buffer, 0, buffer.Length);
 
-            memory.Position = 0;
-            byte[] compressed = new byte[memory.Length];
-            memory.Read(compressed, 0, compressed.Length);
+    return Util.UTF8.GetString(buffer);
+}
 
-            byte[] compressedBuffer = new byte[compressed.Length + 4];
-            Buffer.BlockCopy(compressed, 0, compressedBuffer, 4, compressed.Length);
-            Buffer.BlockCopy(BitConverter.GetBytes(buffer.Length), 0, compressedBuffer, 0, 4);
-            return Convert.ToBase64String(compressedBuffer);
-        }
+/// <summary>
+/// Copy data from one stream to another, leaving the read position of both streams at the beginning.
+/// </summary>
+/// <param name='inputStream'>
+/// Input stream.  Must be seekable.
+/// </param>
+/// <exception cref='ArgumentException'>
+/// Thrown if the input stream is not seekable.
+/// </exception>
+public static Stream Copy(Stream inputStream)
+{
+    if (!inputStream.CanSeek)
+        throw new ArgumentException("Util.Copy(Stream inputStream) must receive an inputStream that can seek");
 
-        public static string Decompress(string compressedText)
-        {
-            byte[] compressedBuffer = Convert.FromBase64String(compressedText);
-            int msgLength = BitConverter.ToInt32(compressedBuffer, 0);
+    const int readSize = 256;
+    byte[] buffer = new byte[readSize];
 
-            using MemoryStream memory = new();
-            memory.Write(compressedBuffer, 4, compressedBuffer.Length - 4);
+    MemoryStream ms = new();
 
-            byte[] buffer = new byte[msgLength];
+    int count = inputStream.Read(buffer, 0, readSize);
 
-            memory.Position = 0;
-            using GZipStream decompressor = new(memory, CompressionMode.Decompress);
-            decompressor.Read(buffer, 0, buffer.Length);
+    while (count > 0)
+    {
+        ms.Write(buffer, 0, count);
+        count = inputStream.Read(buffer, 0, readSize);
+    }
 
-            return Util.UTF8.GetString(buffer);
-        }
+    ms.Position = 0;
+    inputStream.Position = 0;
 
-        /// <summary>
-        /// Copy data from one stream to another, leaving the read position of both streams at the beginning.
-        /// </summary>
-        /// <param name='inputStream'>
-        /// Input stream.  Must be seekable.
-        /// </param>
-        /// <exception cref='ArgumentException'>
-        /// Thrown if the input stream is not seekable.
-        /// </exception>
-        public static Stream Copy(Stream inputStream)
-        {
-            if (!inputStream.CanSeek)
-                throw new ArgumentException("Util.Copy(Stream inputStream) must receive an inputStream that can seek");
+    return ms;
+}
 
-            const int readSize = 256;
-            byte[] buffer = new byte[readSize];
+[MethodImpl(MethodImplOptions.AggressiveInlining)]
+public static XmlRpcResponse XmlRpcCommand(string url, string methodName, params object[] args)
+{
+    return SendXmlRpcCommand(url, methodName, args);
+}
 
-            MemoryStream ms = new();
+public static XmlRpcResponse SendXmlRpcCommand(string url, string methodName, object[] args)
+{
+    XmlRpcRequest xmlclient = new(methodName, args);
+    using HttpClient hclient = WebUtil.GetNewGlobalHttpClient(10000);
+    return xmlclient.Send(url, hclient);
+}
 
-            int count = inputStream.Read(buffer, 0, readSize);
-
-            while (count > 0)
-            {
-                ms.Write(buffer, 0, count);
-                count = inputStream.Read(buffer, 0, readSize);
-            }
-
-            ms.Position = 0;
-            inputStream.Position = 0;
-
-            return ms;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static XmlRpcResponse XmlRpcCommand(string url, string methodName, params object[] args)
-        {
-            return SendXmlRpcCommand(url, methodName, args);
-        }
-
-        public static XmlRpcResponse SendXmlRpcCommand(string url, string methodName, object[] args)
-        {
-            XmlRpcRequest xmlclient = new(methodName, args);
-            using HttpClient hclient = WebUtil.GetNewGlobalHttpClient(10000);
-            return xmlclient.Send(url, hclient);
-        }
-
-        /// <summary>
-        /// Returns an error message that the user could not be found in the database
+/// <summary>
+/// Returns an error message that the user could not be found in the database
         /// </summary>
         /// <returns>XML string consisting of a error element containing individual error(s)</returns>
         public static XmlRpcResponse CreateUnknownUserErrorResponse()

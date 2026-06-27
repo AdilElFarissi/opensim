@@ -289,86 +289,102 @@ namespace OpenSim.Data.PGSQL
                 retList.Add(ret);
             }
             return retList;
+public bool Store(RegionData data)
+{
+    data.Data.Remove("uuid");
+    data.Data.Remove("ScopeID");
+    data.Data.Remove("regionName");
+    data.Data.Remove("posX");
+    data.Data.Remove("posY");
+    data.Data.Remove("sizeX");
+    data.Data.Remove("sizeY");
+    data.Data.Remove("locX");
+    data.Data.Remove("locY");
+
+    string[] fields = new List<string>(data.Data.Keys).ToArray();
+
+    using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
+    using (NpgsqlCommand cmd = new NpgsqlCommand())
+    {
+        cmd.Connection = conn;
+cmd.CommandText = "update " + m_Realm + " set \"locX\"=:posX, \"locY\"=:posY, \"sizeX\"=:sizeX, \"sizeY\"=:sizeY ";
+
+cmd.Parameters.AddWithValue(":posX", data.posX);
+cmd.Parameters.AddWithValue(":posY", data.posY);
+cmd.Parameters.AddWithValue(":sizeX", data.sizeX);
+cmd.Parameters.AddWithValue(":sizeY", data.sizeY);
+
+foreach (string field in fields)
+{
+    cmd.Parameters.AddWithValue(":" + field, data.Data[field]);
+}
+
+if (!data.ScopeID.IsZero())
+    cmd.Parameters.AddWithValue(":scopeID", data.ScopeID);
+
+cmd.Parameters.AddWithValue(":regionID", data.RegionID);
+cmd.Parameters.AddWithValue(":regionName", data.RegionName);
+
+conn.Open();
+try
+{
+    if (cmd.ExecuteNonQuery() < 1)
+    {
+        cmd.CommandText = "insert into " + m_Realm + " (uuid, \"ScopeID\", \"locX\", \"locY\", \"sizeX\", \"sizeY\", \"regionName\", \"" +
+                            String.Join("\", \"", fields) +
+                            "\") values (:regionID, :scopeID, :posX, :posY, :sizeX, :sizeY, :regionName, :" + String.Join(", :", fields) + ")";
+
+        foreach (SqlParameter parameter in cmd.Parameters)
+        {
+            if (parameter.ParameterName.StartsWith(":"))
+                parameter.Value = DBNull.Value;
         }
 
-        public bool Store(RegionData data)
+        cmd.Parameters.AddWithValue(":posX", data.posX);
+        cmd.Parameters.AddWithValue(":posY", data.posY);
+        cmd.Parameters.AddWithValue(":sizeX", data.sizeX);
+        cmd.Parameters.AddWithValue(":sizeY", data.sizeY);
+
+        if (!data.ScopeID.IsZero())
+            cmd.Parameters.AddWithValue(":scopeID", data.ScopeID);
+
+        cmd.Parameters.AddWithValue(":regionID", data.RegionID);
+        cmd.Parameters.AddWithValue(":regionName", data.RegionName);
+
+        try
         {
-            data.Data.Remove("uuid");
-            data.Data.Remove("ScopeID");
-            data.Data.Remove("regionName");
-            data.Data.Remove("posX");
-            data.Data.Remove("posY");
-            data.Data.Remove("sizeX");
-            data.Data.Remove("sizeY");
-            data.Data.Remove("locX");
-            data.Data.Remove("locY");
-
-            string[] fields = new List<string>(data.Data.Keys).ToArray();
-
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand())
+            if (cmd.ExecuteNonQuery() < 1)
             {
-
-                string update = "update " + m_Realm + " set \"locX\"=:posX, \"locY\"=:posY, \"sizeX\"=:sizeX, \"sizeY\"=:sizeY ";
-
-                foreach (string field in fields)
-                {
-
-                    update += ", ";
-                    update += " \"" + field + "\" = :" + field;
-
-                    if (m_FieldTypes.ContainsKey(field))
-                        cmd.Parameters.Add(m_database.CreateParameter(field, data.Data[field], m_FieldTypes[field]));
-                    else
-                        cmd.Parameters.Add(m_database.CreateParameter(field, data.Data[field]));
-                }
-
-                update += " where uuid = :regionID";
-
-                if (!data.ScopeID.IsZero())
-                    update += " and \"ScopeID\" = :scopeID";
-
-                cmd.CommandText = update;
-                cmd.Connection = conn;
-                cmd.Parameters.Add(m_database.CreateParameter("regionID", data.RegionID));
-                cmd.Parameters.Add(m_database.CreateParameter("regionName", data.RegionName));
-                cmd.Parameters.Add(m_database.CreateParameter("scopeID", data.ScopeID));
-                cmd.Parameters.Add(m_database.CreateParameter("posX", data.posX));
-                cmd.Parameters.Add(m_database.CreateParameter("posY", data.posY));
-                cmd.Parameters.Add(m_database.CreateParameter("sizeX", data.sizeX));
-                cmd.Parameters.Add(m_database.CreateParameter("sizeY", data.sizeY));
-                conn.Open();
-                try
-                {
-                    if (cmd.ExecuteNonQuery() < 1)
-                    {
-                        string insert = "insert into " + m_Realm + " (uuid, \"ScopeID\", \"locX\", \"locY\", \"sizeX\", \"sizeY\", \"regionName\", \"" +
-                                String.Join("\", \"", fields) +
-                                "\") values (:regionID, :scopeID, :posX, :posY, :sizeX, :sizeY, :regionName, :" + String.Join(", :", fields) + ")";
-
-                        cmd.CommandText = insert;
-
-                        try
-                        {
-                            if (cmd.ExecuteNonQuery() < 1)
-                            {
-                                return false;
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            m_log.Warn("[PGSQL Grid]: Error inserting into Regions table: " + ex.Message + ", INSERT sql: " + insert);
-                        }
-                    }
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            m_log.Error("Error inserting data into " + m_Realm, ex);
+            return false;
+        }
+    }
+}
+catch (Exception ex)
+{
+    m_log.Error("Error updating data in " + m_Realm, ex);
+    return false;
+}
                 }
                 catch (Exception ex)
                 {
-                    m_log.Warn("[PGSQL Grid]: Error updating Regions table: " + ex.Message + ", UPDATE sql: " + update);
+                    m_log.Warn("[PGSQL Grid]: Error inserting into Regions table: " + ex.Message + ", INSERT sql: " + cmd.CommandText);
                 }
             }
-
-            return true;
         }
+        catch (Exception ex)
+        {
+            m_log.Warn("[PGSQL Grid]: Error updating Regions table: " + ex.Message + ", UPDATE sql: " + cmd.CommandText);
+        }
+    }
+
+    return true;
+}
 
         public bool SetDataItem(UUID regionID, string item, string value)
         {
