@@ -52,7 +52,7 @@ jobs:
           category: "/language:csharp"
 
   semgrep-and-autofix:
-    name: Semgrep Scan & OpenRouter Free Fix
+    name: Semgrep Scan & Groq Free Fix
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -74,7 +74,7 @@ jobs:
 
       - name: Execute Automated Code Repair Script
         env:
-          OPENROUTER_API_KEY: \${{ secrets.OPENROUTER_API_KEY }}
+          GROQ_API_KEY: \${{ secrets.GROQ_API_KEY }}
         run: |
           cat << 'EOF' > fix_code.py
           import os
@@ -83,9 +83,10 @@ jobs:
           import time
           from openai import OpenAI
 
+          # Connect directly to Groq's official API infrastructure
           client = OpenAI(
-              base_url="https://openrouter.ai",
-              api_key=os.environ.get("OPENROUTER_API_KEY")
+              base_url="https://groq.com",
+              api_key=os.environ.get("GROQ_API_KEY")
           )
 
           rules = ""
@@ -103,11 +104,10 @@ jobs:
           runs = sarif_data.get("runs", [])
           fixed_count = 0
 
+          # Utilizes Groq's high-capacity, free production models
           models_pool = [
-              "deepseek/deepseek-r1:free",
-              "qwen/qwen-2.5-coder-7b-instruct:free",
-              "meta-llama/llama-3-8b-instruct:free",
-              "opentouter/free"
+              "llama-3.3-70b-specdec",
+              "llama3-70b-8192"
           ]
 
           for run in runs:
@@ -134,35 +134,25 @@ jobs:
                           
                           for current_model in models_pool:
                               try:
-                                  print(f"  -> Attempting fix using model: {current_model}")
+                                  print(f"  -> Attempting fix using Groq model: {current_model}")
                                   response = client.chat.completions.create(
                                       model=current_model,
                                       messages=[
-                                          {"role": "system", "content": f"You are an expert C# refactoring tool. Fix the bug within the provided snippet. Return ONLY the fully corrected code snippet replacing the original block. Do not write text, explanations, HTML, or markdown code gates.\nRules:\n{rules}"},
+                                          {"role": "system", "content": f"You are an expert C# refactoring tool. Fix the bug within the provided snippet. Return ONLY the fully corrected code snippet replacing the original block. Do not write text, explanations, or markdown code gates.\nRules:\n{rules}"},
                                           {"role": "user", "content": f"Vulnerability Type: {msg}\nTarget Line Number: {line_num}\n\nCode Snippet:\n{context_snippet}"}
                                       ]
                                   )
                                   
-                                  if isinstance(response, str):
-                                      raw_content = response
-                                  elif hasattr(response, 'choices') and response.choices:
-                                      raw_content = response.choices.message.content
-                                  else:
-                                      raw_content = str(response)
-
-                                  cleaned_check = raw_content.lower().strip()
-                                  if "<html" in cleaned_check or "<a href=" in cleaned_check or "<!doctype" in cleaned_check or "next/static" in cleaned_check:
-                                      print(f"  ⚠️ Model {current_model} was blocked by an OpenRouter server HTML error page. Switching model...")
-                                      time.sleep(5) # Upgraded switch buffer to 5 seconds
-                                      continue
+                                  raw_content = response.choices.message.content
                                   
+                                  # Strip out structural markdown fencing tags if generated
                                   fixed_snippet = re.sub(r'```(?:csharp)?', '', raw_content, flags=re.IGNORECASE).strip()
                                   if len(fixed_snippet) > 10:
                                       break 
                                       
                               except Exception as e:
-                                  print(f"  ⚠️ Connection issue with {current_model}: {e}. Trying fallback...")
-                                  time.sleep(5) # Upgraded switch buffer to 5 seconds
+                                  print(f"  ⚠️ Issue with {current_model}: {e}. Retrying with next model...")
+                                  time.sleep(3)
 
                           if fixed_snippet:
                               lines[start_idx:end_idx] = [fixed_snippet + "\n"]
@@ -171,9 +161,9 @@ jobs:
                               
                               print(f"✅ Successfully patched: {uri}")
                               fixed_count += 1
-                              time.sleep(10) # UPGRADED: Increased cool down to 10 seconds between files
+                              time.sleep(4) # Short cooldown for Groq's rapid-fire token architecture
                           else:
-                              print(f"❌ Failed to patch {uri} because all OpenRouter free models were heavily overloaded.")
+                              print(f"❌ Failed to patch {uri} via Groq.")
 
           print(f"Code repair cycle completed. Total files safely patched: {fixed_count}")
           EOF
@@ -184,9 +174,9 @@ jobs:
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "style: resolve static security vulnerabilities via OpenRouter AI"
-          title: "🤖 Automated OpenRouter Security Patch"
-          body: "This PR automatically fixes static analysis alerts generated by the Semgrep security runner pipeline according to your structural repository guidelines."
-          branch: openrouter-ai-patches
+          commit-message: "style: resolve static security vulnerabilities via Groq AI"
+          title: "🤖 Automated Groq Security Patch"
+          body: "This PR automatically fixes static analysis alerts generated by the Semgrep security runner pipeline using Groq Cloud Models according to repository guidelines."
+          branch: groq-ai-patches
           base: 'master'
           delete-branch: true
