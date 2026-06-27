@@ -100,7 +100,6 @@ jobs:
 
           runs = sarif_data.get("runs", [])
           
-          # Group vulnerabilities per file to apply bottom-up patching
           file_patches = defaultdict(list)
           models_pool = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]
 
@@ -119,13 +118,10 @@ jobs:
 
           fixed_count = 0
 
-          # Process one file at a time
           for uri, patches in file_patches.items():
               with open(uri, "r") as f_code:
                   lines = f_code.readlines()
 
-              # CRITICAL FIX: Sort patches from highest line number to lowest
-              # This ensures line insertions or updates do not disrupt upper indexes
               patches.sort(key=lambda x: x["line"], reverse=True)
               file_was_patched = False
 
@@ -139,7 +135,6 @@ jobs:
                   if target_idx >= len(lines):
                       continue
 
-                  # Extract local context window
                   start_idx = max(0, line_num - 15)
                   end_idx = min(len(lines), line_num + 15)
                   context_snippet = "".join(lines[start_idx:end_idx])
@@ -159,15 +154,14 @@ jobs:
                               max_tokens=1024
                           )
                           
-                          raw_content = response.choices.message.content
+                          # FIXED: Added [0] indexing for choices list selection
+                          raw_content = response.choices[0].message.content
                           
-                          # Thoroughly strip out markdown enclosures if the LLM leaked them
                           clean_content = re.sub(r'```(?:csharp)?', '', raw_content, flags=re.IGNORECASE).strip()
                           if clean_content.endswith("```"):
                               clean_content = clean_content[:-3].strip()
 
                           if len(clean_content) > 1:
-                              # Reapply original indentation layout dynamically
                               leading_spaces = len(original_line) - len(original_line.lstrip())
                               indent = original_line[:leading_spaces]
                               fixed_line = indent + clean_content
@@ -180,7 +174,7 @@ jobs:
                   if fixed_line:
                       lines[target_idx] = fixed_line + "\n"
                       file_was_patched = True
-                      time.sleep(2) # Prevent rapid rate-limiting
+                      time.sleep(2)
                   else:
                       print(f"❌ Failed to patch line {line_num}")
 
