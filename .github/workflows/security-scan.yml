@@ -99,6 +99,7 @@ jobs:
               sarif_data = json.load(f)
 
           runs = sarif_data.get("runs", [])
+          fixed_count = 0
           
           file_patches = defaultdict(list)
           models_pool = ["llama-3.1-8b-instant"]
