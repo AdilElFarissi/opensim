@@ -101,7 +101,7 @@ jobs:
           runs = sarif_data.get("runs", [])
           
           file_patches = defaultdict(list)
-          models_pool = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]
+          models_pool = ["llama-3.1-8b-instant"]
 
           for run in runs:
               for result in run.get("results", []):
@@ -135,8 +135,8 @@ jobs:
                   if target_idx >= len(lines):
                       continue
 
-                  start_idx = max(0, line_num - 15)
-                  end_idx = min(len(lines), line_num + 15)
+                  start_idx = max(0, line_num - 40)
+                  end_idx = min(len(lines), line_num + 40)
                   context_snippet = "".join(lines[start_idx:end_idx])
                   original_line = lines[target_idx]
 
@@ -147,14 +147,13 @@ jobs:
                           response = client.chat.completions.create(
                               model=current_model,
                               messages=[
-                                  {"role": "system", "content": f"You are an expert C# refactoring utility. Your goal is to fix the static analysis bug in the targeted code line.\nInstructions:\n1. Match the exact indent spacing (tabs/spaces) of the original target line.\n2. Return ONLY the single corrected functional line. Do not wrap code blocks in markdown fences, do not output explanations, and do not append stray braces.\nRules:\n{rules}"},
-                                  {"role": "user", "content": f"Vulnerability Details: {msg}\nSurrounding Context Block:\n{context_snippet}\n\nExact Line to Modify:\n{original_line}"}
+                                  {"role": "system", "content": f"You are an expert C# refactoring tool. Fix the bug within the provided snippet.\nInstructions:\n1. Match the exact indent spacing (tabs/spaces) of the original target line.\n2. Return ONLY the fully corrected code snippet replacing the original block. Do not wrap code blocks in markdown fences, do not output explanations, and do not append stray braces.\n3. Respect the rules.\nRules:\n{rules}"},
+                                  {"role": "user", "content": f"Vulnerability Type: {msg}\nTarget Line Number: {line_num}\n\nCode Snippet:\n{context_snippet}"}
                               ],
                               temperature=0.1,
                               max_tokens=1024
                           )
                           
-                          # FIXED: Added [0] indexing for choices list selection
                           raw_content = response.choices[0].message.content
                           
                           clean_content = re.sub(r'```(?:csharp)?', '', raw_content, flags=re.IGNORECASE).strip()
