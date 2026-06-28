@@ -89,7 +89,47 @@ namespace OpenSim.Framework.Serialization.External
                         settings.AllowLandJoinDivide = bool.Parse(xtr.ReadElementContentAsString());
                         break;
                     case "BlockFly":
-                        settings.BlockFly = bool.Parse(xtr.ReadElementContentAsString());
+                        xtr.ReadStartElement("RegionSettings");
+xtr.ReadStartElement("General");
+
+while (xtr.Read() && xtr.NodeType != XmlNodeType.EndElement)
+{
+    switch (xtr.Name)
+    {
+        case "AllowDamage":
+            settings.AllowDamage = bool.Parse(xtr.ReadElementContentAsString());
+            break;
+        case "AllowLandResell":
+            settings.AllowLandResell = bool.Parse(xtr.ReadElementContentAsString());
+            break;
+        case "AllowLandJoinDivide":
+            settings.AllowLandJoinDivide = bool.Parse(xtr.ReadElementContentAsString());
+            break;
+        case "BlockFly":
+            settings.BlockFly = bool.Parse(xtr.ReadElementContentAsString());
+            break;
+        case "BlockLandShowInSearch":
+            settings.BlockShowInSearch = bool.Parse(xtr.ReadElementContentAsString());
+            break;
+        case "BlockTerraform":
+            settings.BlockTerraform = bool.Parse(xtr.ReadElementContentAsString());
+            break;
+        case "DisableCollisions":
+            settings.DisableCollisions = bool.Parse(xtr.ReadElementContentAsString());
+            break;
+        case "DisablePhysics":
+            settings.DisablePhysics = bool.Parse(xtr.ReadElementContentAsString());
+            break;
+        case "DisableScripts":
+            settings.DisableScripts = bool.Parse(xtr.ReadElementContentAsString());
+            break;
+        case "MaturityRating":
+            settings.Maturity = int.Parse(xtr.ReadElementContentAsString());
+            break;
+        case "RestrictPushing":
+            // ... rest of the cases ...
+    }
+}
                         break;
                     case "BlockLandShowInSearch":
                         settings.BlockShowInSearch = bool.Parse(xtr.ReadElementContentAsString());

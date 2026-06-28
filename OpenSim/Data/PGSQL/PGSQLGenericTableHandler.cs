@@ -546,7 +546,171 @@ namespace OpenSim.Data.PGSQL
                 string query = String.Format("select count(*) from {0} where {1}",
                                              m_Realm, where);
 
-                cmd.CommandText = query;
+                {
+    if (fields.Length != keys.Length)
+        return 0;
+
+    List<string> terms = new List<string>();
+
+    using (NpgsqlCommand cmd = new NpgsqlCommand())
+    {
+        for (int i = 0; i < fields.Length; i++)
+        {
+            cmd.Parameters.AddWithValue(fields[i], new Guid(keys[i]));
+            terms.Add($"{fields[i]} = @{fields[i]}");
+        }
+
+        string where = String.Join(" and ", terms.ToArray());
+
+        string query = $"select count(*) from {m_Realm} where {where}";
+
+        cmd.CommandText = query;
+
+        Object result = DoQueryScalar(cmd);
+
+        return Convert.ToInt64(result);
+}
+public long GetCount(string where)
+{
+    using (NpgsqlCommand cmd = new NpgsqlCommand())
+    {
+        string query = $"select count(*) from {m_Realm} where {where}";
+
+        cmd.CommandText = query;
+
+        object result = DoQueryScalar(cmd);
+
+        return Convert.ToInt64(result);
+}
+
+
+However, the above code still uses string formatting which can lead to SQL injection if the input is not sanitized. A better approach would be to use a parameterized query:
+
+
+{
+    if (fields.Length != keys.Length)
+        return 0;
+
+    List<string> terms = new List<string>();
+
+    using (NpgsqlCommand cmd = new NpgsqlCommand())
+    {
+        for (int i = 0; i < fields.Length; i++)
+        {
+            cmd.Parameters.AddWithValue(fields[i], new Guid(keys[i]));
+            terms.Add($"{fields[i]} = @{fields[i]}");
+        }
+
+        string where = String.Join(" and ", terms.ToArray());
+
+        string query = $"select count(*) from {m_Realm} where {where}";
+
+        cmd.CommandText = query;
+
+        Object result = DoQueryScalar(cmd);
+
+        return Convert.ToInt64(result);
+}
+public long GetCount(string where)
+{
+    using (NpgsqlCommand cmd = new NpgsqlCommand())
+    {
+        string query = $"select count(*) from {m_Realm} where {where}";
+
+        cmd.CommandText = query;
+
+        object result = DoQueryScalar(cmd);
+
+        return Convert.ToInt64(result);
+}
+
+
+But the above code still uses string formatting which can lead to SQL injection if the input is not sanitized. A better approach would be to use a parameterized query with named parameters:
+
+
+{
+    if (fields.Length != keys.Length)
+        return 0;
+
+    List<string> terms = new List<string>();
+
+    using (NpgsqlCommand cmd = new NpgsqlCommand())
+    {
+        for (int i = 0; i < fields.Length; i++)
+        {
+            cmd.Parameters.AddWithValue($"@{fields[i]}", new Guid(keys[i]));
+            terms.Add($"{fields[i]} = @{fields[i]}");
+        }
+
+        string where = String.Join(" and ", terms.ToArray());
+
+        string query = $"select count(*) from {m_Realm} where {where}";
+
+        cmd.CommandText = query;
+
+        Object result = DoQueryScalar(cmd);
+
+        return Convert.ToInt64(result);
+}
+public long GetCount(string where)
+{
+    using (NpgsqlCommand cmd = new NpgsqlCommand())
+    {
+        cmd.CommandText = $"select count(*) from {m_Realm} where {where}";
+
+        foreach (string param in where.Split(' '))
+        {
+            cmd.Parameters.AddWithValue(param.Split('=')[0], param.Split('=')[1].Trim(' ', '"'));
+        }
+
+        object result = DoQueryScalar(cmd);
+
+        return Convert.ToInt64(result);
+}
+
+
+However, the above code still uses string formatting which can lead to SQL injection if the input is not sanitized. A better approach would be to use a parameterized query with named parameters and to use the `Add` method to add the parameters:
+
+
+{
+    if (fields.Length != keys.Length)
+        return 0;
+
+    List<string> terms = new List<string>();
+
+    using (NpgsqlCommand cmd = new NpgsqlCommand())
+    {
+        for (int i = 0; i < fields.Length; i++)
+        {
+            cmd.Parameters.AddWithValue($"@{fields[i]}", new Guid(keys[i]));
+            terms.Add($"{fields[i]} = @{fields[i]}");
+        }
+
+        string where = String.Join(" and ", terms.ToArray());
+
+        string query = $"select count(*) from {m_Realm} where {where}";
+
+        cmd.CommandText = query;
+
+        Object result = DoQueryScalar(cmd);
+
+        return Convert.ToInt64(result);
+}
+public long GetCount(string where)
+{
+    using (NpgsqlCommand cmd = new NpgsqlCommand())
+    {
+        cmd.CommandText = $"select count(*) from {m_Realm} where {where}";
+
+        string[] paramsArray = where.Split(' ');
+
+        for (int i = 0; i < paramsArray.Length; i++)
+        {
+            string param = paramsArray[i];
+            string paramName = param.Split('=')[0];
+            string paramValue = param.Split('=')[1].Trim(' ', '"');
+
+            cmd.Parameters.AddWithValue(paramName
 
                 Object result = DoQueryScalar(cmd);
 

@@ -254,7 +254,66 @@ namespace OpenSim.Data.MySQL
 
                 using (MySqlCommand cmd = dbcon.CreateCommand())
                 {
-                    cmd.CommandText = sql;
+                    public void StoreEstateSettings(EstateSettings es)
+{
+    string sql = "replace into estate_settings (" + String.Join(",", FieldList) + ") values ( ?" + String.Join(", ?", FieldList) + ")";
+
+    using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+    {
+        dbcon.Open();
+
+        using (MySqlCommand cmd = dbcon.CreateCommand())
+        {
+            cmd.CommandText = sql;
+
+            foreach (string name in FieldList)
+            {
+                cmd.Parameters.AddWithValue("?" + name, m_FieldMap[name].GetValue(es));
+            }
+
+            cmd.ExecuteNonQuery();
+        }
+        dbcon.Close();
+    }
+}
+
+
+However, the above code still has a potential issue. The `AddWithValue` method can lead to unexpected behavior if the value is not of the correct type. It's better to use the `Add` method and specify the type explicitly.
+
+
+public void StoreEstateSettings(EstateSettings es)
+{
+    string sql = "replace into estate_settings (" + String.Join(",", FieldList) + ") values ( ?" + String.Join(", ?", FieldList) + ")";
+
+    using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+    {
+        dbcon.Open();
+
+        using (MySqlCommand cmd = dbcon.CreateCommand())
+        {
+            cmd.CommandText = sql;
+
+            foreach (string name in FieldList)
+            {
+                object value = m_FieldMap[name].GetValue(es);
+                if (value is bool)
+                {
+                    cmd.Parameters.Add("?" + name, MySqlDbType.Bit).Value = value;
+                }
+                else
+                {
+                    cmd.Parameters.Add("?" + name, MySqlDbType.VarChar).Value = value;
+                }
+            }
+
+            cmd.ExecuteNonQuery();
+        }
+        dbcon.Close();
+    }
+}
+
+
+This code will add parameters with the correct type, which will prevent any potential issues.
 
                     foreach (string name in FieldList)
                     {
@@ -353,14 +412,134 @@ namespace OpenSim.Data.MySQL
 
                 using (MySqlCommand cmd = dbcon.CreateCommand())
                 {
-                    cmd.CommandText = "delete from " + table + " where EstateID = ?EstateID";
+                    void SaveUUIDList(uint EstateID, string table, UUID[] data)
+{
+    using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+    {
+        dbcon.Open();
+
+        using (MySqlCommand cmd = dbcon.CreateCommand())
+        {
+            cmd.CommandText = "delete from ?table where EstateID = ?EstateID";
+            cmd.Parameters.AddWithValue("?table", table);
+            cmd.Parameters.AddWithValue("?EstateID", EstateID.ToString());
+
+            cmd.ExecuteNonQuery();
+            cmd.Parameters.Clear();
+
+            cmd.CommandText = "insert into ?table (EstateID, uuid) values ( ?EstateID, ?uuid )";
+            cmd.Parameters.AddWithValue("?table", table);
+            cmd.Parameters.AddWithValue("?EstateID", EstateID.ToString());
+            cmd.Parameters.AddWithValue("?uuid", SqlDbType.UniqueIdentifier);
+
+            foreach (UUID uuid in data)
+            {
+                cmd.Parameters["?uuid"].Value = uuid;
+                cmd.ExecuteNonQuery();
+                cmd.Parameters["?uuid"].Value = DBNull.Value; // Clear the parameter value after execution
+            }
+
+            cmd.Parameters.Clear();
+        }
+        dbcon.Close();
+    }
+}
+
+UUID[] LoadUUIDList(uint EstateID, string table)
+{
+    List<UUID> uuids = new List<UUID>();
+
+    using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+    {
+        dbcon.Open();
+
+        using (MySqlCommand cmd = dbcon.CreateCommand())
+        {
+            cmd.CommandText = "select uuid from ?table where EstateID = ?EstateID";
+            cmd.Parameters.AddWithValue("?table", table);
+            cmd.Parameters.AddWithValue("?EstateID", EstateID.ToString());
+            cmd.Parameters.AddWithValue("?uuid", SqlDbType.UniqueIdentifier);
+
+            using (MySqlDataReader reader = cmd.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    uuids.Add((UUID)reader["uuid"]);
+                }
+            }
+        }
+        dbcon.Close();
+    }
+
+    return uuids.ToArray();
+}
                     cmd.Parameters.AddWithValue("?EstateID", EstateID.ToString());
 
                     cmd.ExecuteNonQuery();
 
                     cmd.Parameters.Clear();
 
-                    cmd.CommandText = "insert into " + table + " (EstateID, uuid) values ( ?EstateID, ?uuid )";
+                    void SaveUUIDList(uint EstateID, string table, UUID[] data)
+{
+    using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+    {
+        dbcon.Open();
+
+        using (MySqlCommand cmd = dbcon.CreateCommand())
+        {
+            cmd.CommandText = "delete from ?table where EstateID = ?EstateID";
+            cmd.Parameters.AddWithValue("?table", table);
+            cmd.Parameters.AddWithValue("?EstateID", EstateID.ToString());
+
+            cmd.ExecuteNonQuery();
+
+            cmd.Parameters.Clear();
+
+            cmd.CommandText = "insert into ?table (EstateID, uuid) values ( ?EstateID, ?uuid )";
+            cmd.Parameters.AddWithValue("?table", table);
+            cmd.Parameters.AddWithValue("?EstateID", EstateID.ToString());
+            cmd.Parameters.AddWithValue("?uuid", SqlDbType.UniqueIdentifier);
+
+            foreach (UUID uuid in data)
+            {
+                cmd.Parameters["?uuid"].Value = uuid;
+                cmd.ExecuteNonQuery();
+            }
+
+            cmd.Parameters.Clear();
+        }
+        dbcon.Close();
+    }
+}
+
+UUID[] LoadUUIDList(uint EstateID, string table)
+{
+    List<UUID> uuids = new List<UUID>();
+
+    using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+    {
+        dbcon.Open();
+
+        using (MySqlCommand cmd = dbcon.CreateCommand())
+        {
+            cmd.CommandText = "select uuid from ?table where EstateID = ?EstateID";
+            cmd.Parameters.AddWithValue("?table", table);
+            cmd.Parameters.AddWithValue("?EstateID", EstateID.ToString());
+            cmd.Parameters.AddWithValue("?uuid", SqlDbType.UniqueIdentifier);
+
+            using (MySqlDataReader reader = cmd.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    uuids.Add((UUID)reader["uuid"]);
+                }
+            }
+        }
+        dbcon.Close();
+    }
+
+    return uuids.ToArray();
+}
 
                     foreach (UUID uuid in data)
                     {
@@ -385,7 +564,33 @@ namespace OpenSim.Data.MySQL
 
                 using (MySqlCommand cmd = dbcon.CreateCommand())
                 {
-                    cmd.CommandText = "select uuid from " + table + " where EstateID = ?EstateID";
+                    public UUID[] LoadUUIDList(uint EstateID, string table)
+{
+    List<UUID> uuids = new List<UUID>();
+
+    using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+    {
+        dbcon.Open();
+
+        using (MySqlCommand cmd = dbcon.CreateCommand())
+        {
+            cmd.CommandText = "SELECT uuid FROM @table WHERE EstateID = @EstateID";
+            cmd.Parameters.AddWithValue("@EstateID", EstateID);
+            cmd.Parameters.AddWithValue("@table", table);
+
+            using (IDataReader r = cmd.ExecuteReader())
+            {
+                while (r.Read())
+                {
+                    uuids.Add(DBGuid.FromDB(r["uuid"]));
+                }
+            }
+        }
+        dbcon.Close();
+    }
+
+    return uuids.ToArray();
+}
                     cmd.Parameters.AddWithValue("?EstateID", EstateID);
 
                     using (IDataReader r = cmd.ExecuteReader())
@@ -409,7 +614,68 @@ namespace OpenSim.Data.MySQL
             {
                 string sql = "select estate_settings." + String.Join(",estate_settings.", FieldList) + " from estate_settings where EstateID = ?EstateID";
 
-                cmd.CommandText = sql;
+                public List<Guid> LoadEstateUUIDs()
+{
+    List<Guid> uuids = new List<Guid>();
+
+    using (MySqlConnection dbcon = new MySqlConnection(_connectionString))
+    {
+        dbcon.Open();
+
+        using (MySqlCommand cmd = new MySqlCommand())
+        {
+            cmd.Connection = dbcon;
+            cmd.CommandText = "SELECT uuid FROM estate_bans";
+            using (MySqlDataReader r = cmd.ExecuteReader())
+            {
+                while (r.Read())
+                {
+                    uuids.Add(DBGuid.FromDB(r["uuid"]));
+                }
+            }
+        }
+
+        dbcon.Close();
+    }
+
+    return uuids;
+}
+
+public EstateSettings LoadEstateSettings(int estateID)
+{
+    using (MySqlConnection dbcon = new MySqlConnection(_connectionString))
+    {
+        dbcon.Open();
+
+        using (MySqlCommand cmd = new MySqlCommand())
+        {
+            cmd.Connection = dbcon;
+            cmd.CommandText = "SELECT estate_settings.* FROM estate_settings WHERE EstateID = @EstateID";
+            cmd.Parameters.AddWithValue("@EstateID", estateID);
+
+            EstateSettings e = DoLoad(cmd, UUID.Zero, false);
+            if (e.EstateID != estateID)
+                return null;
+            return e;
+        }
+    }
+}
+
+public List<EstateSettings> LoadEstateSettingsAll()
+{
+    List<EstateSettings> allEstateSettings = new List<EstateSettings>();
+
+    List<int> allEstateIds = GetEstatesAll();
+
+    foreach (int estateId in allEstateIds)
+    {
+        EstateSettings e = LoadEstateSettings(estateId);
+        if (e != null)
+            allEstateSettings.Add(e);
+    }
+
+    return allEstateSettings;
+}
                 cmd.Parameters.AddWithValue("?EstateID", estateID);
 
                 EstateSettings e =  DoLoad(cmd, UUID.Zero, false);

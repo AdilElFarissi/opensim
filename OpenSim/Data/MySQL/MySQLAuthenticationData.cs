@@ -143,7 +143,53 @@ namespace OpenSim.Data.MySQL
 
                 update += " where UUID = ?principalID";
 
-                cmd.CommandText = update;
+                string[] fields = new List<string>(data.Data.Keys).ToArray();
+
+using (MySqlCommand cmd = new MySqlCommand())
+{
+    string update = "update `" + m_Realm + "` set ";
+    bool first = true;
+    foreach (string field in fields)
+    {
+        if (!first)
+            update += ", ";
+        update += "`" + field + "` = @" + field;
+
+        first = false;
+    }
+
+    update += " where UUID = @principalID";
+
+    cmd.CommandText = update;
+
+    foreach (string field in fields)
+    {
+        cmd.Parameters.AddWithValue("@" + field, data.Data[field]);
+    }
+
+    cmd.Parameters.AddWithValue("@principalID", data.PrincipalID.ToString());
+
+    if (ExecuteNonQuery(cmd) < 1)
+    {
+        string insert = "insert into `" + m_Realm + "` (`UUID`, `" +
+            String.Join("`, `", fields) +
+            "`) values (@principalID, @" + String.Join(", @", fields) + ")";
+
+        cmd.CommandText = insert;
+
+        foreach (string field in fields)
+        {
+            cmd.Parameters.AddWithValue("@" + field, data.Data[field]);
+        }
+
+        cmd.Parameters.AddWithValue("@principalID", data.PrincipalID.ToString());
+
+        if (ExecuteNonQuery(cmd) < 1)
+            return false;
+    }
+}
+
+return true;
                 cmd.Parameters.AddWithValue("?principalID", data.PrincipalID.ToString());
 
                 if (ExecuteNonQuery(cmd) < 1)
@@ -152,7 +198,29 @@ namespace OpenSim.Data.MySQL
                             String.Join("`, `", fields) +
                             "`) values (?principalID, ?" + String.Join(", ?", fields) + ")";
 
-                    cmd.CommandText = insert;
+                    update += ", ";
+update += "`" + field + "` = @field";
+
+first = false;
+
+cmd.Parameters.AddWithValue("@field", data.Data[field]);
+
+update += " where UUID = @principalID";
+
+cmd.CommandText = update;
+cmd.Parameters.AddWithValue("@principalID", data.PrincipalID.ToString());
+
+if (ExecuteNonQuery(cmd) < 1)
+{
+    string insert = "insert into `" + m_Realm + "` (`UUID`, `" +
+            String.Join("`, `", fields) +
+            "`) values (@principalID, @" + String.Join(", @", fields) + ")";
+
+    cmd.CommandText = insert;
+
+    if (ExecuteNonQuery(cmd) < 1)
+        return false;
+}
 
                     if (ExecuteNonQuery(cmd) < 1)
                         return false;

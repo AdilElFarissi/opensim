@@ -144,7 +144,30 @@ namespace OpenSim.Data
                 cmd.CommandTimeout = 0;
                 foreach (string sql in script)
                 {
-                    cmd.CommandText = sql;
+                    protected virtual void ExecuteScript(DbConnection conn, string[] script)
+{
+    using (DbCommand cmd = conn.CreateCommand())
+    {
+        cmd.CommandTimeout = 0;
+        foreach (string sql in script)
+        {
+            using (DbParameter param = cmd.CreateParameter())
+            {
+                param.ParameterName = "@sql";
+                param.Value = sql;
+                cmd.Parameters.Add(param);
+            }
+            try
+            {
+                cmd.ExecuteNonQuery();
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message + " in SQL: " + sql);
+            }
+        }
+    }
+}
                     try
                     {
                         cmd.ExecuteNonQuery();
@@ -242,7 +265,32 @@ namespace OpenSim.Data
             {
                 try
                 {
-                    cmd.CommandText = "select version from migrations where name='" + type + "' order by version desc";
+                    protected virtual int FindVersion(DbConnection conn, string type)
+{
+    int version = 0;
+    using (DbCommand cmd = conn.CreateCommand())
+    {
+        try
+        {
+            cmd.CommandText = "select version from migrations where name = @name order by version desc";
+            cmd.Parameters.AddWithValue("@name", type);
+            using (DbDataReader reader = cmd.ExecuteReader())
+            {
+                if (reader.Read())
+                {
+                    version = Convert.ToInt32(reader["version"]);
+                }
+                reader.Close();
+            }
+        }
+        catch
+        {
+            // Something went wrong (probably no table), so we're at version -1
+            version = -1;
+        }
+    }
+    return version;
+}
                     using (DbDataReader reader = cmd.ExecuteReader())
                     {
                         if (reader.Read())
