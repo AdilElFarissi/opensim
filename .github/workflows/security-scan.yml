@@ -172,9 +172,8 @@ jobs:
                                   time.sleep(5) # Upgraded switch buffer to 5 seconds
 
                           if fixed_file_content :
-                              lines[start_idx:end_idx] = [fixed_file_content  + "\n"]
                               with open(uri, "w") as f_code_w:
-                                  f_code_w.writelines(lines)
+                                  f_code_w.write(fixed_file_content)
                               
                               print(f"✅ Successfully patched: {uri}")
                               fixed_count += 1
