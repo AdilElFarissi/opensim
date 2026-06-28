@@ -622,21 +622,16 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                         return false;
                     }
 
-                    fixed (byte* ptrstart = data)
+                    for (int offset = 0; offset + 6 <= data.Length; offset += 6)
                     {
-                        byte* end = ptrstart + data.Length;
-                        byte* ptr = ptrstart;
-                        while (ptr + 6 <= end)
-                        {
-                            t1 = Utils.BytesToUInt16(ptr); ptr += 2;
-                            t2 = Utils.BytesToUInt16(ptr); ptr += 2;
-                            t3 = Utils.BytesToUInt16(ptr); ptr += 2;
+                        t1 = BitConverter.ToUInt16(data, offset);
+                        t2 = BitConverter.ToUInt16(data, offset + 2);
+                        t3 = BitConverter.ToUInt16(data, offset + 4);
 
-                            f3 = new float3((t1 * range.X + min.X),
-                                        (t2 * range.Y + min.Y),
-                                        (t3 * range.Z + min.Z));
-                            vs.Add(f3);
-                        }
+                        f3 = new float3((t1 * range.X + min.X),
+                                    (t2 * range.Y + min.Y),
+                                    (t3 * range.Z + min.Z));
+                        vs.Add(f3);
                     }
 
                     nverts = vs.Count;
