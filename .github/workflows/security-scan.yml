@@ -135,8 +135,8 @@ jobs:
                   if target_idx >= len(lines):
                       continue
 
-                  start_idx = max(0, line_num - 40)
-                  end_idx = min(len(lines), line_num + 40)
+                  start_idx = max(0, line_num - 20)
+                  end_idx = min(len(lines), line_num + 20)
                   context_snippet = "".join(lines[start_idx:end_idx])
                   original_line = lines[target_idx]
 
