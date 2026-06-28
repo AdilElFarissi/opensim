@@ -52,7 +52,7 @@ jobs:
           category: "/language:csharp"
 
   semgrep-and-autofix:
-    name: Semgrep Scan & Groq Free Fix
+    name: Semgrep Scan & OpenRouter Free Fix
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -63,9 +63,9 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install Semgrep & Dedicated Groq SDK
+      - name: Install Semgrep & AI Dependencies
         run: |
-          pip install semgrep groq==0.18.0
+          pip install semgrep openai==1.58.0 
 
       - name: Run Semgrep Scan
         run: |
@@ -74,17 +74,19 @@ jobs:
 
       - name: Execute Automated Code Repair Script
         env:
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
           cat << 'EOF' > fix_code.py
           import os
           import json
           import re
           import time
-          from collections import defaultdict
-          from groq import Groq
+          from openai import OpenAI
 
-          client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+          client = OpenAI(
+              base_url="https://openrouter.ai",
+              api_key=os.environ.get("OPENROUTER_API_KEY")
+          )
 
           rules = ""
           if os.path.exists(".github/copilot-instructions.md"):
@@ -99,9 +101,16 @@ jobs:
               sarif_data = json.load(f)
 
           runs = sarif_data.get("runs", [])
-          
-          file_patches = defaultdict(list)
-          models_pool = ["llama-3.1-8b-instant"]
+          fixed_count = 0
+
+          models_pool = [
+              "opentouter/free",
+              "nvidia/nemotron-3-super-120b-a12b:free",
+              "poolside/laguna-xs.2:free",
+              "qwen/qwen3-coder:free",
+              "meta-llama/llama-3.3-70b-instruct:free",
+              "openai/gpt-oss-120b:free"              
+          ]
 
           for run in runs:
               for result in run.get("results", []):
@@ -114,76 +123,66 @@ jobs:
                           uri = uri.replace("file://", "")
                       
                       if uri and os.path.exists(uri) and uri.endswith(".cs"):
-                          file_patches[uri].append({"line": line_num, "msg": msg})
-
-          fixed_count = 0
-
-          for uri, patches in file_patches.items():
-              with open(uri, "r") as f_code:
-                  lines = f_code.readlines()
-
-              patches.sort(key=lambda x: x["line"], reverse=True)
-              file_was_patched = False
-
-              print(f"🤖 AI processing C# file: {uri} ({len(patches)} vulnerability spots found)")
-
-              for patch in patches:
-                  line_num = patch["line"]
-                  msg = patch["msg"]
-                  target_idx = line_num - 1
-
-                  if target_idx >= len(lines):
-                      continue
-
-                  start_idx = max(0, line_num - 20)
-                  end_idx = min(len(lines), line_num + 20)
-                  context_snippet = "".join(lines[start_idx:end_idx])
-                  original_line = lines[target_idx]
-
-                  fixed_line = None
-                  for current_model in models_pool:
-                      try:
-                          print(f"  -> Patching line {line_num} using: {current_model}")
-                          response = client.chat.completions.create(
-                              model=current_model,
-                              messages=[
-                                  {"role": "system", "content": f"You are an expert C# refactoring tool. Fix the bug within the provided snippet.\nInstructions:\n1. Match the exact indent spacing (tabs/spaces) of the original target line.\n2. Return ONLY the fully corrected code snippet replacing the original block. Do not wrap code blocks in markdown fences, do not output explanations, and do not append stray braces.\n3. Respect the rules.\nRules:\n{rules}"},
-                                  {"role": "user", "content": f"Vulnerability Type: {msg}\nTarget Line Number: {line_num}\n\nCode Snippet:\n{context_snippet}"}
-                              ],
-                              temperature=0.1,
-                              max_tokens=1024
-                          )
+                          print(f"🤖 AI processing C# file: {uri} around line {line_num}")
                           
-                          raw_content = response.choices[0].message.content
-                          
-                          clean_content = re.sub(r'```(?:csharp)?', '', raw_content, flags=re.IGNORECASE).strip()
-                          if clean_content.endswith("```"):
-                              clean_content = clean_content[:-3].strip()
+                          with open(uri, "r") as f_code:
+                            file_content = f_code.read()
 
-                          if len(clean_content) > 1:
-                              leading_spaces = len(original_line) - len(original_line.lstrip())
-                              indent = original_line[:leading_spaces]
-                              fixed_line = indent + clean_content
-                              break
+                          fixed_file_content  = None
+                          
+                          for current_model in models_pool:
+                              try:
+                                  print(f"  -> Attempting fix using model: {current_model}")
+                                  response = client.chat.completions.create(
+                                      model=current_model,
+                                      messages=[
+                                        {
+                                          "role": "system", 
+                                          "content": f"You are an expert C# refactoring utility. Your goal is to analyze the provided full source code of OpenSimulator, find the security vulnerability, and fix it.\nInstructions:\n1. Return the ENTIRE corrected source code of the file. Do NOT truncate or use placeholders.\n2. Return ONLY the functional code. Do not wrap code blocks in markdown fences (like ```), and do not output any markdown explanations.\nRules:\n{rules}"
+                                        },
+                                        {
+                                          "role": "user", 
+                                          "content": f"Full File Content:\n{file_content}"
+                                        }
+                                      ]
+                                  )
+                                  
+                                  if isinstance(response, str):
+                                    raw_content = response
+                                  elif hasattr(response, 'choices') and response.choices:
+                                    raw_content = response.choices[0].message.content
+                                  else:
+                                    raw_content = str(response)
+
+                                  cleaned_code = raw_content.lower().strip()
+                                  if "<html" in cleaned_check or "<a href=" in cleaned_check or "<!doctype" in cleaned_check or "next/static" in cleaned_check:
+                                      print(f"  ⚠️ Model {current_model} was blocked by an OpenRouter server HTML error page. Switching model...")
+                                      time.sleep(5) # Upgraded switch buffer to 5 seconds
+                                      continue
+                                  
+                                  cleaned_code = re.sub(r'^```(?:csharp)?\n', '', raw_content, flags=re.IGNORECASE)
+                                  cleaned_code = re.sub(r'\n```$', '', cleaned_code).strip()
                               
-                      except Exception as e:
-                          print(f"  ⚠️ Issue with {current_model}: {e}. Retrying model fallback...")
-                          time.sleep(2)
+                                  if len(cleaned_code) > 10:
+                                    fixed_file_content = cleaned_code
+                                    break 
+                                      
+                              except Exception as e:
+                                  print(f"  ⚠️ Connection issue with {current_model}: {e}. Trying fallback...")
+                                  time.sleep(5) # Upgraded switch buffer to 5 seconds
 
-                  if fixed_line:
-                      lines[target_idx] = fixed_line + "\n"
-                      file_was_patched = True
-                      time.sleep(2)
-                  else:
-                      print(f"❌ Failed to patch line {line_num}")
+                          if fixed_file_content :
+                              lines[start_idx:end_idx] = [fixed_file_content  + "\n"]
+                              with open(uri, "w") as f_code_w:
+                                  f_code_w.writelines(lines)
+                              
+                              print(f"✅ Successfully patched: {uri}")
+                              fixed_count += 1
+                              time.sleep(10) # UPGRADED: Increased cool down to 10 seconds between files
+                          else:
+                              print(f"❌ Failed to patch {uri} because all OpenRouter free models were heavily overloaded.")
 
-              if file_was_patched:
-                  with open(uri, "w") as f_code_w:
-                      f_code_w.writelines(lines)
-                  print(f"✅ Successfully completed all clean updates for: {uri}")
-                  fixed_count += 1
-
-          print(f"Code repair cycle completed. Total files safely updated: {fixed_count}")
+          print(f"Code repair cycle completed. Total files safely patched: {fixed_count}")
           EOF
           python fix_code.py
           rm fix_code.py
@@ -192,9 +191,9 @@ jobs:
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "style: resolve static security vulnerabilities via Groq AI"
-          title: "🤖 Automated Groq Security Patch"
-          body: "This PR automatically fixes static analysis alerts generated by the Semgrep security runner pipeline using Groq Cloud Models according to repository guidelines."
-          branch: groq-ai-patches
+          commit-message: "style: resolve static security vulnerabilities via OpenRouter AI"
+          title: "🤖 Automated OpenRouter Security Patch"
+          body: "This PR automatically fixes static analysis alerts generated by the Semgrep security runner pipeline according to your structural repository guidelines."
+          branch: openrouter-ai-patches
           base: 'master'
           delete-branch: true
