@@ -616,7 +616,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                 if (cmap.TryGetValue("BoundingVerts", out OSD odata))
                 {
                     data = odata.AsBinary();
-                    if (data.Length < 3 * 6)
+                    if (data.Length < 6 || (data.Length % 6) != 0)
                     {
                         vs.Clear();
                         return false;
@@ -626,7 +626,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                     {
                         byte* end = ptrstart + data.Length;
                         byte* ptr = ptrstart;
-                        while(ptr < end)
+                        while (ptr + 6 <= end)
                         {
                             t1 = Utils.BytesToUInt16(ptr); ptr += 2;
                             t2 = Utils.BytesToUInt16(ptr); ptr += 2;
