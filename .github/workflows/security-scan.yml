@@ -155,7 +155,7 @@ jobs:
                                     raw_content = str(response)
 
                                   cleaned_code = raw_content.lower().strip()
-                                  if "<html" in cleaned_check or "<a href=" in cleaned_check or "<!doctype" in cleaned_check or "next/static" in cleaned_check:
+                                  if "<html" in cleaned_code or "<a href=" in cleaned_code or "<!doctype" in cleaned_code or "next/static" in cleaned_code:
                                       print(f"  ⚠️ Model {current_model} was blocked by an OpenRouter server HTML error page. Switching model...")
                                       time.sleep(5) # Upgraded switch buffer to 5 seconds
                                       continue
