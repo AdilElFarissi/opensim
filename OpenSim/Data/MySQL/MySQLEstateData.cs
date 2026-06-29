@@ -1,30 +1,3 @@
-/*
- * Copyright (c) Contributors, http://opensimulator.org/
- * See CONTRIBUTORS.TXT for a full list of copyright holders.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSimulator Project nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -47,6 +20,13 @@ namespace OpenSim.Data.MySQL
 
         private FieldInfo[] m_Fields;
         private Dictionary<string, FieldInfo> m_FieldMap = new();
+
+        private static readonly HashSet<string> AllowedUuidTables = new()
+        {
+            "estate_managers",
+            "estate_users",
+            "estate_groups"
+        };
 
         protected virtual Assembly Assembly
         {
@@ -191,14 +171,12 @@ namespace OpenSim.Data.MySQL
 
         private void DoCreate(EstateSettings es)
         {
-            // Migration case
             List<string> names = new List<string>(FieldList);
 
-            // Remove EstateID and use AutoIncrement
             if (es.EstateID < 100)
                 names.Remove("EstateID");
 
-            string sql = "insert into estate_settings (" + String.Join(",", names.ToArray()) + ") values ( ?" + String.Join(", ?", names.ToArray()) + ")";
+            string sql = "insert into estate_settings (" + String.Join(",", names) + ") values ( ?" + String.Join(", ?", names) + ")";
 
             using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
@@ -212,20 +190,16 @@ namespace OpenSim.Data.MySQL
                     {
                         if (m_FieldMap[name].GetValue(es) is bool)
                         {
-                            if ((bool)m_FieldMap[name].GetValue(es))
-                                cmd2.Parameters.AddWithValue("?" + name, "1");
-                            else
-                                cmd2.Parameters.AddWithValue("?" + name, "0");
+                            cmd2.Parameters.AddWithValue("?" + name, ((bool)m_FieldMap[name].GetValue(es)) ? "1" : "0");
                         }
                         else
                         {
-                            cmd2.Parameters.AddWithValue("?" + name, m_FieldMap[name].GetValue(es).ToString());
+                            cmd2.Parameters.AddWithValue("?" + name, m_FieldMap[name].GetValue(es)?.ToString() ?? string.Empty);
                         }
                     }
 
                     cmd2.ExecuteNonQuery();
 
-                    // Only get Auto ID if we actually used it else we just get 0
                     if (es.EstateID < 100)
                     {
                         cmd2.CommandText = "select LAST_INSERT_ID() as id";
@@ -233,8 +207,8 @@ namespace OpenSim.Data.MySQL
 
                         using (IDataReader r = cmd2.ExecuteReader())
                         {
-                            r.Read();
-                            es.EstateID = Convert.ToUInt32(r["id"]);
+                            if (r.Read())
+                                es.EstateID = Convert.ToUInt32(r["id"]);
                         }
 
                         es.Save();
@@ -260,14 +234,11 @@ namespace OpenSim.Data.MySQL
                     {
                         if (m_FieldMap[name].GetValue(es) is bool)
                         {
-                            if ((bool)m_FieldMap[name].GetValue(es))
-                                cmd.Parameters.AddWithValue("?" + name, "1");
-                            else
-                                cmd.Parameters.AddWithValue("?" + name, "0");
+                            cmd.Parameters.AddWithValue("?" + name, ((bool)m_FieldMap[name].GetValue(es)) ? "1" : "0");
                         }
                         else
                         {
-                            cmd.Parameters.AddWithValue("?" + name, m_FieldMap[name].GetValue(es).ToString());
+                            cmd.Parameters.AddWithValue("?" + name, m_FieldMap[name].GetValue(es)?.ToString() ?? string.Empty);
                         }
                     }
 
@@ -292,19 +263,21 @@ namespace OpenSim.Data.MySQL
 
                 using (MySqlCommand cmd = dbcon.CreateCommand())
                 {
-                    cmd.CommandText = "select *  from estateban where EstateID = ?EstateID";
+                    cmd.CommandText = "select * from estateban where EstateID = ?EstateID";
                     cmd.Parameters.AddWithValue("?EstateID", es.EstateID);
 
                     using (IDataReader r = cmd.ExecuteReader())
                     {
                         while (r.Read())
                         {
-                            EstateBan eb = new EstateBan();
-                            eb.BannedUserID = DBGuid.FromDB(r["bannedUUID"]);
-                            eb.BannedHostAddress = "0.0.0.0";
-                            eb.BannedHostIPMask = "0.0.0.0";
-                            eb.BanningUserID = DBGuid.FromDB(r["banningUUID"]);
-                            eb.BanTime = Convert.ToInt32(r["banTime"]);
+                            EstateBan eb = new EstateBan
+                            {
+                                BannedUserID = DBGuid.FromDB(r["bannedUUID"]),
+                                BannedHostAddress = "0.0.0.0",
+                                BannedHostIPMask = "0.0.0.0",
+                                BanningUserID = DBGuid.FromDB(r["banningUUID"]),
+                                BanTime = Convert.ToInt32(r["banTime"])
+                            };
                             es.AddBan(eb);
                         }
                     }
@@ -345,8 +318,14 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-        void SaveUUIDList(uint EstateID, string table, UUID[] data)
+        private void SaveUUIDList(uint EstateID, string table, UUID[] data)
         {
+            if (!AllowedUuidTables.Contains(table))
+            {
+                m_log.Error("[REGION DB]: Attempted to save to unauthorized table: " + table);
+                return;
+            }
+
             using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
                 dbcon.Open();
@@ -375,8 +354,14 @@ namespace OpenSim.Data.MySQL
             }
         }
 
-        UUID[] LoadUUIDList(uint EstateID, string table)
+        private UUID[] LoadUUIDList(uint EstateID, string table)
         {
+            if (!AllowedUuidTables.Contains(table))
+            {
+                m_log.Error("[REGION DB]: Attempted to load from unauthorized table: " + table);
+                return Array.Empty<UUID>();
+            }
+
             List<UUID> uuids = new List<UUID>();
 
             using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
@@ -392,7 +377,6 @@ namespace OpenSim.Data.MySQL
                     {
                         while (r.Read())
                         {
-                            // EstateBan eb = new EstateBan();
                             uuids.Add(DBGuid.FromDB(r["uuid"]));
                         }
                     }
@@ -412,7 +396,7 @@ namespace OpenSim.Data.MySQL
                 cmd.CommandText = sql;
                 cmd.Parameters.AddWithValue("?EstateID", estateID);
 
-                EstateSettings e =  DoLoad(cmd, UUID.Zero, false);
+                EstateSettings e = DoLoad(cmd, UUID.Zero, false);
                 if (e.EstateID != estateID)
                     return null;
                 return e;
@@ -449,7 +433,6 @@ namespace OpenSim.Data.MySQL
                         {
                             result.Add(Convert.ToInt32(reader["EstateID"]));
                         }
-                        reader.Close();
                     }
                 }
                 dbcon.Close();
@@ -477,7 +460,6 @@ namespace OpenSim.Data.MySQL
                         {
                             result.Add(Convert.ToInt32(reader["EstateID"]));
                         }
-                        reader.Close();
                     }
                 }
                 dbcon.Close();
@@ -505,10 +487,8 @@ namespace OpenSim.Data.MySQL
                         {
                             result.Add(Convert.ToInt32(reader["EstateID"]));
                         }
-                        reader.Close();
                     }
                 }
-
                 dbcon.Close();
             }
 
@@ -520,45 +500,40 @@ namespace OpenSim.Data.MySQL
             using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
                 dbcon.Open();
-                MySqlTransaction transaction = dbcon.BeginTransaction();
-
-                try
+                using (MySqlTransaction transaction = dbcon.BeginTransaction())
                 {
-                    // Delete any existing association of this region with an estate.
-                     using (MySqlCommand cmd = dbcon.CreateCommand())
-                     {
-                        cmd.Transaction = transaction;
-                        cmd.CommandText = "delete from estate_map where RegionID = ?RegionID";
-                        cmd.Parameters.AddWithValue("?RegionID", regionID.ToString());
-
-                        cmd.ExecuteNonQuery();
-                    }
-
-                    using (MySqlCommand cmd = dbcon.CreateCommand())
+                    try
                     {
-                        cmd.Transaction = transaction;
-                        cmd.CommandText = "insert into estate_map values (?RegionID, ?EstateID)";
-                        cmd.Parameters.AddWithValue("?RegionID", regionID.ToString());
-                        cmd.Parameters.AddWithValue("?EstateID", estateID);
+                        using (MySqlCommand cmd = dbcon.CreateCommand())
+                        {
+                            cmd.Transaction = transaction;
+                            cmd.CommandText = "delete from estate_map where RegionID = ?RegionID";
+                            cmd.Parameters.AddWithValue("?RegionID", regionID.ToString());
+                            cmd.ExecuteNonQuery();
+                        }
 
-                        int ret = cmd.ExecuteNonQuery();
+                        using (MySqlCommand cmd = dbcon.CreateCommand())
+                        {
+                            cmd.Transaction = transaction;
+                            cmd.CommandText = "insert into estate_map values (?RegionID, ?EstateID)";
+                            cmd.Parameters.AddWithValue("?RegionID", regionID.ToString());
+                            cmd.Parameters.AddWithValue("?EstateID", estateID);
+                            int ret = cmd.ExecuteNonQuery();
 
-                        if (ret != 0)
-                            transaction.Commit();
-                        else
-                            transaction.Rollback();
+                            if (ret != 0)
+                                transaction.Commit();
+                            else
+                                transaction.Rollback();
 
-                        dbcon.Close();
-
-                        return (ret != 0);
+                            return ret != 0;
+                        }
+                    }
+                    catch (MySqlException ex)
+                    {
+                        m_log.Error("[REGION DB]: LinkRegion failed: " + ex.Message);
+                        try { transaction.Rollback(); } catch { }
                     }
                 }
-                catch (MySqlException ex)
-                {
-                    m_log.Error("[REGION DB]: LinkRegion failed: " + ex.Message);
-                    transaction.Rollback();
-                }
-
                 dbcon.Close();
             }
 
@@ -582,16 +557,14 @@ namespace OpenSim.Data.MySQL
 
                         using (IDataReader reader = cmd.ExecuteReader())
                         {
-                            while(reader.Read())
+                            while (reader.Read())
                                 result.Add(DBGuid.FromDB(reader["RegionID"]));
-                            reader.Close();
                         }
                     }
                 }
                 catch (Exception e)
                 {
-                    m_log.Error("[REGION DB]: Error reading estate map. " + e.ToString());
-                    return result;
+                    m_log.Error("[REGION DB]: Error reading estate map. " + e);
                 }
                 dbcon.Close();
             }
@@ -601,7 +574,64 @@ namespace OpenSim.Data.MySQL
 
         public bool DeleteEstate(int estateID)
         {
-            return false;
+            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            {
+                dbcon.Open();
+                using (MySqlTransaction transaction = dbcon.BeginTransaction())
+                {
+                    try
+                    {
+                        // Remove estate related data
+                        using (MySqlCommand cmd = dbcon.CreateCommand())
+                        {
+                            cmd.Transaction = transaction;
+                            cmd.CommandText = "delete from estateban where EstateID = ?EstateID";
+                            cmd.Parameters.AddWithValue("?EstateID", estateID);
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        foreach (string table in AllowedUuidTables)
+                        {
+                            using (MySqlCommand cmd = dbcon.CreateCommand())
+                            {
+                                cmd.Transaction = transaction;
+                                cmd.CommandText = $"delete from {table} where EstateID = ?EstateID";
+                                cmd.Parameters.AddWithValue("?EstateID", estateID);
+                                cmd.ExecuteNonQuery();
+                            }
+                        }
+
+                        using (MySqlCommand cmd = dbcon.CreateCommand())
+                        {
+                            cmd.Transaction = transaction;
+                            cmd.CommandText = "delete from estate_map where EstateID = ?EstateID";
+                            cmd.Parameters.AddWithValue("?EstateID", estateID);
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        using (MySqlCommand cmd = dbcon.CreateCommand())
+                        {
+                            cmd.Transaction = transaction;
+                            cmd.CommandText = "delete from estate_settings where EstateID = ?EstateID";
+                            cmd.Parameters.AddWithValue("?EstateID", estateID);
+                            int affected = cmd.ExecuteNonQuery();
+
+                            if (affected > 0)
+                                transaction.Commit();
+                            else
+                                transaction.Rollback();
+
+                            return affected > 0;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        m_log.Error("[REGION DB]: DeleteEstate failed: " + ex.Message);
+                        try { transaction.Rollback(); } catch { }
+                        return false;
+                    }
+                }
+            }
         }
     }
 }

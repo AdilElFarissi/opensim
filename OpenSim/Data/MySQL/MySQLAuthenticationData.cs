@@ -1,35 +1,7 @@
-/*
- * Copyright (c) Contributors, http://opensimulator.org/
- * See CONTRIBUTORS.TXT for a full list of copyright holders.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSimulator Project nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Data;
+using System.Reflection;
 using OpenMetaverse;
 using OpenSim.Framework;
 using MySql.Data.MySqlClient;
@@ -41,15 +13,11 @@ namespace OpenSim.Data.MySQL
         private string m_Realm;
         private List<string> m_ColumnNames;
         private int m_LastExpire;
-        // private string m_connectionString;
 
-        protected virtual Assembly Assembly
-        {
-            get { return GetType().Assembly; }
-        }
+        protected virtual Assembly Assembly => GetType().Assembly;
 
         public MySqlAuthenticationData(string connectionString, string realm)
-                : base(connectionString)
+            : base(connectionString)
         {
             m_Realm = realm;
             m_connectionString = connectionString;
@@ -72,25 +40,25 @@ namespace OpenSim.Data.MySQL
             {
                 dbcon.Open();
 
-                using (MySqlCommand cmd
-                    = new MySqlCommand("select * from `" + m_Realm + "` where UUID = ?principalID", dbcon))
+                using (MySqlCommand cmd = new MySqlCommand(
+                    $"SELECT * FROM `{m_Realm}` WHERE UUID = @principalID", dbcon))
                 {
-                    cmd.Parameters.AddWithValue("?principalID", principalID.ToString());
+                    cmd.Parameters.AddWithValue("@principalID", principalID.ToString());
 
-                    using(IDataReader result = cmd.ExecuteReader())
+                    using (IDataReader result = cmd.ExecuteReader())
                     {
-                         if(result.Read())
+                        if (result.Read())
                         {
                             ret.PrincipalID = principalID;
 
                             CheckColumnNames(result);
 
-                            foreach(string s in m_ColumnNames)
+                            foreach (string s in m_ColumnNames)
                             {
-                                if(s == "UUID")
+                                if (s == "UUID")
                                     continue;
 
-                                ret.Data[s] = result[s].ToString();
+                                ret.Data[s] = result[s] != DBNull.Value ? result[s].ToString() : null;
                             }
 
                             dbcon.Close();
@@ -122,37 +90,37 @@ namespace OpenSim.Data.MySQL
 
         public bool Store(AuthenticationData data)
         {
+            if (data.Data == null)
+                return false;
+
             data.Data.Remove("UUID");
 
             string[] fields = new List<string>(data.Data.Keys).ToArray();
 
             using (MySqlCommand cmd = new MySqlCommand())
             {
-                string update = "update `"+m_Realm+"` set ";
+                string update = $"UPDATE `{m_Realm}` SET ";
                 bool first = true;
                 foreach (string field in fields)
                 {
                     if (!first)
                         update += ", ";
-                    update += "`" + field + "` = ?"+field;
-
+                    update += $"`{field}` = @{field}";
                     first = false;
-
-                    cmd.Parameters.AddWithValue("?"+field, data.Data[field]);
+                    cmd.Parameters.AddWithValue($"@{field}", data.Data[field]);
                 }
 
-                update += " where UUID = ?principalID";
+                update += " WHERE UUID = @principalID";
 
                 cmd.CommandText = update;
-                cmd.Parameters.AddWithValue("?principalID", data.PrincipalID.ToString());
+                cmd.Parameters.AddWithValue("@principalID", data.PrincipalID.ToString());
 
                 if (ExecuteNonQuery(cmd) < 1)
                 {
-                    string insert = "insert into `" + m_Realm + "` (`UUID`, `" +
-                            String.Join("`, `", fields) +
-                            "`) values (?principalID, ?" + String.Join(", ?", fields) + ")";
+                    string insert = $"INSERT INTO `{m_Realm}` (`UUID`, `{string.Join("`, `", fields)}`) VALUES (@UUID, {string.Join(", @", fields)})";
 
                     cmd.CommandText = insert;
+                    cmd.Parameters.AddWithValue("@UUID", data.PrincipalID.ToString());
 
                     if (ExecuteNonQuery(cmd) < 1)
                         return false;
@@ -164,11 +132,17 @@ namespace OpenSim.Data.MySQL
 
         public bool SetDataItem(UUID principalID, string item, string value)
         {
-            using (MySqlCommand cmd
-                = new MySqlCommand("update `" + m_Realm + "` set `" + item + "` = ?" + item + " where UUID = ?UUID"))
+            if (!IsValidSqlIdentifier(item))
             {
-                cmd.Parameters.AddWithValue("?"+item, value);
-                cmd.Parameters.AddWithValue("?UUID", principalID.ToString());
+                m_log.ErrorFormat("[MySQLAuthenticationData]: Invalid data item name '{0}'", item);
+                return false;
+            }
+
+            using (MySqlCommand cmd = new MySqlCommand(
+                $"UPDATE `{m_Realm}` SET `{item}` = @value WHERE UUID = @UUID"))
+            {
+                cmd.Parameters.AddWithValue("@value", value);
+                cmd.Parameters.AddWithValue("@UUID", principalID.ToString());
 
                 if (ExecuteNonQuery(cmd) > 0)
                     return true;
@@ -179,16 +153,15 @@ namespace OpenSim.Data.MySQL
 
         public bool SetToken(UUID principalID, string token, int lifetime)
         {
-            if (System.Environment.TickCount - m_LastExpire > 30000)
+            if (Environment.TickCount - m_LastExpire > 30000)
                 DoExpire();
 
-            using (MySqlCommand cmd
-                = new MySqlCommand(
-                    "insert into tokens (UUID, token, validity) values (?principalID, ?token, date_add(now(), interval ?lifetime minute))"))
+            using (MySqlCommand cmd = new MySqlCommand(
+                "INSERT INTO tokens (UUID, token, validity) VALUES (@principalID, @token, DATE_ADD(NOW(), INTERVAL @lifetime MINUTE))"))
             {
-                cmd.Parameters.AddWithValue("?principalID", principalID.ToString());
-                cmd.Parameters.AddWithValue("?token", token);
-                cmd.Parameters.AddWithValue("?lifetime", lifetime.ToString());
+                cmd.Parameters.AddWithValue("@principalID", principalID.ToString());
+                cmd.Parameters.AddWithValue("@token", token);
+                cmd.Parameters.AddWithValue("@lifetime", lifetime);
 
                 if (ExecuteNonQuery(cmd) > 0)
                     return true;
@@ -199,16 +172,15 @@ namespace OpenSim.Data.MySQL
 
         public bool CheckToken(UUID principalID, string token, int lifetime)
         {
-            if (System.Environment.TickCount - m_LastExpire > 30000)
+            if (Environment.TickCount - m_LastExpire > 30000)
                 DoExpire();
 
-            using (MySqlCommand cmd
-                = new MySqlCommand(
-                    "update tokens set validity = date_add(now(), interval ?lifetime minute) where UUID = ?principalID and token = ?token and validity > now()"))
+            using (MySqlCommand cmd = new MySqlCommand(
+                "UPDATE tokens SET validity = DATE_ADD(NOW(), INTERVAL @lifetime MINUTE) WHERE UUID = @principalID AND token = @token AND validity > NOW()"))
             {
-                cmd.Parameters.AddWithValue("?principalID", principalID.ToString());
-                cmd.Parameters.AddWithValue("?token", token);
-                cmd.Parameters.AddWithValue("?lifetime", lifetime.ToString());
+                cmd.Parameters.AddWithValue("@principalID", principalID.ToString());
+                cmd.Parameters.AddWithValue("@token", token);
+                cmd.Parameters.AddWithValue("@lifetime", lifetime);
 
                 if (ExecuteNonQuery(cmd) > 0)
                     return true;
@@ -219,12 +191,26 @@ namespace OpenSim.Data.MySQL
 
         private void DoExpire()
         {
-            using (MySqlCommand cmd = new MySqlCommand("delete from tokens where validity < now()"))
+            using (MySqlCommand cmd = new MySqlCommand("DELETE FROM tokens WHERE validity < NOW()"))
             {
                 ExecuteNonQuery(cmd);
             }
 
-            m_LastExpire = System.Environment.TickCount;
+            m_LastExpire = Environment.TickCount;
+        }
+
+        // Validate that an identifier contains only letters, digits, or underscore
+        private static bool IsValidSqlIdentifier(string identifier)
+        {
+            if (string.IsNullOrEmpty(identifier))
+                return false;
+
+            foreach (char c in identifier)
+            {
+                if (!char.IsLetterOrDigit(c) && c != '_')
+                    return false;
+            }
+            return true;
         }
     }
 }

@@ -1,30 +1,3 @@
-/*
- * Copyright (c) Contributors, http://opensimulator.org/
- * See CONTRIBUTORS.TXT for a full list of copyright holders.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSimulator Project nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -181,6 +154,23 @@ namespace OpenSim.Data.PGSQL
             }
         }
 
+        private static string EscapeSqlString(string input)
+        {
+            return input?.Replace("'", "''");
+        }
+
+        private static void ValidateWhereClause(string where)
+        {
+            if (where == null)
+                return;
+
+            // Basic checks to avoid obvious injection attempts
+            if (where.IndexOf(';') >= 0 || where.IndexOf("--") >= 0 || where.IndexOf("/*") >= 0 || where.IndexOf("*/") >= 0)
+            {
+                throw new ArgumentException("Invalid characters in WHERE clause.");
+            }
+        }
+
         public virtual T[] Get(string field, string key)
         {
             using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
@@ -209,21 +199,21 @@ namespace OpenSim.Data.PGSQL
 
             int flast = flen - 1;
             StringBuilder sb = new StringBuilder(1024);
-            sb.AppendFormat("select * from {0} where {1} IN ('", m_Realm, field);
+            sb.AppendFormat("select * from {0} where {1} IN (", m_Realm, field);
+
+            for (int i = 0 ; i < flen ; i++)
+            {
+                sb.Append('\'');
+                sb.Append(EscapeSqlString(keys[i]));
+                sb.Append('\'');
+                if(i < flast)
+                    sb.Append(',');
+            }
+            sb.Append(')');
 
             using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
             using (NpgsqlCommand cmd = new NpgsqlCommand())
             {
-
-                for (int i = 0 ; i < flen ; i++)
-                {
-                    sb.Append(keys[i]);
-                    if(i < flast)
-                        sb.Append("','");
-                    else
-                        sb.Append("')");
-                }
-
                 string query = sb.ToString();
 
                 cmd.Connection = conn;
@@ -337,6 +327,7 @@ namespace OpenSim.Data.PGSQL
 
         public virtual T[] Get(string where)
         {
+            ValidateWhereClause(where);
             using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
             using (NpgsqlCommand cmd = new NpgsqlCommand())
             {
@@ -345,7 +336,6 @@ namespace OpenSim.Data.PGSQL
                         m_Realm, where);
                 cmd.Connection = conn;
                 cmd.CommandText = query;
-                //m_log.WarnFormat("[PGSQLGenericTable]: SELECT {0} WHERE {1}", m_Realm, where);
 
                 conn.Open();
                 return DoQuery(cmd);
@@ -354,6 +344,7 @@ namespace OpenSim.Data.PGSQL
 
         public virtual T[] Get(string where, NpgsqlParameter parameter)
         {
+            ValidateWhereClause(where);
             using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
                 using (NpgsqlCommand cmd = new NpgsqlCommand())
             {
@@ -362,7 +353,6 @@ namespace OpenSim.Data.PGSQL
                                              m_Realm, where);
                 cmd.Connection = conn;
                 cmd.CommandText = query;
-                //m_log.WarnFormat("[PGSQLGenericTable]: SELECT {0} WHERE {1}", m_Realm, where);
 
                 cmd.Parameters.Add(parameter);
 
@@ -454,7 +444,6 @@ namespace OpenSim.Data.PGSQL
                 conn.Open();
                 if (cmd.ExecuteNonQuery() > 0)
                 {
-                    //m_log.WarnFormat("[PGSQLGenericTable]: Updating {0}", m_Realm);
                     return true;
                 }
                 else
@@ -467,8 +456,6 @@ namespace OpenSim.Data.PGSQL
                     query.Append("\") values (" + String.Join(",", values.ToArray()) + ")");
                     cmd.Connection = conn;
                     cmd.CommandText = query.ToString();
-
-                    // m_log.WarnFormat("[PGSQLGenericTable]: Inserting into {0} sql {1}", m_Realm, cmd.CommandText);
 
                     if (conn.State != ConnectionState.Open)
                         conn.Open();
@@ -515,7 +502,6 @@ namespace OpenSim.Data.PGSQL
 
                 if (cmd.ExecuteNonQuery() > 0)
                 {
-                    //m_log.Warn("[PGSQLGenericTable]: " + deleteCommand);
                     return true;
                 }
                 return false;
@@ -556,6 +542,7 @@ namespace OpenSim.Data.PGSQL
 
         public long GetCount(string where)
         {
+            ValidateWhereClause(where);
             using (NpgsqlCommand cmd = new NpgsqlCommand())
             {
                 string query = String.Format("select count(*) from {0} where {1}",

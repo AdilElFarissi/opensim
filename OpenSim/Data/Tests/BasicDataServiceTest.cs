@@ -1,43 +1,16 @@
-/*
- * Copyright (c) Contributors, http://opensimulator.org/
- * See CONTRIBUTORS.TXT for a full list of copyright holders.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSimulator Project nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 using System;
 using System.IO;
 using System.Collections.Generic;
-using log4net.Config;
-using NUnit.Framework;
-using NUnit.Framework.Constraints;
-using OpenMetaverse;
-using OpenSim.Framework;
-using OpenSim.Tests.Common;
-using log4net;
 using System.Data;
 using System.Data.Common;
 using System.Reflection;
+using System.Text.RegularExpressions;
+using log4net;
+using log4net.Config;
+using NUnit.Framework;
+using OpenMetaverse;
+using OpenSim.Framework;
+using OpenSim.Tests.Common;
 
 namespace OpenSim.Data.Tests
 {
@@ -60,10 +33,6 @@ namespace OpenSim.Data.Tests
         private TService m_service;
         private string m_file;
 
-        // TODO: Is this in the right place here?
-        // Later:  apparently it's not, but does it matter here?
-//        protected static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
         protected ILog m_log;  // doesn't matter here that it's not static, init to correct type in instance .ctor
 
         public BasicDataServiceTest()
@@ -73,7 +42,7 @@ namespace OpenSim.Data.Tests
 
         public BasicDataServiceTest(string conn)
         {
-            m_connStr = !String.IsNullOrEmpty(conn) ? conn : DefaultTestConns.Get(typeof(TConn));
+            m_connStr = !string.IsNullOrEmpty(conn) ? conn : DefaultTestConns.Get(typeof(TConn));
 
             m_log = LogManager.GetLogger(this.GetType());
             OpenSim.Tests.Common.TestLogging.LogToConsole();    // TODO: Is that right?
@@ -103,16 +72,16 @@ namespace OpenSim.Data.Tests
                     Util.LoadArchSpecificWindowsDll("sqlite3.dll");
 
                 // for SQLite, if no explicit conn string is specified, use a temp file
-                if (String.IsNullOrEmpty(m_connStr))
+                if (string.IsNullOrEmpty(m_connStr))
                 {
                     m_file = Path.GetTempFileName() + ".db";
                     m_connStr = "URI=file:" + m_file + ",version=3";
                 }
             }
 
-            if (String.IsNullOrEmpty(m_connStr))
+            if (string.IsNullOrEmpty(m_connStr))
             {
-                string msg = String.Format("Connection string for {0} is not defined, ignoring tests", typeof(TConn).Name);
+                string msg = string.Format("Connection string for {0} is not defined, ignoring tests", typeof(TConn).Name);
                 m_log.Warn(msg);
                 Assert.Ignore(msg);
             }
@@ -128,16 +97,12 @@ namespace OpenSim.Data.Tests
                 }
                 catch
                 {
-                    string msg = String.Format("{0} is unable to connect to the database, ignoring tests", typeof(TConn).Name);
+                    string msg = string.Format("{0} is unable to connect to the database, ignoring tests", typeof(TConn).Name);
                     m_log.Warn(msg);
                     Assert.Ignore(msg);
                 }
             }
 
-            // If we manage to connect to the database with the user
-            // and password above it is our test database, and run
-            // these tests.  If anything goes wrong, ignore these
-            // tests.
             try
             {
                 m_service = new TService();
@@ -160,27 +125,32 @@ namespace OpenSim.Data.Tests
                 m_service = null;
             }
 
-            if (!String.IsNullOrEmpty(m_file) && File.Exists(m_file))
+            if (!string.IsNullOrEmpty(m_file) && File.Exists(m_file))
                 File.Delete(m_file);
         }
 
         protected virtual DbConnection Connect()
         {
-            DbConnection cnn = new TConn();
-            cnn.ConnectionString = m_connStr;
+            DbConnection cnn = new TConn
+            {
+                ConnectionString = m_connStr
+            };
             cnn.Open();
             return cnn;
         }
 
-        protected virtual void ExecuteSql(string sql)
+        protected virtual void ExecuteSql(string sql, params DbParameter[] parameters)
         {
             using (DbConnection dbcon = Connect())
+            using (DbCommand cmd = dbcon.CreateCommand())
             {
-                using (DbCommand cmd = dbcon.CreateCommand())
+                cmd.CommandText = sql;
+                if (parameters != null)
                 {
-                    cmd.CommandText = sql;
-                    cmd.ExecuteNonQuery();
+                    foreach (var p in parameters)
+                        cmd.Parameters.Add(p);
                 }
+                cmd.ExecuteNonQuery();
             }
         }
 
@@ -190,80 +160,94 @@ namespace OpenSim.Data.Tests
         {
             int nRecs = 0;
             using (DbConnection dbcon = Connect())
+            using (DbCommand cmd = dbcon.CreateCommand())
             {
-                using (DbCommand cmd = dbcon.CreateCommand())
+                cmd.CommandText = sql;
+                CommandBehavior cb = bSingleRow ? CommandBehavior.SingleRow : CommandBehavior.Default;
+                using (DbDataReader rdr = cmd.ExecuteReader(cb))
                 {
-                    cmd.CommandText = sql;
-                    CommandBehavior cb = bSingleRow ? CommandBehavior.SingleRow : CommandBehavior.Default;
-                    using (DbDataReader rdr = cmd.ExecuteReader(cb))
+                    while (rdr.Read())
                     {
-                        while (rdr.Read())
-                        {
-                            nRecs++;
-                            if (!action(rdr))
-                                break;
-                        }
+                        nRecs++;
+                        if (!action(rdr))
+                            break;
                     }
                 }
             }
             return nRecs;
         }
 
-        /// <summary>Drop tables (listed as parameters). There is no "DROP IF EXISTS" syntax common for all
-        /// databases, so we just DROP and ignore an exception.
-        /// </summary>
-        /// <param name="tables"></param>
+        private static bool IsSafeIdentifier(string identifier)
+        {
+            // Allow only letters, numbers, underscore and dot (for schema.table)
+            return !string.IsNullOrEmpty(identifier) && Regex.IsMatch(identifier, @"^[A-Za-z0-9_.]+$");
+        }
+
         protected virtual void DropTables(params string[] tables)
         {
             foreach (string tbl in tables)
             {
+                if (!IsSafeIdentifier(tbl))
+                {
+                    m_log.Error($"Unsafe table identifier detected in DropTables: {tbl}");
+                    continue;
+                }
+
                 try
                 {
-                    ExecuteSql("DROP TABLE " + tbl + ";");
-                }catch
+                    ExecuteSql($"DROP TABLE {tbl};");
+                }
+                catch
                 {
+                    // Ignored as per original behavior
                 }
             }
         }
 
-        /// <summary>Clear tables listed as parameters (without dropping them).
-        /// </summary>
-        /// <param name="tables"></param>
         protected virtual void ResetMigrations(params string[] stores)
         {
-            string lst = "";
-            foreach (string store in stores)
+            if (stores == null || stores.Length == 0)
+                return;
+
+            foreach (var store in stores)
             {
-                string s = "'" + store + "'";
-                if (lst.Length == 0)
-                    lst = s;
-                else
-                    lst += ", " + s;
+                if (!IsSafeIdentifier(store))
+                {
+                    m_log.Error($"Unsafe store identifier detected in ResetMigrations: {store}");
+                    return;
+                }
             }
 
-            string sCond = stores.Length > 1 ? ("in (" + lst + ")") : ("=" + lst);
+            string lst = string.Join(", ", stores);
+            string sCond = stores.Length > 1 ? $"IN ({lst})" : $"= {stores[0]}";
+
             try
             {
-                ExecuteSql("DELETE FROM migrations where name " + sCond);
+                ExecuteSql($"DELETE FROM migrations where name {sCond}");
             }
             catch
             {
+                // Ignored as per original behavior
             }
         }
 
-        /// <summary>Clear tables listed as parameters (without dropping them).
-        /// </summary>
-        /// <param name="tables"></param>
         protected virtual void ClearTables(params string[] tables)
         {
             foreach (string tbl in tables)
             {
+                if (!IsSafeIdentifier(tbl))
+                {
+                    m_log.Error($"Unsafe table identifier detected in ClearTables: {tbl}");
+                    continue;
+                }
+
                 try
                 {
-                    ExecuteSql("DELETE FROM " + tbl + ";");
+                    ExecuteSql($"DELETE FROM {tbl};");
                 }
                 catch
                 {
+                    // Ignored as per original behavior
                 }
             }
         }

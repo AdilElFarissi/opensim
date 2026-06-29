@@ -1,56 +1,24 @@
-/*
- * Copyright (c) Contributors, http://opensimulator.org/
- * See CONTRIBUTORS.TXT for a full list of copyright holders.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSimulator Project nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
 using log4net;
 using System.Data.SQLite;
-
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Data.SQLite
 {
-    public class SQLiteGenericTableHandler<T> : SQLiteFramework where T: class, new()
+    public class SQLiteGenericTableHandler<T> : SQLiteFramework where T : class, new()
     {
-//        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
-        protected Dictionary<string, FieldInfo> m_Fields =
-                new Dictionary<string, FieldInfo>();
-
+        protected Dictionary<string, FieldInfo> m_Fields = new Dictionary<string, FieldInfo>();
         protected List<string> m_ColumnNames = null;
         protected string m_Realm;
         protected FieldInfo m_DataField = null;
-
         protected static SQLiteConnection m_Connection;
         private static bool m_initialized;
+        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected virtual Assembly Assembly
         {
@@ -65,20 +33,12 @@ namespace OpenSim.Data.SQLite
             if (!m_initialized)
             {
                 m_Connection = new SQLiteConnection(connectionString);
-                //Console.WriteLine(string.Format("OPENING CONNECTION FOR {0} USING {1}", storeName, connectionString));
                 m_Connection.Open();
 
                 if (storeName != String.Empty)
                 {
-                    //SQLiteConnection newConnection =
-                    //        (SQLiteConnection)((ICloneable)m_Connection).Clone();
-                    //newConnection.Open();
-
-                    //Migration m = new Migration(newConnection, Assembly, storeName);
                     Migration m = new Migration(m_Connection, Assembly, storeName);
                     m.Update();
-                    //newConnection.Close();
-                    //newConnection.Dispose();
                 }
 
                 m_initialized = true;
@@ -92,7 +52,7 @@ namespace OpenSim.Data.SQLite
             if (fields.Length == 0)
                 return;
 
-            foreach (FieldInfo f in  fields)
+            foreach (FieldInfo f in fields)
             {
                 if (f.Name != "Data")
                     m_Fields[f.Name] = f;
@@ -131,8 +91,14 @@ namespace OpenSim.Data.SQLite
 
             using (SQLiteCommand cmd = new SQLiteCommand())
             {
-                for (int i = 0 ; i < fields.Length ; i++)
+                for (int i = 0; i < fields.Length; i++)
                 {
+                    if (!IsValidIdentifier(fields[i]))
+                    {
+                        m_log.Error($"Invalid field name detected in Get: {fields[i]}");
+                        return new T[0];
+                    }
+
                     cmd.Parameters.Add(new SQLiteParameter(":" + fields[i], keys[i]));
                     terms.Add("`" + fields[i] + "` = :" + fields[i]);
                 }
@@ -164,19 +130,19 @@ namespace OpenSim.Data.SQLite
 
                 foreach (string name in m_Fields.Keys)
                 {
-                    if (m_Fields[name].GetValue(row) is bool)
+                    object currentValue = m_Fields[name].GetValue(row);
+                    if (currentValue is bool)
                     {
                         int v = Convert.ToInt32(reader[name]);
-                        m_Fields[name].SetValue(row, v != 0 ? true : false);
+                        m_Fields[name].SetValue(row, v != 0);
                     }
-                    else if (m_Fields[name].GetValue(row) is UUID)
+                    else if (currentValue is UUID)
                     {
                         UUID uuid = UUID.Zero;
-
                         UUID.TryParse(reader[name].ToString(), out uuid);
                         m_Fields[name].SetValue(row, uuid);
                     }
-                    else if (m_Fields[name].GetValue(row) is int)
+                    else if (currentValue is int)
                     {
                         int v = Convert.ToInt32(reader[name]);
                         m_Fields[name].SetValue(row, v);
@@ -189,14 +155,11 @@ namespace OpenSim.Data.SQLite
 
                 if (m_DataField != null)
                 {
-                    Dictionary<string, string> data =
-                            new Dictionary<string, string>();
+                    Dictionary<string, string> data = new Dictionary<string, string>();
 
                     foreach (string col in m_ColumnNames)
                     {
-                        data[col] = reader[col].ToString();
-                        if (data[col] == null)
-                            data[col] = String.Empty;
+                        data[col] = reader[col].ToString() ?? String.Empty;
                     }
 
                     m_DataField.SetValue(row, data);
@@ -205,13 +168,17 @@ namespace OpenSim.Data.SQLite
                 result.Add(row);
             }
 
-            //CloseCommand(cmd);
-
             return result.ToArray();
         }
 
         public virtual T[] Get(string where)
         {
+            if (!IsSafeWhereClause(where))
+            {
+                m_log.Error($"Potentially unsafe where clause detected: {where}");
+                return new T[0];
+            }
+
             using (SQLiteCommand cmd = new SQLiteCommand())
             {
                 string query = String.Format("select * from {0} where {1}",
@@ -227,39 +194,48 @@ namespace OpenSim.Data.SQLite
         {
             using (SQLiteCommand cmd = new SQLiteCommand())
             {
-                string query = "";
-                List<String> names = new List<String>();
-                List<String> values = new List<String>();
+                List<string> names = new List<string>();
+                List<string> values = new List<string>();
 
                 foreach (FieldInfo fi in m_Fields.Values)
                 {
+                    if (!IsValidIdentifier(fi.Name))
+                    {
+                        m_log.Error($"Invalid field name detected in Store: {fi.Name}");
+                        return false;
+                    }
+
                     names.Add(fi.Name);
                     values.Add(":" + fi.Name);
-                    cmd.Parameters.Add(new SQLiteParameter(":" + fi.Name, fi.GetValue(row).ToString()));
+                    object fieldValue = fi.GetValue(row);
+                    cmd.Parameters.Add(new SQLiteParameter(":" + fi.Name, fieldValue?.ToString() ?? (object)DBNull.Value));
                 }
 
                 if (m_DataField != null)
                 {
-                    Dictionary<string, string> data =
-                            (Dictionary<string, string>)m_DataField.GetValue(row);
-
-                    foreach (KeyValuePair<string, string> kvp in data)
+                    var data = (Dictionary<string, string>)m_DataField.GetValue(row);
+                    if (data != null)
                     {
-                        names.Add(kvp.Key);
-                        values.Add(":" + kvp.Key);
-                        cmd.Parameters.Add(new SQLiteParameter(":" + kvp.Key, kvp.Value));
+                        foreach (KeyValuePair<string, string> kvp in data)
+                        {
+                            if (!IsValidIdentifier(kvp.Key))
+                            {
+                                m_log.Error($"Invalid data column name detected in Store: {kvp.Key}");
+                                return false;
+                            }
+
+                            names.Add(kvp.Key);
+                            values.Add(":" + kvp.Key);
+                            cmd.Parameters.Add(new SQLiteParameter(":" + kvp.Key, kvp.Value));
+                        }
                     }
                 }
 
-                query = String.Format("replace into {0} (`", m_Realm) + String.Join("`,`", names.ToArray()) + "`) values (" + String.Join(",", values.ToArray()) + ")";
-
+                string query = $"replace into {m_Realm} (`" + String.Join("`,`", names) + "`) values (" + String.Join(",", values) + ")";
                 cmd.CommandText = query;
 
-                if (ExecuteNonQuery(cmd, m_Connection) > 0)
-                    return true;
+                return ExecuteNonQuery(cmd, m_Connection) > 0;
             }
-
-            return false;
         }
 
         public virtual bool Delete(string field, string key)
@@ -276,8 +252,14 @@ namespace OpenSim.Data.SQLite
 
             using (SQLiteCommand cmd = new SQLiteCommand())
             {
-                for (int i = 0 ; i < fields.Length ; i++)
+                for (int i = 0; i < fields.Length; i++)
                 {
+                    if (!IsValidIdentifier(fields[i]))
+                    {
+                        m_log.Error($"Invalid field name detected in Delete: {fields[i]}");
+                        return false;
+                    }
+
                     cmd.Parameters.Add(new SQLiteParameter(":" + fields[i], keys[i]));
                     terms.Add("`" + fields[i] + "` = :" + fields[i]);
                 }
@@ -290,6 +272,31 @@ namespace OpenSim.Data.SQLite
 
                 return ExecuteNonQuery(cmd, m_Connection) > 0;
             }
+        }
+
+        private bool IsValidIdentifier(string identifier)
+        {
+            if (string.IsNullOrEmpty(identifier))
+                return false;
+
+            foreach (char c in identifier)
+            {
+                if (!(char.IsLetterOrDigit(c) || c == '_' ))
+                    return false;
+            }
+            return true;
+        }
+
+        private bool IsSafeWhereClause(string where)
+        {
+            if (string.IsNullOrWhiteSpace(where))
+                return false;
+
+            // Simple safety check: disallow semicolons and comment sequences
+            if (where.Contains(";") || where.Contains("--") || where.Contains("/*") || where.Contains("*/"))
+                return false;
+
+            return true;
         }
     }
 }

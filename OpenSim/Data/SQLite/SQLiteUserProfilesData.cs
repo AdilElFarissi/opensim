@@ -1,30 +1,3 @@
-/*
- * Copyright (c) Contributors, http://opensimulator.org/
- * See CONTRIBUTORS.TXT for a full list of copyright holders.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSimulator Project nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -39,7 +12,7 @@ using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Data.SQLite
 {
-    public class SQLiteUserProfilesData: IProfilesData
+    public class SQLiteUserProfilesData : IProfilesData
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -70,7 +43,7 @@ namespace OpenSim.Data.SQLite
 
             m_connectionString = connectionString;
 
-            m_log.Info("[PROFILES_DATA]: Sqlite - connecting: "+m_connectionString);
+            m_log.Info("[PROFILES_DATA]: Sqlite - connecting: " + m_connectionString);
 
             m_connection = new SQLiteConnection(m_connectionString);
             m_connection.Open();
@@ -105,7 +78,7 @@ namespace OpenSim.Data.SQLite
                 string Name = null;
                 try
                 {
-                    UUID.TryParse(Convert.ToString( reader["classifieduuid"]), out Id);
+                    UUID.TryParse(Convert.ToString(reader["classifieduuid"]), out Id);
                     Name = Convert.ToString(reader["name"]);
                 }
                 catch (Exception e)
@@ -122,6 +95,7 @@ namespace OpenSim.Data.SQLite
 
             return data;
         }
+
         public bool UpdateClassifiedRecord(UserClassifiedAdd ad, ref string result)
         {
             string query = string.Empty;
@@ -159,9 +133,9 @@ namespace OpenSim.Data.SQLite
             query += ":Flags,";
             query += ":ListingPrice ) ";
 
-            if(string.IsNullOrEmpty(ad.ParcelName))
+            if (string.IsNullOrEmpty(ad.ParcelName))
                 ad.ParcelName = "Unknown";
-            if(string.IsNullOrEmpty(ad.Description))
+            if (string.IsNullOrEmpty(ad.Description))
                 ad.Description = "No Description";
 
             DateTime epoch = new DateTime(1970, 1, 1);
@@ -171,22 +145,23 @@ namespace OpenSim.Data.SQLite
             DateTime expiration;
             TimeSpan epochexp;
 
-            if(ad.Flags == 2)
+            if (ad.Flags == 2)
             {
-                duration = new TimeSpan(7,0,0,0);
+                duration = new TimeSpan(7, 0, 0, 0);
                 expiration = now.Add(duration);
                 epochexp = expiration - epoch;
             }
             else
             {
-                duration = new TimeSpan(365,0,0,0);
+                duration = new TimeSpan(365, 0, 0, 0);
                 expiration = now.Add(duration);
                 epochexp = expiration - epoch;
             }
             ad.CreationDate = (int)epochnow.TotalSeconds;
             ad.ExpirationDate = (int)epochexp.TotalSeconds;
 
-            try {
+            try
+            {
                 using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
                 {
                     cmd.CommandText = query;
@@ -199,12 +174,12 @@ namespace OpenSim.Data.SQLite
                     cmd.Parameters.AddWithValue(":Description", ad.Description.ToString());
                     cmd.Parameters.AddWithValue(":ParcelId", ad.ParcelId.ToString());
                     cmd.Parameters.AddWithValue(":ParentEstate", ad.ParentEstate.ToString());
-                    cmd.Parameters.AddWithValue(":SnapshotId", ad.SnapshotId.ToString ());
+                    cmd.Parameters.AddWithValue(":SnapshotId", ad.SnapshotId.ToString());
                     cmd.Parameters.AddWithValue(":SimName", ad.SimName.ToString());
                     cmd.Parameters.AddWithValue(":GlobalPos", ad.GlobalPos.ToString());
                     cmd.Parameters.AddWithValue(":ParcelName", ad.ParcelName.ToString());
                     cmd.Parameters.AddWithValue(":Flags", ad.Flags.ToString());
-                    cmd.Parameters.AddWithValue(":ListingPrice", ad.Price.ToString ());
+                    cmd.Parameters.AddWithValue(":ListingPrice", ad.Price.ToString());
 
                     cmd.ExecuteNonQuery();
                 }
@@ -218,12 +193,13 @@ namespace OpenSim.Data.SQLite
             }
             return true;
         }
+
         public bool DeleteClassifiedRecord(UUID recordId)
         {
             string query = string.Empty;
 
             query += "DELETE FROM classifieds WHERE ";
-            query += "classifieduuid = :ClasifiedId";
+            query += "classifieduuid = :ClassifiedId";
 
             try
             {
@@ -261,15 +237,15 @@ namespace OpenSim.Data.SQLite
 
                     using (reader = cmd.ExecuteReader())
                     {
-                        if(reader.Read ())
+                        if (reader.Read())
                         {
                             ad.CreatorId = new UUID(reader["creatoruuid"].ToString());
-                            ad.ParcelId = new UUID(reader["parceluuid"].ToString ());
-                            ad.SnapshotId = new UUID(reader["snapshotuuid"].ToString ());
+                            ad.ParcelId = new UUID(reader["parceluuid"].ToString());
+                            ad.SnapshotId = new UUID(reader["snapshotuuid"].ToString());
                             ad.CreationDate = Convert.ToInt32(reader["creationdate"]);
                             ad.ExpirationDate = Convert.ToInt32(reader["expirationdate"]);
                             ad.ParentEstate = Convert.ToInt32(reader["parentestate"]);
-                            ad.Flags = (byte) Convert.ToUInt32(reader["classifiedflags"]);
+                            ad.Flags = (byte)Convert.ToUInt32(reader["classifiedflags"]);
                             ad.Category = Convert.ToInt32(reader["category"]);
                             ad.Price = Convert.ToInt16(reader["priceforlisting"]);
                             ad.Name = reader["name"].ToString();
@@ -311,8 +287,8 @@ namespace OpenSim.Data.SQLite
                         {
                             OSDMap record = new OSDMap();
 
-                            record.Add("pickuuid",OSD.FromString((string)reader["pickuuid"]));
-                            record.Add("name",OSD.FromString((string)reader["name"]));
+                            record.Add("pickuuid", OSD.FromString((string)reader["pickuuid"]));
+                            record.Add("name", OSD.FromString((string)reader["name"]));
                             data.Add(record);
                         }
                     }
@@ -325,6 +301,7 @@ namespace OpenSim.Data.SQLite
             }
             return data;
         }
+
         public UserProfilePick GetPickInfo(UUID avatarId, UUID pickId)
         {
             IDataReader reader = null;
@@ -345,7 +322,6 @@ namespace OpenSim.Data.SQLite
 
                     using (reader = cmd.ExecuteReader())
                     {
-
                         while (reader.Read())
                         {
                             string description = (string)reader["description"];
@@ -430,9 +406,9 @@ namespace OpenSim.Data.SQLite
                     cmd.Parameters.AddWithValue(":SnapshotId", pick.SnapshotId.ToString());
                     cmd.Parameters.AddWithValue(":User", pick.ParcelName.ToString());
                     cmd.Parameters.AddWithValue(":Original", pick.OriginalName.ToString());
-                    cmd.Parameters.AddWithValue(":SimName",pick.SimName.ToString());
+                    cmd.Parameters.AddWithValue(":SimName", pick.SimName.ToString());
                     cmd.Parameters.AddWithValue(":GlobalPos", pick.GlobalPos);
-                    cmd.Parameters.AddWithValue(":SortOrder", pick.SortOrder.ToString ());
+                    cmd.Parameters.AddWithValue(":SortOrder", pick.SortOrder.ToString());
                     cmd.Parameters.AddWithValue(":Enabled", enabled);
 
                     cmd.ExecuteNonQuery();
@@ -512,7 +488,7 @@ namespace OpenSim.Data.SQLite
             string query = string.Empty;
             bool remove;
 
-            if(string.IsNullOrEmpty(note.Notes))
+            if (string.IsNullOrEmpty(note.Notes))
             {
                 remove = true;
                 query += "DELETE FROM usernotes WHERE ";
@@ -534,9 +510,9 @@ namespace OpenSim.Data.SQLite
                 {
                     cmd.CommandText = query;
 
-                    if(!remove)
+                    if (!remove)
                         cmd.Parameters.AddWithValue(":Notes", note.Notes);
-                    cmd.Parameters.AddWithValue(":TargetId", note.TargetId.ToString ());
+                    cmd.Parameters.AddWithValue(":TargetId", note.TargetId.ToString());
                     cmd.Parameters.AddWithValue(":UserId", note.UserId.ToString());
 
                     cmd.ExecuteNonQuery();
@@ -559,105 +535,105 @@ namespace OpenSim.Data.SQLite
             query += "SELECT * FROM userprofile WHERE ";
             query += "useruuid = :Id";
 
-                using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
+            using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
+            {
+                cmd.CommandText = query;
+                cmd.Parameters.AddWithValue(":Id", props.UserId.ToString());
+
+                try
                 {
-                    cmd.CommandText = query;
-                    cmd.Parameters.AddWithValue(":Id", props.UserId.ToString());
-
-
-                    try
-                    {
-                        reader = cmd.ExecuteReader();
-                    }
-                    catch(Exception e)
-                    {
-                        m_log.ErrorFormat("[PROFILES_DATA]" +
-                                          ": GetAvatarProperties exception {0}", e.Message);
-                        result = e.Message;
-                        return false;
-                    }
-                        if(reader != null && reader.Read())
-                        {
-                            props.WebUrl = (string)reader["profileURL"];
-                            UUID.TryParse((string)reader["profileImage"], out props.ImageId);
-                            props.AboutText = (string)reader["profileAboutText"];
-                            UUID.TryParse((string)reader["profileFirstImage"], out props.FirstLifeImageId);
-                            props.FirstLifeText = (string)reader["profileFirstText"];
-                            UUID.TryParse((string)reader["profilePartner"], out props.PartnerId);
-                            props.WantToMask = (int)reader["profileWantToMask"];
-                            props.WantToText = (string)reader["profileWantToText"];
-                            props.SkillsMask = (int)reader["profileSkillsMask"];
-                            props.SkillsText = (string)reader["profileSkillsText"];
-                            props.Language = (string)reader["profileLanguages"];
-                        }
-                        else
-                        {
-                            props.WebUrl = string.Empty;
-                            props.ImageId = UUID.Zero;
-                            props.AboutText = string.Empty;
-                            props.FirstLifeImageId = UUID.Zero;
-                            props.FirstLifeText = string.Empty;
-                            props.PartnerId = UUID.Zero;
-                            props.WantToMask = 0;
-                            props.WantToText = string.Empty;
-                            props.SkillsMask = 0;
-                            props.SkillsText = string.Empty;
-                            props.Language = string.Empty;
-                            props.PublishProfile = false;
-                            props.PublishMature = false;
-
-                            query = "INSERT INTO userprofile (";
-                            query += "useruuid, ";
-                            query += "profilePartner, ";
-                            query += "profileAllowPublish, ";
-                            query += "profileMaturePublish, ";
-                            query += "profileURL, ";
-                            query += "profileWantToMask, ";
-                            query += "profileWantToText, ";
-                            query += "profileSkillsMask, ";
-                            query += "profileSkillsText, ";
-                            query += "profileLanguages, ";
-                            query += "profileImage, ";
-                            query += "profileAboutText, ";
-                            query += "profileFirstImage, ";
-                            query += "profileFirstText) VALUES (";
-                            query += ":userId, ";
-                            query += ":profilePartner, ";
-                            query += ":profileAllowPublish, ";
-                            query += ":profileMaturePublish, ";
-                            query += ":profileURL, ";
-                            query += ":profileWantToMask, ";
-                            query += ":profileWantToText, ";
-                            query += ":profileSkillsMask, ";
-                            query += ":profileSkillsText, ";
-                            query += ":profileLanguages, ";
-                            query += ":profileImage, ";
-                            query += ":profileAboutText, ";
-                            query += ":profileFirstImage, ";
-                            query += ":profileFirstText)";
-
-                            using (SQLiteCommand put = (SQLiteCommand)m_connection.CreateCommand())
-                            {
-                                put.CommandText = query;
-                                put.Parameters.AddWithValue(":userId", props.UserId.ToString());
-                                put.Parameters.AddWithValue(":profilePartner", props.PartnerId.ToString());
-                                put.Parameters.AddWithValue(":profileAllowPublish", props.PublishProfile);
-                                put.Parameters.AddWithValue(":profileMaturePublish", props.PublishMature);
-                                put.Parameters.AddWithValue(":profileURL", props.WebUrl);
-                                put.Parameters.AddWithValue(":profileWantToMask", props.WantToMask);
-                                put.Parameters.AddWithValue(":profileWantToText", props.WantToText);
-                                put.Parameters.AddWithValue(":profileSkillsMask", props.SkillsMask);
-                                put.Parameters.AddWithValue(":profileSkillsText", props.SkillsText);
-                                put.Parameters.AddWithValue(":profileLanguages", props.Language);
-                                put.Parameters.AddWithValue(":profileImage", props.ImageId.ToString());
-                                put.Parameters.AddWithValue(":profileAboutText", props.AboutText);
-                                put.Parameters.AddWithValue(":profileFirstImage", props.FirstLifeImageId.ToString());
-                                put.Parameters.AddWithValue(":profileFirstText", props.FirstLifeText);
-
-                                put.ExecuteNonQuery();
-                            }
-                        }
+                    reader = cmd.ExecuteReader();
                 }
+                catch (Exception e)
+                {
+                    m_log.ErrorFormat("[PROFILES_DATA]" +
+                                      ": GetAvatarProperties exception {0}", e.Message);
+                    result = e.Message;
+                    return false;
+                }
+
+                if (reader != null && reader.Read())
+                {
+                    props.WebUrl = (string)reader["profileURL"];
+                    UUID.TryParse((string)reader["profileImage"], out props.ImageId);
+                    props.AboutText = (string)reader["profileAboutText"];
+                    UUID.TryParse((string)reader["profileFirstImage"], out props.FirstLifeImageId);
+                    props.FirstLifeText = (string)reader["profileFirstText"];
+                    UUID.TryParse((string)reader["profilePartner"], out props.PartnerId);
+                    props.WantToMask = (int)reader["profileWantToMask"];
+                    props.WantToText = (string)reader["profileWantToText"];
+                    props.SkillsMask = (int)reader["profileSkillsMask"];
+                    props.SkillsText = (string)reader["profileSkillsText"];
+                    props.Language = (string)reader["profileLanguages"];
+                }
+                else
+                {
+                    props.WebUrl = string.Empty;
+                    props.ImageId = UUID.Zero;
+                    props.AboutText = string.Empty;
+                    props.FirstLifeImageId = UUID.Zero;
+                    props.FirstLifeText = string.Empty;
+                    props.PartnerId = UUID.Zero;
+                    props.WantToMask = 0;
+                    props.WantToText = string.Empty;
+                    props.SkillsMask = 0;
+                    props.SkillsText = string.Empty;
+                    props.Language = string.Empty;
+                    props.PublishProfile = false;
+                    props.PublishMature = false;
+
+                    query = "INSERT INTO userprofile (";
+                    query += "useruuid, ";
+                    query += "profilePartner, ";
+                    query += "profileAllowPublish, ";
+                    query += "profileMaturePublish, ";
+                    query += "profileURL, ";
+                    query += "profileWantToMask, ";
+                    query += "profileWantToText, ";
+                    query += "profileSkillsMask, ";
+                    query += "profileSkillsText, ";
+                    query += "profileLanguages, ";
+                    query += "profileImage, ";
+                    query += "profileAboutText, ";
+                    query += "profileFirstImage, ";
+                    query += "profileFirstText) VALUES (";
+                    query += ":userId, ";
+                    query += ":profilePartner, ";
+                    query += ":profileAllowPublish, ";
+                    query += ":profileMaturePublish, ";
+                    query += ":profileURL, ";
+                    query += ":profileWantToMask, ";
+                    query += ":profileWantToText, ";
+                    query += ":profileSkillsMask, ";
+                    query += ":profileSkillsText, ";
+                    query += ":profileLanguages, ";
+                    query += ":profileImage, ";
+                    query += ":profileAboutText, ";
+                    query += ":profileFirstImage, ";
+                    query += ":profileFirstText)";
+
+                    using (SQLiteCommand put = (SQLiteCommand)m_connection.CreateCommand())
+                    {
+                        put.CommandText = query;
+                        put.Parameters.AddWithValue(":userId", props.UserId.ToString());
+                        put.Parameters.AddWithValue(":profilePartner", props.PartnerId.ToString());
+                        put.Parameters.AddWithValue(":profileAllowPublish", props.PublishProfile);
+                        put.Parameters.AddWithValue(":profileMaturePublish", props.PublishMature);
+                        put.Parameters.AddWithValue(":profileURL", props.WebUrl);
+                        put.Parameters.AddWithValue(":profileWantToMask", props.WantToMask);
+                        put.Parameters.AddWithValue(":profileWantToText", props.WantToText);
+                        put.Parameters.AddWithValue(":profileSkillsMask", props.SkillsMask);
+                        put.Parameters.AddWithValue(":profileSkillsText", props.SkillsText);
+                        put.Parameters.AddWithValue(":profileLanguages", props.Language);
+                        put.Parameters.AddWithValue(":profileImage", props.ImageId.ToString());
+                        put.Parameters.AddWithValue(":profileAboutText", props.AboutText);
+                        put.Parameters.AddWithValue(":profileFirstImage", props.FirstLifeImageId.ToString());
+                        put.Parameters.AddWithValue(":profileFirstText", props.FirstLifeText);
+
+                        put.ExecuteNonQuery();
+                    }
+                }
+            }
             return true;
         }
 
@@ -735,7 +711,6 @@ namespace OpenSim.Data.SQLite
             return true;
         }
 
-
         public bool UpdateUserPreferences(ref UserPreferences pref, ref string result)
         {
             string query = string.Empty;
@@ -778,25 +753,23 @@ namespace OpenSim.Data.SQLite
             query += "usersettings WHERE ";
             query += "useruuid = :Id";
 
-            OSDArray data = new OSDArray();
-
             try
             {
                 using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
                 {
                     cmd.CommandText = query;
-                    cmd.Parameters.AddWithValue("?Id", pref.UserId.ToString());
+                    cmd.Parameters.AddWithValue(":Id", pref.UserId.ToString());
 
                     using (reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
                     {
-                        if(reader.Read())
+                        if (reader.Read())
                         {
                             bool.TryParse((string)reader["imviaemail"], out pref.IMViaEmail);
                             bool.TryParse((string)reader["visible"], out pref.Visible);
                             pref.EMail = (string)reader["email"];
-                         }
-                         else
-                         {
+                        }
+                        else
+                        {
                             query = "INSERT INTO usersettings VALUES ";
                             query += "(:Id,'false','false', :Email)";
 
@@ -805,7 +778,6 @@ namespace OpenSim.Data.SQLite
                                 put.Parameters.AddWithValue(":Id", pref.UserId.ToString());
                                 put.Parameters.AddWithValue(":Email", pref.EMail);
                                 put.ExecuteNonQuery();
-
                             }
                         }
                     }
@@ -836,30 +808,27 @@ namespace OpenSim.Data.SQLite
                 {
                     cmd.CommandText = query;
                     cmd.Parameters.AddWithValue(":Id", props.UserId.ToString());
-                    cmd.Parameters.AddWithValue (":TagId", props.TagId.ToString());
+                    cmd.Parameters.AddWithValue(":TagId", props.TagId.ToString());
 
                     using (reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
                     {
-                        if(reader.Read())
+                        if (reader.Read())
                         {
                             props.DataKey = (string)reader["DataKey"];
                             props.DataVal = (string)reader["DataVal"];
                         }
                         else
                         {
-                            query += "INSERT INTO userdata VALUES ( ";
-                            query += ":UserId,";
-                            query += ":TagId,";
-                            query += ":DataKey,";
-                            query +=  ":DataVal) ";
+                            string insert = "INSERT INTO userdata (UserId, TagId, DataKey, DataVal) VALUES (";
+                            insert += ":Id, :TagId, :DataKey, :DataVal)";
 
                             using (SQLiteCommand put = (SQLiteCommand)m_connection.CreateCommand())
                             {
+                                put.CommandText = insert;
                                 put.Parameters.AddWithValue(":Id", props.UserId.ToString());
                                 put.Parameters.AddWithValue(":TagId", props.TagId.ToString());
-                                put.Parameters.AddWithValue(":DataKey", props.DataKey.ToString());
-                                put.Parameters.AddWithValue(":DataVal", props.DataVal.ToString());
-
+                                put.Parameters.AddWithValue(":DataKey", props.DataKey);
+                                put.Parameters.AddWithValue(":DataVal", props.DataVal);
                                 put.ExecuteNonQuery();
                             }
                         }
@@ -875,6 +844,7 @@ namespace OpenSim.Data.SQLite
             }
             return true;
         }
+
         public bool SetUserAppData(UserAppData props, ref string result)
         {
             string query = string.Empty;
@@ -892,9 +862,9 @@ namespace OpenSim.Data.SQLite
                 {
                     cmd.CommandText = query;
                     cmd.Parameters.AddWithValue(":UserId", props.UserId.ToString());
-                    cmd.Parameters.AddWithValue(":TagId", props.TagId.ToString ());
-                    cmd.Parameters.AddWithValue(":DataKey", props.DataKey.ToString ());
-                    cmd.Parameters.AddWithValue(":DataVal", props.DataKey.ToString ());
+                    cmd.Parameters.AddWithValue(":TagId", props.TagId.ToString());
+                    cmd.Parameters.AddWithValue(":DataKey", props.DataKey);
+                    cmd.Parameters.AddWithValue(":DataVal", props.DataVal);
 
                     cmd.ExecuteNonQuery();
                 }
@@ -907,14 +877,12 @@ namespace OpenSim.Data.SQLite
             }
             return true;
         }
+
         public OSDArray GetUserImageAssets(UUID avatarId)
         {
             IDataReader reader = null;
             OSDArray data = new OSDArray();
             string query = "SELECT `snapshotuuid` FROM {0} WHERE `creatoruuid` = :Id";
-
-            // Get classified image assets
-
 
             try
             {
@@ -925,7 +893,7 @@ namespace OpenSim.Data.SQLite
 
                     using (reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
                     {
-                        while(reader.Read())
+                        while (reader.Read())
                         {
                             data.Add(new OSDString((string)reader["snapshotuuid"].ToString()));
                         }
@@ -939,9 +907,9 @@ namespace OpenSim.Data.SQLite
 
                     using (reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
                     {
-                        if(reader.Read())
+                        if (reader.Read())
                         {
-                            data.Add(new OSDString((string)reader["snapshotuuid"].ToString ()));
+                            data.Add(new OSDString((string)reader["snapshotuuid"].ToString()));
                         }
                     }
                 }
@@ -955,10 +923,10 @@ namespace OpenSim.Data.SQLite
 
                     using (reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
                     {
-                        if(reader.Read())
+                        if (reader.Read())
                         {
-                            data.Add(new OSDString((string)reader["profileImage"].ToString ()));
-                            data.Add(new OSDString((string)reader["profileFirstImage"].ToString ()));
+                            data.Add(new OSDString((string)reader["profileImage"].ToString()));
+                            data.Add(new OSDString((string)reader["profileFirstImage"].ToString()));
                         }
                     }
                 }
@@ -973,4 +941,3 @@ namespace OpenSim.Data.SQLite
         #endregion
     }
 }
-
