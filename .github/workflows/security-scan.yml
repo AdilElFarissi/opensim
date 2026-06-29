@@ -83,6 +83,7 @@ jobs:
           import time
           from openai import OpenAI
 
+          # Configuration du client OpenRouter
           client = OpenAI(
               base_url="https://openrouter.ai/api/v1",
               api_key=os.environ.get("OPENROUTER_API_KEY"),
@@ -103,27 +104,27 @@ jobs:
           runs = sarif_data.get("runs", [])
           fixed_count = 0
 
-          files2patch = set()
+          files2patch = set()  # Utilisation d'un set pour regrouper les fichiers uniques
           for run in runs:
               for result in run.get("results", []):
                   for loc in result.get("locations", []):
                       uri = loc.get("physicalLocation", {}).get("artifactLocation", {}).get("uri", "")
                       if uri.startswith("file://"):
                           uri = uri.replace("file://", "")
-                      if uri:
+                      if uri and uri.endswith(".cs"):  # On s'assure qu'il s'agit d'un fichier C# valide
                           files2patch.add(uri)
 
           for file in files2patch:
-              if file and os.path.exists(file) and file.endswith(".cs"):
-                  print(f"🤖 AI processing C# file: {file}")
-                  with open(file, "r", encoding="utf-8") as f_code:
-                      file_content = f_code.read() 
-              else:
-                  continue  # Passe au fichier suivant si celui-ci n'existe pas
+              if not os.path.exists(file):
+                  print(f"⚠️ Fichier introuvable sur le disque : {file}")
+                  continue
+
+              print(f"🤖 AI processing C# file: {file}")
+              
+              with open(file, "r", encoding="utf-8") as f_code:
+                  file_content = f_code.read() 
 
               fixed_file_content = None
-              
-              # Correction de la faute de frappe dans openrouter/free
               models_pool = [
                   "openrouter/free",
                   "nvidia/nemotron-3-super-120b-a12b:free",
@@ -153,11 +154,12 @@ jobs:
                       if isinstance(response, str):
                           raw_content = response
                       elif hasattr(response, 'choices') and response.choices:
-                          raw_content = response.choices[0].message.content  # Ajout de l'index [0] manquant
+                          raw_content = response.choices[0].message.content
                       else:
                           raw_content = str(response)
 
                       cleaned_check = raw_content.lower().strip()
+                      # Sécurité anti-page d'erreur HTML OpenRouter
                       if "<html" in cleaned_check or "<a href=" in cleaned_check or "<!doctype" in cleaned_check or "next/static" in cleaned_check:
                           print(f"  ⚠️ Model {current_model} was blocked by an OpenRouter server HTML error page. Switching model...")
                           time.sleep(5)
@@ -168,8 +170,8 @@ jobs:
                         
                       if len(cleaned_code) > 10:
                           fixed_file_content = cleaned_code
-                          break 
-                                
+                          break
+                                  
                   except Exception as e:
                       print(f"  ⚠️ Connection issue with {current_model}: {e}. Trying fallback...")
                       time.sleep(5)
