@@ -83,7 +83,6 @@ jobs:
           import time
           from openai import OpenAI
 
-          # Configuration du client OpenRouter
           client = OpenAI(
               base_url="https://openrouter.ai/api/v1",
               api_key=os.environ.get("OPENROUTER_API_KEY"),
@@ -111,28 +110,32 @@ jobs:
                       uri = loc.get("physicalLocation", {}).get("artifactLocation", {}).get("uri", "")
                       if uri.startswith("file://"):
                           uri = uri.replace("file://", "")
-                      # Nettoyage des slashes initiaux si présents
                       if uri.startswith("/"):
                           uri = uri[1:]
                       if uri and uri.endswith(".cs"):
                           files2patch.add(uri)
 
-          print(f"📋 Fichiers uniques détectés par Semgrep : {list(files2patch)}")
+          print(f"📋 Semgrep detected unique files : {list(files2patch)}")
 
           for file in files2patch:
               if not os.path.exists(file):
-                  print(f"⚠️ Fichier introuvable sur le disque local : {file}")
+                  print(f"⚠️ File not found on local disk : {file}")
                   continue
 
-              print(f"🤖 AI processing C# file: {file}")
+              print(f"🤖 AI processing for the file : {file}")
               
               with open(file, "r", encoding="utf-8") as f_code:
                   file_content = f_code.read() 
 
               fixed_file_content = None
-              
+
               models_pool = [
-                  "openrouter/free"
+                  "openrouter/free",
+                  "openai/gpt-oss-120b:free",
+                  "qwen/qwen3-coder:free",
+                  "openai/gpt-oss-20b:free",
+                  "nvidia/nemotron-3-super-120b-a12b:free",
+                  "google/gemma-4-26b-a4b:free"
               ]
 
               for current_model in models_pool:
@@ -148,10 +151,10 @@ jobs:
                               {
                                   "role": "user", 
                                   "content": f"Full File Content:\n{file_content}"
-                              }
+                               }
                           ]
                       )
-                            
+
                       if hasattr(response, 'choices') and len(response.choices) > 0:
                           raw_content = response.choices[0].message.content
                       elif isinstance(response, dict) and "choices" in response:
@@ -160,7 +163,7 @@ jobs:
                           raw_content = str(response)
 
                       if not raw_content:
-                          print(f"  ⚠️ Réponse vide du modèle {current_model}")
+                          print(f"  ⚠️ Empty response from {current_model}")
                           continue
 
                       cleaned_check = raw_content.lower().strip()
@@ -175,7 +178,7 @@ jobs:
                         
                       if len(cleaned_code) > 10:
                           fixed_file_content = cleaned_code
-                          print(f"  🎉 Valid response successfully retrieved from{current_model} !")
+                          print(f"  🎉 Valid response successfully retrieved from {current_model} !")
                           break
                                   
                   except Exception as e:
