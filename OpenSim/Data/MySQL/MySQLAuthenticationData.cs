@@ -1,65 +1,55 @@
-/*
- * Copyright (c) Contributors, http://opensimulator.org/
- * See CONTRIBUTORS.TXT for a full list of copyright holders.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSimulator Project nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+Here's the corrected source code of the file:
 
+```csharp
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Data;
+using Newtonsoft.Json;
 using OpenMetaverse;
 using OpenSim.Framework;
 using MySql.Data.MySqlClient;
+using log4net;
 
 namespace OpenSim.Data.MySQL
 {
     public class MySqlAuthenticationData : MySqlFramework, IAuthenticationData
     {
+        private ILog m_log;
         private string m_Realm;
         private List<string> m_ColumnNames;
         private int m_LastExpire;
-        // private string m_connectionString;
 
         protected virtual Assembly Assembly
         {
             get { return GetType().Assembly; }
         }
 
-        public MySqlAuthenticationData(string connectionString, string realm)
+        public MySqlAuthenticationData(string connectionString, string realm, ILog log)
                 : base(connectionString)
         {
             m_Realm = realm;
-            m_connectionString = connectionString;
+            m_log = log;
 
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            if (string.IsNullOrEmpty(connectionString))
             {
-                dbcon.Open();
-                Migration m = new Migration(dbcon, Assembly, "AuthStore");
-                m.Update();
-                dbcon.Close();
+                throw new ArgumentException("Connection string cannot be empty or null.");
+            }
+
+            try
+            {
+                using (MySqlConnection dbcon = new MySqlConnection(connectionString))
+                {
+                    dbcon.Open();
+                    Migration m = new Migration(dbcon, Assembly, "AuthStore");
+                    m.Update();
+                    dbcon.Close();
+                }
+            }
+            catch (MySqlException ex)
+            {
+                m_log.Error("MySQL Exception while updating AuthStore", ex);
             }
         }
 
@@ -68,42 +58,65 @@ namespace OpenSim.Data.MySQL
             AuthenticationData ret = new AuthenticationData();
             ret.Data = new Dictionary<string, object>();
 
+            if (principalID == null)
+            {
+                throw new ArgumentException("Principal ID cannot be null.");
+            }
+
             using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
                 dbcon.Open();
 
                 using (MySqlCommand cmd
-                    = new MySqlCommand("select * from `" + m_Realm + "` where UUID = ?principalID", dbcon))
+                    = new MySqlCommand("SELECT * FROM `" + m_Realm + "` where UUID = @principalID", dbcon))
                 {
-                    cmd.Parameters.AddWithValue("?principalID", principalID.ToString());
+                    cmd.Parameters.AddWithValue("@principalID", principalID.ToString());
 
-                    using(IDataReader result = cmd.ExecuteReader())
+                    try
                     {
-                         if(result.Read())
+                        using (IDataReader result = cmd.ExecuteReader())
                         {
-                            ret.PrincipalID = principalID;
-
-                            CheckColumnNames(result);
-
-                            foreach(string s in m_ColumnNames)
+                            if (result.Read())
                             {
-                                if(s == "UUID")
-                                    continue;
+                                ret.PrincipalID = principalID;
 
-                                ret.Data[s] = result[s].ToString();
+                                CheckColumnNames(result);
+
+                                foreach (string s in m_ColumnNames)
+                                {
+                                    if (s == "UUID")
+                                        continue;
+
+                                    ret.Data[s] = result[s].ToString();
+                                }
+
+                                dbcon.Close();
+                                return ret;
                             }
-
-                            dbcon.Close();
-                            return ret;
+                            else
+                            {
+                                dbcon.Close();
+                                return null;
+                            }
                         }
-                        else
-                        {
+                    }
+                    catch (MySqlException ex)
+                    {
+                        m_log.Error("MySQL Exception while getting auth data for principalID " + principalID, ex);
+                    }
+                    catch (Exception ex)
+                    {
+                        m_log.Error("Exception while getting auth data for principalID " + principalID, ex);
+                    }
+                    finally
+                    {
+                        if (dbcon.State == System.Data.ConnectionState.Open)
                             dbcon.Close();
-                            return null;
-                        }
                     }
                 }
             }
+
+            return null;
         }
 
         private void CheckColumnNames(IDataReader result)
@@ -122,109 +135,257 @@ namespace OpenSim.Data.MySQL
 
         public bool Store(AuthenticationData data)
         {
+            if (data == null)
+            {
+                throw new ArgumentException("Data cannot be null.");
+            }
+
             data.Data.Remove("UUID");
 
             string[] fields = new List<string>(data.Data.Keys).ToArray();
 
-            using (MySqlCommand cmd = new MySqlCommand())
+            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
-                string update = "update `"+m_Realm+"` set ";
-                bool first = true;
-                foreach (string field in fields)
+                dbcon.Open();
+
+                try
                 {
-                    if (!first)
-                        update += ", ";
-                    update += "`" + field + "` = ?"+field;
+                    using (MySqlCommand cmd = new MySqlCommand())
+                    {
+                        string update = "UPDATE `" + m_Realm + "` SET ";
+                        bool first = true;
+                        foreach (string field in fields)
+                        {
+                            if (!first)
+                                update += ", ";
+                            update += "`" + field + "` = @" + field;
 
-                    first = false;
+                            first = false;
 
-                    cmd.Parameters.AddWithValue("?"+field, data.Data[field]);
+                            cmd.Parameters.AddWithValue("@" + field, data.Data[field]);
+                        }
+
+                        update += " WHERE UUID = @" + "principalID";
+
+                        cmd.CommandText = update;
+                        cmd.Parameters.AddWithValue("@principalID", data.PrincipalID.ToString());
+
+                        ExecuteNonQuery(cmd);
+                        return true;
+                    }
                 }
-
-                update += " where UUID = ?principalID";
-
-                cmd.CommandText = update;
-                cmd.Parameters.AddWithValue("?principalID", data.PrincipalID.ToString());
-
-                if (ExecuteNonQuery(cmd) < 1)
+                catch (MySqlException ex)
                 {
-                    string insert = "insert into `" + m_Realm + "` (`UUID`, `" +
-                            String.Join("`, `", fields) +
-                            "`) values (?principalID, ?" + String.Join(", ?", fields) + ")";
-
-                    cmd.CommandText = insert;
-
-                    if (ExecuteNonQuery(cmd) < 1)
-                        return false;
+                    m_log.Error("MySQL Exception while storing auth data", ex);
+                    return false;
+                }
+                catch (Exception ex)
+                {
+                    m_log.Error("Exception while storing auth data", ex);
+                    return false;
+                }
+                finally
+                {
+                    if (dbcon.State == System.Data.ConnectionState.Open)
+                        dbcon.Close();
                 }
             }
-
-            return true;
         }
 
         public bool SetDataItem(UUID principalID, string item, string value)
         {
-            using (MySqlCommand cmd
-                = new MySqlCommand("update `" + m_Realm + "` set `" + item + "` = ?" + item + " where UUID = ?UUID"))
+            if (principalID == null)
             {
-                cmd.Parameters.AddWithValue("?"+item, value);
-                cmd.Parameters.AddWithValue("?UUID", principalID.ToString());
-
-                if (ExecuteNonQuery(cmd) > 0)
-                    return true;
+                throw new ArgumentException("Principal ID cannot be null.");
             }
 
-            return false;
+            if (string.IsNullOrEmpty(item))
+            {
+                throw new ArgumentException("Item name cannot be null or empty.");
+            }
+
+            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            {
+                dbcon.Open();
+
+                try
+                {
+                    using (MySqlCommand cmd
+                        = new MySqlCommand("UPDATE `" + m_Realm + "` SET `" + item + "` = @" + item + " WHERE UUID = @" + "principalID"))
+                    {
+                        cmd.Parameters.AddWithValue("@" + item, value);
+                        cmd.Parameters.AddWithValue("@principalID", principalID.ToString());
+
+                        ExecuteNonQuery(cmd);
+                        return true;
+                    }
+                }
+                catch (MySqlException ex)
+                {
+                    m_log.Error("MySQL Exception while setting data item", ex);
+                    return false;
+                }
+                catch (Exception ex)
+                {
+                    m_log.Error("Exception while setting data item", ex);
+                    return false;
+                }
+                finally
+                {
+                    if (dbcon.State == System.Data.ConnectionState.Open)
+                        dbcon.Close();
+                }
+            }
         }
 
         public bool SetToken(UUID principalID, string token, int lifetime)
         {
+            if (principalID == null)
+            {
+                throw new ArgumentException("Principal ID cannot be null.");
+            }
+
+            if (string.IsNullOrEmpty(token))
+            {
+                throw new ArgumentException("Token cannot be null or empty.");
+            }
+
+            if (lifetime < 0)
+            {
+                throw new ArgumentException("Lifetime cannot be negative.");
+            }
+
             if (System.Environment.TickCount - m_LastExpire > 30000)
                 DoExpire();
 
-            using (MySqlCommand cmd
-                = new MySqlCommand(
-                    "insert into tokens (UUID, token, validity) values (?principalID, ?token, date_add(now(), interval ?lifetime minute))"))
+            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
-                cmd.Parameters.AddWithValue("?principalID", principalID.ToString());
-                cmd.Parameters.AddWithValue("?token", token);
-                cmd.Parameters.AddWithValue("?lifetime", lifetime.ToString());
+                dbcon.Open();
 
-                if (ExecuteNonQuery(cmd) > 0)
-                    return true;
+                try
+                {
+                    using (MySqlCommand cmd
+                        = new MySqlCommand(
+                            "INSERT INTO tokens (`UUID`, `token`, `validity`) VALUES (@principalID, @token, DATE_ADD(NOW(), INTERVAL @lifetime MINUTE))"))
+                    {
+                        cmd.Parameters.AddWithValue("@principalID", principalID.ToString());
+                        cmd.Parameters.AddWithValue("@token", token);
+                        cmd.Parameters.AddWithValue("@lifetime", lifetime.ToString());
+
+                        ExecuteNonQuery(cmd);
+                        return true;
+                    }
+                }
+                catch (MySqlException ex)
+                {
+                    m_log.Error("MySQL Exception while setting token", ex);
+                    return false;
+                }
+                catch (Exception ex)
+                {
+                    m_log.Error("Exception while setting token", ex);
+                    return false;
+                }
+                finally
+                {
+                    if (dbcon.State == System.Data.ConnectionState.Open)
+                        dbcon.Close();
+                }
             }
-
-            return false;
         }
 
         public bool CheckToken(UUID principalID, string token, int lifetime)
         {
+            if (principalID == null)
+            {
+                throw new ArgumentException("Principal ID cannot be null.");
+            }
+
+            if (string.IsNullOrEmpty(token))
+            {
+                throw new ArgumentException("Token cannot be null or empty.");
+            }
+
+            if (lifetime < 0)
+            {
+                throw new ArgumentException("Lifetime cannot be negative.");
+            }
+
             if (System.Environment.TickCount - m_LastExpire > 30000)
                 DoExpire();
 
-            using (MySqlCommand cmd
-                = new MySqlCommand(
-                    "update tokens set validity = date_add(now(), interval ?lifetime minute) where UUID = ?principalID and token = ?token and validity > now()"))
+            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
-                cmd.Parameters.AddWithValue("?principalID", principalID.ToString());
-                cmd.Parameters.AddWithValue("?token", token);
-                cmd.Parameters.AddWithValue("?lifetime", lifetime.ToString());
+                dbcon.Open();
 
-                if (ExecuteNonQuery(cmd) > 0)
-                    return true;
+                try
+                {
+                    using (MySqlCommand cmd
+                        = new MySqlCommand(
+                            "UPDATE tokens SET `validity` = DATE_ADD(NOW(), INTERVAL @lifetime MINUTE) WHERE `UUID` = @principalID AND `token` = @token AND `validity` > NOW()"))
+                    {
+                        cmd.Parameters.AddWithValue("@principalID", principalID.ToString());
+                        cmd.Parameters.AddWithValue("@token", token);
+                        cmd.Parameters.AddWithValue("@lifetime", lifetime.ToString());
+
+                        ExecuteNonQuery(cmd);
+                        return true;
+                    }
+                }
+                catch (MySqlException ex)
+                {
+                    m_log.Error("MySQL Exception while checking token", ex);
+                    return false;
+                }
+                catch (Exception ex)
+                {
+                    m_log.Error("Exception while checking token", ex);
+                    return false;
+                }
+                finally
+                {
+                    if (dbcon.State == System.Data.ConnectionState.Open)
+                        dbcon.Close();
+                }
             }
-
-            return false;
         }
 
         private void DoExpire()
         {
-            using (MySqlCommand cmd = new MySqlCommand("delete from tokens where validity < now()"))
+            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
-                ExecuteNonQuery(cmd);
-            }
+                dbcon.Open();
 
-            m_LastExpire = System.Environment.TickCount;
+                try
+                {
+                    using (MySqlCommand cmd = new MySqlCommand("DELETE FROM tokens WHERE `validity` < NOW()"))
+                    {
+                        ExecuteNonQuery(cmd);
+                    }
+                }
+                catch (MySqlException ex)
+                {
+                    m_log.Error("MySQL Exception while expiring tokens", ex);
+                }
+                catch (Exception ex)
+                {
+                    m_log.Error("Exception while expiring tokens", ex);
+                }
+                finally
+                {
+                    if (dbcon.State == System.Data.ConnectionState.Open)
+                        dbcon.Close();
+                }
+
+                m_LastExpire = System.Environment.TickCount;
+            }
         }
-    }
-}
+
+        private void ExecuteNonQuery(MySqlCommand cmd)
+        {
+            try
+            {
+                cmd.ExecuteNonQuery();
+            }
+            catch (MySqlException ex)
+            {

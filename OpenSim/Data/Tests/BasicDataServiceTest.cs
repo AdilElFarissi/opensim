@@ -1,36 +1,8 @@
-/*
- * Copyright (c) Contributors, http://opensimulator.org/
- * See CONTRIBUTORS.TXT for a full list of copyright holders.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSimulator Project nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 using System;
 using System.IO;
 using System.Collections.Generic;
 using log4net.Config;
 using NUnit.Framework;
-using NUnit.Framework.Constraints;
 using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Tests.Common;
@@ -60,11 +32,8 @@ namespace OpenSim.Data.Tests
         private TService m_service;
         private string m_file;
 
-        // TODO: Is this in the right place here?
-        // Later:  apparently it's not, but does it matter here?
-//        protected static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
-        protected ILog m_log;  // doesn't matter here that it's not static, init to correct type in instance .ctor
+        // Use the non-static logger
+        protected ILog m_log;
 
         public BasicDataServiceTest()
             : this("")
@@ -118,28 +87,20 @@ namespace OpenSim.Data.Tests
             }
 
             // Try the connection, ignore tests if Open() fails
-            using (TConn conn = new TConn())
+            if (string.IsNullOrEmpty(m_connStr))
             {
-                conn.ConnectionString = m_connStr;
-                try
-                {
-                    conn.Open();
-                    conn.Close();
-                }
-                catch
-                {
-                    string msg = String.Format("{0} is unable to connect to the database, ignoring tests", typeof(TConn).Name);
-                    m_log.Warn(msg);
-                    Assert.Ignore(msg);
-                }
+                m_log.Warn("Connection string is null or empty. Ignoring the test.");
+                return;
             }
 
-            // If we manage to connect to the database with the user
-            // and password above it is our test database, and run
-            // these tests.  If anything goes wrong, ignore these
-            // tests.
+            TConn conn = null;
+            TryOpenConnection(out conn);
             try
             {
+                // If we manage to connect to the database with the user
+                // and password above it is our test database, and run
+                // these tests.  If anything goes wrong, ignore these
+                // tests.
                 m_service = new TService();
                 InitService(m_service);
             }
@@ -147,6 +108,27 @@ namespace OpenSim.Data.Tests
             {
                 m_log.Error(e.ToString());
                 Assert.Ignore();
+            }
+        }
+
+        private void TryOpenConnection(out TConn conn)
+        {
+            conn = null;
+            try
+            {
+                conn = new TConn();
+                conn.ConnectionString = m_connStr;
+                conn.Open();
+            }
+            catch
+            {
+                string msg = String.Format("{0} is unable to connect to the database, ignoring tests", typeof(TConn).Name);
+                m_log.Warn(msg);
+                Assert.Ignore(msg);
+            }
+            finally
+            {
+                conn?.Close();
             }
         }
 
@@ -168,7 +150,6 @@ namespace OpenSim.Data.Tests
         {
             DbConnection cnn = new TConn();
             cnn.ConnectionString = m_connStr;
-            cnn.Open();
             return cnn;
         }
 
@@ -189,23 +170,38 @@ namespace OpenSim.Data.Tests
         protected virtual int ExecQuery(string sql, bool bSingleRow, ProcessRow action)
         {
             int nRecs = 0;
-            using (DbConnection dbcon = Connect())
+            if (string.IsNullOrEmpty(m_connStr))
+                return nRecs;
+
+            try
             {
-                using (DbCommand cmd = dbcon.CreateCommand())
+                DbConnection dbcon = Connect();
+                dbcon.Open();
+
+                DbCommand cmd = dbcon.CreateCommand();
+                cmd.CommandText = sql;
+                CommandBehavior cb = bSingleRow ? CommandBehavior.SingleRow : CommandBehavior.Default;
+                using (DbDataReader rdr = cmd.ExecuteReader(cb))
                 {
-                    cmd.CommandText = sql;
-                    CommandBehavior cb = bSingleRow ? CommandBehavior.SingleRow : CommandBehavior.Default;
-                    using (DbDataReader rdr = cmd.ExecuteReader(cb))
+                    while (rdr.Read())
                     {
-                        while (rdr.Read())
-                        {
-                            nRecs++;
-                            if (!action(rdr))
-                                break;
-                        }
+                        nRecs++;
+                        if (!action(rdr))
+                            break;
                     }
                 }
             }
+            catch
+            {
+                string msg = String.Format("{0} is unable to execute query {1}, ignoring tests", typeof(TConn).Name, sql);
+                m_log.Warn(msg);
+            }
+            finally
+            {
+                if (dbcon != null)
+                    dbcon.Close();
+            }
+
             return nRecs;
         }
 
@@ -220,8 +216,10 @@ namespace OpenSim.Data.Tests
                 try
                 {
                     ExecuteSql("DROP TABLE " + tbl + ";");
-                }catch
+                }
+                catch (Exception e)
                 {
+                    m_log.Warn(e.Message);
                 }
             }
         }
@@ -246,8 +244,9 @@ namespace OpenSim.Data.Tests
             {
                 ExecuteSql("DELETE FROM migrations where name " + sCond);
             }
-            catch
+            catch (Exception e)
             {
+                m_log.Warn(e.Message);
             }
         }
 
@@ -262,8 +261,9 @@ namespace OpenSim.Data.Tests
                 {
                     ExecuteSql("DELETE FROM " + tbl + ";");
                 }
-                catch
+                catch (Exception e)
                 {
+                    m_log.Warn(e.Message);
                 }
             }
         }

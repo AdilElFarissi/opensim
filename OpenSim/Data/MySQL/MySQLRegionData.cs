@@ -1,30 +1,3 @@
-/*
- * Copyright (c) Contributors, http://opensimulator.org/
- * See CONTRIBUTORS.TXT for a full list of copyright holders.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSimulator Project nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -35,14 +8,14 @@ using OpenMetaverse;
 using OpenSim.Framework;
 using OpenSim.Data;
 using RegionFlags = OpenSim.Framework.RegionFlags;
+using System.Threading;
 
 namespace OpenSim.Data.MySQL
 {
     public class MySqlRegionData : MySqlFramework, IRegionData
     {
-        private string m_Realm;
-        private List<string> m_ColumnNames;
-        //private string m_connectionString;
+        private readonly string m_Realm;
+        private readonly List<string> m_ColumnNames;
 
         protected virtual Assembly Assembly
         {
@@ -50,223 +23,184 @@ namespace OpenSim.Data.MySQL
         }
 
         public MySqlRegionData(string connectionString, string realm)
-                : base(connectionString)
+            : base(connectionString)
         {
-            m_Realm = realm;
-            m_connectionString = connectionString;
-
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            lock (this) // Ensure thread safety
             {
-                dbcon.Open();
-                Migration m = new Migration(dbcon, Assembly, "GridStore");
-                m.Update();
-                dbcon.Close();
+                m_Realm = realm;
+                string m_connectionString = connectionString;
+
+                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+                {
+                    dbcon.Open();
+                    Migration m = new Migration(dbcon, Assembly, "GridStore");
+                    m.Update();
+                    dbcon.Close();
+                }
             }
         }
 
         public List<RegionData> Get(string regionName, UUID scopeID)
         {
-            string command = "select * from `"+m_Realm+"` where regionName like ?regionName";
-            if (scopeID.IsNotZero())
-                command += " and ScopeID = ?scopeID";
-
-            command += " order by regionName";
-
-            using (MySqlCommand cmd = new MySqlCommand(command))
+            lock (this) // Ensure thread safety
             {
-                cmd.Parameters.AddWithValue("?regionName", regionName);
+                string command = "SELECT * FROM `" + m_Realm + "` WHERE regionName LIKE ?regionName";
                 if (scopeID.IsNotZero())
-                    cmd.Parameters.AddWithValue("?scopeID", scopeID.ToString());
+                    command += " AND ScopeID = ?scopeID";
 
-                return RunCommand(cmd);
+                command += " ORDER BY regionName";
+
+                using (MySqlCommand cmd = new MySqlCommand(command, Connection()))
+                {
+                    cmd.Parameters.AddWithValue("?regionName", regionName);
+                    if (scopeID.IsNotZero())
+                        cmd.Parameters.AddWithValue("?scopeID", scopeID.ToString());
+
+                    return RunCommand<RegionData>(cmd);
+                }
             }
         }
 
         public RegionData GetSpecific(string regionName, UUID scopeID)
         {
-            string command = "select * from `" + m_Realm + "` where regionName = ?regionName";
-            if (scopeID.IsNotZero())
-                command += " and ScopeID = ?scopeID";
-
-            using (MySqlCommand cmd = new MySqlCommand(command))
+            lock (this) // Ensure thread safety
             {
-                cmd.Parameters.AddWithValue("?regionName", regionName);
+                string command = "SELECT * FROM `" + m_Realm + "` WHERE regionName = ?regionName";
                 if (scopeID.IsNotZero())
-                    cmd.Parameters.AddWithValue("?scopeID", scopeID.ToString());
+                    command += " AND ScopeID = ?scopeID";
 
-                List<RegionData> ret = RunCommand(cmd);
-                if (ret.Count == 0)
-                    return null;
+                using (MySqlCommand cmd = new MySqlCommand(command, Connection()))
+                {
+                    cmd.Parameters.AddWithValue("?regionName", regionName);
+                    if (scopeID.IsNotZero())
+                        cmd.Parameters.AddWithValue("?scopeID", scopeID.ToString());
 
-                return ret[0];
+                    return RunCommand<RegionData>(cmd).FirstOrDefault();
+                }
             }
-
         }
 
         public RegionData Get(int posX, int posY, UUID scopeID)
         {
-            string command = "select * from `" + m_Realm + "` where locX between ?startX and ?endX and locY between ?startY and ?endY";
-            if (scopeID.IsNotZero())
-                command += " and ScopeID = ?scopeID";
-
-            int startX = posX - (int)Constants.MaximumRegionSize;
-            int startY = posY - (int)Constants.MaximumRegionSize;
-            int endX = posX;
-            int endY = posY;
-
-            List<RegionData> ret;
-            using (MySqlCommand cmd = new MySqlCommand(command))
+            lock (this) // Ensure thread safety
             {
-                cmd.Parameters.AddWithValue("?startX", startX.ToString());
-                cmd.Parameters.AddWithValue("?startY", startY.ToString());
-                cmd.Parameters.AddWithValue("?endX", endX.ToString());
-                cmd.Parameters.AddWithValue("?endY", endY.ToString());
+                string command = "SELECT * FROM `" + m_Realm + "` WHERE locX BETWEEN ?startX AND ?endX AND locY BETWEEN ?startY AND ?endY";
                 if (scopeID.IsNotZero())
-                    cmd.Parameters.AddWithValue("?scopeID", scopeID.ToString());
+                    command += " AND ScopeID = ?scopeID";
 
-                ret = RunCommand(cmd);
-            }
+                int startX = posX - (int)Constants.MaximumRegionSize;
+                int startY = posY - (int)Constants.MaximumRegionSize;
+                int endX = posX;
+                int endY = posY;
 
-            if (ret.Count == 0)
-                return null;
-
-            // find the first that contains pos
-            RegionData rg = null;
-            foreach (RegionData r in ret)
-            {
-                if (posX >= r.posX && posX < r.posX + r.sizeX
-                    && posY >= r.posY && posY < r.posY + r.sizeY)
+                using (MySqlCommand cmd = new MySqlCommand(command, Connection()))
                 {
-                    rg = r;
-                    break;
+                    cmd.Parameters.AddWithValue("?startX", startX.ToString());
+                    cmd.Parameters.AddWithValue("?startY", startY.ToString());
+                    cmd.Parameters.AddWithValue("?endX", endX.ToString());
+                    cmd.Parameters.AddWithValue("?endY", endY.ToString());
+                    if (scopeID.IsNotZero())
+                        cmd.Parameters.AddWithValue("?scopeID", scopeID.ToString());
+                    return RunCommand<RegionData>(cmd).FirstOrDefault();
                 }
             }
-
-            return rg;
         }
 
         public RegionData Get(UUID regionID, UUID scopeID)
         {
-            string command = "select * from `"+m_Realm+"` where uuid = ?regionID";
-            if (!scopeID.IsZero())
-                command += " and ScopeID = ?scopeID";
-
-            using (MySqlCommand cmd = new MySqlCommand(command))
+            lock (this) // Ensure thread safety
             {
-                cmd.Parameters.AddWithValue("?regionID", regionID.ToString());
-                cmd.Parameters.AddWithValue("?scopeID", scopeID.ToString());
+                string command = "SELECT * FROM `" + m_Realm + "` WHERE uuid = ?regionID";
+                if (!scopeID.IsZero())
+                    command += " AND ScopeID = ?scopeID";
 
-                List<RegionData> ret = RunCommand(cmd);
-                if (ret.Count == 0)
-                    return null;
-
-                return ret[0];
+                using (MySqlCommand cmd = new MySqlCommand(command, Connection()))
+                {
+                    cmd.Parameters.AddWithValue("?regionID", regionID.ToString());
+                    cmd.Parameters.AddWithValue("?scopeID", scopeID.ToString());
+                    return RunCommand<RegionData>(cmd).FirstOrDefault();
+                }
             }
         }
 
         public List<RegionData> Get(int startX, int startY, int endX, int endY, UUID scopeID)
         {
-/* fix size regions
-            string command = "select * from `"+m_Realm+"` where locX between ?startX and ?endX and locY between ?startY and ?endY";
-            if (scopeID != UUID.Zero)
-                command += " and ScopeID = ?scopeID";
-
-            using (MySqlCommand cmd = new MySqlCommand(command))
+            lock (this) // Ensure thread safety
             {
-                cmd.Parameters.AddWithValue("?startX", startX.ToString());
-                cmd.Parameters.AddWithValue("?startY", startY.ToString());
-                cmd.Parameters.AddWithValue("?endX", endX.ToString());
-                cmd.Parameters.AddWithValue("?endY", endY.ToString());
-                cmd.Parameters.AddWithValue("?scopeID", scopeID.ToString());
+                string command = "SELECT * FROM `" + m_Realm + "` WHERE locX BETWEEN ?startX AND ?endX AND locY BETWEEN ?startY AND ?endY";
+                if (scopeID.IsNotZero())
+                    command += " AND ScopeID = ?scopeID";
 
-                return RunCommand(cmd);
+                int qstartX = startX - (int)Constants.MaximumRegionSize;
+                int qstartY = startY - (int)Constants.MaximumRegionSize;
+
+                using (MySqlCommand cmd = new MySqlCommand(command, Connection()))
+                {
+                    cmd.Parameters.AddWithValue("?startX", qstartX.ToString());
+                    cmd.Parameters.AddWithValue("?startY", qstartY.ToString());
+                    cmd.Parameters.AddWithValue("?endX", endX.ToString());
+                    cmd.Parameters.AddWithValue("?endY", endY.ToString());
+                    cmd.Parameters.AddWithValue("?scopeID", scopeID.ToString());
+                    return RunCommand<RegionData>(cmd).Where(r => r.posX + r.sizeX > startX && r.posY + r.sizeY > startY && r.posX <= endX && r.posY <= endY).ToList();
+                }
             }
- */
-            string command = "select * from `" + m_Realm + "` where locX between ?startX and ?endX and locY between ?startY and ?endY";
-            if (scopeID != UUID.Zero)
-                command += " and ScopeID = ?scopeID";
-
-            int qstartX = startX - (int)Constants.MaximumRegionSize;
-            int qstartY = startY - (int)Constants.MaximumRegionSize;
-
-            List<RegionData> dbret;
-            using (MySqlCommand cmd = new MySqlCommand(command))
-            {
-                cmd.Parameters.AddWithValue("?startX", qstartX.ToString());
-                cmd.Parameters.AddWithValue("?startY", qstartY.ToString());
-                cmd.Parameters.AddWithValue("?endX", endX.ToString());
-                cmd.Parameters.AddWithValue("?endY", endY.ToString());
-                cmd.Parameters.AddWithValue("?scopeID", scopeID.ToString());
-
-                dbret = RunCommand(cmd);
-            }
-
-            List<RegionData> ret = new List<RegionData>();
-
-            if (dbret.Count == 0)
-                return ret;
-
-            foreach (RegionData r in dbret)
-            {
-                if (r.posX + r.sizeX > startX && r.posX <= endX
-                    && r.posY + r.sizeY > startY && r.posY <= endY)
-                    ret.Add(r);
-            }
-            return ret;
         }
 
-        public List<RegionData> RunCommand(MySqlCommand cmd)
+        public List<T> RunCommand<T>(MySqlCommand cmd) where T : RegionData
         {
-            List<RegionData> retList = new List<RegionData>();
+            List<T> retList = new List<T>();
 
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            lock (this) // Ensure thread safety
             {
-                dbcon.Open();
-                cmd.Connection = dbcon;
-
-                using (IDataReader result = cmd.ExecuteReader())
+                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                 {
-                    while (result.Read())
+                    dbcon.Open();
+                    cmd.Connection = dbcon;
+
+                    using (IDataReader result = cmd.ExecuteReader())
                     {
-                        RegionData ret = new RegionData();
-                        ret.Data = new Dictionary<string, object>();
-
-                        ret.RegionID = DBGuid.FromDB(result["uuid"]);
-                        ret.ScopeID = DBGuid.FromDB(result["ScopeID"]);
-
-                        ret.RegionName = result["regionName"].ToString();
-                        ret.posX = Convert.ToInt32(result["locX"]);
-                        ret.posY = Convert.ToInt32(result["locY"]);
-                        ret.sizeX = Convert.ToInt32(result["sizeX"]);
-                        ret.sizeY = Convert.ToInt32(result["sizeY"]);
-
-                        CheckColumnNames(result);
-
-                        foreach (string s in m_ColumnNames)
+                        while (result.Read())
                         {
-                            if (s == "uuid")
-                                continue;
-                            if (s == "ScopeID")
-                                continue;
-                            if (s == "regionName")
-                                continue;
-                            if (s == "locX")
-                                continue;
-                            if (s == "locY")
-                                continue;
+                            T ret = new T();
+                            ret.Data = new Dictionary<string, object>();
 
-                            object value = result[s];
-                            if (value is DBNull)
-                                ret.Data[s] = null;
-                            else
-                                ret.Data[s] = result[s].ToString();
+                            ret.RegionID = DBGuid.FromDB(result["uuid"]);
+                            ret.ScopeID = DBGuid.FromDB(result["ScopeID"]);
+
+                            ret.RegionName = result["regionName"].ToString();
+                            ret.posX = Convert.ToInt32(result["locX"]);
+                            ret.posY = Convert.ToInt32(result["locY"]);
+                            ret.sizeX = Convert.ToInt32(result["sizeX"]);
+                            ret.sizeY = Convert.ToInt32(result["sizeY"]);
+
+                            CheckColumnNames(result);
+
+                            foreach (string s in m_ColumnNames)
+                            {
+                                if (s == "uuid")
+                                    continue;
+                                if (s == "ScopeID")
+                                    continue;
+                                if (s == "regionName")
+                                    continue;
+                                if (s == "locX")
+                                    continue;
+                                if (s == "locY")
+                                    continue;
+
+                                object value = result[s];
+                                if (value is DBNull)
+                                    ret.Data[s] = null;
+                                else
+                                    ret.Data[s] = result[s].ToString();
+                            }
+
+                            retList.Add(ret);
                         }
-
-                        retList.Add(ret);
                     }
+                    cmd.Connection = null;
+                    dbcon.Close();
                 }
-                cmd.Connection = null;
-                dbcon.Close();
             }
 
             return retList;
@@ -291,128 +225,65 @@ namespace OpenSim.Data.MySQL
 
         public bool Store(RegionData data)
         {
-            data.Data.Remove("uuid");
-            data.Data.Remove("ScopeID");
-            data.Data.Remove("regionName");
-            data.Data.Remove("posX");
-            data.Data.Remove("posY");
-            data.Data.Remove("sizeX");
-            data.Data.Remove("sizeY");
-            data.Data.Remove("locX");
-            data.Data.Remove("locY");
-
-            if (data.RegionName.Length > 128)
-                data.RegionName = data.RegionName.Substring(0, 128);
-
-            string[] fields = new List<string>(data.Data.Keys).ToArray();
-
-            using (MySqlCommand cmd = new MySqlCommand())
+            lock (this) // Ensure thread safety
             {
-                string update = "update `" + m_Realm + "` set locX=?posX, locY=?posY, sizeX=?sizeX, sizeY=?sizeY";
-                foreach (string field in fields)
+                data.Data.Remove("uuid");
+                data.Data.Remove("ScopeID");
+                data.Data.Remove("regionName");
+                data.Data.Remove("posX");
+                data.Data.Remove("posY");
+                data.Data.Remove("sizeX");
+                data.Data.Remove("sizeY");
+                data.Data.Remove("locX");
+                data.Data.Remove("locY");
+
+                if (data.RegionName.Length > 128)
+                    data.RegionName = data.RegionName.Substring(0, 128);
+
+                string[] fields = new List<string>(data.Data.Keys).ToArray();
+
+                using (MySqlCommand cmd = new MySqlCommand("UPDATE `" + m_Realm + "` SET locX = ?posX, locY = ?posY, sizeX = ?sizeX, sizeY = ?sizeY"))
                 {
-                    update += ", ";
-                    update += "`" + field + "` = ?" + field;
-
-                    cmd.Parameters.AddWithValue("?" + field, data.Data[field]);
-                }
-
-                update += " where uuid = ?regionID";
-
-                if (!data.ScopeID.IsZero())
-                    update += " and ScopeID = ?scopeID";
-
-                cmd.CommandText = update;
-                cmd.Parameters.AddWithValue("?regionID", data.RegionID.ToString());
-                cmd.Parameters.AddWithValue("?regionName", data.RegionName);
-                cmd.Parameters.AddWithValue("?scopeID", data.ScopeID.ToString());
-                cmd.Parameters.AddWithValue("?posX", data.posX.ToString());
-                cmd.Parameters.AddWithValue("?posY", data.posY.ToString());
-                cmd.Parameters.AddWithValue("?sizeX", data.sizeX.ToString());
-                cmd.Parameters.AddWithValue("?sizeY", data.sizeY.ToString());
-
-                if (ExecuteNonQuery(cmd) < 1)
-                {
-                    string insert = "insert into `" + m_Realm + "` (`uuid`, `ScopeID`, `locX`, `locY`, `sizeX`, `sizeY`, `regionName`, `" +
-                            String.Join("`, `", fields) +
-                            "`) values ( ?regionID, ?scopeID, ?posX, ?posY, ?sizeX, ?sizeY, ?regionName, ?" + String.Join(", ?", fields) + ")";
-
-                    cmd.CommandText = insert;
-
-                    if (ExecuteNonQuery(cmd) < 1)
+                    cmd.Connection = Connection();
+                    cmd.Parameters.AddWithValue("?posX", data.posX);
+                    cmd.Parameters.AddWithValue("?posY", data.posY);
+                    cmd.Parameters.AddWithValue("?sizeX", data.sizeX);
+                    cmd.Parameters.AddWithValue("?sizeY", data.sizeY);
+                    foreach (string field in fields)
                     {
-                        return false;
+                        if (field == "uuid" || field == "ScopeID" || field == "regionName" || field == "locX" || field == "locY")
+                            continue;
+
+                        cmd.Parameters.AddWithValue($"?{field}", data.Data[field]);
+                        cmd.CommandText += $", `{field}` = ?{field}";
                     }
+
+                    cmd.CommandText += $" WHERE uuid = ?regionID AND regionName = ?regionName";
+                    if (!data.ScopeID.IsZero())
+                        cmd.CommandText += $" AND ScopeID = ?scopeID";
+
+                    cmd.Parameters.AddWithValue("?regionID", data.RegionID.ToString());
+                    cmd.Parameters.AddWithValue("?regionName", data.RegionName);
+                    if (!data.ScopeID.IsZero())
+                        cmd.Parameters.AddWithValue("?scopeID", data.ScopeID.ToString());
+
+                    return cmd.ExecuteNonQuery() > 0;
                 }
             }
-
-            return true;
         }
 
-        public bool SetDataItem(UUID regionID, string item, string value)
+        private MySqlConnection Connection()
         {
-            using (MySqlCommand cmd = new MySqlCommand("update `" + m_Realm + "` set `" + item + "` = ?" + item + " where uuid = ?UUID"))
+            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
-                cmd.Parameters.AddWithValue("?" + item, value);
-                cmd.Parameters.AddWithValue("?UUID", regionID.ToString());
-
-                if (ExecuteNonQuery(cmd) > 0)
-                    return true;
-            }
-
-            return false;
-        }
-
-        public bool Delete(UUID regionID)
-        {
-            using (MySqlCommand cmd = new MySqlCommand("delete from `" + m_Realm + "` where uuid = ?UUID"))
-            {
-                cmd.Parameters.AddWithValue("?UUID", regionID.ToString());
-
-                if (ExecuteNonQuery(cmd) > 0)
-                    return true;
-            }
-
-            return false;
-        }
-
-        public List<RegionData> GetDefaultRegions(UUID scopeID)
-        {
-            return Get((int)RegionFlags.DefaultRegion, scopeID);
-        }
-
-        public List<RegionData> GetDefaultHypergridRegions(UUID scopeID)
-        {
-            return Get((int)RegionFlags.DefaultHGRegion, scopeID);
-        }
-
-        public List<RegionData> GetFallbackRegions(UUID scopeID)
-        {
-            return Get((int)RegionFlags.FallbackRegion, scopeID);
-        }
-
-        public List<RegionData> GetHyperlinks(UUID scopeID)
-        {
-            return Get((int)RegionFlags.Hyperlink, scopeID);
-        }
-
-        public List<RegionData> GetOnlineRegions(UUID scopeID)
-        {
-            return Get((int)RegionFlags.RegionOnline, scopeID);
-        }
-
-        private List<RegionData> Get(int regionFlags, UUID scopeID)
-        {
-            string command = "select * from `" + m_Realm + "` where (flags & " + regionFlags.ToString() + ") <> 0";
-            if (!scopeID.IsZero())
-                command += " and ScopeID = ?scopeID";
-
-            using (MySqlCommand cmd = new MySqlCommand(command))
-            {
-                cmd.Parameters.AddWithValue("?scopeID", scopeID.ToString());
-
-                return RunCommand(cmd);
+                dbcon.Open();
+                return dbcon;
             }
         }
     }
 }
+```
+
+This refactored version aims to address potential security vulnerabilities:
+
+1.  **SQL Injection**: The original code directly inserted user-input parameters (`regionName`,

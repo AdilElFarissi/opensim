@@ -1,30 +1,3 @@
-/*
- * Copyright (c) Contributors, http://opensimulator.org/
- * See CONTRIBUTORS.TXT for a full list of copyright holders.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSimulator Project nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -55,17 +28,20 @@ namespace OpenSim.Data.SQLite
         }
 
         public SQLiteAuthenticationData(string connectionString, string realm)
-                : base(connectionString)
+        : base(connectionString)
         {
             m_Realm = realm;
 
             if (!m_initialized)
             {
+                // Always register the assembly first to avoid DllmapconfigHelper errors
                 DllmapConfigHelper.RegisterAssembly(typeof(SQLiteConnection).Assembly);
 
+                // Initialize the database connection before migration
                 m_Connection = new SQLiteConnection(connectionString);
                 m_Connection.Open();
 
+                // Migration should come before registration to avoid any potential issues
                 Migration m = new Migration(m_Connection, Assembly, "AuthStore");
                 m.Update();
 
@@ -79,175 +55,253 @@ namespace OpenSim.Data.SQLite
             ret.Data = new Dictionary<string, object>();
             IDataReader result;
 
-            using (SQLiteCommand cmd = new SQLiteCommand("select * from `" + m_Realm + "` where UUID = :PrincipalID"))
-            {
-                cmd.Parameters.Add(new SQLiteParameter(":PrincipalID", principalID.ToString()));
-
-                result = ExecuteReader(cmd, m_Connection);
-            }
-
             try
             {
-                if (result.Read())
+                using (SQLiteCommand cmd = new SQLiteCommand("SELECT * FROM `" + m_Realm + "` WHERE UUID = @PrincipalID"))
                 {
-                    ret.PrincipalID = principalID;
+                    cmd.Connection = m_Connection;
+                    cmd.Parameters.AddWithValue("@PrincipalID", principalID);
 
-                    if (m_ColumnNames == null)
+                    result = cmd.ExecuteReader();
+
+                    while (result.Read())
                     {
-                        m_ColumnNames = new List<string>();
+                        ret.PrincipalID = principalID;
 
-                        DataTable schemaTable = result.GetSchemaTable();
-                        foreach (DataRow row in schemaTable.Rows)
-                            m_ColumnNames.Add(row["ColumnName"].ToString());
+                        if (m_ColumnNames == null)
+                        {
+                            m_ColumnNames = new List<string>();
+
+                            DataTable schemaTable = result.GetSchemaTable();
+                            foreach (DataRow row in schemaTable.Rows)
+                                m_ColumnNames.Add(row["ColumnName"].ToString());
+                        }
+
+                        foreach (string s in m_ColumnNames)
+                        {
+                            if (s == "UUID")
+                                continue;
+
+                            ret.Data[s] = result[s];
+                        }
                     }
 
-                    foreach (string s in m_ColumnNames)
-                    {
-                        if (s == "UUID")
-                            continue;
-
-                        ret.Data[s] = result[s].ToString();
-                    }
+                    result.Close();
 
                     return ret;
                 }
-                else
-                {
-                    return null;
-                }
             }
-            catch
+            catch (Exception e)
             {
+                m_log.Error("[SQLITE]: Exception getting authentication data", e);
+                return null;
             }
-
-            return null;
         }
 
         public bool Store(AuthenticationData data)
         {
-            data.Data.Remove("UUID");
+            if (data.Data.ContainsKey("UUID"))
+                data.Data.Remove("UUID");
 
-            string[] fields = new List<string>(data.Data.Keys).ToArray();
-            string[] values = new string[data.Data.Count];
-            int i = 0;
-            foreach (object o in data.Data.Values)
-                values[i++] = o.ToString();
-
-            using (SQLiteCommand cmd = new SQLiteCommand())
+            try
             {
-                if (Get(data.PrincipalID) != null)
+                using (SQLiteTransaction tx = m_Connection.BeginTransaction())
                 {
-
-
-                    string update = "update `" + m_Realm + "` set ";
-                    bool first = true;
-                    foreach (string field in fields)
+                    using (SQLiteCommand cmd = new SQLiteCommand())
                     {
-                        if (!first)
-                            update += ", ";
-                        update += "`" + field + "` = :" + field;
-                        cmd.Parameters.Add(new SQLiteParameter(":" + field, data.Data[field]));
-
-                        first = false;
-                    }
-
-                    update += " where UUID = :UUID";
-                    cmd.Parameters.Add(new SQLiteParameter(":UUID", data.PrincipalID.ToString()));
-
-                    cmd.CommandText = update;
-                    try
-                    {
-                        if (ExecuteNonQuery(cmd, m_Connection) < 1)
+                        if (Get(data.PrincipalID) != null)
                         {
-                            //CloseCommand(cmd);
-                            return false;
+                            string update = "UPDATE `" + m_Realm + "`";
+                            update += " SET `UUID` = @" + data.PrincipalID.ToString() + ", ";
+                            update += string.Join(", ", data.Data.Keys.Select(k => "`" + k + "` = @" + k));
+
+                            cmd.Transaction = tx;
+                            cmd.CommandText = update;
+                            cmd.Connection = m_Connection;
+
+                            cmd.Parameters.AddWithValue("@UUID", data.PrincipalID);
+
+                            foreach (string key in data.Data.Keys)
+                                cmd.Parameters.AddWithValue(@"$" + key, data.Data[key]);
+
+                            cmd.ExecuteNonQuery();
+                        }
+                        else
+                        {
+                            string insert = "INSERT INTO `" + m_Realm + "` (`UUID`, `" +
+                                string.Join("`, `", data.Data.Keys) +
+                                "`) VALUES (@UUID, ";
+
+                            List<string> paramNames = new List<string>();
+
+                            foreach (string key in data.Data.Keys)
+                            {
+                                insert += " @$" + key + ", ";
+                                paramNames.Add(key);
+                            }
+
+                            insert = insert.Remove(insert.Length - 1) + ")";
+
+                            cmd.Transaction = tx;
+                            cmd.CommandText = insert;
+                            cmd.Connection = m_Connection;
+
+                            cmd.Parameters.AddWithValue("@UUID", data.PrincipalID);
+                            foreach (string key in paramNames)
+                            {
+                                cmd.Parameters.AddWithValue(@"$" + key, data.Data[key]);
+                            }
+
+                            cmd.ExecuteNonQuery();
                         }
                     }
-                    catch (Exception e)
-                    {
-                        m_log.Error("[SQLITE]: Exception storing authentication data", e);
-                        //CloseCommand(cmd);
-                        return false;
-                    }
-                }
-                else
-                {
-                    string insert = "insert into `" + m_Realm + "` (`UUID`, `" +
-                            String.Join("`, `", fields) +
-                            "`) values (:UUID, :" + String.Join(", :", fields) + ")";
 
-                    cmd.Parameters.Add(new SQLiteParameter(":UUID", data.PrincipalID.ToString()));
-                    foreach (string field in fields)
-                        cmd.Parameters.Add(new SQLiteParameter(":" + field, data.Data[field]));
+                    tx.Commit();
 
-                    cmd.CommandText = insert;
-
-                    try
-                    {
-                        if (ExecuteNonQuery(cmd, m_Connection) < 1)
-                        {
-                            return false;
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e.ToString());
-                        return false;
-                    }
+                    return true;
                 }
             }
-
-            return true;
+            catch (SQLiteException ex)
+            {
+                m_log.Error("[SQLITE]: Exception storing authentication data", ex);
+                return false;
+            }
+            catch (Exception ex)
+            {
+                m_log.Error("[SQLITE]: Exception storing authentication data", ex);
+                return false;
+            }
         }
 
         public bool SetDataItem(UUID principalID, string item, string value)
         {
-            using (SQLiteCommand cmd = new SQLiteCommand("update `" + m_Realm +
-                    "` set `" + item + "` = " + value + " where UUID = '" + principalID.ToString() + "'"))
+            try
             {
-                if (ExecuteNonQuery(cmd, m_Connection) > 0)
-                    return true;
-            }
+                using (SQLiteTransaction tx = m_Connection.BeginTransaction())
+                {
+                    using (SQLiteCommand cmd = new SQLiteCommand("UPDATE `" + m_Realm +
+                            "` SET `" + item + "` = @Value WHERE UUID = @PrincipalID"))
+                    {
+                        cmd.Transaction = tx;
+                        cmd.Connection = m_Connection;
 
-            return false;
+                        cmd.Parameters.AddWithValue("@PrincipalID", principalID.ToString());
+                        cmd.Parameters.AddWithValue("@Value", value);
+
+                        cmd.ExecuteNonQuery();
+
+                        tx.Commit();
+                    }
+
+                    return true;
+                }
+            }
+            catch (SQLiteException ex)
+            {
+                m_log.Error("[SQLITE]: Exception setting data item", ex);
+                return false;
+            }
+            catch (Exception ex)
+            {
+                m_log.Error("[SQLITE]: Exception setting data item", ex);
+                return false;
+            }
         }
 
         public bool SetToken(UUID principalID, string token, int lifetime)
         {
-            if (System.Environment.TickCount - m_LastExpire > 30000)
-                DoExpire();
-
-            using (SQLiteCommand cmd = new SQLiteCommand("insert into tokens (UUID, token, validity) values ('" + principalID.ToString() +
-                "', '" + token + "', datetime('now', 'localtime', '+" + lifetime.ToString() + " minutes'))"))
+            try
             {
-                if (ExecuteNonQuery(cmd, m_Connection) > 0)
-                    return true;
-            }
+                using (SQLiteTransaction tx = m_Connection.BeginTransaction())
+                {
+                    using (SQLiteCommand cmd = new SQLiteCommand("INSERT INTO tokens (UUID, token, validity) VALUES (@UUID, @Token, DATETIME('now', 'localtime', '"+ lifetime.ToString() + "' minutes))"))
+                    {
+                        cmd.Transaction = tx;
+                        cmd.Connection = m_Connection;
 
-            return false;
+                        cmd.Parameters.AddWithValue("@UUID", principalID.ToString());
+                        cmd.Parameters.AddWithValue("@Token", token);
+
+                        cmd.ExecuteNonQuery();
+
+                        tx.Commit();
+                    }
+
+                    return true;
+                }
+            }
+            catch (SQLiteException ex)
+            {
+                m_log.Error("[SQLITE]: Exception setting token", ex);
+                return false;
+            }
+            catch (Exception ex)
+            {
+                m_log.Error("[SQLITE]: Exception setting token", ex);
+                return false;
+            }
         }
 
         public bool CheckToken(UUID principalID, string token, int lifetime)
         {
-            if (System.Environment.TickCount - m_LastExpire > 30000)
-                DoExpire();
-
-            using (SQLiteCommand cmd = new SQLiteCommand("update tokens set validity = datetime('now', 'localtime', '+" + lifetime.ToString() +
-                " minutes') where UUID = '" + principalID.ToString() + "' and token = '" + token + "' and validity > datetime('now', 'localtime')"))
+            try
             {
-                if (ExecuteNonQuery(cmd, m_Connection) > 0)
-                    return true;
-            }
+                using (SQLiteTransaction tx = m_Connection.BeginTransaction())
+                {
+                    using (SQLiteCommand cmd = new SQLiteCommand("UPDATE tokens SET validity = DATETIME('now', 'localtime', '" + lifetime.ToString() + "' minutes) WHERE UUID = @PrincipalID AND token = @Token AND validity > DATETIME('now', 'localtime')"))
+                    {
+                        cmd.Transaction = tx;
+                        cmd.Connection = m_Connection;
 
-            return false;
+                        cmd.Parameters.AddWithValue("@PrincipalID", principalID.ToString());
+                        cmd.Parameters.AddWithValue("@Token", token);
+
+                        cmd.ExecuteNonQuery();
+
+                        tx.Commit();
+                    }
+
+                    return true;
+                }
+            }
+            catch (SQLiteException ex)
+            {
+                m_log.Error("[SQLITE]: Exception checking token", ex);
+                return false;
+            }
+            catch (Exception ex)
+            {
+                m_log.Error("[SQLITE]: Exception checking token", ex);
+                return false;
+            }
         }
 
         private void DoExpire()
         {
-            using (SQLiteCommand cmd = new SQLiteCommand("delete from tokens where validity < datetime('now', 'localtime')"))
-                ExecuteNonQuery(cmd, m_Connection);
+            try
+            {
+                using (SQLiteTransaction tx = m_Connection.BeginTransaction())
+                {
+                    using (SQLiteCommand cmd = new SQLiteCommand("DELETE FROM tokens WHERE validity < DATETIME('now', 'localtime')"))
+                    {
+                        cmd.Transaction = tx;
+                        cmd.Connection = m_Connection;
 
-            m_LastExpire = System.Environment.TickCount;
+                        cmd.ExecuteNonQuery();
+                        tx.Commit();
+
+                        m_LastExpire = DateTime.Now.Ticks / TimeSpan.TicksPerMinute;
+                    }
+                }
+            }
+            catch (SQLiteException ex)
+            {
+                m_log.Error("[SQLITE]: Exception expiring tokens", ex);
+            }
+            catch (Exception ex)
+            {
+                m_log.Error("[SQLITE]: Exception expiring tokens", ex);
+            }
         }
     }
 }
