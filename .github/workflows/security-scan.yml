@@ -114,72 +114,70 @@ jobs:
           ]
 
           for run in runs:
-              for result in run.get("results", []):
-                  for loc in result.get("locations", []):
-                      uri = loc.get("physicalLocation", {}).get("artifactLocation", {}).get("uri", "")
-                      line_num = loc.get("physicalLocation", {}).get("region", {}).get("startLine", 1)
-                      
-                      if uri.startswith("file://"):
-                          uri = uri.replace("file://", "")
-                          files2patch.append(uri)
+            for result in run.get("results", []):
+              for loc in result.get("locations", []):
+                uri = loc.get("physicalLocation", {}).get("artifactLocation", {}).get("uri", "")
+                if uri.startswith("file://"):
+                  uri = uri.replace("file://", "")
+                  files2patch.append(uri)
 
           fixed_file_content  = None
 
           for file in files2patch:
-              if file and os.path.exists(file) and file.endswith(".cs"):
-                  print(f"🤖 AI processing C# file: {file}")
-                  with open(file, "r") as f_code:
-                      file_content = f_code.read() 
+            if file and os.path.exists(file) and file.endswith(".cs"):
+              print(f"🤖 AI processing C# file: {file}")
+              with open(file, "r") as f_code:
+                file_content = f_code.read() 
 
-              for current_model in models_pool:
-                  try:
-                      print(f"  -> Attempting fix using model: {current_model}")
-                      response = client.chat.completions.create(
-                          model=current_model,
-                          messages=[
-                            {
-                              "role": "system", 
-                              "content": f"You are an expert C# refactoring utility. Your goal is to analyze the provided full source code of OpenSimulator, find the security vulnerability, and fix it.\nInstructions:\n1. Return the ENTIRE corrected source code of the file. Do NOT truncate or use placeholders.\n2. Return ONLY the functional code. Do not wrap code blocks in markdown fences (like ```), and do not output any markdown explanations.\nRules:\n{rules}"
-                            },
-                            {
-                              "role": "user", 
-                              "content": f"Full File Content:\n{file_content}"
-                            }
-                          ]
-                      )
+            for current_model in models_pool:
+              try:
+                print(f"  -> Attempting fix using model: {current_model}")
+                response = client.chat.completions.create(
+                  model=current_model,
+                  messages=[
+                    {
+                      "role": "system", 
+                      "content": f"You are an expert C# refactoring utility. Your goal is to analyze the provided full source code of OpenSimulator, find the security vulnerability, and fix it.\nInstructions:\n1. Return the ENTIRE corrected source code of the file. Do NOT truncate or use placeholders.\n2. Return ONLY the functional code. Do not wrap code blocks in markdown fences (like ```), and do not output any markdown explanations.\nRules:\n{rules}"
+                    },
+                    {
+                      "role": "user", 
+                      "content": f"Full File Content:\n{file_content}"
+                    }
+                  ]
+                )
                       
-                      if isinstance(response, str):
-                        raw_content = response
-                      elif hasattr(response, 'choices') and response.choices:
-                        raw_content = response.choices[0].message.content
-                      else:
-                        raw_content = str(response)
+                if isinstance(response, str):
+                  raw_content = response
+                elif hasattr(response, 'choices') and response.choices:
+                  raw_content = response.choices[0].message.content
+                else:
+                  raw_content = str(response)
 
-                      cleaned_code = raw_content.lower().strip()
-                      if "<html" in cleaned_code or "<a href=" in cleaned_code or "<!doctype" in cleaned_code or "next/static" in cleaned_code:
-                          print(f"  ⚠️ Model {current_model} was blocked by an OpenRouter server HTML error page. Switching model...")
-                          time.sleep(5) # Upgraded switch buffer to 5 seconds
-                          continue
+                cleaned_code = raw_content.lower().strip()
+                if "<html" in cleaned_code or "<a href=" in cleaned_code or "<!doctype" in cleaned_code or "next/static" in cleaned_code:
+                  print(f"  ⚠️ Model {current_model} was blocked by an OpenRouter server HTML error page. Switching model...")
+                  time.sleep(5) # Upgraded switch buffer to 5 seconds
+                  continue
                       
-                      cleaned_code = re.sub(r'^```(?:csharp)?\n', '', raw_content, flags=re.IGNORECASE)
-                      cleaned_code = re.sub(r'\n```$', '', cleaned_code).strip()
+                  cleaned_code = re.sub(r'^```(?:csharp)?\n', '', raw_content, flags=re.IGNORECASE)
+                  cleaned_code = re.sub(r'\n```$', '', cleaned_code).strip()
                   
-                      if len(cleaned_code) > 10:
-                        fixed_file_content = cleaned_code
-                        break 
+                if len(cleaned_code) > 10:
+                  fixed_file_content = cleaned_code
+                  break 
                           
-                  except Exception as e:
-                      print(f"  ⚠️ Connection issue with {current_model}: {e}. Trying fallback...")
-                      time.sleep(5) # Upgraded switch buffer to 5 seconds
+                except Exception as e:
+                  print(f"  ⚠️ Connection issue with {current_model}: {e}. Trying fallback...")
+                  time.sleep(5) # Upgraded switch buffer to 5 seconds
 
-              if fixed_file_content :                              
+                if fixed_file_content :                              
                   with open(file, "w") as f_code_w:
-                      f_code_w.write(fixed_file_content)
+                    f_code_w.write(fixed_file_content)
                   
                   print(f"✅ Successfully patched: {file}")
                   fixed_count += 1
                   time.sleep(10) # UPGRADED: Increased cool down to 10 seconds between files
-              else:
+                else:
                   print(f"❌ Failed to patch {file}.")
 
           print(f"Code repair cycle completed. Total files safely patched: {fixed_count}")
