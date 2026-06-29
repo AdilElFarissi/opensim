@@ -1,30 +1,3 @@
-/*
- * Copyright (c) Contributors, http://opensimulator.org/
- * See CONTRIBUTORS.TXT for a full list of copyright holders.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSimulator Project nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -33,7 +6,6 @@ using System.Reflection;
 using log4net;
 using OpenMetaverse;
 using OpenSim.Framework;
-
 using System.Data.SQLite;
 
 namespace OpenSim.Data.SQLite
@@ -75,8 +47,10 @@ namespace OpenSim.Data.SQLite
 
         public AuthenticationData Get(UUID principalID)
         {
-            AuthenticationData ret = new AuthenticationData();
-            ret.Data = new Dictionary<string, object>();
+            AuthenticationData ret = new AuthenticationData
+            {
+                Data = new Dictionary<string, object>()
+            };
             IDataReader result;
 
             using (SQLiteCommand cmd = new SQLiteCommand("select * from `" + m_Realm + "` where UUID = :PrincipalID"))
@@ -137,8 +111,6 @@ namespace OpenSim.Data.SQLite
             {
                 if (Get(data.PrincipalID) != null)
                 {
-
-
                     string update = "update `" + m_Realm + "` set ";
                     bool first = true;
                     foreach (string field in fields)
@@ -159,14 +131,12 @@ namespace OpenSim.Data.SQLite
                     {
                         if (ExecuteNonQuery(cmd, m_Connection) < 1)
                         {
-                            //CloseCommand(cmd);
                             return false;
                         }
                     }
                     catch (Exception e)
                     {
                         m_log.Error("[SQLITE]: Exception storing authentication data", e);
-                        //CloseCommand(cmd);
                         return false;
                     }
                 }
@@ -191,7 +161,7 @@ namespace OpenSim.Data.SQLite
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine(e.ToString());
+                        m_log.Error("[SQLITE]: Exception storing authentication data", e);
                         return false;
                     }
                 }
@@ -202,9 +172,16 @@ namespace OpenSim.Data.SQLite
 
         public bool SetDataItem(UUID principalID, string item, string value)
         {
-            using (SQLiteCommand cmd = new SQLiteCommand("update `" + m_Realm +
-                    "` set `" + item + "` = " + value + " where UUID = '" + principalID.ToString() + "'"))
+            // Basic validation to avoid SQL injection via column name
+            if (string.IsNullOrEmpty(item) || !System.Text.RegularExpressions.Regex.IsMatch(item, @"^[A-Za-z0-9_]+$"))
+                return false;
+
+            using (SQLiteCommand cmd = new SQLiteCommand())
             {
+                cmd.CommandText = $"update `{m_Realm}` set `{item}` = @value where UUID = @uuid";
+                cmd.Parameters.Add(new SQLiteParameter("@value", value));
+                cmd.Parameters.Add(new SQLiteParameter("@uuid", principalID.ToString()));
+
                 if (ExecuteNonQuery(cmd, m_Connection) > 0)
                     return true;
             }
@@ -217,9 +194,13 @@ namespace OpenSim.Data.SQLite
             if (System.Environment.TickCount - m_LastExpire > 30000)
                 DoExpire();
 
-            using (SQLiteCommand cmd = new SQLiteCommand("insert into tokens (UUID, token, validity) values ('" + principalID.ToString() +
-                "', '" + token + "', datetime('now', 'localtime', '+" + lifetime.ToString() + " minutes'))"))
+            using (SQLiteCommand cmd = new SQLiteCommand())
             {
+                cmd.CommandText = "insert into tokens (UUID, token, validity) values (@uuid, @token, datetime('now', 'localtime', @lifetime))";
+                cmd.Parameters.Add(new SQLiteParameter("@uuid", principalID.ToString()));
+                cmd.Parameters.Add(new SQLiteParameter("@token", token));
+                cmd.Parameters.Add(new SQLiteParameter("@lifetime", $"+{lifetime} minutes"));
+
                 if (ExecuteNonQuery(cmd, m_Connection) > 0)
                     return true;
             }
@@ -232,9 +213,13 @@ namespace OpenSim.Data.SQLite
             if (System.Environment.TickCount - m_LastExpire > 30000)
                 DoExpire();
 
-            using (SQLiteCommand cmd = new SQLiteCommand("update tokens set validity = datetime('now', 'localtime', '+" + lifetime.ToString() +
-                " minutes') where UUID = '" + principalID.ToString() + "' and token = '" + token + "' and validity > datetime('now', 'localtime')"))
+            using (SQLiteCommand cmd = new SQLiteCommand())
             {
+                cmd.CommandText = "update tokens set validity = datetime('now', 'localtime', @lifetime) where UUID = @uuid and token = @token and validity > datetime('now', 'localtime')";
+                cmd.Parameters.Add(new SQLiteParameter("@lifetime", $"+{lifetime} minutes"));
+                cmd.Parameters.Add(new SQLiteParameter("@uuid", principalID.ToString()));
+                cmd.Parameters.Add(new SQLiteParameter("@token", token));
+
                 if (ExecuteNonQuery(cmd, m_Connection) > 0)
                     return true;
             }

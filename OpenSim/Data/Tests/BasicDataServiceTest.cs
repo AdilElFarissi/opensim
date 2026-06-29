@@ -1,33 +1,7 @@
-/*
- * Copyright (c) Contributors, http://opensimulator.org/
- * See CONTRIBUTORS.TXT for a full list of copyright holders.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSimulator Project nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using log4net.Config;
 using NUnit.Framework;
 using NUnit.Framework.Constraints;
@@ -65,6 +39,8 @@ namespace OpenSim.Data.Tests
 //        protected static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected ILog m_log;  // doesn't matter here that it's not static, init to correct type in instance .ctor
+
+        private static readonly Regex SafeIdentifierRegex = new Regex(@"^[a-zA-Z_][a-zA-Z0-9_]*$", RegexOptions.Compiled);
 
         public BasicDataServiceTest()
             : this("")
@@ -209,6 +185,15 @@ namespace OpenSim.Data.Tests
             return nRecs;
         }
 
+        private static void ValidateIdentifier(string identifier, string paramName)
+        {
+            if (string.IsNullOrEmpty(identifier))
+                throw new ArgumentException("Identifier cannot be null or empty", paramName);
+
+            if (!SafeIdentifierRegex.IsMatch(identifier))
+                throw new ArgumentException($"Invalid identifier format: {identifier}. Only alphanumeric and underscore characters are allowed, must start with letter or underscore.", paramName);
+        }
+
         /// <summary>Drop tables (listed as parameters). There is no "DROP IF EXISTS" syntax common for all
         /// databases, so we just DROP and ignore an exception.
         /// </summary>
@@ -217,24 +202,34 @@ namespace OpenSim.Data.Tests
         {
             foreach (string tbl in tables)
             {
+                ValidateIdentifier(tbl, "tables");
                 try
                 {
                     ExecuteSql("DROP TABLE " + tbl + ";");
-                }catch
+                }
+                catch
                 {
                 }
             }
         }
 
-        /// <summary>Clear tables listed as parameters (without dropping them).
+        /// <summary>Clear tables (listed as parameters) by resetting their migration state.
         /// </summary>
-        /// <param name="tables"></param>
+        /// <param name="stores"></param>
         protected virtual void ResetMigrations(params string[] stores)
         {
+            if (stores == null || stores.Length == 0)
+                return;
+
+            foreach (string store in stores)
+            {
+                ValidateIdentifier(store, "stores");
+            }
+
             string lst = "";
             foreach (string store in stores)
             {
-                string s = "'" + store + "'";
+                string s = "'" + store.Replace("'", "''") + "'";
                 if (lst.Length == 0)
                     lst = s;
                 else
@@ -258,6 +253,7 @@ namespace OpenSim.Data.Tests
         {
             foreach (string tbl in tables)
             {
+                ValidateIdentifier(tbl, "tables");
                 try
                 {
                     ExecuteSql("DELETE FROM " + tbl + ";");

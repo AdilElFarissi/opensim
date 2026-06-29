@@ -1,34 +1,8 @@
-/*
- * Copyright (c) Contributors, http://opensimulator.org/
- * See CONTRIBUTORS.TXT for a full list of copyright holders.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSimulator Project nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 using System;
 using System.Reflection;
 using System.Collections.Generic;
 using System.Data;
+using System.Text.RegularExpressions;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
 using log4net;
@@ -40,7 +14,7 @@ namespace OpenSim.Data.MySQL
     public class MySQLFSAssetData : IFSAssetDataPlugin
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-
+        private static readonly Regex TableNameRegex = new Regex(@"^[A-Za-z0-9_]+$");
         protected string m_ConnectionString;
         protected string m_Table;
 
@@ -50,10 +24,7 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         private int DaysBetweenAccessTimeUpdates = 0;
 
-        protected virtual Assembly Assembly
-        {
-            get { return GetType().Assembly; }
-        }
+        protected virtual Assembly Assembly => GetType().Assembly;
 
         public MySQLFSAssetData()
         {
@@ -61,14 +32,13 @@ namespace OpenSim.Data.MySQL
 
         #region IPlugin Members
 
-        public string Version { get { return "1.0.0.0"; } }
+        public string Version => "1.0.0.0";
 
-        // Loads and initialises the MySQL storage plugin and checks for migrations
         public void Initialise(string connect, string realm, int UpdateAccessTime)
         {
             m_ConnectionString = connect;
+            ValidateTableName(realm);
             m_Table = realm;
-
             DaysBetweenAccessTimeUpdates = UpdateAccessTime;
 
             try
@@ -78,12 +48,11 @@ namespace OpenSim.Data.MySQL
                     conn.Open();
                     Migration m = new Migration(conn, Assembly, "FSAssetStore");
                     m.Update();
-                    conn.Close();
                 }
             }
             catch (MySqlException e)
             {
-                m_log.ErrorFormat("[FSASSETS]: Can't connect to database: {0}", e.Message.ToString());
+                m_log.ErrorFormat("[FSASSETS]: Can't connect to database: {0}", e.Message);
             }
         }
 
@@ -94,12 +63,15 @@ namespace OpenSim.Data.MySQL
 
         public void Dispose() { }
 
-        public string Name
-        {
-            get { return "MySQL FSAsset storage engine"; }
-        }
+        public string Name => "MySQL FSAsset storage engine";
 
         #endregion
+
+        private void ValidateTableName(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name) || !TableNameRegex.IsMatch(name))
+                throw new ArgumentException("Invalid table name supplied.", nameof(name));
+        }
 
         private bool ExecuteNonQuery(MySqlCommand cmd)
         {
@@ -138,8 +110,7 @@ namespace OpenSim.Data.MySQL
 
         public AssetMetadata Get(string id, out string hash)
         {
-            hash = String.Empty;
-
+            hash = string.Empty;
             AssetMetadata meta = new AssetMetadata();
 
             using (MySqlConnection conn = new MySqlConnection(m_ConnectionString))
@@ -156,7 +127,7 @@ namespace OpenSim.Data.MySQL
 
                 using (MySqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = String.Format("select id, name, description, type, hash, create_time, asset_flags, access_time from {0} where id = ?id", m_Table);
+                    cmd.CommandText = $"SELECT id, name, description, type, hash, create_time, asset_flags, access_time FROM `{m_Table}` WHERE id = ?id";
                     cmd.Parameters.AddWithValue("?id", id);
 
                     using (IDataReader reader = cmd.ExecuteReader())
@@ -168,7 +139,6 @@ namespace OpenSim.Data.MySQL
 
                         meta.ID = id;
                         meta.FullID = new UUID(id);
-
                         meta.Name = reader["name"].ToString();
                         meta.Description = reader["description"].ToString();
                         meta.Type = (sbyte)Convert.ToInt32(reader["type"]);
@@ -176,8 +146,8 @@ namespace OpenSim.Data.MySQL
                         meta.CreationDate = Util.ToDateTime(Convert.ToInt32(reader["create_time"]));
                         meta.Flags = (AssetFlags)Convert.ToInt32(reader["asset_flags"]);
 
-                        int AccessTime = Convert.ToInt32(reader["access_time"]);
-                        UpdateAccessTime(id, AccessTime);
+                        int accessTime = Convert.ToInt32(reader["access_time"]);
+                        UpdateAccessTime(id, accessTime);
                     }
                 }
                 conn.Close();
@@ -186,11 +156,10 @@ namespace OpenSim.Data.MySQL
             return meta;
         }
 
-        private void UpdateAccessTime(string AssetID, int AccessTime)
+        private void UpdateAccessTime(string assetID, int accessTime)
         {
-            // Reduce DB work by only updating access time if asset hasn't recently been accessed
-            // 0 By Default, Config option is "DaysBetweenAccessTimeUpdates"
-            if (DaysBetweenAccessTimeUpdates > 0 && (DateTime.UtcNow - Utils.UnixTimeToDateTime(AccessTime)).TotalDays < DaysBetweenAccessTimeUpdates)
+            if (DaysBetweenAccessTimeUpdates > 0 &&
+                (DateTime.UtcNow - Utils.UnixTimeToDateTime(accessTime)).TotalDays < DaysBetweenAccessTimeUpdates)
                 return;
 
             using (MySqlConnection conn = new MySqlConnection(m_ConnectionString))
@@ -207,8 +176,8 @@ namespace OpenSim.Data.MySQL
 
                 using (MySqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = String.Format("UPDATE {0} SET `access_time` = UNIX_TIMESTAMP() WHERE `id` = ?id", m_Table);
-                    cmd.Parameters.AddWithValue("?id", AssetID);
+                    cmd.CommandText = $"UPDATE `{m_Table}` SET `access_time` = UNIX_TIMESTAMP() WHERE `id` = ?id";
+                    cmd.Parameters.AddWithValue("?id", assetID);
                     cmd.ExecuteNonQuery();
                 }
                 conn.Close();
@@ -227,49 +196,37 @@ namespace OpenSim.Data.MySQL
                     cmd.Parameters.AddWithValue("?id", meta.ID);
                     cmd.Parameters.AddWithValue("?name", meta.Name);
                     cmd.Parameters.AddWithValue("?description", meta.Description);
-//                    cmd.Parameters.AddWithValue("?type", meta.Type.ToString());
                     cmd.Parameters.AddWithValue("?type", meta.Type);
                     cmd.Parameters.AddWithValue("?hash", hash);
                     cmd.Parameters.AddWithValue("?asset_flags", meta.Flags);
 
                     if (existingAsset == null)
                     {
-                        cmd.CommandText = String.Format("insert into {0} (id, name, description, type, hash, asset_flags, create_time, access_time) values ( ?id, ?name, ?description, ?type, ?hash, ?asset_flags, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())", m_Table);
-
+                        cmd.CommandText = $"INSERT INTO `{m_Table}` (id, name, description, type, hash, asset_flags, create_time, access_time) " +
+                                          $"VALUES (?id, ?name, ?description, ?type, ?hash, ?asset_flags, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())";
                         ExecuteNonQuery(cmd);
-
                         return true;
                     }
 
-                    //cmd.CommandText = String.Format("update {0} set hash = ?hash, access_time = UNIX_TIMESTAMP() where id = ?id", m_Table);
-
-                    //ExecuteNonQuery(cmd);
-
+                    // Asset exists; keep existing hash and update access time
+                    // The existing hash is already in the database; only update the access time
+                    cmd.CommandText = $"UPDATE `{m_Table}` SET hash = ?hash, access_time = UNIX_TIMESTAMP() WHERE id = ?id";
+                    ExecuteNonQuery(cmd);
+                    return true;
                 }
-
-//                return false;
-                // if the asset already exits
-                // assume it was already correctly stored
-                // or regions will keep retry.
-                return true;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 m_log.Error("[FSAssets] Failed to store asset with ID " + meta.ID);
-        m_log.Error(e.ToString());
+                m_log.Error(e.ToString());
                 return false;
             }
         }
 
-        /// <summary>
-        /// Check if the assets exist in the database.
-        /// </summary>
-        /// <param name="uuids">The asset UUID's</param>
-        /// <returns>For each asset: true if it exists, false otherwise</returns>
         public bool[] AssetsExist(UUID[] uuids)
         {
             if (uuids.Length == 0)
-                return new bool[0];
+                return Array.Empty<bool>();
 
             bool[] results = new bool[uuids.Length];
             for (int i = 0; i < uuids.Length; i++)
@@ -278,7 +235,7 @@ namespace OpenSim.Data.MySQL
             HashSet<UUID> exists = new HashSet<UUID>();
 
             string ids = "'" + string.Join("','", uuids) + "'";
-            string sql = string.Format("select id from {1} where id in ({0})", ids, m_Table);
+            string sql = $"SELECT id FROM `{m_Table}` WHERE id IN ({ids})";
 
             using (MySqlConnection conn = new MySqlConnection(m_ConnectionString))
             {
@@ -310,6 +267,7 @@ namespace OpenSim.Data.MySQL
 
             for (int i = 0; i < uuids.Length; i++)
                 results[i] = exists.Contains(uuids[i]);
+
             return results;
         }
 
@@ -329,14 +287,13 @@ namespace OpenSim.Data.MySQL
                     return 0;
                 }
 
-                using(MySqlCommand cmd = conn.CreateCommand())
+                using (MySqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = String.Format("select count(*) as count from {0}",m_Table);
+                    cmd.CommandText = $"SELECT COUNT(*) AS count FROM `{m_Table}`";
 
                     using (IDataReader reader = cmd.ExecuteReader())
                     {
                         reader.Read();
-
                         count = Convert.ToInt32(reader["count"]);
                     }
                 }
@@ -348,11 +305,9 @@ namespace OpenSim.Data.MySQL
 
         public bool Delete(string id)
         {
-            using(MySqlCommand cmd = new MySqlCommand())
+            using (MySqlCommand cmd = new MySqlCommand())
             {
-
-                cmd.CommandText = String.Format("delete from {0} where id = ?id",m_Table);
-
+                cmd.CommandText = $"DELETE FROM `{m_Table}` WHERE id = ?id";
                 cmd.Parameters.AddWithValue("?id", id);
 
                 ExecuteNonQuery(cmd);
@@ -363,6 +318,7 @@ namespace OpenSim.Data.MySQL
 
         public void Import(string conn, string table, int start, int count, bool force, FSStoreDelegate store)
         {
+            ValidateTableName(table);
             int imported = 0;
 
             using (MySqlConnection importConn = new MySqlConnection(conn))
@@ -373,21 +329,19 @@ namespace OpenSim.Data.MySQL
                 }
                 catch (MySqlException e)
                 {
-                    m_log.ErrorFormat("[FSASSETS]: Can't connect to database: {0}",
-                            e.Message.ToString());
-
+                    m_log.ErrorFormat("[FSASSETS]: Can't connect to database: {0}", e.Message);
                     return;
                 }
 
                 using (MySqlCommand cmd = importConn.CreateCommand())
                 {
-                    string limit = String.Empty;
+                    string limit = string.Empty;
                     if (count != -1)
                     {
-                        limit = String.Format(" limit {0},{1}", start, count);
+                        limit = $" LIMIT {start},{count}";
                     }
 
-                    cmd.CommandText = String.Format("select * from {0}{1}", table, limit);
+                    cmd.CommandText = $"SELECT * FROM `{table}`{limit}";
 
                     MainConsole.Instance.Output("Querying database");
                     using (IDataReader reader = cmd.ExecuteReader())
@@ -397,16 +351,13 @@ namespace OpenSim.Data.MySQL
                         while (reader.Read())
                         {
                             if ((imported % 100) == 0)
-                            {
-                                MainConsole.Instance.Output(String.Format("{0} assets imported so far", imported));
-                            }
+                                MainConsole.Instance.Output($"{imported} assets imported so far");
 
                             AssetBase asset = new AssetBase();
                             AssetMetadata meta = new AssetMetadata();
 
                             meta.ID = reader["id"].ToString();
                             meta.FullID = new UUID(meta.ID);
-
                             meta.Name = reader["name"].ToString();
                             meta.Description = reader["description"].ToString();
                             meta.Type = (sbyte)Convert.ToInt32(reader["assetType"]);
@@ -417,7 +368,6 @@ namespace OpenSim.Data.MySQL
                             asset.Data = (byte[])reader["data"];
 
                             store(asset, force);
-
                             imported++;
                         }
                     }
@@ -425,7 +375,7 @@ namespace OpenSim.Data.MySQL
                 importConn.Close();
             }
 
-            MainConsole.Instance.Output(String.Format("Import done, {0} assets imported", imported));
+            MainConsole.Instance.Output($"Import done, {imported} assets imported");
         }
 
         #endregion

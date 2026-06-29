@@ -1,30 +1,3 @@
-/*
- * Copyright (c) Contributors, http://opensimulator.org/
- * See CONTRIBUTORS.TXT for a full list of copyright holders.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSimulator Project nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -47,6 +20,14 @@ namespace OpenSim.Data.MySQL
 
         private FieldInfo[] m_Fields;
         private Dictionary<string, FieldInfo> m_FieldMap = new();
+
+        // Whitelisted tables for UUID list operations
+        private static readonly HashSet<string> s_allowedUuidTables = new()
+        {
+            "estate_managers",
+            "estate_users",
+            "estate_groups"
+        };
 
         protected virtual Assembly Assembly
         {
@@ -191,10 +172,8 @@ namespace OpenSim.Data.MySQL
 
         private void DoCreate(EstateSettings es)
         {
-            // Migration case
             List<string> names = new List<string>(FieldList);
 
-            // Remove EstateID and use AutoIncrement
             if (es.EstateID < 100)
                 names.Remove("EstateID");
 
@@ -212,10 +191,7 @@ namespace OpenSim.Data.MySQL
                     {
                         if (m_FieldMap[name].GetValue(es) is bool)
                         {
-                            if ((bool)m_FieldMap[name].GetValue(es))
-                                cmd2.Parameters.AddWithValue("?" + name, "1");
-                            else
-                                cmd2.Parameters.AddWithValue("?" + name, "0");
+                            cmd2.Parameters.AddWithValue("?" + name, ((bool)m_FieldMap[name].GetValue(es)) ? "1" : "0");
                         }
                         else
                         {
@@ -225,7 +201,6 @@ namespace OpenSim.Data.MySQL
 
                     cmd2.ExecuteNonQuery();
 
-                    // Only get Auto ID if we actually used it else we just get 0
                     if (es.EstateID < 100)
                     {
                         cmd2.CommandText = "select LAST_INSERT_ID() as id";
@@ -260,10 +235,7 @@ namespace OpenSim.Data.MySQL
                     {
                         if (m_FieldMap[name].GetValue(es) is bool)
                         {
-                            if ((bool)m_FieldMap[name].GetValue(es))
-                                cmd.Parameters.AddWithValue("?" + name, "1");
-                            else
-                                cmd.Parameters.AddWithValue("?" + name, "0");
+                            cmd.Parameters.AddWithValue("?" + name, ((bool)m_FieldMap[name].GetValue(es)) ? "1" : "0");
                         }
                         else
                         {
@@ -347,6 +319,9 @@ namespace OpenSim.Data.MySQL
 
         void SaveUUIDList(uint EstateID, string table, UUID[] data)
         {
+            if (!s_allowedUuidTables.Contains(table))
+                throw new ArgumentException("Invalid table name for UUID list operation.");
+
             using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
                 dbcon.Open();
@@ -377,6 +352,9 @@ namespace OpenSim.Data.MySQL
 
         UUID[] LoadUUIDList(uint EstateID, string table)
         {
+            if (!s_allowedUuidTables.Contains(table))
+                throw new ArgumentException("Invalid table name for UUID list operation.");
+
             List<UUID> uuids = new List<UUID>();
 
             using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
@@ -392,7 +370,6 @@ namespace OpenSim.Data.MySQL
                     {
                         while (r.Read())
                         {
-                            // EstateBan eb = new EstateBan();
                             uuids.Add(DBGuid.FromDB(r["uuid"]));
                         }
                     }
@@ -412,7 +389,7 @@ namespace OpenSim.Data.MySQL
                 cmd.CommandText = sql;
                 cmd.Parameters.AddWithValue("?EstateID", estateID);
 
-                EstateSettings e =  DoLoad(cmd, UUID.Zero, false);
+                EstateSettings e = DoLoad(cmd, UUID.Zero, false);
                 if (e.EstateID != estateID)
                     return null;
                 return e;
@@ -524,9 +501,8 @@ namespace OpenSim.Data.MySQL
 
                 try
                 {
-                    // Delete any existing association of this region with an estate.
-                     using (MySqlCommand cmd = dbcon.CreateCommand())
-                     {
+                    using (MySqlCommand cmd = dbcon.CreateCommand())
+                    {
                         cmd.Transaction = transaction;
                         cmd.CommandText = "delete from estate_map where RegionID = ?RegionID";
                         cmd.Parameters.AddWithValue("?RegionID", regionID.ToString());
@@ -582,7 +558,7 @@ namespace OpenSim.Data.MySQL
 
                         using (IDataReader reader = cmd.ExecuteReader())
                         {
-                            while(reader.Read())
+                            while (reader.Read())
                                 result.Add(DBGuid.FromDB(reader["RegionID"]));
                             reader.Close();
                         }

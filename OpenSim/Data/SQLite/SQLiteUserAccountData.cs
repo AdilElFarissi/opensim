@@ -1,37 +1,8 @@
-/*
- * Copyright (c) Contributors, http://opensimulator.org/
- * See CONTRIBUTORS.TXT for a full list of copyright holders.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSimulator Project nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Data;
+using System.Data.SQLite;
 using OpenMetaverse;
 using OpenSim.Framework;
-using System.Data.SQLite;
 
 namespace OpenSim.Data.SQLite
 {
@@ -44,35 +15,34 @@ namespace OpenSim.Data.SQLite
 
         public UserAccountData[] GetUsers(UUID scopeID, string query)
         {
-            string[] words = query.Split();
-
-            for (int i = 0 ; i < words.Length ; i++)
+            // Split the query into words and remove any that are shorter than 3 characters
+            string[] words = query.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            List<string> filtered = new List<string>();
+            foreach (var w in words)
             {
-                if (words[i].Length < 3)
-                {
-                    if (i != words.Length - 1)
-                        Array.Copy(words, i + 1, words, i, words.Length - i - 1);
-                    Array.Resize(ref words, words.Length - 1);
-                }
+                if (w.Length >= 3)
+                    filtered.Add(w);
             }
+            words = filtered.ToArray();
 
-            if (words.Length == 0)
-                return new UserAccountData[0];
-
-            if (words.Length > 2)
+            if (words.Length == 0 || words.Length > 2)
                 return new UserAccountData[0];
 
             using (SQLiteCommand cmd = new SQLiteCommand())
             {
+                cmd.CommandText = $"SELECT * FROM {m_Realm} WHERE (ScopeID=@scope OR ScopeID='00000000-0000-0000-0000-000000000000')";
+                cmd.Parameters.AddWithValue("@scope", scopeID.ToString());
+
                 if (words.Length == 1)
                 {
-                    cmd.CommandText = String.Format("select * from {0} where (ScopeID='{1}' or ScopeID='00000000-0000-0000-0000-000000000000') and (FirstName like '{2}%' or LastName like '{2}%')",
-                        m_Realm, scopeID.ToString(), words[0]);
+                    cmd.CommandText += " AND (FirstName LIKE @p0 OR LastName LIKE @p0)";
+                    cmd.Parameters.AddWithValue("@p0", words[0] + "%");
                 }
-                else
+                else // words.Length == 2
                 {
-                    cmd.CommandText = String.Format("select * from {0} where (ScopeID='{1}' or ScopeID='00000000-0000-0000-0000-000000000000') and (FirstName like '{2}%' or LastName like '{3}%')",
-                        m_Realm, scopeID.ToString(), words[0], words[1]);
+                    cmd.CommandText += " AND (FirstName LIKE @p0 OR LastName LIKE @p1)";
+                    cmd.Parameters.AddWithValue("@p0", words[0] + "%");
+                    cmd.Parameters.AddWithValue("@p1", words[1] + "%");
                 }
 
                 return DoQuery(cmd);
@@ -81,7 +51,9 @@ namespace OpenSim.Data.SQLite
 
         public UserAccountData[] GetUsersWhere(UUID scopeID, string where)
         {
-            return null;
+            // This method is intentionally not implemented to avoid arbitrary SQL injection.
+            // callers should use GetUsers or a safe parameterized query instead.
+            throw new NotImplementedException("GetUsersWhere is not supported due to security concerns.");
         }
     }
 }
