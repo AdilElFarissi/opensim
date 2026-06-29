@@ -132,11 +132,7 @@ jobs:
               fixed_file_content = None
               
               models_pool = [
-                  "openrouter/auto",
-                  "qwen/qwen-2.5-coder-32b:free",
-                  "meta-llama/llama-3.3-70b-instruct:free",
-                  "google/gemini-2.5-flash:free",
-                  "microsoft/phi-3-medium-128k-instruct:free"
+                  "openrouter/free"
               ]
 
               for current_model in models_pool:
