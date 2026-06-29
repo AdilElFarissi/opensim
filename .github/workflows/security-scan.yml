@@ -104,19 +104,24 @@ jobs:
           runs = sarif_data.get("runs", [])
           fixed_count = 0
 
-          files2patch = set()  # Utilisation d'un set pour regrouper les fichiers uniques
+          files2patch = set()
           for run in runs:
               for result in run.get("results", []):
                   for loc in result.get("locations", []):
                       uri = loc.get("physicalLocation", {}).get("artifactLocation", {}).get("uri", "")
                       if uri.startswith("file://"):
                           uri = uri.replace("file://", "")
-                      if uri and uri.endswith(".cs"):  # On s'assure qu'il s'agit d'un fichier C# valide
+                      # Nettoyage des slashes initiaux si présents
+                      if uri.startswith("/"):
+                          uri = uri[1:]
+                      if uri and uri.endswith(".cs"):
                           files2patch.add(uri)
+
+          print(f"📋 Fichiers uniques détectés par Semgrep : {list(files2patch)}")
 
           for file in files2patch:
               if not os.path.exists(file):
-                  print(f"⚠️ Fichier introuvable sur le disque : {file}")
+                  print(f"⚠️ Fichier introuvable sur le disque local : {file}")
                   continue
 
               print(f"🤖 AI processing C# file: {file}")
@@ -125,13 +130,13 @@ jobs:
                   file_content = f_code.read() 
 
               fixed_file_content = None
+              
               models_pool = [
-                  "openrouter/free",
-                  "nvidia/nemotron-3-super-120b-a12b:free",
-                  "poolside/laguna-xs.2:free",
-                  "qwen/qwen3-coder:free",
+                  "openrouter/auto",
+                  "qwen/qwen-2.5-coder-32b:free",
                   "meta-llama/llama-3.3-70b-instruct:free",
-                  "openai/gpt-oss-120b:free"              
+                  "google/gemini-2.5-flash:free",
+                  "microsoft/phi-3-medium-128k-instruct:free"
               ]
 
               for current_model in models_pool:
@@ -151,15 +156,19 @@ jobs:
                           ]
                       )
                             
-                      if isinstance(response, str):
-                          raw_content = response
-                      elif hasattr(response, 'choices') and response.choices:
+                      if hasattr(response, 'choices') and len(response.choices) > 0:
                           raw_content = response.choices[0].message.content
+                      elif isinstance(response, dict) and "choices" in response:
+                          raw_content = response["choices"][0]["message"]["content"]
                       else:
                           raw_content = str(response)
 
+                      if not raw_content:
+                          print(f"  ⚠️ Réponse vide du modèle {current_model}")
+                          continue
+
                       cleaned_check = raw_content.lower().strip()
-                      # Sécurité anti-page d'erreur HTML OpenRouter
+
                       if "<html" in cleaned_check or "<a href=" in cleaned_check or "<!doctype" in cleaned_check or "next/static" in cleaned_check:
                           print(f"  ⚠️ Model {current_model} was blocked by an OpenRouter server HTML error page. Switching model...")
                           time.sleep(5)
@@ -170,21 +179,22 @@ jobs:
                         
                       if len(cleaned_code) > 10:
                           fixed_file_content = cleaned_code
+                          print(f"  🎉 Valid response successfully retrieved from{current_model} !")
                           break
                                   
                   except Exception as e:
-                      print(f"  ⚠️ Connection issue with {current_model}: {e}. Trying fallback...")
+                      print(f"  ⚠️ Connection issue with {current_model}: {str(e)}. Trying fallback...")
                       time.sleep(5)
 
               if fixed_file_content:                              
                   with open(file, "w", encoding="utf-8") as f_code_w:
                       f_code_w.write(fixed_file_content)
                         
-                  print(f"✅ Successfully patched: {file}")
+                  print(f"✅ Successfully patched local file: {file}")
                   fixed_count += 1
-                  time.sleep(10)
+                  time.sleep(5)
               else:
-                  print(f"❌ Failed to patch {file}.")
+                  print(f"❌ Failed to patch {file} with all models.")
 
           print(f"Code repair cycle completed. Total files safely patched: {fixed_count}")
           EOF
