@@ -166,19 +166,19 @@ jobs:
                   fixed_file_content = cleaned_code
                   break 
                           
-                except Exception as e:
-                  print(f"  ⚠️ Connection issue with {current_model}: {e}. Trying fallback...")
-                  time.sleep(5) # Upgraded switch buffer to 5 seconds
+          except Exception as e:
+            print(f"  ⚠️ Connection issue with {current_model}: {e}. Trying fallback...")
+            time.sleep(5) # Upgraded switch buffer to 5 seconds
 
-                if fixed_file_content :                              
-                  with open(file, "w") as f_code_w:
-                    f_code_w.write(fixed_file_content)
+          if fixed_file_content :                              
+            with open(file, "w") as f_code_w:
+            f_code_w.write(fixed_file_content)
                   
-                  print(f"✅ Successfully patched: {file}")
-                  fixed_count += 1
-                  time.sleep(10) # UPGRADED: Increased cool down to 10 seconds between files
-                else:
-                  print(f"❌ Failed to patch {file}.")
+            print(f"✅ Successfully patched: {file}")
+            fixed_count += 1
+            time.sleep(10) # UPGRADED: Increased cool down to 10 seconds between files
+          else:
+            print(f"❌ Failed to patch {file}.")
 
           print(f"Code repair cycle completed. Total files safely patched: {fixed_count}")
           EOF
