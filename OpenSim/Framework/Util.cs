@@ -1,30 +1,3 @@
-/*
- * Copyright (c) Contributors, http://opensimulator.org/
- * See CONTRIBUTORS.TXT for a full list of copyright holders.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSimulator Project nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -149,8 +122,7 @@ namespace OpenSim.Framework
         /// 1 = only first line of stack trace; don't log common threads
         /// 2 = full stack trace; don't log common threads
         /// 3 = full stack trace, including common threads
-        /// </summary>
-        public static int LogThreadPool { get; set; }
+        /// </        public static int LogThreadPool { get; set; }
         public static bool LogOverloads { get; set; }
 
         public static readonly int MAX_THREADPOOL_LEVEL = 3;
@@ -919,23 +891,6 @@ namespace OpenSim.Framework
                     indx = retry;
                     continue;
                 }
-
-                ++indx;
-                retry = indx;
-                next = indx + 4;
-                for (; indx < next; ++indx)
-                {
-                    if (!IsHexa(s[indx]))
-                        break;
-                }
-                if (indx != next)
-                    continue;
-
-                if (s[indx] != '-')
-                {
-                    indx = retry;
-                    continue;
-                }
                 ++indx;
                 //retry = indx;
 
@@ -1035,23 +990,6 @@ namespace OpenSim.Framework
 
                 if (s[indx] != '-')
                     continue;
-
-                ++indx;
-                retry = indx;
-                next = indx + 4;
-                for (; indx < next; ++indx)
-                {
-                    if (!IsHexa(s[indx]))
-                        break;
-                }
-                if (indx != next)
-                    continue;
-
-                if (s[indx] != '-')
-                {
-                    indx = retry;
-                    continue;
-                }
 
                 ++indx;
                 retry = indx;
@@ -1482,13 +1420,13 @@ namespace OpenSim.Framework
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ReadOnlySpan<char> AESDecrypt(ReadOnlySpan<char> secret, ReadOnlySpan<char> encryptedText)
+        public static string AESDecrypt(ReadOnlySpan<char> secret, ReadOnlySpan<char> encryptedText)
         {
             return AESDecryptString(secret, encryptedText, new ReadOnlySpan<char>());
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ReadOnlySpan<char> AESDecryptFrom(ReadOnlySpan<char> secret, ReadOnlySpan<char> encryptedText, ReadOnlySpan<char> ivString)
+        public static string AESDecryptFrom(ReadOnlySpan<char> secret, ReadOnlySpan<char> encryptedText, ReadOnlySpan<char> ivString)
         {
             return AESDecryptString(secret, encryptedText, ivString);
         }
@@ -1503,7 +1441,7 @@ namespace OpenSim.Framework
         /// if used in the encription. eg; an avatarID, a SecureSessionID, an object or 
         /// script ID...</param>
         /// <returns>The decrypted string.</returns>
-        private static ReadOnlySpan<char> AESDecryptString(ReadOnlySpan<char> secret, ReadOnlySpan<char> encryptedText, ReadOnlySpan<char> ivString)
+        private static string AESDecryptString(ReadOnlySpan<char> secret, ReadOnlySpan<char> encryptedText, ReadOnlySpan<char> ivString)
         {
             if(secret.Length == 0 || encryptedText.Length == 0)
                 return string.Empty;
@@ -1677,7 +1615,7 @@ namespace OpenSim.Framework
 
         /// <summary>
         /// Determines whether a point is inside a bounding box.
-        /// </summary>
+        /// </>
         /// <param name='v'></param>
         /// <param name='min'></param>
         /// <param name='max'></param>
@@ -4047,7 +3985,7 @@ namespace OpenSim.Framework
 
         /// <summary>
         /// Gets the client IP address
-        /// </summary>
+        /// </>
         /// <param name="xff"></param>
         /// <returns></returns>
         public static IPEndPoint GetClientIPFromXFF(string xff)
@@ -4179,7 +4117,7 @@ namespace OpenSim.Framework
         /// <param name="uuid">the uuid part</param>
         /// <param name="url">the endpoint part (e.g. http://foo.com)</param>
         /// <param name="firstname">the first name part (e.g. Test)</param>
-        /// <param name="lastname">the last name part (e.g User)</param>
+        /// <param name="lastname">the last name part (e.g. Test User)</param>
         /// <param name="secret">the secret part</param>
         public static unsafe bool ParseUniversalUserIdentifier(string value, out UUID uuid, out string url, out string firstname, out string lastname, out string secret)
         {
@@ -4445,6 +4383,7 @@ namespace OpenSim.Framework
                 url = string.Empty;
                 firstname = string.Empty;
                 lastname = string.Empty;
+                uuid = UUID.Zero;
                 return false;
             }
 

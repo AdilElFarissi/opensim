@@ -1,30 +1,3 @@
-/*
- * Copyright (c) Contributors, http://opensimulator.org/
- * See CONTRIBUTORS.TXT for a full list of copyright holders.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSimulator Project nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -56,7 +29,7 @@ namespace OpenSim.Data.MySQL
         /// FIXME: However, the locks remain in many places since they are effectively providing a level of
         /// transactionality.  This should be replaced by more efficient database transactions which would not require
         /// unrelated operations to block each other or unrelated operations on the same tables from blocking each
-        /// other.
+        /// each other.
         /// </summary>
         private object m_dbLock = new object();
 
@@ -152,13 +125,10 @@ namespace OpenSim.Data.MySQL
                                     "OwnerID, GroupID, " +
                                     "LastOwnerID, RezzerID, SceneGroupID, " +
                                     "PayPrice, PayButton1, " +
-                                    "PayButton2, PayButton3, " +
-                                    "PayButton4, LoopedSound, " +
+                                    "PayButton2, PayButton3, PayButton4, LoopedSound, " +
                                     "LoopedSoundGain, TextureAnimation, " +
-                                    "CameraEyeOffsetX, CameraEyeOffsetY, " +
-                                    "CameraEyeOffsetZ, CameraAtOffsetX, " +
-                                    "CameraAtOffsetY, CameraAtOffsetZ, " +
-                                    "ForceMouselook, ScriptAccessPin, " +
+                                    "CameraEyeOffsetX, CameraEyeOffsetY, CameraEyeOffsetZ, CameraAtOffsetX, " +
+                                    "CameraAtOffsetY, CameraAtOffsetZ, ForceMouselook, ScriptAccessPin, " +
                                     "AllowedDrop, DieAtEdge, " +
                                     "SalePrice, SaleType, " +
                                     "ColorR, ColorG, ColorB, ColorA, " +
@@ -193,13 +163,12 @@ namespace OpenSim.Data.MySQL
                                     "?PayPrice, ?PayButton1, ?PayButton2, " +
                                     "?PayButton3, ?PayButton4, ?LoopedSound, " +
                                     "?LoopedSoundGain, ?TextureAnimation, " +
-                                    "?CameraEyeOffsetX, ?CameraEyeOffsetY, " +
-                                    "?CameraEyeOffsetZ, ?CameraAtOffsetX, " +
-                                    "?CameraAtOffsetY, ?CameraAtOffsetZ, " +
+                                    "?CameraEyeOffsetX, ?CameraEyeOffsetY, ?CameraEyeOffsetZ, " +
+                                    "?CameraAtOffsetX, ?CameraAtOffsetY, ?CameraAtOffsetZ, " +
                                     "?ForceMouselook, ?ScriptAccessPin, " +
                                     "?AllowedDrop, ?DieAtEdge, ?SalePrice, " +
-                                    "?SaleType, ?ColorR, ?ColorG, " +
-                                    "?ColorB, ?ColorA, ?ParticleSystem, " +
+                                    "?SaleType, ?ColorR, " +
+                                    "?ColorG, ?ColorB, ?ColorA, ?ParticleSystem, " +
                                     "?ClickAction, ?Material, ?CollisionSound, " +
                                     "?CollisionSoundVolume, ?PassTouches, ?PassCollisions, " +
                                     "?LinkNumber, ?MediaURL, ?KeyframeMotion, ?AttachedPosX, " +
@@ -250,8 +219,6 @@ namespace OpenSim.Data.MySQL
 
         public virtual void RemoveObject(UUID obj, UUID regionUUID)
         {
-            //m_log.DebugFormat("[REGION DB]: Deleting scene object {0} from {1} in database", obj, regionUUID);
-
             List<string> uuids = new List<string>();
             lock (m_dbLock)
             {
@@ -259,57 +226,65 @@ namespace OpenSim.Data.MySQL
                 {
                     dbcon.Open();
 
-                    using (MySqlCommand cmd = dbcon.CreateCommand())
+                    // Get child prim UUIDs
+                    using (MySqlCommand getCmd = dbcon.CreateCommand())
                     {
-                        cmd.CommandText = "select UUID from prims where SceneGroupID= ?UUID";
-                        cmd.Parameters.AddWithValue("UUID", obj.ToString());
+                        getCmd.CommandText = "select UUID from prims where SceneGroupID = @SceneGroupID";
+                        getCmd.Parameters.Add("@SceneGroupID", MySqlDbType.String).Value = obj.ToString();
 
-                        using (IDataReader reader = ExecuteReader(cmd))
+                        using (IDataReader reader = ExecuteReader(getCmd))
                         {
                             while (reader.Read())
                                 uuids.Add(reader["UUID"].ToString());
                         }
-
-                        if(uuids.Count == 0)
-                        {
-                            dbcon.Close();
-                            return;
-                        }
-
-                        // delete the main prims
-                        cmd.CommandText = "delete from prims where SceneGroupID= ?UUID";
-                        ExecuteNonQuery(cmd);
-
-                        cmd.Parameters.Clear();
-
-                        string sqlparams;
-                        if (uuids.Count > 1)
-                        {
-                            StringBuilder sb = new StringBuilder(uuids.Count * 39 + 5);
-                            sb.Append("IN (");
-                            for(int i = 0; i < uuids.Count - 1; ++i )
-                            {
-                                sb.Append('\'');
-                                sb.Append(uuids[i]);
-                                sb.Append("',");
-                            }
-                            sb.Append('\'');
-                            sb.Append(uuids[uuids.Count - 1]);
-                            sb.Append("')");
-                            sqlparams = sb.ToString();
-                        }
-                        else
-                            sqlparams = $"='{uuids[0]}'";
-
-                        cmd.CommandText = "delete from primshapes where UUID " + sqlparams;
-                        ExecuteNonQuery(cmd);
-
-                        cmd.CommandText = "delete from primitems where primID " + sqlparams;
-                        ExecuteNonQuery(cmd);
-
-                        dbcon.Close();
                     }
+
+                    if (uuids.Count == 0)
+                    {
+                        dbcon.Close();
+                        return;
+                    }
+
+                    // Delete main prims
+                    using (MySqlCommand delPrimCmd = dbcon.CreateCommand())
+                    {
+                        delPrimCmd.CommandText = "delete from prims where SceneGroupID = @SceneGroupID";
+                        delPrimCmd.Parameters.Add("@SceneGroupID", MySqlDbType.String).Value = obj.ToString();
+                        delPrimCmd.ExecuteNonQuery();
+                    }
+
+                    // Delete shapes
+                    DeleteWhereUuidList(dbcon, uuids, "primshapes");
+
+                    // Delete items
+                    DeleteWhereUuidList(dbcon, uuids, "primitems");
+
+                    dbcon.Close();
                 }
+            }
+        }
+
+        private void DeleteWhereUuidList(MySqlConnection conn, List<string> uuids, string tableName)
+        {
+            if (uuids.Count == 0) return;
+
+            using (MySqlCommand cmd = conn.CreateCommand())
+            {
+                var paramNames = new List<string>();
+                var parameters = new List<MySqlParameter>();
+                for (int i = 0; i < uuids.Count; i++)
+                {
+                    string pn = "@uid" + i;
+                    paramNames.Add(pn);
+                    parameters.Add(new MySqlParameter(pn, uuids[i]));
+                }
+                string sql = $"delete from {tableName} where UUID in ({string.Join(", ", paramNames)})";
+                cmd.CommandText = sql;
+
+                foreach (var p in parameters)
+                    cmd.Parameters.Add(p);
+
+                cmd.ExecuteNonQuery();
             }
         }
 
@@ -560,7 +535,7 @@ namespace OpenSim.Data.MySQL
                 {
                     using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
                     {
-                        dbcon.Open();
+                           dbcon.Open();
 
                         using (MySqlCommand cmd = dbcon.CreateCommand())
                         {
@@ -737,7 +712,7 @@ namespace OpenSim.Data.MySQL
                             "?MusicURL, ?PassHours, ?PassPrice, ?SnapshotUUID, " +
                             "?UserLocationX, ?UserLocationY, ?UserLocationZ, " +
                             "?UserLookAtX, ?UserLookAtY, ?UserLookAtZ, " +
-                            "?AuthbuyerID, ?OtherCleanTime, ?Dwell, ?MediaType, ?MediaDescription, "+
+                            "?AuthBuyerID, ?OtherCleanTime, ?Dwell, ?MediaType, ?MediaDescription, "+
                             "CONCAT(?MediaWidth, ',', ?MediaHeight), ?MediaLoop, ?ObscureMusic, ?ObscureMedia, " +
                             "?SeeAVs, ?AnyAVSounds, ?GroupAVSounds, ?environment)";
 
@@ -895,14 +870,10 @@ namespace OpenSim.Data.MySQL
                          "agent_limit, object_bonus, maturity, " +
                          "disable_scripts, disable_collisions, " +
                          "disable_physics, terrain_texture_1, " +
-                         "terrain_texture_2, terrain_texture_3, " +
-                         "terrain_texture_4, elevation_1_nw, " +
-                         "elevation_2_nw, elevation_1_ne, " +
-                         "elevation_2_ne, elevation_1_se, " +
-                         "elevation_2_se, elevation_1_sw, " +
-                         "elevation_2_sw, water_height, " +
-                         "terrain_raise_limit, terrain_lower_limit, " +
-                         "use_estate_sun, fixed_sun, sun_position, " +
+                         "terrain_texture_2, terrain_texture_3, terrain_texture_4, elevation_1_nw, " +
+                         "elevation_2_nw, elevation_1_ne, elevation_2_ne, elevation_1_se, " +
+                         "elevation_2_se, elevation_1_sw, elevation_2_sw, water_height, " +
+                         "terrain_raise_limit, terrain_lower_limit, use_estate_sun, fixed_sun, sun_position, " +
                          "covenant, covenant_datetime, Sandbox, sunvectorx, sunvectory, " +
                          "sunvectorz, loaded_creation_datetime, " +
                          "loaded_creation_id, map_tile_ID, block_search, casino, " +
@@ -914,8 +885,7 @@ namespace OpenSim.Data.MySQL
                          "?BlockShowInSearch, ?AgentLimit, ?ObjectBonus, " +
                          "?Maturity, ?DisableScripts, ?DisableCollisions, " +
                          "?DisablePhysics, ?TerrainTexture1, " +
-                         "?TerrainTexture2, ?TerrainTexture3, " +
-                         "?TerrainTexture4, ?Elevation1NW, ?Elevation2NW, " +
+                         "?TerrainTexture2, ?TerrainTexture3, ?TerrainTexture4, ?Elevation1NW, ?Elevation2NW, " +
                          "?Elevation1NE, ?Elevation2NE, ?Elevation1SE, " +
                          "?Elevation2SE, ?Elevation1SW, ?Elevation2SW, " +
                          "?WaterHeight, ?TerrainRaiseLimit, " +
@@ -1165,7 +1135,7 @@ namespace OpenSim.Data.MySQL
             prim.GravityModifier = (float)row["GravityModifier"];
             prim.Friction = (float)row["Friction"];
             prim.Restitution = (float)row["Restitution"];
-            prim.RotationAxisLocks = (byte)Convert.ToInt32(row["RotationAxisLocks"].ToString());
+            prim.RotationAxisLocks = (byte)Convert.ToInt32(row["RotationAxisLocks"]);
 
             if (row["Vehicle"].ToString() != String.Empty)
             {
@@ -1197,12 +1167,12 @@ namespace OpenSim.Data.MySQL
             int pseudocrc = (int)row["pseudocrc"];
             if(pseudocrc != 0)
                 prim.PseudoCRC = pseudocrc;
- 
+
             return prim;
         }
 
         /// <summary>
-        /// Build a prim inventory item from the persisted data.
+        ///
         /// </summary>
         /// <param name="row"></param>
         /// <returns></returns>
@@ -1431,24 +1401,308 @@ namespace OpenSim.Data.MySQL
         ///
         /// </summary>
         /// <param name="row"></param>
-        /// <returns></returns>
-        private static LandAccessEntry BuildLandAccessData(IDataReader row)
+        /// <param name="entry"></param>
+        /// <param name="parcelID"></param>
+        private static void FillLandAccessCommand(MySqlCommand cmd, LandAccessEntry entry, UUID parcelID)
         {
-            LandAccessEntry entry = new LandAccessEntry();
-            entry.AgentID = DBGuid.FromDB(row["AccessUUID"]);
-            entry.Flags = (AccessList) Convert.ToInt32(row["Flags"]);
-            entry.Expires = Convert.ToInt32(row["Expires"]);
-            return entry;
+            cmd.Parameters.AddWithValue("LandUUID", parcelID.ToString());
+            cmd.Parameters.AddWithValue("AccessUUID", entry.AgentID.ToString());
+            cmd.Parameters.AddWithValue("Flags", entry.Flags);
+            cmd.Parameters.AddWithValue("Expires", entry.Expires.ToString());
         }
 
         /// <summary>
-        /// Fill the prim command with prim values
+        ///
         /// </summary>
         /// <param name="row"></param>
-        /// <param name="prim"></param>
-        /// <param name="sceneGroupID"></param>
+        /// <returns></returns>
+        private static PrimitiveBaseShape BuildShape(IDataReader row)
+        {
+            PrimitiveBaseShape s = new PrimitiveBaseShape();
+            s.Scale = new Vector3(
+                (float)(double)row["ScaleX"],
+                (float)(double)row["ScaleY"],
+                (float)(double)row["ScaleZ"]
+            );
+            // paths
+            s.PCode = (byte)(int)row["PCode"];
+            s.PathBegin = (ushort)(int)row["PathBegin"];
+            s.PathEnd = (ushort)(int)row["PathEnd"];
+            s.PathScaleX = (byte)(int)row["PathScaleX"];
+            s.PathScaleY = (byte)(int)row["PathScaleY"];
+            s.PathShearX = (byte)(int)row["PathShearX"];
+            s.PathShearY = (byte)(int)row["PathShearY"];
+            s.PathSkew = (sbyte)(int)row["PathSkew"];
+            s.PathCurve = (byte)(int)row["PathCurve"];
+            s.PathRadiusOffset = (sbyte)(int)row["PathRadiusOffset"];
+            s.PathRevolutions = (byte)(int)row["PathRevolutions"];
+            s.PathTaperX = (sbyte)(int)row["PathTaperX"];
+            s.PathTaperY = (sbyte)(int)row["PathTaperY"];
+            s.PathTwist = (sbyte)(int)row["PathTwist"];
+            s.PathTwistBegin = (sbyte)(int)row["PathTwistBegin"];
+            // profile
+            s.ProfileBegin = (ushort)(int)row["ProfileBegin"];
+            s.ProfileEnd = (ushort)(int)row["ProfileEnd"];
+            s.ProfileCurve = (byte)(int)row["ProfileCurve"];
+            s.ProfileHollow = (ushort)(int)row["ProfileHollow"];
+            s.TextureEntry = (byte[])row["Texture"];
+
+            s.ExtraParams = (byte[])row["ExtraParams"];
+
+            s.State = (byte)(int)row["State"];
+            s.LastAttachPoint = (byte)(int)row["LastAttachPoint"];
+
+            if (row["Media"] is not System.DBNull)
+                s.Media = PrimitiveBaseShape.MediaList.FromXml((string)row["Media"]);
+
+            if (row["MatOvrd"] is not System.DBNull)
+                s.RenderMaterialsOvrFromRawBin((byte[])row["MatOvrd"]);
+            else
+                s.RenderMaterialsOvrFromRawBin(null);
+            return s;
+        }
+
+        private static void FillItemCommand(MySqlCommand cmd, TaskInventoryItem taskItem)
+        {
+            cmd.Parameters.AddWithValue("itemID", taskItem.ItemID.ToString());
+            cmd.Parameters.AddWithValue("primID", taskItem.ParentPartID.ToString());
+            cmd.Parameters.AddWithValue("assetID", taskItem.AssetID.ToString());
+            cmd.Parameters.AddWithValue("parentFolderID", taskItem.ParentID.ToString());
+
+            cmd.Parameters.AddWithValue("invType", taskItem.InvType);
+            cmd.Parameters.AddWithValue("assetType", taskItem.Type);
+
+            cmd.Parameters.AddWithValue("name", taskItem.Name);
+            cmd.Parameters.AddWithValue("description", taskItem.Description);
+            cmd.Parameters.AddWithValue("creationDate", taskItem.CreationDate);
+            cmd.Parameters.AddWithValue("creatorID", taskItem.CreatorIdentification);
+            cmd.Parameters.AddWithValue("ownerID", taskItem.OwnerID.ToString());
+            cmd.Parameters.AddWithValue("lastOwnerID", taskItem.LastOwnerID.ToString());
+            cmd.Parameters.AddWithValue("groupID", taskItem.GroupID.ToString());
+            cmd.Parameters.AddWithValue("nextPermissions", taskItem.NextPermissions);
+            cmd.Parameters.AddWithValue("currentPermissions", taskItem.CurrentPermissions);
+            cmd.Parameters.AddWithValue("basePermissions", taskItem.BasePermissions);
+            cmd.Parameters.AddWithValue("everyonePermissions", taskItem.EveryonePermissions);
+            cmd.Parameters.AddWithValue("groupPermissions", taskItem.GroupPermissions);
+            cmd.Parameters.AddWithValue("flags", taskItem.Flags);
+        }
+
+        private static void FillRegionSettingsCommand(MySqlCommand cmd, RegionSettings settings)
+        {
+            cmd.Parameters.AddWithValue("RegionUUID", settings.RegionUUID.ToString());
+            cmd.Parameters.AddWithValue("BlockTerraform", settings.BlockTerraform);
+            cmd.Parameters.AddWithValue("BlockFly", settings.BlockFly);
+            cmd.Parameters.AddWithValue("AllowDamage", settings.AllowDamage);
+            cmd.Parameters.AddWithValue("RestrictPushing", settings.RestrictPushing);
+            cmd.Parameters.AddWithValue("AllowLandResell", settings.AllowLandResell);
+            cmd.Parameters.AddWithValue("AllowLandJoinDivide", settings.AllowLandJoinDivide);
+            cmd.Parameters.AddWithValue("BlockShowInSearch", settings.BlockShowInSearch);
+            cmd.Parameters.AddWithValue("AgentLimit", settings.AgentLimit);
+            cmd.Parameters.AddWithValue("ObjectBonus", settings.ObjectBonus);
+            cmd.Parameters.AddWithValue("Maturity", settings.Maturity);
+            cmd.Parameters.AddWithValue("DisableScripts", settings.DisableScripts);
+            cmd.Parameters.AddWithValue("DisableCollisions", settings.DisableCollisions);
+            cmd.Parameters.AddWithValue("DisablePhysics", settings.DisablePhysics);
+            cmd.Parameters.AddWithValue("TerrainTexture1", settings.TerrainTexture1.ToString());
+            cmd.Parameters.AddWithValue("TerrainTexture2", settings.TerrainTexture2.ToString());
+            cmd.Parameters.AddWithValue("TerrainTexture3", settings.TerrainTexture3.ToString());
+            cmd.Parameters.AddWithValue("TerrainTexture4", settings.TerrainTexture4.ToString());
+            cmd.Parameters.AddWithValue("Elevation1NW", settings.Elevation1NW);
+            cmd.Parameters.AddWithValue("Elevation2NW", settings.Elevation2NW);
+            cmd.Parameters.AddWithValue("Elevation1NE", settings.Elevation1NE);
+            cmd.Parameters.AddWithValue("Elevation2NE", settings.Elevation2NE);
+            cmd.Parameters.AddWithValue("Elevation1SE", settings.Elevation1SE);
+            cmd.Parameters.AddWithValue("Elevation2SE", settings.Elevation2SE);
+            cmd.Parameters.AddWithValue("Elevation1SW", settings.Elevation1SW);
+            cmd.Parameters.AddWithValue("Elevation2SW", settings.Elevation2SW);
+            cmd.Parameters.AddWithValue("WaterHeight", settings.WaterHeight);
+            cmd.Parameters.AddWithValue("TerrainRaiseLimit", settings.TerrainRaiseLimit);
+            cmd.Parameters.AddWithValue("TerrainLowerLimit", settings.TerrainLowerLimit);
+            cmd.Parameters.AddWithValue("UseEstateSun", settings.UseEstateSun);
+            cmd.Parameters.AddWithValue("Sandbox", settings.Sandbox);
+            cmd.Parameters.AddWithValue("SunVectorX", settings.SunVector.X);
+            cmd.Parameters.AddWithValue("SunVectorY", settings.SunVector.Y);
+            cmd.Parameters.AddWithValue("SunVectorZ", settings.SunVector.Z);
+            cmd.Parameters.AddWithValue("FixedSun", settings.FixedSun);
+            cmd.Parameters.AddWithValue("SunPosition", settings.SunPosition);
+            cmd.Parameters.AddWithValue("Covenant", settings.Covenant.ToString());
+            cmd.Parameters.AddWithValue("covenant_datetime", settings.CovenantChangedDateTime);
+            cmd.Parameters.AddWithValue("loaded_creation_datetime", settings.LoadedCreationDateTime);
+            cmd.Parameters.AddWithValue("loaded_creation_id", settings.LoadedCreationID);
+            cmd.Parameters.AddWithValue("map_tile_ID", settings.TerrainImageID.ToString());
+            cmd.Parameters.AddWithValue("block_search", settings.GodBlockSearch);
+            cmd.Parameters.AddWithValue("casino", settings.Casino);
+
+            cmd.Parameters.AddWithValue("parcel_tile_ID", settings.ParcelImageID.ToString());
+            cmd.Parameters.AddWithValue("TelehubObject", settings.TelehubObject.ToString());
+            cmd.Parameters.AddWithValue("cacheID", settings.CacheID.ToString());
+
+            cmd.Parameters.AddWithValue("TerrainPBR1", settings.TerrainPBR1.ToString());
+            cmd.Parameters.AddWithValue("TerrainPBR2", settings.TerrainPBR2.ToString());
+            cmd.Parameters.AddWithValue("TerrainPBR3", settings.TerrainPBR3.ToString());
+            cmd.Parameters.AddWithValue("TerrainPBR4", settings.TerrainPBR4.ToString());
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="row"></param>
+        /// <param name="land"></param>
         /// <param name="regionUUID"></param>
-        private void FillPrimCommand(MySqlCommand cmd, SceneObjectPart prim, UUID sceneGroupID, UUID regionUUID)
+        private static void FillLandCommand(MySqlCommand cmd, LandData land, UUID regionUUID)
+        {
+            cmd.Parameters.AddWithValue("UUID", land.GlobalID.ToString());
+            cmd.Parameters.AddWithValue("RegionUUID", regionUUID.ToString());
+            cmd.Parameters.AddWithValue("LocalLandID", land.LocalID);
+
+            // Bitmap is a byte[512]
+            cmd.Parameters.AddWithValue("Bitmap", land.Bitmap);
+
+            cmd.Parameters.AddWithValue("Name", land.Name);
+            cmd.Parameters.AddWithValue("Description", land.Description);
+            cmd.Parameters.AddWithValue("OwnerUUID", land.OwnerID.ToString());
+            cmd.Parameters.AddWithValue("IsGroupOwned", land.IsGroupOwned);
+            cmd.Parameters.AddWithValue("Area", land.Area);
+            cmd.Parameters.AddWithValue("AuctionID", land.AuctionID); //Unemplemented
+            cmd.Parameters.AddWithValue("Category", land.Category); //Enum libsecondlife.Parcel.ParcelCategory
+            cmd.Parameters.AddWithValue("ClaimDate", land.ClaimDate);
+            cmd.Parameters.AddWithValue("ClaimPrice", land.ClaimPrice);
+            cmd.Parameters.AddWithValue("GroupUUID", land.GroupID.ToString());
+            cmd.Parameters.AddWithValue("SalePrice", land.SalePrice);
+            cmd.Parameters.AddWithValue("LandStatus", land.Status); //Enum. libsecondlife.Parcel.ParcelStatus
+            cmd.Parameters.AddWithValue("LandFlags", land.Flags);
+            cmd.Parameters.AddWithValue("LandingType", land.LandingType);
+            cmd.Parameters.AddWithValue("MediaAutoScale", land.MediaAutoScale);
+            cmd.Parameters.AddWithValue("MediaTextureUUID", land.MediaID.ToString());
+            cmd.Parameters.AddWithValue("MediaURL", land.MediaURL);
+            cmd.Parameters.AddWithValue("MusicURL", land.MusicURL);
+            cmd.Parameters.AddWithValue("PassHours", land.PassHours);
+            cmd.Parameters.AddWithValue("PassPrice", land.PassPrice);
+            cmd.Parameters.AddWithValue("SnapshotUUID", land.SnapshotID.ToString());
+            cmd.Parameters.AddWithValue("UserLocationX", land.UserLocation.X);
+            cmd.Parameters.AddWithValue("UserLocationY", land.UserLocation.Y);
+            cmd.Parameters.AddWithValue("UserLocationZ", land.UserLocation.Z);
+            cmd.Parameters.AddWithValue("UserLookAtX", land.UserLookAt.X);
+            cmd.Parameters.AddWithValue("UserLookAtY", land.UserLookAt.Y);
+            cmd.Parameters.AddWithValue("UserLookAtZ", land.UserLookAt.Z);
+            cmd.Parameters.AddWithValue("AuthBuyerID", land.AuthBuyerID.ToString());
+            cmd.Parameters.AddWithValue("OtherCleanTime", land.OtherCleanTime);
+            cmd.Parameters.AddWithValue("Dwell", land.Dwell);
+            cmd.Parameters.AddWithValue("MediaDescription", land.MediaDescription);
+            cmd.Parameters.AddWithValue("MediaType", land.MediaType);
+            cmd.Parameters.AddWithValue("MediaWidth", land.MediaWidth);
+            cmd.Parameters.AddWithValue("MediaHeight", land.MediaHeight);
+            cmd.Parameters.AddWithValue("MediaLoop", land.MediaLoop);
+            cmd.Parameters.AddWithValue("ObscureMusic", land.ObscureMusic);
+            cmd.Parameters.AddWithValue("ObscureMedia", land.ObscureMedia);
+            cmd.Parameters.AddWithValue("SeeAVs", land.SeeAVs ? 1 : 0);
+            cmd.Parameters.AddWithValue("AnyAVSounds", land.AnyAVSounds ? 1 : 0);
+            cmd.Parameters.AddWithValue("GroupAVSounds", land.GroupAVSounds ? 1 : 0);
+            if (land.Environment == null)
+                cmd.Parameters.AddWithValue("environment", "");
+            else
+            {
+                try
+                {
+                    cmd.Parameters.AddWithValue("environment", ViewerEnvironment.ToOSDString(land.Environment));
+                }
+                catch
+                {
+                    cmd.Parameters.AddWithValue("environment", "");
+                }
+            }
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="row"></param>
+        /// <param name="entry"></param>
+        /// <param name="parcelID"></param>
+        private static void FillLandAccessCommand(MySqlCommand cmd, LandAccessEntry entry, UUID parcelID)
+        {
+            cmd.Parameters.AddWithValue("LandUUID", parcelID.ToString());
+            cmd.Parameters.AddWithValue("AccessUUID", entry.AgentID.ToString());
+            cmd.Parameters.AddWithValue("Flags", entry.Flags);
+            cmd.Parameters.AddWithValue("Expires", entry.Expires.ToString());
+        }
+
+        /// <summary>
+        ///
+        /// </summary>
+        /// <param name="row"></param>
+        /// <returns></returns>
+        private static RegionSettings BuildRegionSettings(IDataReader row)
+        {
+            RegionSettings newSettings = new RegionSettings();
+
+            newSettings.RegionUUID = DBGuid.FromDB(row["regionUUID"]);
+            newSettings.BlockTerraform = Convert.ToBoolean(row["block_terraform"]);
+            newSettings.AllowDamage = Convert.ToBoolean(row["allow_damage"]);
+            newSettings.BlockFly = Convert.ToBoolean(row["block_fly"]);
+            newSettings.RestrictPushing = Convert.ToBoolean(row["restrict_pushing"]);
+            newSettings.AllowLandResell = Convert.ToBoolean(row["allow_land_resell"]);
+            newSettings.AllowLandJoinDivide = Convert.ToBoolean(row["allow_land_join_divide"]);
+            newSettings.BlockShowInSearch = Convert.ToBoolean(row["block_show_in_search"]);
+            newSettings.AgentLimit = Convert.ToInt32(row["agent_limit"]);
+            newSettings.ObjectBonus = Convert.ToDouble(row["object_bonus"]);
+            newSettings.Maturity = Convert.ToInt32(row["maturity"]);
+            newSettings.DisableScripts = Convert.ToBoolean(row["disable_scripts"]);
+            newSettings.DisableCollisions = Convert.ToBoolean(row["disable_collisions"]);
+            newSettings.DisablePhysics = Convert.ToBoolean(row["disable_physics"]);
+            newSettings.TerrainTexture1 = DBGuid.FromDB(row["terrain_texture_1"]);
+            newSettings.TerrainTexture2 = DBGuid.FromDB(row["terrain_texture_2"]);
+            newSettings.TerrainTexture3 = DBGuid.FromDB(row["terrain_texture_3"]);
+            newSettings.TerrainTexture4 = DBGuid.FromDB(row["terrain_texture_4"]);
+            newSettings.Elevation1NW = Convert.ToDouble(row["elevation_1_nw"]);
+            newSettings.Elevation2NW = Convert.ToDouble(row["elevation_2_nw"]);
+            newSettings.Elevation1NE = Convert.ToDouble(row["elevation_1_ne"]);
+            newSettings.Elevation2NE = Convert.ToDouble(row["elevation_2_ne"]);
+            newSettings.Elevation1SE = Convert.ToDouble(row["elevation_1_se"]);
+            newSettings.Elevation2SE = Convert.ToDouble(row["elevation_2_se"]);
+            newSettings.Elevation1SW = Convert.ToDouble(row["elevation_1_sw"]);
+            newSettings.Elevation2SW = Convert.ToDouble(row["elevation_2_sw"]);
+            newSettings.WaterHeight = Convert.ToDouble(row["water_height"]);
+            newSettings.TerrainRaiseLimit = Convert.ToDouble(row["terrain_raise_limit"]);
+            newSettings.TerrainLowerLimit = Convert.ToDouble(row["terrain_lower_limit"]);
+            newSettings.UseEstateSun = Convert.ToBoolean(row["use_estate_sun"]);
+            newSettings.Sandbox = Convert.ToBoolean(row["Sandbox"]);
+            newSettings.SunVector = new Vector3 (
+                                                 Convert.ToSingle(row["sunvectorx"]),
+                                                 Convert.ToSingle(row["sunvectory"]),
+                                                 Convert.ToSingle(row["sunvectorz"])
+                                                 );
+            newSettings.FixedSun = Convert.ToBoolean(row["fixed_sun"]);
+            newSettings.SunPosition = Convert.ToDouble(row["sun_position"]);
+            newSettings.Covenant = DBGuid.FromDB(row["covenant"]);
+            newSettings.CovenantChangedDateTime = Convert.ToInt32(row["covenant_datetime"]);
+            newSettings.LoadedCreationDateTime = Convert.ToInt32(row["loaded_creation_datetime"]);
+
+            if (row["loaded_creation_id"] is DBNull)
+                newSettings.LoadedCreationID = "";
+            else
+                newSettings.LoadedCreationID = (String) row["loaded_creation_id"];
+
+            newSettings.TerrainImageID = DBGuid.FromDB(row["map_tile_ID"]);
+            newSettings.ParcelImageID = DBGuid.FromDB(row["parcel_tile_ID"]);
+            newSettings.TelehubObject = DBGuid.FromDB(row["TelehubObject"]);
+
+            newSettings.GodBlockSearch = Convert.ToBoolean(row["block_search"]);
+            newSettings.Casino = Convert.ToBoolean(row["casino"]);
+
+            if (row["cacheID"] is not DBNull)
+                newSettings.CacheID = DBGuid.FromDB(row["cacheID"]);
+
+            newSettings.TerrainPBR1 = DBGuid.FromDB(row["TerrainPBR1"]);
+            newSettings.TerrainPBR2 = DBGuid.FromDB(row["TerrainPBR2"]);
+            newSettings.TerrainPBR3 = DBGuid.FromDB(row["TerrainPBR3"]);
+            newSettings.TerrainPBR4 = DBGuid.FromDB(row["TerrainPBR4"]);
+
+
+            return newSettings;
+        }
+
+        private static void FillPrimCommand(MySqlCommand cmd, SceneObjectPart prim, UUID sceneGroupID, UUID regionUUID)
         {
             cmd.Parameters.AddWithValue("UUID", prim.UUID.ToString());
             cmd.Parameters.AddWithValue("RegionUUID", regionUUID.ToString());
@@ -1859,11 +2113,6 @@ namespace OpenSim.Data.MySQL
             return s;
         }
 
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="row"></param>
-        /// <param name="prim"></param>
         private void FillShapeCommand(MySqlCommand cmd, SceneObjectPart prim)
         {
             PrimitiveBaseShape s = prim.Shape;
@@ -2045,12 +2294,12 @@ namespace OpenSim.Data.MySQL
                         foreach (SpawnPoint p in rs.SpawnPoints())
                         {
                             cmd.Parameters.AddWithValue("?RegionID", rs.RegionUUID.ToString());
-                            cmd.Parameters.AddWithValue("?Yaw", p.Yaw);
-                            cmd.Parameters.AddWithValue("?Pitch", p.Pitch);
-                            cmd.Parameters.AddWithValue("?Distance", p.Distance);
+            cmd.Parameters.AddWithValue("?Yaw", p.Yaw);
+            cmd.Parameters.AddWithValue("?Pitch", p.Pitch);
+            cmd.Parameters.AddWithValue("?Distance", p.Distance);
 
-                            cmd.ExecuteNonQuery();
-                            cmd.Parameters.Clear();
+            cmd.ExecuteNonQuery();
+            cmd.Parameters.Clear();
                         }
                     }
                     dbcon.Close();

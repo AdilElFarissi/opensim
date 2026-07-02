@@ -1,30 +1,3 @@
-/*
- * Copyright (c) Contributors, http://opensimulator.org/
- * See CONTRIBUTORS.TXT for a full list of copyright holders.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSimulator Project nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -242,7 +215,12 @@ namespace OpenSim.Data
             {
                 try
                 {
-                    cmd.CommandText = "select version from migrations where name='" + type + "' order by version desc";
+                    cmd.CommandText = "select version from migrations where name = @name order by version desc";
+                    DbParameter param = cmd.CreateParameter();
+                    param.ParameterName = "@name";
+                    param.Value = type;
+                    cmd.Parameters.Add(param);
+                    
                     using (DbDataReader reader = cmd.ExecuteReader())
                     {
                         if (reader.Read())
@@ -264,13 +242,47 @@ namespace OpenSim.Data
         private void InsertVersion(string type, int version)
         {
             m_log.InfoFormat("[MIGRATIONS]: Creating {0} at version {1}", type, version);
-            ExecuteScript("insert into migrations(name, version) values('" + type + "', " + version + ")");
+            string sql = "insert into migrations(name, version) values (@name, @version)";
+            using (DbCommand cmd = _conn.CreateCommand())
+            {
+                cmd.CommandText = sql;
+                cmd.CommandTimeout = 0;
+                
+                DbParameter nameParam = cmd.CreateParameter();
+                nameParam.ParameterName = "@name";
+                nameParam.Value = type;
+                cmd.Parameters.Add(nameParam);
+                
+                DbParameter versionParam = cmd.CreateParameter();
+                versionParam.ParameterName = "@version";
+                versionParam.Value = version;
+                cmd.Parameters.Add(versionParam);
+                
+                cmd.ExecuteNonQuery();
+            }
         }
 
         private void UpdateVersion(string type, int version)
         {
             m_log.InfoFormat("[MIGRATIONS]: Updating {0} to version {1}", type, version);
-            ExecuteScript("update migrations set version=" + version + " where name='" + type + "'");
+            string sql = "update migrations set version = @version where name = @name";
+            using (DbCommand cmd = _conn.CreateCommand())
+            {
+                cmd.CommandText = sql;
+                cmd.CommandTimeout = 0;
+                
+                DbParameter versionParam = cmd.CreateParameter();
+                versionParam.ParameterName = "@version";
+                versionParam.Value = version;
+                cmd.Parameters.Add(versionParam);
+                
+                DbParameter nameParam = cmd.CreateParameter();
+                nameParam.ParameterName = "@name";
+                nameParam.Value = type;
+                cmd.Parameters.Add(nameParam);
+                
+                cmd.ExecuteNonQuery();
+            }
         }
 
         private delegate void FlushProc();

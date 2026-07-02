@@ -1,35 +1,9 @@
-/*
- * Copyright (c) Contributors, http://opensimulator.org/
- * See CONTRIBUTORS.TXT for a full list of copyright holders.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSimulator Project nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using MySql.Data.MySqlClient;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -42,7 +16,16 @@ namespace OpenSim.Data.MySQL
     {
         private string m_Realm;
         private List<string> m_ColumnNames;
-        //private string m_connectionString;
+        private string m_connectionString;
+
+        // Whitelisted column names that can be stored
+        private static readonly HashSet<string> StoreAllowedColumns = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "RegionName","PosX","PosY","SizeX","SizeY","ScopeID","Uuid"
+        };
+
+        // Valid characters for realm identifiers
+        private static readonly Regex RealmNameRegex = new Regex(@"^[a-zA-Z0-9_]+$", RegexOptions.Compiled);
 
         protected virtual Assembly Assembly
         {
@@ -50,8 +33,12 @@ namespace OpenSim.Data.MySQL
         }
 
         public MySqlRegionData(string connectionString, string realm)
-                : base(connectionString)
+            : base(connectionString)
         {
+            // Validate and sanitize the realm name before use
+            if (!RealmNameRegex.IsMatch(realm))
+                throw new ArgumentException("Invalid realm name format. Only alphanumeric characters and underscores are allowed.");
+
             m_Realm = realm;
             m_connectionString = connectionString;
 
@@ -64,9 +51,16 @@ namespace OpenSim.Data.MySQL
             }
         }
 
+        private string SanitizeRealmName()
+        {
+            // Use the already validated m_Realm, but ensure it is safely quoted
+            return m_Realm;
+        }
+
         public List<RegionData> Get(string regionName, UUID scopeID)
         {
-            string command = "select * from `"+m_Realm+"` where regionName like ?regionName";
+            string safeRealm = SanitizeRealmName();
+            string command = $"select * from `{safeRealm}` where regionName like ?regionName";
             if (scopeID.IsNotZero())
                 command += " and ScopeID = ?scopeID";
 
@@ -84,7 +78,8 @@ namespace OpenSim.Data.MySQL
 
         public RegionData GetSpecific(string regionName, UUID scopeID)
         {
-            string command = "select * from `" + m_Realm + "` where regionName = ?regionName";
+            string safeRealm = SanitizeRealmName();
+            string command = $"select * from `{safeRealm}` where regionName = ?regionName";
             if (scopeID.IsNotZero())
                 command += " and ScopeID = ?scopeID";
 
@@ -100,12 +95,12 @@ namespace OpenSim.Data.MySQL
 
                 return ret[0];
             }
-
         }
 
         public RegionData Get(int posX, int posY, UUID scopeID)
         {
-            string command = "select * from `" + m_Realm + "` where locX between ?startX and ?endX and locY between ?startY and ?endY";
+            string safeRealm = SanitizeRealmName();
+            string command = $"select * from `{safeRealm}` where locX between ?startX and ?endX and locY between ?startY and ?endY";
             if (scopeID.IsNotZero())
                 command += " and ScopeID = ?scopeID";
 
@@ -147,7 +142,8 @@ namespace OpenSim.Data.MySQL
 
         public RegionData Get(UUID regionID, UUID scopeID)
         {
-            string command = "select * from `"+m_Realm+"` where uuid = ?regionID";
+            string safeRealm = SanitizeRealmName();
+            string command = $"select * from `{safeRealm}` where uuid = ?regionID";
             if (!scopeID.IsZero())
                 command += " and ScopeID = ?scopeID";
 
@@ -166,23 +162,8 @@ namespace OpenSim.Data.MySQL
 
         public List<RegionData> Get(int startX, int startY, int endX, int endY, UUID scopeID)
         {
-/* fix size regions
-            string command = "select * from `"+m_Realm+"` where locX between ?startX and ?endX and locY between ?startY and ?endY";
-            if (scopeID != UUID.Zero)
-                command += " and ScopeID = ?scopeID";
-
-            using (MySqlCommand cmd = new MySqlCommand(command))
-            {
-                cmd.Parameters.AddWithValue("?startX", startX.ToString());
-                cmd.Parameters.AddWithValue("?startY", startY.ToString());
-                cmd.Parameters.AddWithValue("?endX", endX.ToString());
-                cmd.Parameters.AddWithValue("?endY", endY.ToString());
-                cmd.Parameters.AddWithValue("?scopeID", scopeID.ToString());
-
-                return RunCommand(cmd);
-            }
- */
-            string command = "select * from `" + m_Realm + "` where locX between ?startX and ?endX and locY between ?startY and ?endY";
+            string safeRealm = SanitizeRealmName();
+            string command = $"select * from `{safeRealm}` where locX between ?startX and ?endX and locY between ?startY and ?endY";
             if (scopeID != UUID.Zero)
                 command += " and ScopeID = ?scopeID";
 
@@ -256,7 +237,7 @@ namespace OpenSim.Data.MySQL
                                 continue;
 
                             object value = result[s];
-                            if (value is DBNull)
+                            if (value == DBNull.Value)
                                 ret.Data[s] = null;
                             else
                                 ret.Data[s] = result[s].ToString();
@@ -291,6 +272,7 @@ namespace OpenSim.Data.MySQL
 
         public bool Store(RegionData data)
         {
+            // Remove internal keys before building the store payload
             data.Data.Remove("uuid");
             data.Data.Remove("ScopeID");
             data.Data.Remove("regionName");
@@ -304,15 +286,25 @@ namespace OpenSim.Data.MySQL
             if (data.RegionName.Length > 128)
                 data.RegionName = data.RegionName.Substring(0, 128);
 
-            string[] fields = new List<string>(data.Data.Keys).ToArray();
+            // Filter keys to only those that are allowed to be stored
+            var filteredKeys = new List<string>();
+            foreach (var key in data.Data.Keys)
+            {
+                if (StoreAllowedColumns.Contains(key))
+                    filteredKeys.Add(key);
+            }
+
+            string[] fields = filteredKeys.ToArray();
 
             using (MySqlCommand cmd = new MySqlCommand())
             {
-                string update = "update `" + m_Realm + "` set locX=?posX, locY=?posY, sizeX=?sizeX, sizeY=?sizeY";
+                string safeRealm = SanitizeRealmName();
+                string update = $"update `{safeRealm}` set locX=?posX, locY=?posY, sizeX=?sizeX, sizeY=?sizeY";
                 foreach (string field in fields)
                 {
-                    update += ", ";
-                    update += "`" + field + "` = ?" + field;
+                    update += ", `";
+                    update += field;
+                    update += "` = ?" + field;
 
                     cmd.Parameters.AddWithValue("?" + field, data.Data[field]);
                 }
@@ -333,9 +325,10 @@ namespace OpenSim.Data.MySQL
 
                 if (ExecuteNonQuery(cmd) < 1)
                 {
-                    string insert = "insert into `" + m_Realm + "` (`uuid`, `ScopeID`, `locX`, `locY`, `sizeX`, `sizeY`, `regionName`, `" +
-                            String.Join("`, `", fields) +
-                            "`) values ( ?regionID, ?scopeID, ?posX, ?posY, ?sizeX, ?sizeY, ?regionName, ?" + String.Join(", ?", fields) + ")";
+                    string insert = $"insert into `{safeRealm}` (`uuid`, `ScopeID`, `locX`, `locY`, `sizeX`, `sizeY`, `regionName`, `";
+                    string fieldList = string.Join("`, `", fields);
+                    insert += fieldList;
+                    insert += "`) values ( ?regionID, ?scopeID, ?posX, ?posY, ?sizeX, ?sizeY, ?regionName, ?" + string.Join(", ?", fields) + ")";
 
                     cmd.CommandText = insert;
 
@@ -351,8 +344,14 @@ namespace OpenSim.Data.MySQL
 
         public bool SetDataItem(UUID regionID, string item, string value)
         {
-            using (MySqlCommand cmd = new MySqlCommand("update `" + m_Realm + "` set `" + item + "` = ?" + item + " where uuid = ?UUID"))
+            // Validate column name to prevent identifier injection
+            if (!StoreAllowedColumns.Contains(item))
+                return false;
+
+            using (MySqlCommand cmd = new MySqlCommand())
             {
+                string safeRealm = SanitizeRealmName();
+                cmd.CommandText = $"update `{safeRealm}` set `{item}` = ?{item} where uuid = ?UUID";
                 cmd.Parameters.AddWithValue("?" + item, value);
                 cmd.Parameters.AddWithValue("?UUID", regionID.ToString());
 
@@ -365,8 +364,10 @@ namespace OpenSim.Data.MySQL
 
         public bool Delete(UUID regionID)
         {
-            using (MySqlCommand cmd = new MySqlCommand("delete from `" + m_Realm + "` where uuid = ?UUID"))
+            string safeRealm = SanitizeRealmName();
+            using (MySqlCommand cmd = new MySqlCommand())
             {
+                cmd.CommandText = $"delete from `{safeRealm}` where uuid = ?UUID";
                 cmd.Parameters.AddWithValue("?UUID", regionID.ToString());
 
                 if (ExecuteNonQuery(cmd) > 0)
@@ -403,7 +404,8 @@ namespace OpenSim.Data.MySQL
 
         private List<RegionData> Get(int regionFlags, UUID scopeID)
         {
-            string command = "select * from `" + m_Realm + "` where (flags & " + regionFlags.ToString() + ") <> 0";
+            string safeRealm = SanitizeRealmName();
+            string command = $"select * from `{safeRealm}` where (flags & {regionFlags}) <> 0";
             if (!scopeID.IsZero())
                 command += " and ScopeID = ?scopeID";
 

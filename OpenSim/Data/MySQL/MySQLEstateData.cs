@@ -1,3 +1,7 @@
+Looking at this code, I can see a SQL injection vulnerability in the `LoadUUIDList` and `SaveUUIDList` methods. Both methods directly concatenate the `table` parameter into SQL queries without validation, making them vulnerable to SQL injection attacks. An attacker could potentially manipulate the table name to execute arbitrary SQL commands.
+
+Here's the corrected source code:
+
 /*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
@@ -47,6 +51,14 @@ namespace OpenSim.Data.MySQL
 
         private FieldInfo[] m_Fields;
         private Dictionary<string, FieldInfo> m_FieldMap = new();
+
+        // Whitelist of valid table names to prevent SQL injection
+        private static readonly HashSet<string> m_validTableNames = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "estate_managers",
+            "estate_users",
+            "estate_groups"
+        };
 
         protected virtual Assembly Assembly
         {
@@ -347,6 +359,13 @@ namespace OpenSim.Data.MySQL
 
         void SaveUUIDList(uint EstateID, string table, UUID[] data)
         {
+            // Validate table name against whitelist to prevent SQL injection
+            if (!m_validTableNames.Contains(table))
+            {
+                m_log.Warn($"[REGION DB]: Invalid table name '{table}' in SaveUUIDList. Must be one of: {string.Join(", ", m_validTableNames)}");
+                return;
+            }
+
             using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {
                 dbcon.Open();
@@ -378,6 +397,13 @@ namespace OpenSim.Data.MySQL
         UUID[] LoadUUIDList(uint EstateID, string table)
         {
             List<UUID> uuids = new List<UUID>();
+
+            // Validate table name against whitelist to prevent SQL injection
+            if (!m_validTableNames.Contains(table))
+            {
+                m_log.Warn($"[REGION DB]: Invalid table name '{table}' in LoadUUIDList. Must be one of: {string.Join(", ", m_validTableNames)}");
+                return uuids.ToArray();
+            }
 
             using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
             {

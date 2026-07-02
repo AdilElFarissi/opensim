@@ -13,7 +13,7 @@
  *       names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
+ * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS "AS IS" AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
  * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
@@ -26,9 +26,7 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Data;
 using OpenMetaverse;
 using OpenSim.Framework;
 using MySql.Data.MySqlClient;
@@ -44,6 +42,9 @@ namespace OpenSim.Data.MySQL
 
         public UserAccountData[] GetUsers(UUID scopeID, string query)
         {
+            if (string.IsNullOrEmpty(query))
+                return new UserAccountData[0];
+
             string[] words = query.Split();
 
             bool valid = false;
@@ -52,12 +53,6 @@ namespace OpenSim.Data.MySQL
             {
                 if (words[i].Length > 2)
                     valid = true;
-//                if (words[i].Length < 3)
-//                {
-//                    if (i != words.Length - 1)
-//                        Array.Copy(words, i + 1, words, i, words.Length - i - 1);
-//                    Array.Resize(ref words, words.Length - 1);
-//                }
             }
 
             if ((!valid) || words.Length == 0)
@@ -88,6 +83,27 @@ namespace OpenSim.Data.MySQL
 
         public UserAccountData[] GetUsersWhere(UUID scopeID, string where)
         {
+            if (string.IsNullOrEmpty(where))
+                return new UserAccountData[0];
+
+            // Security Vulnerability Fix: Prevent SQL Injection
+            // Check for common SQL injection patterns in the 'where' clause
+            string lowerWhere = where.ToLowerInvariant();
+            string[] dangerousPatterns = { "--", "/*", "*/", ";", "union", "select", "insert", "update", "delete", "drop", "alter", "exec" };
+            
+            foreach (string pattern in dangerousPatterns)
+            {
+                if (lowerWhere.Contains(pattern))
+                {
+                    // Log the security violation as per OpenSimulator standards
+                    if (m_log != null)
+                    {
+                        m_log.Error($"[Security] Potential SQL Injection attempt detected in GetUsersWhere: '{where}'");
+                    }
+                    return new UserAccountData[0];
+                }
+            }
+
             using (MySqlCommand cmd = new MySqlCommand())
             {
                 if (!scopeID.IsZero())

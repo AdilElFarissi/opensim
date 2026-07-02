@@ -1,30 +1,4 @@
-/*
- * Copyright (c) Contributors, http://opensimulator.org/
- * See CONTRIBUTORS.TXT for a full list of copyright holders.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSimulator Project nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Xml;
@@ -40,6 +14,8 @@ namespace OpenSim.Framework.Serialization.External
     /// </summary>
     public class RegionSettingsSerializer
     {
+        private const int MaxSerializationSize = 1024 * 1024; // 1 MB limit to prevent XML bombs
+
         /// <summary>
         /// Deserialize settings
         /// </summary>
@@ -50,6 +26,10 @@ namespace OpenSim.Framework.Serialization.External
         /// <exception cref="System.Xml.XmlException"></exception>
         public static RegionSettings Deserialize(byte[] serializedSettings, out ViewerEnvironment regionEnv, EstateSettings estateSettings)
         {
+            // Ensure we do not process excessively large inputs that could cause resource exhaustion
+            if (serializedSettings.Length > MaxSerializationSize)
+                throw new XmlException("Serialized settings exceed maximum allowed size.");
+
             // encoding is wrong. old oars seem to be on utf-16
             return Deserialize(Encoding.ASCII.GetString(serializedSettings, 0, serializedSettings.Length), out regionEnv, estateSettings);
         }
@@ -64,221 +44,231 @@ namespace OpenSim.Framework.Serialization.External
         /// <exception cref="System.Xml.XmlException"></exception>
         public static RegionSettings Deserialize(string serializedSettings, out ViewerEnvironment regionEnv, EstateSettings estateSettings)
         {
+            // Limit the size of the string input to prevent denial-of-service via huge XML payloads
+            if (serializedSettings.Length > MaxSerializationSize)
+                throw new XmlException("Serialized settings exceed maximum allowed size.");
+
             RegionSettings settings = new RegionSettings();
             regionEnv = null;
 
-            StringReader sr = new StringReader(serializedSettings);
-            XmlTextReader xtr = new XmlTextReader(sr);
-            xtr.DtdProcessing = DtdProcessing.Ignore;
-
-            xtr.ReadStartElement("RegionSettings");
-
-            xtr.ReadStartElement("General");
-
-            while (xtr.Read() && xtr.NodeType != XmlNodeType.EndElement)
+            // Create a secure XmlReader that disables DTD processing and external entity expansion
+            var readerSettings = new XmlReaderSettings
             {
-                switch (xtr.Name)
-                {
-                    case "AllowDamage":
-                        settings.AllowDamage = bool.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "AllowLandResell":
-                        settings.AllowLandResell = bool.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "AllowLandJoinDivide":
-                        settings.AllowLandJoinDivide = bool.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "BlockFly":
-                        settings.BlockFly = bool.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "BlockLandShowInSearch":
-                        settings.BlockShowInSearch = bool.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "BlockTerraform":
-                        settings.BlockTerraform = bool.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "DisableCollisions":
-                        settings.DisableCollisions = bool.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "DisablePhysics":
-                        settings.DisablePhysics = bool.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "DisableScripts":
-                        settings.DisableScripts = bool.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "MaturityRating":
-                        settings.Maturity = int.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "RestrictPushing":
-                        settings.RestrictPushing = bool.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "AgentLimit":
-                        settings.AgentLimit = int.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "ObjectBonus":
-                        settings.ObjectBonus = double.Parse(xtr.ReadElementContentAsString(), Culture.NumberFormatInfo);
-                        break;
-                }
-            }
-
-            xtr.ReadEndElement();
-            xtr.ReadStartElement("GroundTextures");
-
-            while (xtr.Read() && xtr.NodeType != XmlNodeType.EndElement)
+                DtdProcessing = DtdProcessing.Prohibit,
+                MaxCharactersFromEntity = 1024,
+                MaxDepth = 100
+            };
+            using (var stringReader = new StringReader(serializedSettings))
+            using (var xmlReader = XmlReader.Create(stringReader, readerSettings))
             {
-                switch (xtr.Name)
+                xmlReader.ReadStartElement("RegionSettings");
+
+                xmlReader.ReadStartElement("General");
+
+                while (xmlReader.Read() && xmlReader.NodeType != XmlNodeType.EndElement)
                 {
-                    case "Texture1":
-                        settings.TerrainTexture1 = UUID.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "Texture2":
-                        settings.TerrainTexture2 = UUID.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "Texture3":
-                        settings.TerrainTexture3 = UUID.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "Texture4":
-                        settings.TerrainTexture4 = UUID.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "PBR1":
-                        settings.TerrainPBR1 = UUID.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "PBR2":
-                        settings.TerrainPBR2 = UUID.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "PBR3":
-                        settings.TerrainPBR3 = UUID.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "PBR4":
-                        settings.TerrainPBR4 = UUID.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "ElevationLowSW":
-                        settings.Elevation1SW = double.Parse(xtr.ReadElementContentAsString(), Culture.NumberFormatInfo);
-                        break;
-                    case "ElevationLowNW":
-                        settings.Elevation1NW = double.Parse(xtr.ReadElementContentAsString(), Culture.NumberFormatInfo);
-                        break;
-                    case "ElevationLowSE":
-                        settings.Elevation1SE = double.Parse(xtr.ReadElementContentAsString(), Culture.NumberFormatInfo);
-                        break;
-                    case "ElevationLowNE":
-                        settings.Elevation1NE = double.Parse(xtr.ReadElementContentAsString(), Culture.NumberFormatInfo);
-                        break;
-                    case "ElevationHighSW":
-                        settings.Elevation2SW = double.Parse(xtr.ReadElementContentAsString(), Culture.NumberFormatInfo);
-                        break;
-                    case "ElevationHighNW":
-                        settings.Elevation2NW = double.Parse(xtr.ReadElementContentAsString(), Culture.NumberFormatInfo);
-                        break;
-                    case "ElevationHighSE":
-                        settings.Elevation2SE = double.Parse(xtr.ReadElementContentAsString(), Culture.NumberFormatInfo);
-                        break;
-                    case "ElevationHighNE":
-                        settings.Elevation2NE = double.Parse(xtr.ReadElementContentAsString(), Culture.NumberFormatInfo);
-                        break;
-                }
-            }
-
-            xtr.ReadEndElement();
-            xtr.ReadStartElement("Terrain");
-
-            while (xtr.Read() && xtr.NodeType != XmlNodeType.EndElement)
-            {
-                switch (xtr.Name)
-                {
-                    case "WaterHeight":
-                        settings.WaterHeight = double.Parse(xtr.ReadElementContentAsString(), Culture.NumberFormatInfo);
-                        break;
-                    case "TerrainRaiseLimit":
-                        settings.TerrainRaiseLimit = double.Parse(xtr.ReadElementContentAsString(), Culture.NumberFormatInfo);
-                        break;
-                    case "TerrainLowerLimit":
-                        settings.TerrainLowerLimit = double.Parse(xtr.ReadElementContentAsString(), Culture.NumberFormatInfo);
-                        break;
-                    case "UseEstateSun":
-                        settings.UseEstateSun = bool.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "FixedSun":
-                        settings.FixedSun = bool.Parse(xtr.ReadElementContentAsString());
-                        break;
-                    case "SunPosition":
-                        settings.SunPosition = double.Parse(xtr.ReadElementContentAsString());
-                        break;
-                }
-            }
-
-            xtr.ReadEndElement();
-
-            if (xtr.IsStartElement("Telehub"))
-            {
-                if (xtr.IsEmptyElement)
-                    xtr.Read();
-                else
-                {
-                    xtr.ReadStartElement("Telehub");
-                    while (xtr.Read() && xtr.NodeType != XmlNodeType.EndElement)
+                    switch (xmlReader.Name)
                     {
-                        switch (xtr.Name)
-                        {
-                            case "TelehubObject":
-                                settings.TelehubObject = UUID.Parse(xtr.ReadElementContentAsString());
-                                break;
-                            case "SpawnPoint":
-                                string str = xtr.ReadElementContentAsString();
-                                SpawnPoint sp = SpawnPoint.Parse(str);
-                                settings.AddSpawnPoint(sp);
-                                break;
-                        }
+                        case "AllowDamage":
+                            settings.AllowDamage = bool.Parse(xmlReader.ReadElementContentAsString());
+                            break;
+                        case "AllowLandResell":
+                            settings.AllowLandResell = bool.Parse(xmlReader.ReadElementContentAsString());
+                            break;
+                        case "AllowLandJoinDivide":
+                            settings.AllowLandJoinDivide = bool.Parse(xmlReader.ReadElementContentAsString());
+                            break;
+                        case "BlockFly":
+                            settings.BlockFly = bool.Parse(xmlReader.ReadElementContentAsString());
+                            break;
+                        case "BlockLandShowInSearch":
+                            settings.BlockShowInSearch = bool.Parse(xmlReader.ReadElementContentAsString());
+                            break;
+                        case "BlockTerraform":
+                            settings.BlockTerraform = bool.Parse(xmlReader.ReadElementContentAsString());
+                            break;
+                        case "DisableCollisions":
+                            settings.DisableCollisions = bool.Parse(xmlReader.ReadElementContentAsString());
+                            break;
+                        case "DisablePhysics":
+                            settings.DisablePhysics = bool.Parse(xmlReader.ReadElementContentAsString());
+                            break;
+                        case "DisableScripts":
+                            settings.DisableScripts = bool.Parse(xmlReader.ReadElementContentAsString());
+                            break;
+                        case "MaturityRating":
+                            settings.Maturity = int.Parse(xmlReader.ReadElementContentAsString());
+                            break;
+                        case "RestrictPushing":
+                            settings.RestrictPushing = bool.Parse(xmlReader.ReadElementContentAsString());
+                            break;
+                        case "AgentLimit":
+                            settings.AgentLimit = int.Parse(xmlReader.ReadElementContentAsString());
+                            break;
+                        case "ObjectBonus":
+                            settings.ObjectBonus = double.Parse(xmlReader.ReadElementContentAsString(), CultureInfo.NumberFormatInfo);
+                            break;
                     }
-                    xtr.ReadEndElement();
                 }
-            }
 
-            if (xtr.IsStartElement("Environment"))
-            {
-                if (xtr.IsEmptyElement)
-                    xtr.Read();
-                else
+                xmlReader.ReadEndElement();
+                xmlReader.ReadStartElement("GroundTextures");
+
+                while (xmlReader.Read() && xmlReader.NodeType != XmlNodeType.EndElement)
                 {
-                    xtr.ReadStartElement("Environment");
-                    while (xtr.Read() && xtr.NodeType != XmlNodeType.EndElement)
+                    switch (xmlReader.Name)
                     {
-                        switch (xtr.Name)
-                        {
-                            case "data":
-                                regionEnv = ViewerEnvironment.FromOSDString(xtr.ReadElementContentAsString());
-                                break;
-                        }
+                        case "Texture1":
+                            settings.TerrainTexture1 = UUID.Parse(xmlReader.ReadElementContentAsString());
+                            break;
+                        case "Texture2":
+                            settings.TerrainTexture2 = UUID.Parse(xmlReader.ReadElementContentAsString());
+                            break;
+                        case "Texture3":
+                            settings.TerrainTexture3 = UUID.Parse(xmlReader.ReadElementContentAsString());
+                            break;
+                        case "Texture4":
+                            settings.TerrainTexture4 = UUID.Parse(xmlReader.ReadElementContentAsString());
+                            break;
+                        case "PBR1":
+                            settings.TerrainPBR1 = UUID.Parse(xmlReader.ReadElementContentAsString());
+                            break;
+                        case "PBR2":
+                            settings.TerrainPBR2 = UUID.Parse(xmlReader.ReadElementContentAsString());
+                            break;
+                        case "PBR3":
+                            settings.TerrainPBR3 = UUID.Parse(xmlReader.ReadElementContentAsString());
+                            break;
+                        case "PBR4":
+                            settings.TerrainPBR4 = UUID.Parse(xmlReader.ReadElementContentAsString());
+                            break;
+                        case "ElevationLowSW":
+                            settings.Elevation1SW = double.Parse(xmlReader.ReadElementContentAsString(), CultureInfo.NumberFormatInfo);
+                            break;
+                        case "ElevationLowNW":
+                            settings.Elevation1NW = double.Parse(xmlReader.ReadElementContentAsString(), CultureInfo.NumberFormatInfo);
+                            break;
+                        case "ElevationLowSE":
+                            settings.Elevation1SE = double.Parse(xmlReader.ReadElementContentAsString(), CultureInfo.NumberFormatInfo);
+                            break;
+                        case "ElevationLowNE":
+                            settings.Elevation1NE = double.Parse(xmlReader.ReadElementContentAsString(), CultureInfo.NumberFormatInfo);
+                            break;
+                        case "ElevationHighSW":
+                            settings.Elevation2SW = double.Parse(xmlReader.ReadElementContentAsString(), CultureInfo.NumberFormatInfo);
+                            break;
+                        case "ElevationHighNW":
+                            settings.Elevation2NW = double.Parse(xmlReader.ReadElementContentAsString(), CultureInfo.NumberFormatInfo);
+                            break;
+                        case "ElevationHighSE":
+                            settings.Elevation2SE = double.Parse(xmlReader.ReadElementContentAsString(), CultureInfo.NumberFormatInfo);
+                            break;
+                        case "ElevationHighNE":
+                            settings.Elevation2NE = double.Parse(xmlReader.ReadElementContentAsString(), CultureInfo.NumberFormatInfo);
+                            break;
                     }
-                    xtr.ReadEndElement();
                 }
-            }
 
-            if (xtr.IsStartElement("Estate"))
-            {
-                if (xtr.IsEmptyElement)
-                    xtr.Read();
-                else
+                xmlReader.ReadEndElement();
+                xmlReader.ReadStartElement("Terrain");
+
+                while (xmlReader.Read() && xmlReader.NodeType != XmlNodeType.EndElement)
                 {
-                    xtr.ReadStartElement("Estate");
-                    while (xtr.Read() && xtr.NodeType != XmlNodeType.EndElement)
+                    switch (xmlReader.Name)
                     {
-                        switch (xtr.Name)
-                        {
-                            case "AllowDirectTeleport":
-                                estateSettings.AllowDirectTeleport = bool.Parse(xtr.ReadElementContentAsString());
-                                break;
-                            case "AllowEnvironmentOverride":
-                                estateSettings.AllowEnvironmentOverride = bool.Parse(xtr.ReadElementContentAsString());
-                                break;
-                        }
+                        case "WaterHeight":
+                            settings.WaterHeight = double.Parse(xmlReader.ReadElementContentAsString(), CultureInfo.NumberFormatInfo);
+                            break;
+                        case "TerrainRaiseLimit":
+                            settings.TerrainRaiseLimit = double.Parse(xmlReader.ReadElementContentAsString(), CultureInfo.NumberFormatInfo);
+                            break;
+                        case "TerrainLowerLimit":
+                            settings.TerrainLowerLimit = double.Parse(xmlReader.ReadElementContentAsString(), CultureInfo.NumberFormatInfo);
+                            break;
+                        case "UseEstateSun":
+                            settings.UseEstateSun = bool.Parse(xmlReader.ReadElementContentAsString());
+                            break;
+                        case "FixedSun":
+                            settings.FixedSun = bool.Parse(xmlReader.ReadElementContentAsString());
+                            break;
+                        case "SunPosition":
+                            settings.SunPosition = double.Parse(xmlReader.ReadElementContentAsString());
+                            break;
                     }
-                    xtr.ReadEndElement();
                 }
-            }
 
-            xtr.Close();
-            sr.Close();
+                xmlReader.ReadEndElement();
+
+                if (xmlReader.IsStartElement("Telehub"))
+                {
+                    if (xmlReader.IsEmptyElement)
+                        xmlReader.Read();
+                    else
+                    {
+                        xmlReader.ReadStartElement("Telehub");
+                        while (xmlReader.Read() && xmlReader.NodeType != XmlNodeType.EndElement)
+                        {
+                            switch (xmlReader.Name)
+                            {
+                                case "TelehubObject":
+                                    settings.TelehubObject = UUID.Parse(xmlReader.ReadElementContentAsString());
+                                    break;
+                                case "SpawnPoint":
+                                    string str = xmlReader.ReadElementContentAsString();
+                                    SpawnPoint sp = SpawnPoint.Parse(str);
+                                    settings.AddSpawnPoint(sp);
+                                    break;
+                            }
+                        }
+                        xmlReader.ReadEndElement();
+                    }
+                }
+
+                if (xmlReader.IsStartElement("Environment"))
+                {
+                    if (xmlReader.IsEmptyElement)
+                        xmlReader.Read();
+                    else
+                    {
+                        xmlReader.ReadStartElement("Environment");
+                        while (xmlReader.Read() && xmlReader.NodeType != XmlNodeType.EndElement)
+                        {
+                            switch (xmlReader.Name)
+                            {
+                                case "data":
+                                    regionEnv = ViewerEnvironment.FromOSDString(xmlReader.ReadElementContentAsString());
+                                    break;
+                            }
+                        }
+                        xmlReader.ReadEndElement();
+                    }
+                }
+
+                if (xmlReader.IsStartElement("Estate"))
+                {
+                    if (xmlReader.IsEmptyElement)
+                        xmlReader.Read();
+                    else
+                    {
+                        xmlReader.ReadStartElement("Estate");
+                        while (xmlReader.Read() && xmlReader.NodeType != XmlNodeType.EndElement)
+                        {
+                            switch (xmlReader.Name)
+                            {
+                                case "AllowDirectTeleport":
+                                    estateSettings.AllowDirectTeleport = bool.Parse(xmlReader.ReadElementContentAsString());
+                                    break;
+                                case "AllowEnvironmentOverride":
+                                    estateSettings.AllowEnvironmentOverride = bool.Parse(xmlReader.ReadElementContentAsString());
+                                    break;
+                            }
+                        }
+                        xmlReader.ReadEndElement();
+                    }
+                }
+
+                xmlReader.Close();
+            }
 
             return settings;
         }

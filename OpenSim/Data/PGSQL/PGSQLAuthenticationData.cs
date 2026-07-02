@@ -1,30 +1,3 @@
-/*
- * Copyright (c) Contributors, http://opensimulator.org/
- * See CONTRIBUTORS.TXT for a full list of copyright holders.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSimulator Project nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ''AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -64,12 +37,19 @@ namespace OpenSim.Data.PGSQL
             }
         }
 
+        private string EscapeIdentifier(string identifier)
+        {
+            if (identifier == null)
+                throw new ArgumentNullException(nameof(identifier));
+            return "\"" + identifier.Replace("\"", "\"\"") + "\"";
+        }
+
         public AuthenticationData Get(UUID principalID)
         {
             AuthenticationData ret = new AuthenticationData();
             ret.Data = new Dictionary<string, object>();
 
-            string sql = string.Format("select * from {0} where uuid = :principalID", m_Realm);
+            string sql = string.Format("select * from {0} where uuid = :principalID", EscapeIdentifier(m_Realm));
 
             using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
             using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
@@ -110,65 +90,62 @@ namespace OpenSim.Data.PGSQL
             data.Data.Remove("UUID");
             data.Data.Remove("uuid");
 
-            /*
-            Dictionary<string, object> oAuth = new Dictionary<string, object>();
-
-            foreach (KeyValuePair<string, object> oDado in data.Data)
-            {
-                if (oDado.Key != oDado.Key.ToLower())
-                {
-                    oAuth.Add(oDado.Key.ToLower(), oDado.Value);
-                }
-            }
-            foreach (KeyValuePair<string, object> oDado in data.Data)
-            {
-                if (!oAuth.ContainsKey(oDado.Key.ToLower())) {
-                    oAuth.Add(oDado.Key.ToLower(), oDado.Value);
-                }
-            }
-            */
             string[] fields = new List<string>(data.Data.Keys).ToArray();
-            StringBuilder updateBuilder = new StringBuilder();
 
             using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand())
             {
-                updateBuilder.AppendFormat("update {0} set ", m_Realm);
-
-                bool first = true;
-                foreach (string field in fields)
-                {
-                    if (!first)
-                        updateBuilder.Append(", ");
-                    updateBuilder.AppendFormat("\"{0}\" = :{0}",field);
-
-                    first = false;
-
-                    cmd.Parameters.Add(m_database.CreateParameter("" + field, data.Data[field]));
-                }
-
-                updateBuilder.Append(" where uuid = :principalID");
-
-                cmd.CommandText = updateBuilder.ToString();
-                cmd.Connection = conn;
-                cmd.Parameters.Add(m_database.CreateParameter("principalID", data.PrincipalID));
-
                 conn.Open();
-                if (cmd.ExecuteNonQuery() < 1)
+                using (NpgsqlCommand cmd = new NpgsqlCommand())
                 {
-                    StringBuilder insertBuilder = new StringBuilder();
+                    cmd.Connection = conn;
 
-                    insertBuilder.AppendFormat("insert into {0} (uuid, \"", m_Realm);
-                    insertBuilder.Append(String.Join("\", \"", fields));
-                    insertBuilder.Append("\") values (:principalID, :");
-                    insertBuilder.Append(String.Join(", :", fields));
-                    insertBuilder.Append(")");
+                    StringBuilder updateBuilder = new StringBuilder();
+                    updateBuilder.AppendFormat("update {0} set ", EscapeIdentifier(m_Realm));
 
-                    cmd.CommandText = insertBuilder.ToString();
+                    bool first = true;
+                    List<string> paramNames = new List<string>();
+                    for (int i = 0; i < fields.Length; i++)
+                    {
+                        string field = fields[i];
+                        if (!first)
+                            updateBuilder.Append(", ");
+                        string paramName = "p" + i.ToString();
+                        paramNames.Add(paramName);
+                        updateBuilder.AppendFormat("\"{0}\" = :{1}", EscapeIdentifier(field), paramName);
+                        first = false;
+                    }
+
+                    updateBuilder.Append(" where uuid = :principalID");
+                    cmd.CommandText = updateBuilder.ToString();
+
+                    for (int i = 0; i < fields.Length; i++)
+                    {
+                        cmd.Parameters.Add(m_database.CreateParameter(paramNames[i], data.Data[fields[i]]));
+                    }
+                    cmd.Parameters.Add(m_database.CreateParameter("principalID", data.PrincipalID));
 
                     if (cmd.ExecuteNonQuery() < 1)
                     {
-                        return false;
+                        StringBuilder insertBuilder = new StringBuilder();
+                        insertBuilder.AppendFormat("insert into {0} (uuid, \"", EscapeIdentifier(m_Realm));
+                        insertBuilder.Append(String.Join("\", \"", fields.Select(f => EscapeIdentifier(f))));
+                        insertBuilder.Append("\") values (:principalID, :");
+                        insertBuilder.Append(String.Join(", :", fields.Select((f, index) => "p" + index.ToString())));
+                        insertBuilder.Append(")");
+
+                        cmd.CommandText = insertBuilder.ToString();
+                        cmd.Parameters.Clear();
+
+                        cmd.Parameters.Add(m_database.CreateParameter("principalID", data.PrincipalID));
+                        for (int i = 0; i < fields.Length; i++)
+                        {
+                            cmd.Parameters.Add(m_database.CreateParameter("p" + i.ToString(), data.Data[fields[i]]));
+                        }
+
+                        if (cmd.ExecuteNonQuery() < 1)
+                        {
+                            return false;
+                        }
                     }
                 }
             }
@@ -177,11 +154,13 @@ namespace OpenSim.Data.PGSQL
 
         public bool SetDataItem(UUID principalID, string item, string value)
         {
-            string sql = string.Format("update {0} set {1} = :{1} where uuid = :UUID", m_Realm, item);
+            string sql = string.Format("update {0} set {1} = :value where uuid = :principalID", 
+                EscapeIdentifier(m_Realm), EscapeIdentifier(item));
             using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
             using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
             {
-                cmd.Parameters.Add(m_database.CreateParameter("\"" + item + "\"", value));
+                cmd.Parameters.Add(m_database.CreateParameter("value", value));
+                cmd.Parameters.Add(m_database.CreateParameter("principalID", principalID));
                 conn.Open();
                 if (cmd.ExecuteNonQuery() > 0)
                     return true;

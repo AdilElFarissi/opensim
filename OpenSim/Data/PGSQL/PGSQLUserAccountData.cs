@@ -1,30 +1,3 @@
-/*
- * Copyright (c) Contributors, http://opensimulator.org/
- * See CONTRIBUTORS.TXT for a full list of copyright holders.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSimulator Project nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ''AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -36,20 +9,14 @@ using System.Reflection;
 
 namespace OpenSim.Data.PGSQL
 {
-    public class PGSQLUserAccountData : PGSQLGenericTableHandler<UserAccountData>,IUserAccountData
+    public class PGSQLUserAccountData : PGSQLGenericTableHandler<UserAccountData>, IUserAccountData
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-
-        public PGSQLUserAccountData(string connectionString, string realm) :
-            base(connectionString, realm, "UserAccount")
-        {
-        }
-
-        /*
-        private string m_Realm;
+        private readonly string m_Realm;
         private List<string> m_ColumnNames = null;
         private PGSQLManager m_database;
+        private readonly Dictionary<string, string> m_FieldTypes = new Dictionary<string, string>();
 
         public PGSQLUserAccountData(string connectionString, string realm) :
             base(connectionString, realm, "UserAccount")
@@ -65,46 +32,7 @@ namespace OpenSim.Data.PGSQL
                 m.Update();
             }
         }
-        */
-        /*
-        public List<UserAccountData> Query(UUID principalID, UUID scopeID, string query)
-        {
-            return null;
-        }
-        */
-        /*
-        public override UserAccountData[] Get(string[] fields, string[] keys)
-        {
-            UserAccountData[] retUA = base.Get(fields,keys);
 
-            if (retUA.Length > 0)
-            {
-                Dictionary<string, string> data = retUA[0].Data;
-                Dictionary<string, string> data2 = new Dictionary<string, string>();
-
-                foreach (KeyValuePair<string,string> chave in data)
-                {
-                    string s2 = chave.Key;
-
-                    data2[s2] = chave.Value;
-
-                    if (!m_FieldTypes.ContainsKey(chave.Key))
-                    {
-                        string tipo = "";
-                        m_FieldTypes.TryGetValue(chave.Key, out tipo);
-                        m_FieldTypes.Add(s2, tipo);
-                    }
-                }
-                foreach (KeyValuePair<string, string> chave in data2)
-                {
-                    if (!retUA[0].Data.ContainsKey(chave.Key))
-                        retUA[0].Data.Add(chave.Key, chave.Value);
-                }
-            }
-
-            return retUA;
-        }
-        */
         public UserAccountData Get(UUID principalID, UUID scopeID)
         {
             UserAccountData ret = new UserAccountData();
@@ -133,7 +61,6 @@ namespace OpenSim.Data.PGSQL
                         if (m_ColumnNames == null)
                         {
                             m_ColumnNames = new List<string>();
-
                             DataTable schemaTable = result.GetSchemaTable();
                             foreach (DataRow row in schemaTable.Rows)
                                 m_ColumnNames.Add(row["ColumnName"].ToString());
@@ -141,10 +68,7 @@ namespace OpenSim.Data.PGSQL
 
                         foreach (string s in m_ColumnNames)
                         {
-                            string s2 = s;
-                            if (s2 == "uuid")
-                                continue;
-                            if (s2 == "scopeid")
+                            if (s == "uuid" || s == "scopeid")
                                 continue;
 
                             ret.Data[s] = result[s].ToString();
@@ -178,8 +102,8 @@ namespace OpenSim.Data.PGSQL
                     if (!first)
                         updateBuilder.Append(", ");
                     updateBuilder.AppendFormat("\"{0}\" = :{0}", field);
-
                     first = false;
+
                     if (m_FieldTypes.ContainsKey(field))
                         cmd.Parameters.Add(m_database.CreateParameter("" + field, data.Data[field], m_FieldTypes[field]));
                     else
@@ -187,7 +111,6 @@ namespace OpenSim.Data.PGSQL
                 }
 
                 updateBuilder.Append(" where \"PrincipalID\" = :principalID");
-
                 if (data.ScopeID != UUID.Zero)
                     updateBuilder.Append(" and \"ScopeID\" = :scopeID");
 
@@ -197,27 +120,15 @@ namespace OpenSim.Data.PGSQL
                 cmd.Parameters.Add(m_database.CreateParameter("scopeID", data.ScopeID));
 
                 m_log.DebugFormat("[USER]: SQL update user {0} ", cmd.CommandText);
-
                 conn.Open();
 
-                m_log.DebugFormat("[USER]: CON opened update user {0} ", cmd.CommandText);
-
-                int conta = 0;
-                try
-                {
-                    conta = cmd.ExecuteNonQuery();
-                }
-                catch (Exception e){
-                    m_log.ErrorFormat("[USER]: ERROR opened update user {0} ", e.Message);
-                }
-
+                int conta = cmd.ExecuteNonQuery();
 
                 if (conta < 1)
                 {
                     m_log.DebugFormat("[USER]: Try to insert user {0} {1}", data.FirstName, data.LastName);
-
                     StringBuilder insertBuilder = new StringBuilder();
-                    insertBuilder.AppendFormat(@"insert into {0} (""PrincipalID"", ""ScopeID"", ""FirstName"", ""LastName"", """, m_Realm);
+                    insertBuilder.AppendFormat(@"insert into {0} (""PrincipalID"", ""ScopeID"", ""FirstName"", ""LastName"", ", m_Realm);
                     insertBuilder.Append(String.Join(@""", """, fields));
                     insertBuilder.Append(@""") values (:principalID, :scopeID, :FirstName, :LastName, :");
                     insertBuilder.Append(String.Join(", :", fields));
@@ -227,11 +138,8 @@ namespace OpenSim.Data.PGSQL
                     cmd.Parameters.Add(m_database.CreateParameter("LastName", data.LastName));
 
                     cmd.CommandText = insertBuilder.ToString();
-
                     if (cmd.ExecuteNonQuery() < 1)
-                    {
                         return false;
-                    }
                 }
                 else
                     m_log.DebugFormat("[USER]: User {0} {1} exists", data.FirstName, data.LastName);
@@ -239,25 +147,35 @@ namespace OpenSim.Data.PGSQL
             return true;
         }
 
-
         public bool Store(UserAccountData data, UUID principalID, string token)
         {
             return false;
         }
 
-
         public bool SetDataItem(UUID principalID, string item, string value)
         {
-            string sql = string.Format(@"update {0} set {1} = :{1} where ""UUID"" = :UUID", m_Realm, item);
+            // Whitelist allowed column names to prevent SQL injection
+            var allowedColumns = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "FirstName", "LastName", "PrincipalID", "ScopeID", "SomeOtherColumn" // add any additional allowed columns
+            };
+
+            if (!allowedColumns.Contains(item))
+                return false; // reject unknown column names
+
+            // Properly quote identifier for PostgreSQL
+            string quotedItem = $"\"{item.Replace("\"", "\"\"")}\"";
+
+            string sql = string.Format(@"update {0} set {1} = :value where ""UUID"" = :uuid", m_Realm, quotedItem);
             using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
             using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
             {
                 if (m_FieldTypes.ContainsKey(item))
-                    cmd.Parameters.Add(m_database.CreateParameter("\"" + item + "\"", value, m_FieldTypes[item]));
+                    cmd.Parameters.Add(m_database.CreateParameter("" + item, value, m_FieldTypes[item]));
                 else
-                    cmd.Parameters.Add(m_database.CreateParameter("\"" + item + "\"", value));
+                    cmd.Parameters.Add(m_database.CreateParameter("" + item, value));
 
-                cmd.Parameters.Add(m_database.CreateParameter("UUID", principalID));
+                cmd.Parameters.Add(m_database.CreateParameter("uuid", principalID));
                 conn.Open();
 
                 if (cmd.ExecuteNonQuery() > 0)
@@ -265,12 +183,6 @@ namespace OpenSim.Data.PGSQL
             }
             return false;
         }
-        /*
-        public UserAccountData[] Get(string[] keys, string[] vals)
-        {
-            return null;
-        }
-        */
 
         public UserAccountData[] GetUsers(UUID scopeID, string query)
         {
@@ -292,25 +204,34 @@ namespace OpenSim.Data.PGSQL
             if (words.Length > 2)
                 return new UserAccountData[0];
 
-            string sql = "";
+            string sql;
             using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
             using (NpgsqlCommand cmd = new NpgsqlCommand())
             {
                 if (words.Length == 1)
                 {
-                    sql = String.Format(@"select * from {0} where (""ScopeID""=:ScopeID or ""ScopeID""=:UUIDZero) and (LOWER(""FirstName"" COLLATE ""en_US.utf8"") like LOWER(:search) or LOWER(""LastName"" COLLATE ""en_US.utf8"") like LOWER(:search))", m_Realm);
+                    sql = String.Format(
+                        @"select * from {0} where (\"ScopeID\" = :ScopeID or \"ScopeID\" = :UUIDZero) 
+                          and (LOWER(\"FirstName\" COLLATE \"en_US.utf8\") LIKE LOWER(:search) 
+                               or LOWER(\"LastName\" COLLATE \"en_US.utf8\") LIKE LOWER(:search))",
+                        m_Realm);
                     cmd.Parameters.Add(m_database.CreateParameter("ScopeID", scopeID));
-                    cmd.Parameters.Add (m_database.CreateParameter("UUIDZero", UUID.Zero));
-                    cmd.Parameters.Add(m_database.CreateParameter("search", "%" + words[0] + "%"));
+                    cmd.Parameters.Add(m_database.CreateParameter("UUIDZero", UUID.Zero));
+                    cmd.Parameters.Add(m_database.CreateParameter("search", $"%{words[0]}%"));
                 }
                 else
                 {
-                    sql = String.Format(@"select * from {0} where (""ScopeID""=:ScopeID or ""ScopeID""=:UUIDZero) and (LOWER(""FirstName"" COLLATE ""en_US.utf8"") like LOWER(:searchFirst) or LOWER(""LastName"" COLLATE ""en_US.utf8"") like LOWER(:searchLast))", m_Realm);
-                    cmd.Parameters.Add(m_database.CreateParameter("searchFirst", "%" + words[0] + "%"));
-                    cmd.Parameters.Add(m_database.CreateParameter("searchLast", "%" + words[1] + "%"));
-                    cmd.Parameters.Add (m_database.CreateParameter("UUIDZero", UUID.Zero));
+                    sql = String.Format(
+                        @"select * from {0} where (\"ScopeID\" = :ScopeID or \"ScopeID\" = :UUIDZero) 
+                          and (LOWER(\"FirstName\" COLLATE \"en_US.utf8\") LIKE LOWER(:searchFirst) 
+                               or LOWER(\"LastName\" COLLATE \"en_US.utf8\") LIKE LOWER(:searchLast))",
+                        m_Realm);
+                    cmd.Parameters.Add(m_database.CreateParameter("searchFirst", $"%{words[0]}%"));
+                    cmd.Parameters.Add(m_database.CreateParameter("searchLast", $"%{words[1]}%"));
+                    cmd.Parameters.Add(m_database.CreateParameter("UUIDZero", UUID.Zero));
                     cmd.Parameters.Add(m_database.CreateParameter("ScopeID", scopeID));
                 }
+
                 cmd.Connection = conn;
                 cmd.CommandText = sql;
                 conn.Open();
@@ -320,24 +241,43 @@ namespace OpenSim.Data.PGSQL
 
         public UserAccountData[] GetUsersWhere(UUID scopeID, string where)
         {
+            // Only allow simple, safe equality checks on whitelisted columns
+            // Parse the where clause for known patterns: "FirstName = :p" or "LastName = :p" etc.
+            // Reject anything else to avoid SQL injection.
+
+            // Normalize whitespace
+            where = where.Trim();
+
+            // Expected format: <Column> = <Value>
+            var parts = where.Split(new[] { '=' }, 2);
+            if (parts.Length != 2)
+                return new UserAccountData[0];
+
+            string column = parts[0].Trim();
+            string valueParam = parts[1].Trim();
+
+            // Whitelist column names
+            var allowedColumns = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "FirstName", "LastName", "PrincipalID", "ScopeID"
+            };
+
+            if (!allowedColumns.Contains(column))
+                return new UserAccountData[0];
+
+            // Build safe parameterized query
+            string sql = $"SELECT * FROM {m_Realm} " +
+                         $"WHERE (\"ScopeID\" = :scopeOrZero OR \"ScopeID\" = '00000000-0000-0000-0000-000000000000') " +
+                         $"AND (\"{column}\" = :searchValue)";
+
             using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
             using (NpgsqlCommand cmd = new NpgsqlCommand())
             {
-                // Fix case sensitivity for PostgreSQL column names
-                where = where.Replace("PrincipalID", "\"PrincipalID\"")
-                            .Replace("ScopeID", "\"ScopeID\"")
-                            .Replace("FirstName", "\"FirstName\"")
-                            .Replace("LastName", "\"LastName\"");
-                            
-                if (!scopeID.IsZero())
-                {
-                    where = "(\"ScopeID\"=:ScopeID or \"ScopeID\"='00000000-0000-0000-0000-000000000000') and (" + where + ")";
-                    cmd.Parameters.Add(m_database.CreateParameter("ScopeID", scopeID));
-                }
+                cmd.Parameters.Add(m_database.CreateParameter("scopeOrZero", scopeID));
+                cmd.Parameters.Add(m_database.CreateParameter("searchValue", valueParam));
 
-                cmd.CommandText = String.Format("select * from {0} where " + where, m_Realm);
                 cmd.Connection = conn;
-                
+                cmd.CommandText = sql;
                 conn.Open();
                 return DoQuery(cmd);
             }

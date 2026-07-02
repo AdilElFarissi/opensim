@@ -48,6 +48,7 @@ namespace OpenSim.Data.PGSQL
         private string m_connectionString;
         private FieldInfo[] _Fields;
         private Dictionary<string, FieldInfo> _FieldMap = new Dictionary<string, FieldInfo>();
+        private readonly object _lock = new object();
 
         #region Public methods
 
@@ -71,30 +72,33 @@ namespace OpenSim.Data.PGSQL
         /// <param name="connectionString">connectionString.</param>
         public void Initialise(string connectionString)
         {
-            if (!string.IsNullOrEmpty(connectionString))
+            lock (_lock)
             {
-                m_connectionString = connectionString;
-                _Database = new PGSQLManager(connectionString);
-            }
+                if (!string.IsNullOrEmpty(connectionString))
+                {
+                    m_connectionString = connectionString;
+                    _Database = new PGSQLManager(connectionString);
+                }
 
-            //Migration settings
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-            {
-                conn.Open();
-                Migration m = new Migration(conn, GetType().Assembly, "EstateStore");
-                m.Update();
-            }
+                //Migration settings
+                using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
+                {
+                    conn.Open();
+                    Migration m = new Migration(conn, GetType().Assembly, "EstateStore");
+                    m.Update();
+                }
 
-            //Interesting way to get parameters! Maybe implement that also with other types
-            Type t = typeof(EstateSettings);
-            _Fields = t.GetFields(BindingFlags.NonPublic |
-                                  BindingFlags.Instance |
-                                  BindingFlags.DeclaredOnly);
+                //Interesting way to get parameters! Maybe implement that also with other types
+                Type t = typeof(EstateSettings);
+                _Fields = t.GetFields(BindingFlags.NonPublic |
+                                      BindingFlags.Instance |
+                                      BindingFlags.DeclaredOnly);
 
-            foreach (FieldInfo f in _Fields)
-            {
-                if (f.Name.Substring(0, 2) == "m_")
-                    _FieldMap[f.Name.Substring(2)] = f;
+                foreach (FieldInfo f in _Fields)
+                {
+                    if (f.Name.Substring(0, 2) == "m_")
+                        _FieldMap[f.Name.Substring(2)] = f;
+                }
             }
         }
 
@@ -105,6 +109,9 @@ namespace OpenSim.Data.PGSQL
         /// <returns></returns>
         public EstateSettings LoadEstateSettings(UUID regionID, bool create)
         {
+            if (_Database == null)
+                throw new Exception("PGSQLEstateStore not initialized");
+            
             EstateSettings es = new EstateSettings();
 
             string sql = "select estate_settings.\"" + String.Join("\",estate_settings.\"", FieldList) +
@@ -179,6 +186,9 @@ namespace OpenSim.Data.PGSQL
 
         public EstateSettings CreateNewEstate(int estateID)
         {
+            if (_Database == null)
+                throw new Exception("PGSQLEstateStore not initialized");
+                
             EstateSettings es = new EstateSettings();
             
             es.OnSave += StoreEstateSettings;
@@ -245,6 +255,9 @@ namespace OpenSim.Data.PGSQL
         /// <param name="es">estate settings</param>
         public void StoreEstateSettings(EstateSettings es)
         {
+            if (_Database == null)
+                throw new Exception("PGSQLEstateStore not initialized");
+                
             List<string> names = new List<string>(FieldList);
 
             names.Remove("EstateID");
@@ -354,10 +367,22 @@ namespace OpenSim.Data.PGSQL
                     cmd.CommandText = "insert into estateban (\"EstateID\", \"bannedUUID\",\"bannedIp\", \"bannedIpHostMask\", \"bannedNameMask\", \"banningUUID\",\"banTime\" ) values ( :EstateID, :bannedUUID, '','','', :banningUUID, :banTime )";
                     foreach (EstateBan b in es.EstateBans)
                     {
-                        cmd.Parameters.Clear();
-                        cmd.Parameters["EstateID"].Value = b.EstateID;
-                        cmd.Parameters["bannedUUID"].Value = _Database.CreateParameter("bannedUUID", b.BannedUserID).Value;
-                        cmd.Parameters["banningUUID"].Value = _Database.CreateParameter("banningUUID", b.BanningUserID).Value;
+                        // Update existing parameters to preserve EstateID
+                        if (!cmd.Parameters.Contains("EstateID"))
+                            cmd.Parameters.AddWithValue("EstateID", (int)es.EstateID);
+                        
+                        var bannedUUIDParam = _Database.CreateParameter("bannedUUID", b.BannedUserID);
+                        if (!cmd.Parameters.Contains("bannedUUID"))
+                            cmd.Parameters.Add(bannedUUIDParam);
+                        else
+                            cmd.Parameters["bannedUUID"].Value = b.BannedUserID;
+
+                        var banningUUIDParam = _Database.CreateParameter("banningUUID", b.BanningUserID);
+                        if (!cmd.Parameters.Contains("banningUUID"))
+                            cmd.Parameters.Add(banningUUIDParam);
+                        else
+                            cmd.Parameters["banningUUID"].Value = b.BanningUserID;
+
                         cmd.Parameters["banTime"].Value = b.BanTime;
 
                         cmd.ExecuteNonQuery();
@@ -380,8 +405,16 @@ namespace OpenSim.Data.PGSQL
                     cmd.CommandText = string.Format("insert into {0} (\"EstateID\", uuid) values ( :EstateID, :uuid )", table);
                     foreach (UUID uuid in data)
                     {
-                        cmd.Parameters.Clear();
-                        cmd.Parameters.Add(_Database.CreateParameter("uuid", uuid));
+                        // Update existing parameters to preserve EstateID and avoid re-clear
+                        if (!cmd.Parameters.Contains("uuid"))
+                        {
+                            cmd.Parameters.Add(_Database.CreateParameter("uuid", uuid));
+                        }
+                        else
+                        {
+                            cmd.Parameters["uuid"].Value = uuid;
+                        }
+                        cmd.Parameters["EstateID"].Value = (int)estateID; // Ensure EstateID is not lost/modified
                         cmd.ExecuteNonQuery();
                     }
                 }
@@ -390,6 +423,9 @@ namespace OpenSim.Data.PGSQL
 
         public EstateSettings LoadEstateSettings(int estateID)
         {
+            if (_Database == null)
+                throw new Exception("PGSQLEstateStore not initialized");
+                
             EstateSettings es = new EstateSettings();
             string sql = "select estate_settings.\"" + String.Join("\",estate_settings.\"", FieldList) + "\" from estate_settings where \"EstateID\" = :EstateID";
             using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))

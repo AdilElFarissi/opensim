@@ -1,3 +1,4 @@
+```csharp
 /*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
@@ -30,6 +31,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Data;
+using System.Text.RegularExpressions;
 using OpenMetaverse;
 using OpenSim.Framework;
 using MySql.Data.MySqlClient;
@@ -43,6 +45,8 @@ namespace OpenSim.Data.MySQL
         private int m_LastExpire;
         // private string m_connectionString;
 
+        private static readonly Regex ValidIdentifierRegex = new Regex(@"^[a-zA-Z_][a-zA-Z0-9_]*$", RegexOptions.Compiled);
+
         protected virtual Assembly Assembly
         {
             get { return GetType().Assembly; }
@@ -51,6 +55,12 @@ namespace OpenSim.Data.MySQL
         public MySqlAuthenticationData(string connectionString, string realm)
                 : base(connectionString)
         {
+            if (string.IsNullOrEmpty(realm))
+                throw new ArgumentException("Realm cannot be null or empty", nameof(realm));
+
+            if (!IsValidIdentifier(realm))
+                throw new ArgumentException($"Invalid realm name: {realm}. Realm must be a valid SQL identifier.", nameof(realm));
+
             m_Realm = realm;
             m_connectionString = connectionString;
 
@@ -63,6 +73,22 @@ namespace OpenSim.Data.MySQL
             }
         }
 
+        private static bool IsValidIdentifier(string identifier)
+        {
+            return !string.IsNullOrEmpty(identifier) && ValidIdentifierRegex.IsMatch(identifier);
+        }
+
+        private static string EscapeIdentifier(string identifier)
+        {
+            if (identifier == null)
+                throw new ArgumentNullException(nameof(identifier));
+
+            if (!IsValidIdentifier(identifier))
+                throw new ArgumentException($"Invalid identifier: {identifier}", nameof(identifier));
+
+            return "`" + identifier.Replace("`", "``") + "`";
+        }
+
         public AuthenticationData Get(UUID principalID)
         {
             AuthenticationData ret = new AuthenticationData();
@@ -72,8 +98,10 @@ namespace OpenSim.Data.MySQL
             {
                 dbcon.Open();
 
+                string sql = "select * from " + EscapeIdentifier(m_Realm) + " where UUID = ?principalID";
+
                 using (MySqlCommand cmd
-                    = new MySqlCommand("select * from `" + m_Realm + "` where UUID = ?principalID", dbcon))
+                    = new MySqlCommand(sql, dbcon))
                 {
                     cmd.Parameters.AddWithValue("?principalID", principalID.ToString());
 
@@ -90,7 +118,10 @@ namespace OpenSim.Data.MySQL
                                 if(s == "UUID")
                                     continue;
 
-                                ret.Data[s] = result[s].ToString();
+                                if(IsValidIdentifier(s))
+                                {
+                                    ret.Data[s] = result[s].ToString();
+                                }
                             }
 
                             dbcon.Close();
@@ -115,7 +146,13 @@ namespace OpenSim.Data.MySQL
 
             DataTable schemaTable = result.GetSchemaTable();
             foreach (DataRow row in schemaTable.Rows)
-                columnNames.Add(row["ColumnName"].ToString());
+            {
+                string columnName = row["ColumnName"].ToString();
+                if (IsValidIdentifier(columnName))
+                {
+                    columnNames.Add(columnName);
+                }
+            }
 
             m_ColumnNames = columnNames;
         }
@@ -124,21 +161,33 @@ namespace OpenSim.Data.MySQL
         {
             data.Data.Remove("UUID");
 
-            string[] fields = new List<string>(data.Data.Keys).ToArray();
+            List<string> validFields = new List<string>();
+            foreach (string key in data.Data.Keys)
+            {
+                if (IsValidIdentifier(key))
+                {
+                    validFields.Add(key);
+                }
+            }
+
+            if (validFields.Count == 0)
+                return false;
+
+            string[] fields = validFields.ToArray();
 
             using (MySqlCommand cmd = new MySqlCommand())
             {
-                string update = "update `"+m_Realm+"` set ";
+                string update = "update " + EscapeIdentifier(m_Realm) + " set ";
                 bool first = true;
                 foreach (string field in fields)
                 {
                     if (!first)
                         update += ", ";
-                    update += "`" + field + "` = ?"+field;
+                    update += EscapeIdentifier(field) + " = ?" + field;
 
                     first = false;
 
-                    cmd.Parameters.AddWithValue("?"+field, data.Data[field]);
+                    cmd.Parameters.AddWithValue("?" + field, data.Data[field]);
                 }
 
                 update += " where UUID = ?principalID";
@@ -148,9 +197,9 @@ namespace OpenSim.Data.MySQL
 
                 if (ExecuteNonQuery(cmd) < 1)
                 {
-                    string insert = "insert into `" + m_Realm + "` (`UUID`, `" +
-                            String.Join("`, `", fields) +
-                            "`) values (?principalID, ?" + String.Join(", ?", fields) + ")";
+                    string insert = "insert into " + EscapeIdentifier(m_Realm) + " (`UUID`, " +
+                            String.Join(", ", fields.Select(f => EscapeIdentifier(f))) +
+                            ") values (?principalID, ?" + String.Join(", ?", fields) + ")";
 
                     cmd.CommandText = insert;
 
@@ -164,10 +213,15 @@ namespace OpenSim.Data.MySQL
 
         public bool SetDataItem(UUID principalID, string item, string value)
         {
+            if (!IsValidIdentifier(item))
+                return false;
+
+            string sql = "update " + EscapeIdentifier(m_Realm) + " set " + EscapeIdentifier(item) + " = ?" + item + " where UUID = ?UUID";
+
             using (MySqlCommand cmd
-                = new MySqlCommand("update `" + m_Realm + "` set `" + item + "` = ?" + item + " where UUID = ?UUID"))
+                = new MySqlCommand(sql))
             {
-                cmd.Parameters.AddWithValue("?"+item, value);
+                cmd.Parameters.AddWithValue("?" + item, value);
                 cmd.Parameters.AddWithValue("?UUID", principalID.ToString());
 
                 if (ExecuteNonQuery(cmd) > 0)

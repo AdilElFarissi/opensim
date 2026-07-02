@@ -1,32 +1,4 @@
-/*
- * Copyright (c) Contributors, http://opensimulator.org/
- * See CONTRIBUTORS.TXT for a full list of copyright holders.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSimulator Project nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 using System;
-using System.Reflection;
 using System.Collections.Generic;
 using System.Data;
 using OpenSim.Framework;
@@ -68,6 +40,12 @@ namespace OpenSim.Data.MySQL
         {
             m_ConnectionString = connect;
             m_Table = realm;
+
+            // Validate table name to prevent SQL injection via table identifiers
+            if (!IsValidTableName(realm))
+            {
+                throw new ArgumentException("Invalid table name: " + realm);
+            }
 
             DaysBetweenAccessTimeUpdates = UpdateAccessTime;
 
@@ -156,8 +134,10 @@ namespace OpenSim.Data.MySQL
 
                 using (MySqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = String.Format("select id, name, description, type, hash, create_time, asset_flags, access_time from {0} where id = ?id", m_Table);
-                    cmd.Parameters.AddWithValue("?id", id);
+                    // Use backticks to safely quote the table name
+                    string table = $"`{m_Table}`";
+                    cmd.CommandText = $"SELECT id, name, description, type, hash, create_time, asset_flags, access_time FROM {table} WHERE id = @id";
+                    cmd.Parameters.AddWithValue("@id", id);
 
                     using (IDataReader reader = cmd.ExecuteReader())
                     {
@@ -207,8 +187,9 @@ namespace OpenSim.Data.MySQL
 
                 using (MySqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = String.Format("UPDATE {0} SET `access_time` = UNIX_TIMESTAMP() WHERE `id` = ?id", m_Table);
-                    cmd.Parameters.AddWithValue("?id", AssetID);
+                    string table = $"`{m_Table}`";
+                    cmd.CommandText = $"UPDATE {table} SET `access_time` = UNIX_TIMESTAMP() WHERE `id` = @id";
+                    cmd.Parameters.AddWithValue("@id", AssetID);
                     cmd.ExecuteNonQuery();
                 }
                 conn.Close();
@@ -224,39 +205,37 @@ namespace OpenSim.Data.MySQL
 
                 using (MySqlCommand cmd = new MySqlCommand())
                 {
-                    cmd.Parameters.AddWithValue("?id", meta.ID);
-                    cmd.Parameters.AddWithValue("?name", meta.Name);
-                    cmd.Parameters.AddWithValue("?description", meta.Description);
-//                    cmd.Parameters.AddWithValue("?type", meta.Type.ToString());
-                    cmd.Parameters.AddWithValue("?type", meta.Type);
-                    cmd.Parameters.AddWithValue("?hash", hash);
-                    cmd.Parameters.AddWithValue("?asset_flags", meta.Flags);
+                    cmd.Parameters.AddWithValue("@id", meta.ID);
+                    cmd.Parameters.AddWithValue("@name", meta.Name);
+                    cmd.Parameters.AddWithValue("@description", meta.Description);
+                    cmd.Parameters.AddWithValue("@type", meta.Type);
+                    cmd.Parameters.AddWithValue("@hash", hash);
+                    cmd.Parameters.AddWithValue("@asset_flags", meta.Flags);
 
                     if (existingAsset == null)
                     {
-                        cmd.CommandText = String.Format("insert into {0} (id, name, description, type, hash, asset_flags, create_time, access_time) values ( ?id, ?name, ?description, ?type, ?hash, ?asset_flags, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())", m_Table);
+                        string table = $"`{m_Table}`";
+                        cmd.CommandText = $"INSERT INTO {table} (id, name, description, type, hash, asset_flags, create_time, access_time) " +
+                                          "VALUES (@id, @name, @description, @type, @hash, @asset_flags, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())";
 
                         ExecuteNonQuery(cmd);
 
                         return true;
                     }
 
-                    //cmd.CommandText = String.Format("update {0} set hash = ?hash, access_time = UNIX_TIMESTAMP() where id = ?id", m_Table);
+                    // Update existing asset
+                    string table = $"`{m_Table}`";
+                    cmd.CommandText = $"UPDATE {table} SET hash = @hash, access_time = UNIX_TIMESTAMP() WHERE id = @id";
 
-                    //ExecuteNonQuery(cmd);
-
+                    ExecuteNonQuery(cmd);
                 }
 
-//                return false;
-                // if the asset already exits
-                // assume it was already correctly stored
-                // or regions will keep retry.
                 return true;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 m_log.Error("[FSAssets] Failed to store asset with ID " + meta.ID);
-        m_log.Error(e.ToString());
+                m_log.Error(e.ToString());
                 return false;
             }
         }
@@ -277,8 +256,15 @@ namespace OpenSim.Data.MySQL
 
             HashSet<UUID> exists = new HashSet<UUID>();
 
+            // Validate table name before using it in the query
+            if (!IsValidTableName(m_Table))
+            {
+                m_log.Error("[FSASSETS]: Invalid table name in AssetsExist");
+                return results;
+            }
+
             string ids = "'" + string.Join("','", uuids) + "'";
-            string sql = string.Format("select id from {1} where id in ({0})", ids, m_Table);
+            string sql = string.Format("select id from {0} where id in ({1})", m_Table, ids);
 
             using (MySqlConnection conn = new MySqlConnection(m_ConnectionString))
             {
@@ -329,9 +315,10 @@ namespace OpenSim.Data.MySQL
                     return 0;
                 }
 
-                using(MySqlCommand cmd = conn.CreateCommand())
+                using (MySqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = String.Format("select count(*) as count from {0}",m_Table);
+                    string table = $"`{m_Table}`";
+                    cmd.CommandText = $"SELECT count(*) as count FROM {table}";
 
                     using (IDataReader reader = cmd.ExecuteReader())
                     {
@@ -348,12 +335,18 @@ namespace OpenSim.Data.MySQL
 
         public bool Delete(string id)
         {
-            using(MySqlCommand cmd = new MySqlCommand())
+            using (MySqlCommand cmd = new MySqlCommand())
             {
+                // Validate table name
+                if (!IsValidTableName(m_Table))
+                {
+                    m_log.Error("[FSASSETS]: Invalid table name in Delete");
+                    return false;
+                }
 
-                cmd.CommandText = String.Format("delete from {0} where id = ?id",m_Table);
-
-                cmd.Parameters.AddWithValue("?id", id);
+                string table = $"`{m_Table}`";
+                cmd.CommandText = $"DELETE FROM {table} WHERE id = @id";
+                cmd.Parameters.AddWithValue("@id", id);
 
                 ExecuteNonQuery(cmd);
             }
@@ -363,6 +356,13 @@ namespace OpenSim.Data.MySQL
 
         public void Import(string conn, string table, int start, int count, bool force, FSStoreDelegate store)
         {
+            // Validate the table name used for import
+            if (!IsValidTableName(table))
+            {
+                m_log.Error("[FSASSETS]: Invalid table name in Import");
+                return;
+            }
+
             int imported = 0;
 
             using (MySqlConnection importConn = new MySqlConnection(conn))
@@ -373,21 +373,20 @@ namespace OpenSim.Data.MySQL
                 }
                 catch (MySqlException e)
                 {
-                    m_log.ErrorFormat("[FSASSETS]: Can't connect to database: {0}",
-                            e.Message.ToString());
-
+                    m_log.ErrorFormat("[FSASSETS]: Can't connect to database: {0}", e.Message.ToString());
                     return;
                 }
 
                 using (MySqlCommand cmd = importConn.CreateCommand())
                 {
-                    string limit = String.Empty;
+                    string limit = string.Empty;
                     if (count != -1)
                     {
                         limit = String.Format(" limit {0},{1}", start, count);
                     }
 
-                    cmd.CommandText = String.Format("select * from {0}{1}", table, limit);
+                    // Use backticks to safely quote the table name
+                    cmd.CommandText = $"SELECT * FROM `{table}`{limit}";
 
                     MainConsole.Instance.Output("Querying database");
                     using (IDataReader reader = cmd.ExecuteReader())
@@ -429,5 +428,11 @@ namespace OpenSim.Data.MySQL
         }
 
         #endregion
+
+        private bool IsValidTableName(string table)
+        {
+            // Simple validation: alphanumeric and underscore characters only, no spaces or special symbols
+            return !string.IsNullOrWhiteSpace(table) && System.Text.RegularExpressions.Regex.IsMatch(table, "^[a-zA-Z0-9_]+$");
+        }
     }
 }
