@@ -519,6 +519,8 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                         fixed(byte* ptrstart = data)
                         {
                             byte* ptr = ptrstart;
+                            byte* ptrend = ptrstart + data.Length;
+                            bool truncated = false;
 
                             int vertsoffset = 0;
 
@@ -530,12 +532,23 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                                     {
                                         if (hullsize < 3)
                                         {
+                                            if (ptr + (6 * hullsize) > ptrend)
+                                            {
+                                                truncated = true;
+                                                break;
+                                            }
                                             ptr += 6 * hullsize;
                                             continue;
                                         }
 
                                         for (i = 0; i < hullsize; i++)
                                         {
+                                            if (ptr + 6 > ptrend)
+                                            {
+                                                truncated = true;
+                                                break;
+                                            }
+
                                             t1 = Utils.BytesToUInt16(ptr); ptr += 2;
                                             t2 = Utils.BytesToUInt16(ptr); ptr += 2;
                                             t3 = Utils.BytesToUInt16(ptr); ptr += 2;
@@ -547,6 +560,9 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                                                         );
                                         }
 
+                                        if (truncated)
+                                            break;
+
                                         faces.Add(new Face(vertsoffset, vertsoffset + 1, vertsoffset + 2));
 
                                         vertsoffset += hullsize;
@@ -555,6 +571,12 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
 
                                     for (i = 0; i < hullsize; i++)
                                     {
+                                        if (ptr + 6 > ptrend)
+                                        {
+                                            truncated = true;
+                                            break;
+                                        }
+
                                         t1 = Utils.BytesToUInt16(ptr); ptr += 2;
                                         t2 = Utils.BytesToUInt16(ptr); ptr += 2;
                                         t3 = Utils.BytesToUInt16(ptr); ptr += 2;
@@ -563,6 +585,12 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                                                         t2 * range.Y + min.Y,
                                                         t3 * range.Z + min.Z);
                                         vs.Add(f3);
+                                    }
+
+                                    if (truncated)
+                                    {
+                                        vs.Clear();
+                                        break;
                                     }
 
                                     if (!HullUtils.ComputeHull(vs, out List<int> indices))
