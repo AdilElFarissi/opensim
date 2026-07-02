@@ -48,7 +48,7 @@ namespace OpenSim.Framework
     {
         // private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private static XmlSerializer tiiSerializer = new XmlSerializer(typeof (TaskInventoryItem));
+        private static XmlSerializer tiiSerializer = new(typeof (TaskInventoryItem));
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Thread LockedByThread;
@@ -60,7 +60,7 @@ namespace OpenSim.Framework
         /// <value>
         /// An advanced lock for inventory data
         /// </value>
-        private volatile System.Threading.ReaderWriterLockSlim m_itemLock = new System.Threading.ReaderWriterLockSlim();
+        private volatile System.Threading.ReaderWriterLockSlim m_itemLock = new();
 
         ~TaskInventoryDictionary()
         {
@@ -249,9 +249,9 @@ namespace OpenSim.Framework
 
         #region ICloneable Members
 
-        public Object Clone()
+        public object Clone()
         {
-            TaskInventoryDictionary clone = new TaskInventoryDictionary();
+            TaskInventoryDictionary clone = [];
 
             m_itemLock.EnterReadLock();
             foreach (UUID uuid in Keys)

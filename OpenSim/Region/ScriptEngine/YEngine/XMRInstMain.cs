@@ -93,8 +93,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         // For a given m_Item.AssetID, do we have the compiled object code and where
         // is it?
-        public static object m_CompileLock = new object();
-        private static Dictionary<string, ScriptObjCode> m_CompiledScriptObjCode = new Dictionary<string, ScriptObjCode>();
+        public static object m_CompileLock = new();
+        private static Dictionary<string, ScriptObjCode> m_CompiledScriptObjCode = [];
 
         public XMRInstState m_IState;
 
@@ -136,19 +136,19 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         // If we just had one lock, then the queuing would deadlock.
 
         // guards m_DetachQuantum, m_EventQueue, m_EventCounts, m_Running, m_Suspended
-        public Object m_QueueLock = new Object();
+        public object m_QueueLock = new();
 
         // true if allowed to accept new events
         public bool m_Running = true;
 
         // queue of events that haven't been acted upon yet
-        public LinkedList<EventParams> m_EventQueue = new LinkedList<EventParams>();
+        public LinkedList<EventParams> m_EventQueue = new();
 
         // number of events of each code currently in m_EventQueue.
         private int[] m_EventCounts = new int[(int)ScriptEventCode.Size];
 
         // locked whilst running on the microthread stack (or about to run on it or just ran on it)
-        private Object m_RunLock = new Object();
+        private object m_RunLock = new();
 
         // script won't step while > 0.  bus-atomic updates only.
         private int m_SuspendCount = 0;
@@ -198,13 +198,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         // for it instead of spinning busy.
         // It's born ready, but will be reset when the detach is posted.
         // It will then be set again on suspend/completion
-        private ManualResetEvent m_DetachReady = new ManualResetEvent(true);
+        private ManualResetEvent m_DetachReady = new(true);
 
         // llmineventdelay support
         double m_minEventDelay = 0.0;
         double m_nextEventTime = 0.0;
 
-        private static readonly Dictionary<string, ScriptEventCode> m_eventCodeMap = new Dictionary<string, ScriptEventCode>()
+        private static readonly Dictionary<string, ScriptEventCode> m_eventCodeMap = new()
         {
             {"attach", ScriptEventCode.attach},
             {"at_rot_target", ScriptEventCode.at_rot_target},

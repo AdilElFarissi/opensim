@@ -85,7 +85,7 @@ namespace OpenSim.OfflineIM
             if (string.IsNullOrEmpty(dllName))
                 throw new Exception("No StorageProvider configured");
 
-            m_Database = LoadPlugin<IOfflineIMData>(dllName, new Object[] { connString, realm });
+            m_Database = LoadPlugin<IOfflineIMData>(dllName, new object[] { connString, realm });
             if (m_Database is null)
                 throw new Exception("Could not find a storage interface in the given module " + dllName);
 
@@ -99,7 +99,7 @@ namespace OpenSim.OfflineIM
 
         public List<GridInstantMessage> GetMessages(UUID principalID)
         {
-            List<GridInstantMessage> ims = new List<GridInstantMessage>();
+            List<GridInstantMessage> ims = [];
 
             OfflineIMData[] messages = m_Database.Get("PrincipalID", principalID.ToString());
             if (messages is  null || messages.Length == 0)
@@ -107,7 +107,7 @@ namespace OpenSim.OfflineIM
 
             foreach (OfflineIMData m in messages)
             {
-                using (MemoryStream mstream = new MemoryStream(Encoding.UTF8.GetBytes(m.Data["Message"])))
+                using (MemoryStream mstream = new(Encoding.UTF8.GetBytes(m.Data["Message"])))
                 {
                     GridInstantMessage im = (GridInstantMessage)m_serializer.Deserialize(mstream);
                     ims.Add(im);
@@ -125,7 +125,7 @@ namespace OpenSim.OfflineIM
             reason = string.Empty;
 
             // Check limits
-            UUID principalID = new UUID(im.toAgentID);
+            UUID principalID = new(im.toAgentID);
             long count = m_Database.GetCount("PrincipalID", principalID.ToString());
             if (count >= m_MaxOfflineIMs)
             {
@@ -134,10 +134,12 @@ namespace OpenSim.OfflineIM
             }
 
             string imXml;
-            using (MemoryStream mstream = new MemoryStream())
+            using (MemoryStream mstream = new())
             {
-                XmlWriterSettings settings = new XmlWriterSettings();
-                settings.Encoding = Util.UTF8NoBomEncoding;
+                XmlWriterSettings settings = new()
+                {
+                    Encoding = Util.UTF8NoBomEncoding
+                };
 
                 using (XmlWriter writer = XmlWriter.Create(mstream, settings))
                 {
@@ -147,11 +149,15 @@ namespace OpenSim.OfflineIM
                 }
             }
 
-            OfflineIMData data = new OfflineIMData();
-            data.PrincipalID = principalID;
-            data.FromID = new UUID(im.fromAgentID);
-            data.Data = new Dictionary<string, string>();
-            data.Data["Message"] = imXml;
+            OfflineIMData data = new()
+            {
+                PrincipalID = principalID,
+                FromID = new UUID(im.fromAgentID),
+                Data = new Dictionary<string, string>
+                {
+                    ["Message"] = imXml
+                }
+            };
 
             return m_Database.Store(data);
 

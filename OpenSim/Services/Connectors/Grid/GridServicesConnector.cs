@@ -200,7 +200,7 @@ namespace OpenSim.Services.Connectors
                     {
                         if (r is Dictionary<string, object> dr)
                         {
-                            GridRegion rinfo = new GridRegion(dr);
+                            GridRegion rinfo = new(dr);
                             rinfos.Add(rinfo);
                         }
                     }
@@ -398,7 +398,7 @@ namespace OpenSim.Services.Connectors
                         {
                             if (r is Dictionary<string, object> dr)
                             {
-                                GridRegion rinfo = new GridRegion(dr);
+                                GridRegion rinfo = new(dr);
                                 rinfos.Add(rinfo);
                             }
                         }
@@ -502,7 +502,7 @@ namespace OpenSim.Services.Connectors
                         {
                             if (r is Dictionary<string, object>)
                             {
-                                GridRegion rinfo = new GridRegion((Dictionary<string, object>)r);
+                                GridRegion rinfo = new((Dictionary<string, object>)r);
                                 rinfos.Add(rinfo);
                             }
                         }
@@ -736,7 +736,7 @@ namespace OpenSim.Services.Connectors
                     Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
                     if (replyData.TryGetValue("result", out object tmpo) &&
                             tmpo is string tmps &&
-                            Int32.TryParse(tmps, out int flags))
+                            int.TryParse(tmps, out int flags))
                         return flags;
                      else
                         m_log.Debug($"[GRID CONNECTOR]: GetRegionFlags {scopeID}, {regionID} received invalid response");

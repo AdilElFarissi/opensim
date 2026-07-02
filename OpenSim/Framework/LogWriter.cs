@@ -46,12 +46,12 @@ namespace OpenSim.Framework
 
         private readonly string m_logDirectory = ".";
         private readonly int m_logMaxFileTimeMin = 5;    // 5 minutes
-        public String LogFileHeader { get; set; }
+        public string LogFileHeader { get; set; }
 
         private StreamWriter m_logFile = null;
         private readonly TimeSpan m_logFileLife;
         private DateTime m_logFileEndTime;
-        private readonly Object m_logFileWriteLock = new Object();
+        private readonly object m_logFileWriteLock = new();
         private readonly bool m_flushWrite;
 
         // set externally when debugging. If let 'null', this does not write any error messages.
@@ -118,7 +118,7 @@ namespace OpenSim.Framework
         {
             if (!Enabled)
                 return;
-            Write(String.Format(line, args));
+            Write(string.Format(line, args));
         }
 
         public void Flush()
@@ -149,12 +149,12 @@ namespace OpenSim.Framework
                         m_logFileEndTime = now + m_logFileLife;
                         string path = (m_logDirectory.Length > 0 ? m_logDirectory
                                     + System.IO.Path.DirectorySeparatorChar.ToString() : "")
-                                + String.Format("{0}{1}.log", LogFileHeader, now.ToString("yyyyMMddHHmmss"));
+                                + string.Format("{0}{1}.log", LogFileHeader, now.ToString("yyyyMMddHHmmss"));
                         m_logFile = new StreamWriter(File.Open(path, FileMode.Append, FileAccess.Write, FileShare.ReadWrite));
                     }
                     if (m_logFile is not null)
                     {
-                        StringBuilder buff = new StringBuilder(line.Length + 25);
+                        StringBuilder buff = new(line.Length + 25);
                         buff.Append(now.ToString("yyyyMMddHHmmssfff"));
                         // buff.Append(now.ToString("yyyyMMddHHmmss"));
                         buff.Append('"');

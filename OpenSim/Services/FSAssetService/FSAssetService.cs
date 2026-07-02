@@ -46,7 +46,7 @@ namespace OpenSim.Services.FSAssetService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        static System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
+        static System.Text.ASCIIEncoding enc = new();
 
         static byte[] ToCString(string s)
         {
@@ -63,8 +63,8 @@ namespace OpenSim.Services.FSAssetService
         protected Thread m_WriterThread;
         protected Thread m_StatsThread;
         protected string m_SpoolDirectory;
-        protected object m_readLock = new object();
-        protected object m_statsLock = new object();
+        protected object m_readLock = new();
+        protected object m_statsLock = new();
         protected int m_readCount = 0;
         protected int m_readTicks = 0;
         protected int m_missingAssets = 0;
@@ -74,7 +74,7 @@ namespace OpenSim.Services.FSAssetService
         protected bool m_showStats = true;
 
         private static bool m_mainInitialized;
-        private static object m_initLock = new object();
+        private static object m_initLock = new();
 
         private bool m_isMainInstance;
 
@@ -134,10 +134,10 @@ namespace OpenSim.Services.FSAssetService
             if (dbConfig != null)
             {
                 if (dllName.Length == 0)
-                    dllName = dbConfig.GetString("StorageProvider", String.Empty);
+                    dllName = dbConfig.GetString("StorageProvider", string.Empty);
 
                 if (connectionString.Length == 0)
-                    connectionString = dbConfig.GetString("ConnectionString", String.Empty);
+                    connectionString = dbConfig.GetString("ConnectionString", string.Empty);
             }
 
             // No databse connection found in either config
@@ -180,7 +180,7 @@ namespace OpenSim.Services.FSAssetService
 
             Directory.CreateDirectory(spoolTmp);
 
-            m_FSBase = assetConfig.GetString("BaseDirectory", String.Empty);
+            m_FSBase = assetConfig.GetString("BaseDirectory", string.Empty);
             if (m_FSBase.Length == 0)
             {
                 m_log.ErrorFormat("[FSASSETS]: BaseDirectory not specified");
@@ -331,7 +331,7 @@ namespace OpenSim.Services.FSAssetService
                             {
                                 byte[] data = File.ReadAllBytes(files[i]);
 
-                                using (GZipStream gz = new GZipStream(new FileStream(diskFile + ".gz", FileMode.Create), CompressionMode.Compress))
+                                using (GZipStream gz = new(new FileStream(diskFile + ".gz", FileMode.Create), CompressionMode.Compress))
                                 {
                                     gz.Write(data, 0, data.Length);
                                 }
@@ -463,8 +463,10 @@ namespace OpenSim.Services.FSAssetService
                 }
                 return asset;
             }
-            AssetBase newAsset = new AssetBase();
-            newAsset.Metadata = metadata;
+            AssetBase newAsset = new()
+            {
+                Metadata = metadata
+            };
             try
             {
                 newAsset.Data = GetFsData(hash);
@@ -545,7 +547,7 @@ namespace OpenSim.Services.FSAssetService
             return GetFsData(hash);
         }
 
-        public bool Get(string id, Object sender, AssetRetrieved handler)
+        public bool Get(string id, object sender, AssetRetrieved handler)
         {
             AssetBase asset = Get(id);
 
@@ -578,9 +580,9 @@ namespace OpenSim.Services.FSAssetService
             {
                 try
                 {
-                    using (GZipStream gz = new GZipStream(new FileStream(diskFile + ".gz", FileMode.Open, FileAccess.Read), CompressionMode.Decompress))
+                    using (GZipStream gz = new(new FileStream(diskFile + ".gz", FileMode.Open, FileAccess.Read), CompressionMode.Decompress))
                     {
-                        using (MemoryStream ms = new MemoryStream())
+                        using (MemoryStream ms = new())
                         {
                             byte[] data = new byte[32768];
                             int bytesRead;
@@ -755,12 +757,12 @@ namespace OpenSim.Services.FSAssetService
 
             int i;
 
-            MainConsole.Instance.Output(String.Format("Name: {0}", asset.Name));
-            MainConsole.Instance.Output(String.Format("Description: {0}", asset.Description));
-            MainConsole.Instance.Output(String.Format("Type: {0}", asset.Type));
-            MainConsole.Instance.Output(String.Format("Content-type: {0}", asset.Metadata.ContentType));
-            MainConsole.Instance.Output(String.Format("Flags: {0}", asset.Metadata.Flags.ToString()));
-            MainConsole.Instance.Output(String.Format("FS file: {0}", HashToFile(hash)));
+            MainConsole.Instance.Output(string.Format("Name: {0}", asset.Name));
+            MainConsole.Instance.Output(string.Format("Description: {0}", asset.Description));
+            MainConsole.Instance.Output(string.Format("Type: {0}", asset.Type));
+            MainConsole.Instance.Output(string.Format("Content-type: {0}", asset.Metadata.ContentType));
+            MainConsole.Instance.Output(string.Format("Flags: {0}", asset.Metadata.Flags.ToString()));
+            MainConsole.Instance.Output(string.Format("FS file: {0}", HashToFile(hash)));
 
             for (i = 0 ; i < 5 ; i++)
             {
@@ -775,7 +777,7 @@ namespace OpenSim.Services.FSAssetService
                 Array.Copy(asset.Data, off, line, 0, len);
 
                 string text = BitConverter.ToString(line);
-                MainConsole.Instance.Output(String.Format("{0:x4}: {1}", off, text));
+                MainConsole.Instance.Output(string.Format("{0:x4}: {1}", off, text));
             }
         }
 
@@ -806,7 +808,7 @@ namespace OpenSim.Services.FSAssetService
             if (args[0] == "force")
             {
                 force = true;
-                List<string> list = new List<string>(args);
+                List<string> list = [.. args];
                 list.RemoveAt(0);
                 args = list.ToArray();
             }

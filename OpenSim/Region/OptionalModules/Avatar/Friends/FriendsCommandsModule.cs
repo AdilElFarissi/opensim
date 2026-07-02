@@ -108,7 +108,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Friends
 
         protected void HandleFriendsShowCommand(string module, string[] cmd)
         {
-            Dictionary<string, object> options = new Dictionary<string, object>();
+            Dictionary<string, object> options = [];
             OptionSet optionSet = new OptionSet().Add("c|cache", delegate (string v) { options["cache"] = v != null; });
 
             List<string> mainParams = optionSet.Parse(cmd);

@@ -433,8 +433,8 @@ namespace osWebRtcVoice
                         [
                             new OSDMap()
                             {
-                                { "candidate", candidate.ContainsKey("candidate") ? candidate["candidate"].AsString() : String.Empty },
-                                { "sdpMid", candidate.ContainsKey("sdpMid") ? candidate["sdpMid"].AsString() : String.Empty },
+                                { "candidate", candidate.ContainsKey("candidate") ? candidate["candidate"].AsString() : string.Empty },
+                                { "sdpMid", candidate.ContainsKey("sdpMid") ? candidate["sdpMid"].AsString() : string.Empty },
                                 { "sdpMLineIndex", candidate.ContainsKey("sdpMLineIndex") ? candidate["sdpMLineIndex"].AsLong() : 0 }
                             }
                         ];

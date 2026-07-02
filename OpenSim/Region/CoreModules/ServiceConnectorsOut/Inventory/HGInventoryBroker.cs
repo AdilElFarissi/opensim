@@ -52,19 +52,19 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         private const int CONNECTORS_CACHE_EXPIRE = 60000; // 1 minute
 
-        private readonly List<Scene> m_Scenes = new List<Scene>();
+        private readonly List<Scene> m_Scenes = [];
 
         private IInventoryService m_LocalGridInventoryService;
-        private readonly ExpiringCacheOS<string, IInventoryService> m_connectors = new ExpiringCacheOS<string, IInventoryService>();
+        private readonly ExpiringCacheOS<string, IInventoryService> m_connectors = new();
 
         // A cache of userIDs --> ServiceURLs, for HGBroker only
-        protected readonly ConcurrentDictionary<UUID, string> m_InventoryURLs = new ConcurrentDictionary<UUID, string>();
-        private readonly InventoryCache m_Cache = new InventoryCache();
+        protected readonly ConcurrentDictionary<UUID, string> m_InventoryURLs = new();
+        private readonly InventoryCache m_Cache = new();
 
         /// <summary>
         /// Used to serialize inventory requests.
         /// </summary>
-        private readonly object m_Lock = new object();
+        private readonly object m_Lock = new();
 
         protected IUserManagement m_UserManagement;
         protected IUserManagement UserManagementModule
@@ -600,7 +600,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public List<InventoryItemBase> GetActiveGestures(UUID userId)
         {
-            return new List<InventoryItemBase>();
+            return [];
         }
 
         public int GetAssetPermissions(UUID userID, UUID assetID)
@@ -629,8 +629,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
                 {
                     // Still not as flexible as I would like this to be,
                     // but good enough for now
-                    RemoteXInventoryServicesConnector rxisc = new RemoteXInventoryServicesConnector(url);
-                    rxisc.Scene = m_Scenes[0];
+                    RemoteXInventoryServicesConnector rxisc = new(url)
+                    {
+                        Scene = m_Scenes[0]
+                    };
                     connector = rxisc;
                 }
                 if (connector != null)

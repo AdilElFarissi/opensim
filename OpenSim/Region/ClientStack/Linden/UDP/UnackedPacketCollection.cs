@@ -65,13 +65,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>Holds the actual unacked packet data, sorted by sequence number</summary>
-        private SortedDictionary<uint, OutgoingPacket> m_packets = new SortedDictionary<uint, OutgoingPacket>();
+        private SortedDictionary<uint, OutgoingPacket> m_packets = [];
         /// <summary>Holds packets that need to be added to the unacknowledged list</summary>
-        private LocklessQueue<OutgoingPacket> m_pendingAdds = new LocklessQueue<OutgoingPacket>();
+        private LocklessQueue<OutgoingPacket> m_pendingAdds = new();
         /// <summary>Holds information about pending acknowledgements</summary>
-        private LocklessQueue<PendingAck> m_pendingAcknowledgements = new LocklessQueue<PendingAck>();
+        private LocklessQueue<PendingAck> m_pendingAcknowledgements = new();
         /// <summary>Holds information about pending removals</summary>
-        private LocklessQueue<uint> m_pendingRemoves = new LocklessQueue<uint>();
+        private LocklessQueue<uint> m_pendingRemoves = new();
         private uint m_older;
         public void Clear()
         {
@@ -160,7 +160,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             bool doolder = true;
             if (m_packets.Count > 0)
             {
-                int now = Environment.TickCount & Int32.MaxValue;
+                int now = Environment.TickCount & int.MaxValue;
 
                 foreach (OutgoingPacket packet in m_packets.Values)
                 {
@@ -191,7 +191,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
 
                     if (expiredPackets == null)
-                        expiredPackets = new List<OutgoingPacket>();
+                        expiredPackets = [];
 
                     // As with other network applications, assume that an expired packet is
                     // an indication of some network problem, slow transmission

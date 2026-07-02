@@ -77,7 +77,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
 
         public ITerrainChannel LoadFile(string filename)
         {
-            FileInfo file = new FileInfo(filename);
+            FileInfo file = new(filename);
 
             ITerrainChannel channel;
 
@@ -89,12 +89,12 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
 
         public ITerrainChannel LoadFile(string filename, int offsetX, int offsetY, int fileWidth, int fileHeight, int sectionWidth, int sectionHeight)
         {
-            TerrainChannel retval = new TerrainChannel(sectionWidth, sectionHeight);
+            TerrainChannel retval = new(sectionWidth, sectionHeight);
 
-            FileInfo file = new FileInfo(filename);
+            FileInfo file = new(filename);
 
             using (FileStream s = file.Open(FileMode.Open, FileAccess.Read))
-            using (BinaryReader bs = new BinaryReader(s))
+            using (BinaryReader bs = new(s))
             {
                 int currFileYOffset = fileHeight - 1;
 
@@ -161,9 +161,9 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
             if (trimmedDimension < Constants.RegionSize)
                 trimmedDimension = (int)Constants.RegionSize;
 
-            TerrainChannel retval = new TerrainChannel(trimmedDimension, trimmedDimension);
+            TerrainChannel retval = new(trimmedDimension, trimmedDimension);
 
-            using (BinaryReader bs = new BinaryReader(s))
+            using (BinaryReader bs = new(s))
             {
                 int y;
                 for (y = 0; y < retval.Height; y++)
@@ -182,7 +182,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
 
         public void SaveFile(string filename, ITerrainChannel map)
         {
-            FileInfo file = new FileInfo(filename);
+            FileInfo file = new(filename);
 
             using (FileStream s = file.Open(FileMode.Create, FileAccess.Write))
                 SaveStream(s, map);
@@ -193,7 +193,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
             if (LookupHeightTable == null)
                 BuildLookupHeightTable();
 
-            using (BinaryWriter binStream = new BinaryWriter(s))
+            using (BinaryWriter binStream = new(s))
             {
                 // Output the calculated raw
                 for (int y = 0; y < map.Height; y++)

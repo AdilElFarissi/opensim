@@ -75,7 +75,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public EntityBase[] GetAllByType<T>()
         {
-            List<EntityBase> tmp = new List<EntityBase>();
+            List<EntityBase> tmp = [];
 
             ForEach(
                 delegate(EntityBase entity)

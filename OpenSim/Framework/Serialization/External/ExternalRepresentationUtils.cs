@@ -83,7 +83,7 @@ namespace OpenSim.Framework.Serialization.External
             bool errors = false;
             int numErrors = 0;
 
-            Stopwatch timer = new Stopwatch();
+            Stopwatch timer = new();
             timer.Start();
 
             while (xtr.NodeType != XmlNodeType.EndElement)
@@ -151,7 +151,7 @@ namespace OpenSim.Framework.Serialization.External
             if (xml.Length == 0 || homeURL.Length == 0 || userService == null)
                 return xml;
 
-            XmlDocument doc = new XmlDocument();
+            XmlDocument doc = new();
 
             doc.LoadXml(xml);
             XmlNodeList sops = doc.GetElementsByTagName("SceneObjectPart");
@@ -186,7 +186,7 @@ namespace OpenSim.Framework.Serialization.External
                 }
             }
 
-            using StringWriter wr = new StringWriter();
+            using StringWriter wr = new();
             doc.Save(wr);
             return wr.ToString();
         }
@@ -210,9 +210,9 @@ namespace OpenSim.Framework.Serialization.External
             // Deal with bug introduced in Oct. 20 2014 (1eb3e6cc43e2a7b4053bc1185c7c88e22356c5e8)
             // Fix bad assets before sending them elsewhere
             xmlData = SanitizeXml(xmlData);
-            using StringWriter sw = new StringWriter();
-            using XmlTextWriter writer = new XmlTextWriter(sw);
-            using XmlTextReader wrappedReader = new XmlTextReader(xmlData, XmlNodeType.Element, null);
+            using StringWriter sw = new();
+            using XmlTextWriter writer = new(sw);
+            using XmlTextReader wrappedReader = new(xmlData, XmlNodeType.Element, null);
             using XmlReader reader = XmlReader.Create(wrappedReader, Util.SharedXmlReaderSettings);
 
             TransformXml(reader, writer, sceneName, homeURL, userService, scopeID);

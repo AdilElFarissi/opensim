@@ -46,7 +46,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         // Fields
         private bool m_dumpAssetsToFile;
         private Scene m_Scene;
-        private Dictionary<UUID, AssetXferUploader> XferUploaders = new Dictionary<UUID, AssetXferUploader>();
+        private Dictionary<UUID, AssetXferUploader> XferUploaders = [];
 
         // Methods
         public AgentAssetTransactions(UUID agentID, Scene scene,

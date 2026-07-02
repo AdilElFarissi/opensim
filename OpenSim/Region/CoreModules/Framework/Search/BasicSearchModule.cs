@@ -48,12 +48,12 @@ namespace OpenSim.Region.CoreModules.Framework.Search
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected bool m_Enabled;
-        protected List<Scene> m_Scenes = new List<Scene>();
+        protected List<Scene> m_Scenes = [];
 
         private IGroupsModule m_GroupsService = null;
 
-        private ExpiringCache<string, List<UserAccount>> queryPeopleCache = new ExpiringCache<string, List<UserAccount>>();
-        private ExpiringCache<string, List<DirGroupsReplyData>> queryGroupCache = new ExpiringCache<string, List<DirGroupsReplyData>>();
+        private ExpiringCache<string, List<UserAccount>> queryPeopleCache = new();
+        private ExpiringCache<string, List<DirGroupsReplyData>> queryGroupCache = new();
 
         #region ISharedRegionModule
 
@@ -172,11 +172,13 @@ namespace OpenSim.Region.CoreModules.Framework.Search
                 int count = 0;
                 foreach (UserAccount acc in accounts)
                 {
-                    DirPeopleReplyData d = new DirPeopleReplyData();
-                    d.agentID = acc.PrincipalID;
-                    d.firstName = acc.FirstName;
-                    d.lastName = acc.LastName;
-                    d.online = false;
+                    DirPeopleReplyData d = new()
+                    {
+                        agentID = acc.PrincipalID,
+                        firstName = acc.FirstName,
+                        lastName = acc.LastName,
+                        online = false
+                    };
 
                     hits[count++] = d;
                 }

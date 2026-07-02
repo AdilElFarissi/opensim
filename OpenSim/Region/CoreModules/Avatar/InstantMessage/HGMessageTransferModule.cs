@@ -51,7 +51,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         protected List<Scene> m_Scenes = [];
 
         protected IInstantMessage m_IMService;
-        protected Dictionary<UUID, object> m_UserLocationMap = new();
+        protected Dictionary<UUID, object> m_UserLocationMap = [];
 
         public event UndeliveredMessage OnUndeliveredMessage;
 
@@ -172,7 +172,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             }
             Util.FireAndForget(delegate
                 {
-                    UUID toDelAgentID = new UUID(im.toAgentID);
+                    UUID toDelAgentID = new(im.toAgentID);
                     bool success = false;
                     if (foreigner && url.Length == 0) // we don't know about this user
                     {
@@ -267,7 +267,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 {
                     string uasURL = circuit.ServiceURLs["HomeURI"].ToString();
                     m_log.DebugFormat("[HG MESSAGE TRANSFER]: getting UUI of user {0} from {1}", toAgent, uasURL);
-                    UserAgentServiceConnector uasConn = new UserAgentServiceConnector(uasURL);
+                    UserAgentServiceConnector uasConn = new(uasURL);
 
                     string agentUUI = string.Empty;
                     try
@@ -307,7 +307,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         public bool SendInstantMessage(GridInstantMessage im)
         {
             //m_log.DebugFormat("[XXX] Hook SendInstantMessage {0}", im.message);
-            UUID agentID = new UUID(im.toAgentID);
+            UUID agentID = new(im.toAgentID);
             return SendIMToScene(im, agentID);
         }
         #endregion

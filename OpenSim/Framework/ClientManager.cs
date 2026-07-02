@@ -40,10 +40,10 @@ namespace OpenSim.Framework
     {
         /// <summary>A dictionary mapping from <seealso cref="UUID"/>
         /// to <seealso cref="IClientAPI"/> references</summary>
-        private readonly Dictionary<UUID, IClientAPI> m_dictbyUUID = new();
+        private readonly Dictionary<UUID, IClientAPI> m_dictbyUUID = [];
         /// <summary>A dictionary mapping from <seealso cref="IPEndPoint"/>
         /// to <seealso cref="IClientAPI"/> references</summary>
-        private readonly Dictionary<IPEndPoint, IClientAPI> m_dictbyIPe= new();
+        private readonly Dictionary<IPEndPoint, IClientAPI> m_dictbyIPe= [];
         /// <summary>snapshot collection of current <seealso cref="IClientAPI"/>
         /// references</summary>
         private IClientAPI[] m_array = null;

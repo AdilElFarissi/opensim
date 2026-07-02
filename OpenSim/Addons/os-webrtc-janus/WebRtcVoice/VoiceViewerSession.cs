@@ -54,7 +54,7 @@ namespace osWebRtcVoice
         // =====================================================================
         // ViewerSessions hold the connection information for the client connection through to the voice service.
         // This collection is static and is simulator wide so there will be sessions for all regions and all clients.
-        public static Dictionary<string, IVoiceViewerSession> ViewerSessions = new Dictionary<string, IVoiceViewerSession>();
+        public static Dictionary<string, IVoiceViewerSession> ViewerSessions = [];
 
         // Get a viewer session by the viewer session ID
         public static bool TryGetViewerSession(string pViewerSessionId, out IVoiceViewerSession pViewerSession)

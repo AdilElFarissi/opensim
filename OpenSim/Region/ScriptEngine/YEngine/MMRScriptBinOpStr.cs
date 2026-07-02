@@ -71,14 +71,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             this.rmwOK = rmwOK;
         }
 
-        private static TokenTypeBool tokenTypeBool = new TokenTypeBool(null);
-        private static TokenTypeChar tokenTypeChar = new TokenTypeChar(null);
-        private static TokenTypeFloat tokenTypeFloat = new TokenTypeFloat(null);
-        private static TokenTypeInt tokenTypeInt = new TokenTypeInt(null);
-        private static TokenTypeList tokenTypeList = new TokenTypeList(null);
-        private static TokenTypeRot tokenTypeRot = new TokenTypeRot(null);
-        private static TokenTypeStr tokenTypeStr = new TokenTypeStr(null);
-        private static TokenTypeVec tokenTypeVec = new TokenTypeVec(null);
+        private static TokenTypeBool tokenTypeBool = new(null);
+        private static TokenTypeChar tokenTypeChar = new(null);
+        private static TokenTypeFloat tokenTypeFloat = new(null);
+        private static TokenTypeInt tokenTypeInt = new(null);
+        private static TokenTypeList tokenTypeList = new(null);
+        private static TokenTypeRot tokenTypeRot = new(null);
+        private static TokenTypeStr tokenTypeStr = new(null);
+        private static TokenTypeVec tokenTypeVec = new(null);
 
         private static MethodInfo stringAddStringMethInfo = GetBinOpsMethod("StringConcat", [typeof(string), typeof(string)]);
         private static MethodInfo stringCmpStringMethInfo = GetBinOpsMethod("StringCompareOrdinal", [typeof(string), typeof(string)]);
@@ -139,7 +139,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private static Dictionary<string, BinOpStr> DefineBinOps()
         {
-            Dictionary<string, BinOpStr> bos = new Dictionary<string, BinOpStr>();
+            Dictionary<string, BinOpStr> bos = [];
 
             string[] booltypes = ["bool", "char", "float", "integer", "key", "list", "string"];
 
@@ -224,15 +224,15 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             // entry with 'bool', as we want to accept a bool as having a value of 0 or 1.
             // This lets us do things like 3.5 * (x > 0).
 
-            Dictionary<string, BinOpStr> bos2 = new Dictionary<string, BinOpStr>();
+            Dictionary<string, BinOpStr> bos2 = [];
             foreach(KeyValuePair<string, BinOpStr> kvp in bos)
             {
                 string key = kvp.Key;
                 BinOpStr val = kvp.Value;
                 bos2.Add(key, val);
             }
-            Regex wordReg = new Regex("\\w+");
-            Regex opReg = new Regex("\\W+");
+            Regex wordReg = new("\\w+");
+            Regex opReg = new("\\W+");
             foreach(KeyValuePair<string, BinOpStr> kvp in bos)
             {
                 string key = kvp.Key;

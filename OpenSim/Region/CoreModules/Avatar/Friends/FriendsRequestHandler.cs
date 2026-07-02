@@ -88,7 +88,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             try
             {
                 string body;
-                using (StreamReader sr = new StreamReader(httpRequest.InputStream))
+                using (StreamReader sr = new(httpRequest.InputStream))
                     body = sr.ReadToEnd();
 
                 body = body.Trim();
@@ -152,7 +152,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             UserAccount account = m_FriendsModule.UserAccountService.GetUserAccount(UUID.Zero, fromID);
             string name = (account == null) ? "Unknown" : account.FirstName + " " + account.LastName;
 
-            GridInstantMessage im = new GridInstantMessage(m_FriendsModule.Scene, fromID, name, toID,
+            GridInstantMessage im = new(m_FriendsModule.Scene, fromID, name, toID,
                 (byte)InstantMessageDialog.FriendshipOffered, message, false, Vector3.Zero);
 
             // !! HACK
@@ -228,10 +228,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             if (!request.TryGetValue("ToID", out tmpo) || !UUID.TryParse(tmpo.ToString(), out UUID toID))
                 return FailureResult();
 
-            if (!request.TryGetValue("UserFlags", out tmpo) || !Int32.TryParse(tmpo.ToString(), out int oldRights))
+            if (!request.TryGetValue("UserFlags", out tmpo) || !int.TryParse(tmpo.ToString(), out int oldRights))
                 return FailureResult();
 
-            if (!request.TryGetValue("Rights", out tmpo) || !Int32.TryParse(tmpo.ToString(), out int newRights))
+            if (!request.TryGetValue("Rights", out tmpo) || !int.TryParse(tmpo.ToString(), out int newRights))
                 return FailureResult();
 
             if (m_FriendsModule.LocalGrantRights(fromID, toID, oldRights, newRights))
@@ -249,7 +249,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             if (!request.TryGetValue("ToID", out tmpo) || !UUID.TryParse(tmpo.ToString(), out UUID toID))
                 return FailureResult();
 
-            if (!request.TryGetValue("Online", out tmpo) || !Boolean.TryParse(tmpo.ToString(), out bool online))
+            if (!request.TryGetValue("Online", out tmpo) || !bool.TryParse(tmpo.ToString(), out bool online))
                 return FailureResult();
 
             if (m_FriendsModule.LocalStatusNotification(fromID, toID, online))
@@ -272,7 +272,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         private byte[] BoolResult(bool value)
         {
-            XmlDocument doc = new XmlDocument();
+            XmlDocument doc = new();
 
             XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
                     "", "");

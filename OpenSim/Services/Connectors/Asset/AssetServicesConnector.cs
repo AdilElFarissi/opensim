@@ -41,7 +41,7 @@ namespace OpenSim.Services.Connectors
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public readonly object ConnectorLock = new object();
+        public readonly object ConnectorLock = new();
 
         protected IAssetCache m_Cache = null;
 
@@ -52,7 +52,7 @@ namespace OpenSim.Services.Connectors
         // Keeps track of concurrent requests for the same asset, so that it's only loaded once.
         // Maps: Asset ID -> Handlers which will be called when the asset has been loaded
 
-        private Dictionary<string, List<AssetRetrievedEx>> m_AssetHandlers = new Dictionary<string, List<AssetRetrievedEx>>();
+        private Dictionary<string, List<AssetRetrievedEx>> m_AssetHandlers = [];
 
         public AssetServicesConnector()
         {
@@ -60,7 +60,7 @@ namespace OpenSim.Services.Connectors
 
         public AssetServicesConnector(string serverURI)
         {
-            OSHHTPHost tmp = new OSHHTPHost(serverURI, true);
+            OSHHTPHost tmp = new(serverURI, true);
             m_ServerURI = tmp.IsResolvedHost ? tmp.URI : null;
         }
 
@@ -92,7 +92,7 @@ namespace OpenSim.Services.Connectors
                 throw new Exception("Asset connector init error");
             }
 
-            OSHHTPHost m_GridAssetsURL = new OSHHTPHost(m_ServerURI, true);
+            OSHHTPHost m_GridAssetsURL = new(m_ServerURI, true);
             if(!m_GridAssetsURL.IsResolvedHost)
             {
                 m_log.Error("[ASSET CONNECTOR]: Could not parse or resolve AssetServerURI");
@@ -190,7 +190,7 @@ namespace OpenSim.Services.Connectors
             if (m_ServerURI == null)
                 return null;
 
-            using (RestClient rc = new RestClient(m_ServerURI))
+            using (RestClient rc = new(m_ServerURI))
             {
                 rc.AddResourcePath("assets/" + id + "/data");
                 rc.RequestMethod = "GET";
@@ -219,7 +219,7 @@ namespace OpenSim.Services.Connectors
 
                 lock (m_AssetHandlers)
                 {
-                    AssetRetrievedEx handlerEx = new AssetRetrievedEx(delegate (AssetBase _asset) { handler(id, sender, _asset); });
+                    AssetRetrievedEx handlerEx = new(delegate (AssetBase _asset) { handler(id, sender, _asset); });
 
                     List<AssetRetrievedEx> handlers;
                     if (m_AssetHandlers.TryGetValue(id, out handlers))
@@ -229,14 +229,15 @@ namespace OpenSim.Services.Connectors
                         return true;
                     }
 
-                    handlers = new List<AssetRetrievedEx>();
-                    handlers.Add(handlerEx);
+                    handlers = [handlerEx];
 
                     m_AssetHandlers.Add(id, handlers);
 
-                    QueuedAssetRequest request = new QueuedAssetRequest();
-                    request.id = id;
-                    request.uri = uri;
+                    QueuedAssetRequest request = new()
+                    {
+                        id = id,
+                        uri = uri
+                    };
                     Util.FireAndForget(x =>
                     {
                         AssetRequestProcessor(request);
@@ -394,8 +395,10 @@ namespace OpenSim.Services.Connectors
                 if (metadata == null)
                     return false;
 
-                asset = new AssetBase(metadata.FullID, metadata.Name, metadata.Type, UUID.Zero.ToString());
-                asset.Metadata = metadata;
+                asset = new AssetBase(metadata.FullID, metadata.Name, metadata.Type, UUID.Zero.ToString())
+                {
+                    Metadata = metadata
+                };
             }
             asset.Data = data;
 

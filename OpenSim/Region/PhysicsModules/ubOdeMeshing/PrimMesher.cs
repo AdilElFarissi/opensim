@@ -169,7 +169,7 @@ namespace PrimMesher
 
         internal void makeAngles(int sides, float startAngle, float stopAngle, bool hasCut)
         {
-            angles = new List<Angle>();
+            angles = [];
 
             const float twoPi = 2.0f * MathF.PI;
             const float twoPiInv = 0.5f / MathF.PI;
@@ -313,10 +313,10 @@ namespace PrimMesher
         {
             const float halfSqr2 = 0.7071067811866f;
 
-            coords = new List<Vector3>();
-            faces = new List<Face>();
+            coords = [];
+            faces = [];
 
-            List<Vector3> hollowCoords = new();
+            List<Vector3> hollowCoords = [];
 
             bool hasHollow = (hollow > 0.0f);
 
@@ -651,7 +651,7 @@ namespace PrimMesher
             }
 
             if(x == 0f || y == 0f)
-                faces = new List<Face>();
+                faces = [];
         }
 
         /// <summary>
@@ -692,7 +692,7 @@ namespace PrimMesher
             }
         }
 
-         public void DumpRaw(String path, String name, String title)
+         public void DumpRaw(string path, string name, string title)
         {
             if (path == null)
                 return;
@@ -721,7 +721,7 @@ namespace PrimMesher
 
     public class Path
     {
-        public List<PathNode> pathNodes = new();
+        public List<PathNode> pathNodes = [];
 
         public float twistBegin = 0.0f;
         public float twistEnd = 0.0f;
@@ -781,9 +781,10 @@ namespace PrimMesher
 
                 while (!done)
                 {
-                    PathNode newNode = new();
-
-                    newNode.xScale = 1.0f;
+                    PathNode newNode = new()
+                    {
+                        xScale = 1.0f
+                    };
                     if (taperX > 0.0f)
                         newNode.xScale -= percentOfPath * taperX;
                     else if(taperX < 0.0f)
@@ -1015,8 +1016,8 @@ namespace PrimMesher
         /// <param name="sphereMode"></param>
         public PrimMesh(int _sides, float _profileStart, float _profileEnd, float _hollow, int _hollowSides)
         {
-            coords = new List<Vector3>();
-            faces = new List<Face>();
+            coords = [];
+            faces = [];
 
             sides = _sides;
             profileStart = _profileStart;
@@ -1049,8 +1050,8 @@ namespace PrimMesher
         {
             bool needEndFaces;
 
-            coords = new List<Vector3>();
-            faces = new List<Face>();
+            coords = [];
+            faces = [];
 
             int steps = 1;
 
@@ -1192,7 +1193,7 @@ namespace PrimMesher
 
                 // fill faces between layers
 
-                List<Face> linkfaces = new();
+                List<Face> linkfaces = [];
                 int numVerts = newLayer.coords.Count;
                 Face newFace1 = new();
                 Face newFace2 = new();
@@ -1349,8 +1350,8 @@ namespace PrimMesher
                 numPrimFaces = numPrimFaces,
                 errorMessage = errorMessage,
 
-                coords = new List<Vector3>(coords),
-                faces = new List<Face>(faces)
+                coords = [.. coords],
+                faces = [.. faces]
             };
 
             return copy;
@@ -1404,7 +1405,7 @@ namespace PrimMesher
         /// <param name="path"></param>
         /// <param name="name"></param>
         /// <param name="title"></param>
-        public void DumpRaw(String path, String name, String title)
+        public void DumpRaw(string path, string name, string title)
         {
             if (path == null)
                 return;

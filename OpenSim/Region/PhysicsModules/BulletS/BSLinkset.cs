@@ -97,7 +97,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         // We lock the diddling of linkset classes to prevent any badness.
         // This locks the modification of the instances of this class. Changes
         //    to the physical representation is done via the tainting mechenism.
-        protected object m_linksetActivityLock = new Object();
+        protected object m_linksetActivityLock = new();
 
         // We keep the prim's mass in the linkset structure since it could be dependent on other prims
         public float LinksetMass { get; protected set; }
@@ -123,7 +123,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 m_nextLinksetID = 1;
             m_physicsScene = scene;
             LinksetRoot = parent;
-            m_children = new Dictionary<BSPrimLinkable, BSLinkInfo>();
+            m_children = [];
             LinksetMass = parent.RawMass;
             Rebuilding = false;
             RebuildScheduled = false;
@@ -492,7 +492,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         #endregion // Extension
 
         // Invoke the detailed logger and output something if it's enabled.
-        protected void DetailLog(string msg, params Object[] args)
+        protected void DetailLog(string msg, params object[] args)
         {
             if (m_physicsScene.PhysicsLogging.Enabled)
                 m_physicsScene.DetailLog(msg, args);

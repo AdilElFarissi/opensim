@@ -36,13 +36,13 @@ namespace OpenSim.Framework.ServiceAuth
     {
         public string Name { get { return "Compound"; } }
 
-        private List<IServiceAuth> m_authentications = new List<IServiceAuth>();
+        private List<IServiceAuth> m_authentications = [];
 
         public int Count { get { return m_authentications.Count; } }
 
         public List<IServiceAuth> GetAuthentors()
         {
-            return new List<IServiceAuth>(m_authentications);
+            return [.. m_authentications];
         }
 
         public void AddAuthenticator(IServiceAuth auth)

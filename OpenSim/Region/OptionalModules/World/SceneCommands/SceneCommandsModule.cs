@@ -129,7 +129,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Attachments
 
         private void OutputSceneDebugOptions()
         {
-            ConsoleDisplayList cdl = new ConsoleDisplayList();
+            ConsoleDisplayList cdl = new();
             cdl.AddRow("active", m_scene.Active);
             cdl.AddRow("animations", m_scene.DebugAnimations);
             cdl.AddRow("pbackup", m_scene.PeriodicBackup);

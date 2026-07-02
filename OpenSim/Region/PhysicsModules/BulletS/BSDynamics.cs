@@ -67,7 +67,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         private Quaternion m_referenceFrame = Quaternion.Identity;
 
         // Linear properties
-        private BSVMotor m_linearMotor = new BSVMotor("LinearMotor");
+        private BSVMotor m_linearMotor = new("LinearMotor");
         private Vector3 m_linearMotorDirection = Vector3.Zero;          // velocity requested by LSL, decayed by time
         private Vector3 m_linearMotorOffset = Vector3.Zero;             // the point of force can be offset from the center
         private Vector3 m_linearMotorDirectionLASTSET = Vector3.Zero;   // velocity requested by LSL
@@ -80,7 +80,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         // private Vector3 m_linearMotorOffset = Vector3.Zero;
 
         //Angular properties
-        private BSVMotor m_angularMotor = new BSVMotor("AngularMotor");
+        private BSVMotor m_angularMotor = new("AngularMotor");
         private Vector3 m_angularMotorDirection = Vector3.Zero;         // angular velocity requested by LSL motor
         // private int m_angularMotorApply = 0;                            // application frame counter
         private Vector3 m_angularMotorVelocity = Vector3.Zero;          // current angular motor velocity
@@ -91,7 +91,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         private Vector3 m_lastVertAttractor = Vector3.Zero;             // what VA was last applied to body
 
         //Deflection properties
-        private BSVMotor m_angularDeflectionMotor = new BSVMotor("AngularDeflection");
+        private BSVMotor m_angularDeflectionMotor = new("AngularDeflection");
         private float m_angularDeflectionEfficiency = 0;
         private float m_angularDeflectionTimescale = 0;
         private float m_linearDeflectionEfficiency = 0;
@@ -103,7 +103,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         private float m_bankingTimescale = 0;
 
         //Hover and Buoyancy properties
-        private BSVMotor m_hoverMotor = new BSVMotor("Hover");
+        private BSVMotor m_hoverMotor = new("Hover");
         private float m_VhoverHeight = 0f;
         private float m_VhoverEfficiency = 0f;
         private float m_VhoverTimescale = 0f;
@@ -113,7 +113,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         private Vector3 m_VehicleGravity = Vector3.Zero;    // Gravity computed when buoyancy set
 
         //Attractor properties
-        private BSVMotor m_verticalAttractionMotor = new BSVMotor("VerticalAttraction");
+        private BSVMotor m_verticalAttractionMotor = new("VerticalAttraction");
         private float m_verticalAttractionEfficiency = 1.0f; // damped
         private float m_verticalAttractionCutoff = 500f;     // per the documentation
         // Timescale > cutoff  means no vert attractor.
@@ -792,7 +792,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
         // Since the computation of terrain height can be a little involved, this routine
         //    is used to fetch the height only once for each vehicle simulation step.
-        Vector3 lastRememberedHeightPos = new Vector3(-1, -1, -1);
+        Vector3 lastRememberedHeightPos = new(-1, -1, -1);
         private float GetTerrainHeight(Vector3 pos)
         {
             if ((m_knownHas & m_knownChangedTerrainHeight) == 0 || pos != lastRememberedHeightPos)
@@ -806,7 +806,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
         // Since the computation of water level can be a little involved, this routine
         //    is used ot fetch the level only once for each vehicle simulation step.
-        Vector3 lastRememberedWaterHeightPos = new Vector3(-1, -1, -1);
+        Vector3 lastRememberedWaterHeightPos = new(-1, -1, -1);
         private float GetWaterLevel(Vector3 pos)
         {
             if ((m_knownHas & m_knownChangedWaterLevel) == 0 || pos != lastRememberedWaterHeightPos)
@@ -1790,7 +1790,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         }
 
         // Invoke the detailed logger and output something if it's enabled.
-        private void VDetailLog(string msg, params Object[] args)
+        private void VDetailLog(string msg, params object[] args)
         {
             if (ControllingPrim.PhysScene.VehicleLoggingEnabled)
                 ControllingPrim.PhysScene.DetailLog(msg, args);

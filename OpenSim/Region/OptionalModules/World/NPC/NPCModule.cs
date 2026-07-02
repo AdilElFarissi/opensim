@@ -45,7 +45,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private readonly Dictionary<UUID, NPCAvatar> m_avatars = new Dictionary<UUID, NPCAvatar>();
+        private readonly Dictionary<UUID, NPCAvatar> m_avatars = [];
         private NPCOptionsFlags m_NPCOptionFlags;
 
         private int m_MaxNumberNPCperScene = 40;
@@ -137,7 +137,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
             // XXX: We can't just use IAvatarFactoryModule.SetAppearance() yet
             // since it doesn't transfer attachments
-            AvatarAppearance npcAppearance = new AvatarAppearance(appearance,
+            AvatarAppearance npcAppearance = new(appearance,
                     true);
             npc.Appearance = npcAppearance;
 
@@ -194,13 +194,13 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             //    "[NPC MODULE]: Creating NPC {0} {1} {2}, owner={3}, senseAsAgent={4} at {5} in {6}",
             //    firstname, lastname, npcAvatar.AgentId, owner, senseAsAgent, position, scene.RegionInfo.RegionName);
 
-            AgentCircuitData acd = new AgentCircuitData()
+            AgentCircuitData acd = new()
             {
                 circuitcode = circuit,
                 AgentID = agentID,
                 firstname = firstname,
                 lastname = lastname,
-                ServiceURLs = new Dictionary<string, object>(),
+                ServiceURLs = [],
                 Appearance = new AvatarAppearance(appearance, true)
             };
 

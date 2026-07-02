@@ -67,17 +67,21 @@ namespace OpenSim.Server.Handlers.Hypergrid
             bool success = m_GatekeeperService.LinkLocalRegion(name, out UUID regionID, out ulong regionHandle, out string externalName,
                 out string imageURL, out string reason, out int sizeX, out int sizeY);
 
-            Hashtable hash = new Hashtable();
-            hash["result"] = success.ToString();
-            hash["uuid"] = regionID.ToString();
-            hash["handle"] = regionHandle.ToString();
-            hash["size_x"] = sizeX.ToString();
-            hash["size_y"] = sizeY.ToString();
-            hash["region_image"] = imageURL;
-            hash["external_name"] = externalName;
+            Hashtable hash = new()
+            {
+                ["result"] = success.ToString(),
+                ["uuid"] = regionID.ToString(),
+                ["handle"] = regionHandle.ToString(),
+                ["size_x"] = sizeX.ToString(),
+                ["size_y"] = sizeY.ToString(),
+                ["region_image"] = imageURL,
+                ["external_name"] = externalName
+            };
 
-            XmlRpcResponse response = new XmlRpcResponse();
-            response.Value = hash;
+            XmlRpcResponse response = new()
+            {
+                Value = hash
+            };
             return response;
         }
 
@@ -100,7 +104,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
             string message;
             GridRegion regInfo = m_GatekeeperService.GetHyperlinkRegion(regionID, agentID, agentHomeURI, out message);
 
-            Hashtable hash = new Hashtable();
+            Hashtable hash = [];
             if (regInfo == null)
             {
                 hash["result"] = "false";
@@ -123,8 +127,10 @@ namespace OpenSim.Server.Handlers.Hypergrid
             if (message != null)
                 hash["message"] = message;
 
-            XmlRpcResponse response = new XmlRpcResponse();
-            response.Value = hash;
+            XmlRpcResponse response = new()
+            {
+                Value = hash
+            };
             return response;
 
         }

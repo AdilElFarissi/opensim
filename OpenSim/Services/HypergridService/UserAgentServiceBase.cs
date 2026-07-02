@@ -72,7 +72,7 @@ namespace OpenSim.Services.HypergridService
             if (string.IsNullOrEmpty(dllName))
                 throw new Exception("No StorageProvider configured");
 
-            m_Database = LoadPlugin<IHGTravelingData>(dllName, new Object[] { connString, realm });
+            m_Database = LoadPlugin<IHGTravelingData>(dllName, new object[] { connString, realm });
             if (m_Database is null)
                 throw new Exception("Could not find a storage interface in the given module");
 

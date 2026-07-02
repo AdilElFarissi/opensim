@@ -62,11 +62,11 @@ namespace OpenSim.Data.MySQL
 
         void Init()
         {
-            using (MySqlConnection dbcon = new MySqlConnection(ConnectionString))
+            using (MySqlConnection dbcon = new(ConnectionString))
             {
                 dbcon.Open();
 
-                Migration m = new Migration(dbcon, Assembly, "UserProfiles");
+                Migration m = new(dbcon, Assembly, "UserProfiles");
                 m.Update();
                 dbcon.Close();
             }
@@ -85,13 +85,13 @@ namespace OpenSim.Data.MySQL
         /// </param>
         public OSDArray GetClassifiedRecords(UUID creatorId)
         {
-            OSDArray data = new OSDArray();
+            OSDArray data = [];
 
-            using (MySqlConnection dbcon = new MySqlConnection(ConnectionString))
+            using (MySqlConnection dbcon = new(ConnectionString))
             {
                 const string query = "SELECT classifieduuid, name FROM classifieds WHERE creatoruuid = ?Id";
                 dbcon.Open();
-                using (MySqlCommand cmd = new MySqlCommand(query, dbcon))
+                using (MySqlCommand cmd = new(query, dbcon))
                 {
                     cmd.Parameters.AddWithValue("?Id", creatorId.ToString());
                     using( MySqlDataReader reader = cmd.ExecuteReader(CommandBehavior.Default))
@@ -100,7 +100,7 @@ namespace OpenSim.Data.MySQL
                         {
                             while (reader.Read())
                             {
-                                OSDMap n = new OSDMap();
+                                OSDMap n = [];
                                 UUID Id = UUID.Zero;
 
                                 string Name = null;
@@ -178,7 +178,7 @@ namespace OpenSim.Data.MySQL
             if(string.IsNullOrEmpty(ad.Description))
                 ad.Description = "No Description";
 
-            DateTime epoch = new DateTime(1970, 1, 1);
+            DateTime epoch = new(1970, 1, 1);
             DateTime now = DateTime.Now;
             TimeSpan epochnow = now - epoch;
             TimeSpan duration;
@@ -202,10 +202,10 @@ namespace OpenSim.Data.MySQL
 
             try
             {
-                using (MySqlConnection dbcon = new MySqlConnection(ConnectionString))
+                using (MySqlConnection dbcon = new(ConnectionString))
                 {
                     dbcon.Open();
-                    using (MySqlCommand cmd = new MySqlCommand(query, dbcon))
+                    using (MySqlCommand cmd = new(query, dbcon))
                     {
                         cmd.Parameters.AddWithValue("?ClassifiedId", ad.ClassifiedId.ToString());
                         cmd.Parameters.AddWithValue("?CreatorId", ad.CreatorId.ToString());
@@ -243,11 +243,11 @@ namespace OpenSim.Data.MySQL
 
             try
             {
-                using (MySqlConnection dbcon = new MySqlConnection(ConnectionString))
+                using (MySqlConnection dbcon = new(ConnectionString))
                 {
                     dbcon.Open();
 
-                    using (MySqlCommand cmd = new MySqlCommand(query, dbcon))
+                    using (MySqlCommand cmd = new(query, dbcon))
                     {
                         cmd.Parameters.AddWithValue("?recordId", recordId.ToString());
                         cmd.ExecuteNonQuery();
@@ -270,10 +270,10 @@ namespace OpenSim.Data.MySQL
 
             try
             {
-                using (MySqlConnection dbcon = new MySqlConnection(ConnectionString))
+                using (MySqlConnection dbcon = new(ConnectionString))
                 {
                     dbcon.Open();
-                    using (MySqlCommand cmd = new MySqlCommand(query, dbcon))
+                    using (MySqlCommand cmd = new(query, dbcon))
                     {
                         cmd.Parameters.AddWithValue("?AdId", ad.ClassifiedId.ToString());
 
@@ -314,14 +314,14 @@ namespace OpenSim.Data.MySQL
         {
             const string query = "SELECT `pickuuid`,`name` FROM userpicks WHERE creatoruuid = ?Id";
 
-            OSDArray data = new OSDArray();
+            OSDArray data = [];
 
             try
             {
-                using (MySqlConnection dbcon = new MySqlConnection(ConnectionString))
+                using (MySqlConnection dbcon = new(ConnectionString))
                 {
                     dbcon.Open();
-                    using (MySqlCommand cmd = new MySqlCommand(query, dbcon))
+                    using (MySqlCommand cmd = new(query, dbcon))
                     {
                         cmd.Parameters.AddWithValue("?Id", avatarId.ToString());
 
@@ -331,10 +331,11 @@ namespace OpenSim.Data.MySQL
                             {
                                 while (reader.Read())
                                 {
-                                    OSDMap record = new OSDMap();
-
-                                    record.Add("pickuuid",OSD.FromString((string)reader["pickuuid"]));
-                                    record.Add("name",OSD.FromString((string)reader["name"]));
+                                    OSDMap record = new()
+                                    {
+                                        { "pickuuid", OSD.FromString((string)reader["pickuuid"]) },
+                                        { "name", OSD.FromString((string)reader["name"]) }
+                                    };
                                     data.Add(record);
                                 }
                             }
@@ -352,15 +353,15 @@ namespace OpenSim.Data.MySQL
 
         public UserProfilePick GetPickInfo(UUID avatarId, UUID pickId)
         {
-            UserProfilePick pick = new UserProfilePick();
+            UserProfilePick pick = new();
             const string query = "SELECT * FROM userpicks WHERE creatoruuid = ?CreatorId AND pickuuid =  ?PickId";
 
             try
             {
-                using (MySqlConnection dbcon = new MySqlConnection(ConnectionString))
+                using (MySqlConnection dbcon = new(ConnectionString))
                 {
                     dbcon.Open();
-                    using (MySqlCommand cmd = new MySqlCommand(query, dbcon))
+                    using (MySqlCommand cmd = new(query, dbcon))
                     {
                         cmd.Parameters.AddWithValue("?CreatorId", avatarId.ToString());
                         cmd.Parameters.AddWithValue("?PickId", pickId.ToString());
@@ -435,10 +436,10 @@ namespace OpenSim.Data.MySQL
 
             try
             {
-                using (MySqlConnection dbcon = new MySqlConnection(ConnectionString))
+                using (MySqlConnection dbcon = new(ConnectionString))
                 {
                     dbcon.Open();
-                    using (MySqlCommand cmd = new MySqlCommand(query, dbcon))
+                    using (MySqlCommand cmd = new(query, dbcon))
                     {
                         cmd.Parameters.AddWithValue("?PickId", pick.PickId.ToString());
                         cmd.Parameters.AddWithValue("?CreatorId", pick.CreatorId.ToString());
@@ -474,11 +475,11 @@ namespace OpenSim.Data.MySQL
 
             try
             {
-                using (MySqlConnection dbcon = new MySqlConnection(ConnectionString))
+                using (MySqlConnection dbcon = new(ConnectionString))
                 {
                     dbcon.Open();
 
-                    using (MySqlCommand cmd = new MySqlCommand(query, dbcon))
+                    using (MySqlCommand cmd = new(query, dbcon))
                     {
                         cmd.Parameters.AddWithValue("?PickId", pickId.ToString());
 
@@ -503,10 +504,10 @@ namespace OpenSim.Data.MySQL
 
             try
             {
-                using (MySqlConnection dbcon = new MySqlConnection(ConnectionString))
+                using (MySqlConnection dbcon = new(ConnectionString))
                 {
                     dbcon.Open();
-                    using (MySqlCommand cmd = new MySqlCommand(query, dbcon))
+                    using (MySqlCommand cmd = new(query, dbcon))
                     {
                         cmd.Parameters.AddWithValue("?Id", notes.UserId.ToString());
                         cmd.Parameters.AddWithValue("?TargetId", notes.TargetId.ToString());
@@ -559,10 +560,10 @@ namespace OpenSim.Data.MySQL
 
             try
             {
-                using (MySqlConnection dbcon = new MySqlConnection(ConnectionString))
+                using (MySqlConnection dbcon = new(ConnectionString))
                 {
                     dbcon.Open();
-                    using (MySqlCommand cmd = new MySqlCommand(query, dbcon))
+                    using (MySqlCommand cmd = new(query, dbcon))
                     {
                         if(!remove)
                             cmd.Parameters.AddWithValue("?Notes", note.Notes);
@@ -591,10 +592,10 @@ namespace OpenSim.Data.MySQL
 
             try
             {
-                using (MySqlConnection dbcon = new MySqlConnection(ConnectionString))
+                using (MySqlConnection dbcon = new(ConnectionString))
                 {
                     dbcon.Open();
-                    using (MySqlCommand cmd = new MySqlCommand(query, dbcon))
+                    using (MySqlCommand cmd = new(query, dbcon))
                     {
                         cmd.Parameters.AddWithValue("?Id", props.UserId.ToString());
 
@@ -670,7 +671,7 @@ namespace OpenSim.Data.MySQL
                                 dbcon.Close();
                                 dbcon.Open();
 
-                                using (MySqlCommand put = new MySqlCommand(query, dbcon))
+                                using (MySqlCommand put = new(query, dbcon))
                                 {
                                     put.Parameters.AddWithValue("?userId", props.UserId.ToString());
                                     put.Parameters.AddWithValue("?profilePartner", props.PartnerId.ToString());
@@ -713,10 +714,10 @@ namespace OpenSim.Data.MySQL
 
             try
             {
-                using (MySqlConnection dbcon = new MySqlConnection(ConnectionString))
+                using (MySqlConnection dbcon = new(ConnectionString))
                 {
                     dbcon.Open();
-                    using (MySqlCommand cmd = new MySqlCommand(query, dbcon))
+                    using (MySqlCommand cmd = new(query, dbcon))
                     {
                         cmd.Parameters.AddWithValue("?profileURL", props.WebUrl);
                         cmd.Parameters.AddWithValue("?image", props.ImageId.ToString());
@@ -753,10 +754,10 @@ namespace OpenSim.Data.MySQL
 
             try
             {
-                using (MySqlConnection dbcon = new MySqlConnection(ConnectionString))
+                using (MySqlConnection dbcon = new(ConnectionString))
                 {
                     dbcon.Open();
-                    using (MySqlCommand cmd = new MySqlCommand(query, dbcon))
+                    using (MySqlCommand cmd = new(query, dbcon))
                     {
                         cmd.Parameters.AddWithValue("?WantMask", up.WantToMask);
                         cmd.Parameters.AddWithValue("?WantText", up.WantToText);
@@ -781,18 +782,18 @@ namespace OpenSim.Data.MySQL
 
         public OSDArray GetUserImageAssets(UUID avatarId)
         {
-            OSDArray data = new OSDArray();
+            OSDArray data = [];
             const string queryA = "SELECT `snapshotuuid` FROM {0} WHERE `creatoruuid` = ?Id";
 
             // Get classified image assets
 
             try
             {
-                using (MySqlConnection dbcon = new MySqlConnection(ConnectionString))
+                using (MySqlConnection dbcon = new(ConnectionString))
                 {
                     dbcon.Open();
 
-                    using (MySqlCommand cmd = new MySqlCommand(string.Format (queryA,"`classifieds`"), dbcon))
+                    using (MySqlCommand cmd = new(string.Format (queryA,"`classifieds`"), dbcon))
                     {
                         cmd.Parameters.AddWithValue("?Id", avatarId.ToString());
 
@@ -811,7 +812,7 @@ namespace OpenSim.Data.MySQL
                     dbcon.Close();
                     dbcon.Open();
 
-                    using (MySqlCommand cmd = new MySqlCommand(string.Format (queryA,"`userpicks`"), dbcon))
+                    using (MySqlCommand cmd = new(string.Format (queryA,"`userpicks`"), dbcon))
                     {
                         cmd.Parameters.AddWithValue("?Id", avatarId.ToString());
 
@@ -832,7 +833,7 @@ namespace OpenSim.Data.MySQL
 
                     const string queryB = "SELECT `profileImage`, `profileFirstImage` FROM `userprofile` WHERE `useruuid` = ?Id";
 
-                    using (MySqlCommand cmd = new MySqlCommand(queryB, dbcon))
+                    using (MySqlCommand cmd = new(queryB, dbcon))
                     {
                         cmd.Parameters.AddWithValue("?Id", avatarId.ToString());
 
@@ -865,10 +866,10 @@ namespace OpenSim.Data.MySQL
 
             try
             {
-                using (MySqlConnection dbcon = new MySqlConnection(ConnectionString))
+                using (MySqlConnection dbcon = new(ConnectionString))
                 {
                     dbcon.Open();
-                    using (MySqlCommand cmd = new MySqlCommand(query, dbcon))
+                    using (MySqlCommand cmd = new(query, dbcon))
                     {
                         cmd.Parameters.AddWithValue("?Id", pref.UserId.ToString());
                         using (MySqlDataReader reader = cmd.ExecuteReader())
@@ -887,7 +888,7 @@ namespace OpenSim.Data.MySQL
 
                                 const string queryB = "INSERT INTO usersettings VALUES (?uuid,'false','false', ?Email)";
 
-                                using (MySqlCommand put = new MySqlCommand(queryB, dbcon))
+                                using (MySqlCommand put = new(queryB, dbcon))
                                 {
 
                                     put.Parameters.AddWithValue("?Email", pref.EMail);
@@ -918,10 +919,10 @@ namespace OpenSim.Data.MySQL
 
             try
             {
-                using (MySqlConnection dbcon = new MySqlConnection(ConnectionString))
+                using (MySqlConnection dbcon = new(ConnectionString))
                 {
                     dbcon.Open();
-                    using (MySqlCommand cmd = new MySqlCommand(query, dbcon))
+                    using (MySqlCommand cmd = new(query, dbcon))
                     {
                         cmd.Parameters.AddWithValue("?ImViaEmail", pref.IMViaEmail.ToString().ToLower());
                         cmd.Parameters.AddWithValue("?Visible", pref.Visible.ToString().ToLower());
@@ -950,10 +951,10 @@ namespace OpenSim.Data.MySQL
 
             try
             {
-                using (MySqlConnection dbcon = new MySqlConnection(ConnectionString))
+                using (MySqlConnection dbcon = new(ConnectionString))
                 {
                     dbcon.Open();
-                    using (MySqlCommand cmd = new MySqlCommand(query, dbcon))
+                    using (MySqlCommand cmd = new(query, dbcon))
                     {
                         cmd.Parameters.AddWithValue("?Id", props.UserId.ToString());
                         cmd.Parameters.AddWithValue ("?TagId", props.TagId.ToString());
@@ -969,7 +970,7 @@ namespace OpenSim.Data.MySQL
                             else
                             {
                                 const string queryB = "INSERT INTO userdata VALUES (?UserId, ?TagId, ?DataKey, ?DataVal)";
-                                using (MySqlCommand put = new MySqlCommand(queryB, dbcon))
+                                using (MySqlCommand put = new(queryB, dbcon))
                                 {
                                     put.Parameters.AddWithValue("?UserId", props.UserId.ToString());
                                     put.Parameters.AddWithValue("?TagId", props.TagId.ToString());
@@ -999,10 +1000,10 @@ namespace OpenSim.Data.MySQL
 
             try
             {
-                using (MySqlConnection dbcon = new MySqlConnection(ConnectionString))
+                using (MySqlConnection dbcon = new(ConnectionString))
                 {
                     dbcon.Open();
-                    using (MySqlCommand cmd = new MySqlCommand(query, dbcon))
+                    using (MySqlCommand cmd = new(query, dbcon))
                     {
                         cmd.Parameters.AddWithValue("?UserId", props.UserId.ToString());
                         cmd.Parameters.AddWithValue("?TagId", props.TagId.ToString());

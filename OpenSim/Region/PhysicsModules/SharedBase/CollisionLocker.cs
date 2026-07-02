@@ -32,7 +32,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
 {
     public class CollisionLocker
     {
-        private List<IntPtr> worldlock = new List<IntPtr>();
+        private List<IntPtr> worldlock = [];
 
         public CollisionLocker()
         {

@@ -135,8 +135,10 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                                                     0.2f,                       // time scale
                                                     BSMotor.Infinite,           // decay time scale
                                                     1f                          // efficiency
-                );
-                m_velocityMotor.ErrorZeroThreshold = BSParam.AvatarStopZeroThreshold;
+                )
+                {
+                    ErrorZeroThreshold = BSParam.AvatarStopZeroThreshold
+                };
                 // m_velocityMotor.PhysicsScene = m_controllingPrim.PhysScene; // DEBUG DEBUG so motor will output detail log messages.
                 SetVelocityAndTarget(m_controllingPrim.RawVelocity, m_controllingPrim.TargetVelocity, true /* inTaintTime */);
     

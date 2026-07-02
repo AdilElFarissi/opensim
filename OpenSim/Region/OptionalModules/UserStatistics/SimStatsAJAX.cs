@@ -47,15 +47,17 @@ namespace OpenSim.Region.UserStatistics
         {
             List<Scene> m_scene = (List<Scene>)pParams["Scenes"];
 
-            Hashtable nh = new Hashtable();
-            nh.Add("hdata", m_scene);
-            nh.Add("simstats", pParams["SimStats"]);
+            Hashtable nh = new()
+            {
+                { "hdata", m_scene },
+                { "simstats", pParams["SimStats"] }
+            };
             return nh;
         }
 
         public string RenderView(Hashtable pModelResult)
         {
-            StringBuilder output = new StringBuilder();
+            StringBuilder output = new();
             List<Scene> all_scenes = (List<Scene>) pModelResult["hdata"];
             Dictionary<UUID, USimStatsData> sdatadic = (Dictionary<UUID,USimStatsData>)pModelResult["simstats"];
 
@@ -228,10 +230,10 @@ namespace OpenSim.Region.UserStatistics
             List<Scene> all_scenes = (List<Scene>) pModelResult["hdata"];
             Dictionary<UUID, USimStatsData> sdatadic = (Dictionary<UUID,USimStatsData>)pModelResult["simstats"];
 
-            OSDMap allStatsInfo = new OpenMetaverse.StructuredData.OSDMap();
+            OSDMap allStatsInfo = [];
             foreach (USimStatsData sdata in sdatadic.Values)
             {
-                OSDMap statsInfo = new OpenMetaverse.StructuredData.OSDMap();
+                OSDMap statsInfo = [];
                 string regionName = "unknown";
                 foreach (Scene sn in all_scenes)
                 {

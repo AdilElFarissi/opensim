@@ -64,7 +64,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
         //private int m_retryCounter;
         //private bool m_inRetries;
 
-        private Dictionary<string, List<SimpleAssetRetrieved>> m_AssetHandlers = new Dictionary<string, List<SimpleAssetRetrieved>>();
+        private Dictionary<string, List<SimpleAssetRetrieved>> m_AssetHandlers = [];
 
         private ObjectJobEngine m_localRequestsQueue;
         private ObjectJobEngine m_remoteRequestsQueue;
@@ -357,7 +357,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
                 lock (m_AssetHandlers)
                 {
-                    SimpleAssetRetrieved handlerEx = new SimpleAssetRetrieved(delegate (AssetBase _asset) { callBack(id, sender, _asset); _asset = null;});
+                    SimpleAssetRetrieved handlerEx = new(delegate (AssetBase _asset) { callBack(id, sender, _asset); _asset = null;});
 
                     List<SimpleAssetRetrieved> handlers;
                     if (m_AssetHandlers.TryGetValue(id, out handlers))
@@ -367,8 +367,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
                         return true;
                     }
 
-                    handlers = new List<SimpleAssetRetrieved>();
-                    handlers.Add(handlerEx);
+                    handlers = [handlerEx];
 
                     m_AssetHandlers.Add(id, handlers);
                     m_localRequestsQueue.Enqueue(id);
@@ -412,7 +411,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
 
                 lock (m_AssetHandlers)
                 {
-                    SimpleAssetRetrieved handlerEx = new SimpleAssetRetrieved(delegate (AssetBase _asset) { callBack(_asset); _asset = null;});
+                    SimpleAssetRetrieved handlerEx = new(delegate (AssetBase _asset) { callBack(_asset); _asset = null;});
 
                     List<SimpleAssetRetrieved> handlers;
                     if (m_AssetHandlers.TryGetValue(id, out handlers))
@@ -422,15 +421,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Asset
                         return;
                     }
 
-                    handlers = new List<SimpleAssetRetrieved>();
-                    handlers.Add(handlerEx);
+                    handlers = [handlerEx];
 
                     m_AssetHandlers.Add(id, handlers);
                     if(string.IsNullOrEmpty(ForeignAssetService))
                         m_localRequestsQueue.Enqueue(id);
                     else
                     {
-                        ForeignAssetServiceGetData fasgd = new ForeignAssetServiceGetData
+                        ForeignAssetServiceGetData fasgd = new()
                         {
                             id = id,
                             ForeignAssetService = ForeignAssetService,

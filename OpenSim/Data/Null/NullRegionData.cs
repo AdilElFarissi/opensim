@@ -43,7 +43,7 @@ namespace OpenSim.Data.Null
 
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        Dictionary<UUID, RegionData> m_regionData = new Dictionary<UUID, RegionData>();
+        Dictionary<UUID, RegionData> m_regionData = [];
 
         public NullRegionData(string connectionString, string realm)
         {
@@ -123,7 +123,7 @@ namespace OpenSim.Data.Null
                 queryMatch = delegate(string s) { return s.Equals(cleanName); };
 
             // Find region data
-            List<RegionData> ret = new List<RegionData>();
+            List<RegionData> ret = [];
 
             lock (m_regionData)
             {
@@ -180,7 +180,7 @@ namespace OpenSim.Data.Null
             if (m_useStaticInstance && Instance != this)
                 return Instance.Get(startX, startY, endX, endY, scopeID);
 
-            List<RegionData> ret = new List<RegionData>();
+            List<RegionData> ret = [];
 
             lock (m_regionData)
             {
@@ -270,7 +270,7 @@ namespace OpenSim.Data.Null
             if (Instance != this)
                 return Instance.Get(regionFlags, scopeID);
 
-            List<RegionData> ret = new List<RegionData>();
+            List<RegionData> ret = [];
 
             lock (m_regionData)
             {

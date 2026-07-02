@@ -60,7 +60,7 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
         }
 
         private Dictionary<UUID, List<MenuItemData>> m_menuItems =
-                new Dictionary<UUID, List<MenuItemData>>();
+                [];
 
         private Scene m_scene;
 
@@ -117,11 +117,11 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
             if (features.ContainsKey("menus"))
                 menus = features["menus"];
 
-            OSDMap agent = new OSDMap();
-            OSDMap world = new OSDMap();
-            OSDMap tools = new OSDMap();
-            OSDMap advanced = new OSDMap();
-            OSDMap admin = new OSDMap();
+            OSDMap agent = [];
+            OSDMap world = [];
+            OSDMap tools = [];
+            OSDMap advanced = [];
+            OSDMap admin = [];
             if (((OSDMap)menus).ContainsKey("agent"))
                 agent = (OSDMap)((OSDMap)menus)["agent"];
             if (((OSDMap)menus).ContainsKey("world"))
@@ -248,7 +248,7 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
         public void AddMenuItem(UUID agentID, string title, InsertLocation location, UserMode mode, CustomMenuHandler handler)
         {
             if (!m_menuItems.ContainsKey(agentID))
-                m_menuItems[agentID] = new List<MenuItemData>();
+                m_menuItems[agentID] = [];
 
             m_menuItems[agentID].Add(new MenuItemData() { Title = title, AgentID = agentID, Location = location, Mode = mode, Handler = handler });
         }
@@ -257,7 +257,7 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
         {
             foreach (KeyValuePair<UUID,List< MenuItemData>> kvp in m_menuItems)
             {
-                List<MenuItemData> pendingDeletes = new List<MenuItemData>();
+                List<MenuItemData> pendingDeletes = [];
                 foreach (MenuItemData d in kvp.Value)
                 {
                     if (d.Title == action)
@@ -291,7 +291,7 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
         {
             string action = osd["action"].AsString();
             OSDArray selection = (OSDArray)osd["selection"];
-            List<uint> sel = new List<uint>();
+            List<uint> sel = [];
             for (int i = 0 ; i < selection.Count ; i++)
                 sel.Add(selection[i].AsUInteger());
 

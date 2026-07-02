@@ -55,8 +55,8 @@ namespace OpenSim.Services.HypergridService
         protected static IOfflineIMService m_OfflineIMService;
 
         protected static IInstantMessageSimConnector m_IMSimConnector;
-        protected static readonly ExpiringCacheOS<UUID, string> m_UserLocationMap = new ExpiringCacheOS<UUID, string>(10000);
-        protected static readonly ExpiringCacheOS<UUID, string> m_RegionsCache = new ExpiringCacheOS<UUID, string>(60000);
+        protected static readonly ExpiringCacheOS<UUID, string> m_UserLocationMap = new(10000);
+        protected static readonly ExpiringCacheOS<UUID, string> m_RegionsCache = new(60000);
 
         private static bool m_ForwardOfflineGroupMessages;
         private static bool m_InGatekeeper;
@@ -172,7 +172,7 @@ namespace OpenSim.Services.HypergridService
 
         protected bool TrySendInstantMessage(GridInstantMessage im, string foreignerkurl, bool firstTime, bool foreigner)
         {
-            UUID toAgentID = new UUID(im.toAgentID);
+            UUID toAgentID = new(im.toAgentID);
             string url = null;
 
             // first try cache

@@ -99,10 +99,12 @@ namespace OpenSim.Framework
         /// <returns></returns>
         public OSDMap PackUpdateMessage()
         {
-            OSDMap anim = new OSDMap();
-            anim["animation"] = OSD.FromUUID(animID);
-            anim["object_id"] = OSD.FromUUID(objectID);
-            anim["seq_num"] = OSD.FromInteger(sequenceNum);
+            OSDMap anim = new()
+            {
+                ["animation"] = OSD.FromUUID(animID),
+                ["object_id"] = OSD.FromUUID(objectID),
+                ["seq_num"] = OSD.FromInteger(sequenceNum)
+            };
             return anim;
         }
 

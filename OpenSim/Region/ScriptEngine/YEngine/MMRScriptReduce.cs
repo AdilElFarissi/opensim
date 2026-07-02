@@ -678,7 +678,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return true;
 
              // Build list of generic parameter names.
-            Dictionary<string, int> parms = new();
+            Dictionary<string, int> parms = [];
             do
             {
                 t = t.nextToken;
@@ -840,7 +840,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         private void ParseSDTypePreScanPassTwo(Token tokenBegin)
         {
-            List<Token> noTypes = new();
+            List<Token> noTypes = [];
             TokenDeclSDType outerSDType;
             uint repeat;
 
@@ -1823,7 +1823,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          * @param token = first token to evaluate
          * @returns flags found; token = unprocessed token
          */
-        private Dictionary<uint, Token> foundFlags = new();
+        private Dictionary<uint, Token> foundFlags = [];
         private uint ParseQualifierFlags(ref Token token)
         {
             foundFlags.Clear();
@@ -2236,7 +2236,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
 
             // get list of argument types until we see a ')'
-            List<TokenType> args = new();
+            List<TokenType> args = [];
             bool first = true;
             do
             {
@@ -4362,7 +4362,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         // see InstantiateGeneric() below
         public TokenDeclSDType outerSDType;          // null if top-level
                                                      // else points to defining script-defined type
-        public Dictionary<string, TokenDeclSDType> innerSDTypes = new();
+        public Dictionary<string, TokenDeclSDType> innerSDTypes = [];
         // indexed by shortName
         public Token begToken;                       // token that begins the definition (might be this or something like 'public')
         public Token endToken;                       // the '}' or ';' that ends the definition
@@ -4663,11 +4663,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
     public class TokenDeclSDTypeClass: TokenDeclSDType
     {
-        public List<TokenDeclSDTypeInterface> implements = new();
+        public List<TokenDeclSDTypeInterface> implements = [];
         public TokenDeclVar instFieldInit;         // $instfieldinit function to do instance field initializations
         public TokenDeclVar staticFieldInit;       // $staticfieldinit function to do static field initializations
 
-        public Dictionary<string, int> intfIndices = new();  // longname => this.iFaces index
+        public Dictionary<string, int> intfIndices = [];  // longname => this.iFaces index
         public TokenDeclSDTypeInterface[] iFaces;  // array of implemented interfaces
                                                    //   low-end entries copied from rootward classes
         public TokenDeclVar[][] iImplFunc;         // iImplFunc[i][j]:
@@ -4807,7 +4807,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 instSizes.WriteAsmFile(asmFileWriter, extendsStr + "." + shortName.val + ".numInst");
             }
 
-            stackedMethods = new List<StackedMethod>();
+            stackedMethods = [];
             int vTableIndex;
             while((vTableIndex = objFileReader.ReadInt32()) >= 0)
             {
@@ -4823,7 +4823,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
                 iDynMeths = new DynamicMethod[numIFaces][];
                 iMethTypes = new Type[numIFaces][];
-                stackedIFaces = new List<StackedIFace>();
+                stackedIFaces = [];
                 for(int i = 0; i < numIFaces; i++)
                 {
                     string iFaceName = objFileReader.ReadString();
@@ -5005,8 +5005,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private string retStr;
         private string[] argStrs;
 
-        private static Dictionary<string, TokenDeclSDTypeDelegate> inlines = new();
-        private static Dictionary<Type, string> inlrevs = new();
+        private static Dictionary<string, TokenDeclSDTypeDelegate> inlines = [];
+        private static Dictionary<Type, string> inlrevs = [];
 
         public TokenDeclSDTypeDelegate(TokenName shortName) : base(shortName)
         {
@@ -5242,7 +5242,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         // any class that implements this interface
         // must implement all of these methods & properties
 
-        public List<TokenDeclSDTypeInterface> implements = new();
+        public List<TokenDeclSDTypeInterface> implements = [];
         // any class that implements this interface
         // must also implement all of the methods & properties 
         // of all of these interfaces
@@ -5745,7 +5745,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public TokenType retType;              // vars: null; funcs: TokenTypeVoid if void
         public TokenArgDecl argDecl;           // vars: null; funcs: argument list prototypes
         public TokenStmtBlock body;            // vars: null; funcs: statements (null iff abstract)
-        public Dictionary<string, TokenStmtLabel> labels = new();
+        public Dictionary<string, TokenStmtLabel> labels = [];
         // all labels defined in the function
         public LinkedList<TokenDeclVar> localVars = new();
         // all local variables declared by this function
@@ -7205,7 +7205,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
     }
     public class TokenList: Token
     {
-        public List<Token> tl = new();
+        public List<Token> tl = [];
         public TokenList(Token original) : base(original) { }
 
         public override void DebString(StringBuilder sb)
@@ -7570,14 +7570,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
      */
     public class TokenScript: Token
     {
-        public int expiryDays = Int32.MaxValue;
+        public int expiryDays = int.MaxValue;
         public TokenDeclState defaultState;
-        public Dictionary<string, TokenDeclState> states = new();
+        public Dictionary<string, TokenDeclState> states = [];
         public VarDict variablesStack = new (false);  // initial one is used for global functions and variables
         public TokenDeclVar globalVarInit;                    // $globalvarinit function
                                                               // - performs explicit global var and static field inits
 
-        private Dictionary<string, TokenDeclSDType> sdSrcTypes = new();
+        private Dictionary<string, TokenDeclSDType> sdSrcTypes = [];
         private bool sdSrcTypesSealed = false;
 
         public TokenScript(Token original) : base(original) { }
@@ -8081,7 +8081,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public TokenDeclVar catchVar;       // null iff catchStmt is null
         public TokenStmtBlock catchStmt;    // can be null
         public TokenStmtBlock finallyStmt;  // can be null
-        public Dictionary<string, IntermediateLeave> iLeaves = new();
+        public Dictionary<string, IntermediateLeave> iLeaves = [];
 
         public TokenStmtTry(Token original) : base(original) { }
 

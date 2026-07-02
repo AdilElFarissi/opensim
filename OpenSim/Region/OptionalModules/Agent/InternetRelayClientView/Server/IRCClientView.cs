@@ -108,7 +108,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         {
             try
             {
-                string strbuf = String.Empty;
+                string strbuf = string.Empty;
 
                 while (m_connected && m_client.Connected)
                 {
@@ -360,7 +360,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
             {
                 if (OnChatFromClient != null)
                 {
-                    OSChatMessage msg = new OSChatMessage
+                    OSChatMessage msg = new()
                     {
                         Sender = this,
                         Channel = 0,
@@ -482,7 +482,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         private static string[] ExtractParameters(string msg)
         {
             string[] msgs = msg.Split(' ');
-            List<string> parms = new List<string>(msgs.Length);
+            List<string> parms = new(msgs.Length);
 
             bool foundCommand = false;
             string command = ExtractCommand(msg);
@@ -501,7 +501,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
                 if (i != 0 && msgs[i].StartsWith(":"))
                 {
-                    List<string> tmp = new List<string>();
+                    List<string> tmp = [];
                     for (int j=i;j<msgs.Length;j++)
                     {
                         tmp.Add(msgs[j]);
@@ -593,7 +593,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         public Dictionary<UUID, ulong> GetGroupPowers()
         {
-            return new Dictionary<UUID, ulong>();
+            return [];
         }
 
         public void SetGroupPowers(Dictionary<UUID, ulong> powers) { }
@@ -1505,7 +1505,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         public string GetClientOption(string option)
         {
-            return String.Empty;
+            return string.Empty;
         }
 
         public void Terminate()

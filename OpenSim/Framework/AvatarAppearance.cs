@@ -69,8 +69,8 @@ namespace OpenSim.Framework
         protected AvatarWearable[] m_wearables;
         protected Dictionary<int, List<AvatarAttachment>> m_attachments;
         protected WearableCacheItem[] m_cacheitems;
-        protected Vector3 m_avatarSize = new Vector3(0.45f, 0.6f, 1.9f); // sl Z cloud value
-        protected Vector3 m_avatarBoxSize = new Vector3(0.45f, 0.6f, 1.9f);
+        protected Vector3 m_avatarSize = new(0.45f, 0.6f, 1.9f); // sl Z cloud value
+        protected Vector3 m_avatarBoxSize = new(0.45f, 0.6f, 1.9f);
         protected float m_avatarHeight = 0;
         protected float m_avatarFeetOffset = 0;
         protected float m_avatarAnimOffset = 0;
@@ -142,7 +142,7 @@ namespace OpenSim.Framework
             SetDefaultParams();
 //            SetHeight();
             SetSize(new Vector3(0.45f,0.6f,1.9f));
-            m_attachments = new Dictionary<int, List<AvatarAttachment>>();
+            m_attachments = [];
         }
 
         public AvatarAppearance(OSDMap map)
@@ -178,7 +178,7 @@ namespace OpenSim.Framework
             if(m_avatarHeight == 0)
                 SetSize(new Vector3(0.45f,0.6f,1.9f));
 
-            m_attachments = new Dictionary<int, List<AvatarAttachment>>();
+            m_attachments = [];
         }
 
         public AvatarAppearance(AvatarAppearance appearance): this(appearance, true,true)
@@ -203,7 +203,7 @@ namespace OpenSim.Framework
 //                SetHeight();
                 SetSize(new Vector3(0.45f, 0.6f, 1.9f));
                 AvatarPreferencesHoverZ = 0;
-                m_attachments = new Dictionary<int, List<AvatarAttachment>>();
+                m_attachments = [];
 
                 return;
             }
@@ -244,7 +244,7 @@ namespace OpenSim.Framework
             SetSize(appearance.AvatarSize);
 
             // Copy the attachment, force append mode since that ensures consistency
-            m_attachments = new Dictionary<int, List<AvatarAttachment>>();
+            m_attachments = [];
             foreach (AvatarAttachment attachment in appearance.GetAttachments())
                 AppendAttachment(new AvatarAttachment(attachment));
         }
@@ -341,7 +341,7 @@ namespace OpenSim.Framework
             Primitive.TextureEntryFace curFace;
 
             //make sure textureEntry.DefaultTexture is the unused one(DEFAULT_AVATAR_TEXTURE).
-            Primitive.TextureEntry converted = new Primitive.TextureEntry(AppearanceManager.DEFAULT_AVATAR_TEXTURE);
+            Primitive.TextureEntry converted = new(AppearanceManager.DEFAULT_AVATAR_TEXTURE);
             for (uint i = 0; i < TEXTURE_COUNT; ++i)
             {
                 newface = textureEntry.GetFace(i);
@@ -486,7 +486,7 @@ namespace OpenSim.Framework
         }
 
 // DEBUG ON
-        public override String ToString()
+        public override string ToString()
         {
             StringBuilder sb = new();
             sb.AppendLine($"Serial: {m_serial}");
@@ -524,7 +524,7 @@ namespace OpenSim.Framework
         {
             lock (m_attachments)
             {
-                List<AvatarAttachment> alist = new List<AvatarAttachment>();
+                List<AvatarAttachment> alist = [];
                 foreach (KeyValuePair<int, List<AvatarAttachment>> kvp in m_attachments)
                 {
                     foreach (AvatarAttachment attach in kvp.Value)
@@ -545,7 +545,7 @@ namespace OpenSim.Framework
                 ref List<AvatarAttachment> atlst = ref CollectionsMarshal.GetValueRefOrAddDefault(m_attachments, attach.AttachPoint, out bool ex);
                 if(!ex)
                 { 
-                    atlst = new List<AvatarAttachment>() { attach };
+                    atlst = [attach];
                     return;
                 }
 
@@ -567,7 +567,7 @@ namespace OpenSim.Framework
 
             lock (m_attachments)
             {
-                m_attachments[attach.AttachPoint] = new List<AvatarAttachment>() { attach };
+                m_attachments[attach.AttachPoint] = [attach];
             }
         }
 
@@ -735,11 +735,12 @@ namespace OpenSim.Framework
         /// </summary>
         public OSDMap Pack(EntityTransferContext ctx)
         {
-            OSDMap data = new OSDMap();
-
-            data["serial"] = OSD.FromInteger(m_serial);
-            data["height"] = OSD.FromReal(m_avatarHeight);
-            data["aphz"] = OSD.FromReal(AvatarPreferencesHoverZ);
+            OSDMap data = new()
+            {
+                ["serial"] = OSD.FromInteger(m_serial),
+                ["height"] = OSD.FromReal(m_avatarHeight),
+                ["aphz"] = OSD.FromReal(AvatarPreferencesHoverZ)
+            };
 
             if (m_texture == null)
                 return data;
@@ -808,13 +809,13 @@ namespace OpenSim.Framework
             }
 
             // Visual Parameters
-            OSDBinary visualparams = new OSDBinary(m_visualparams);
+            OSDBinary visualparams = new(m_visualparams);
             data["visualparams"] = visualparams;
 
             lock (m_attachments)
             {
                 // Attachments
-                OSDArray attachs = new OSDArray(m_attachments.Count);
+                OSDArray attachs = new(m_attachments.Count);
                 foreach (AvatarAttachment attach in GetAttachments())
                     attachs.Add(attach.Pack());
                 data["attachments"] = attachs;
@@ -825,14 +826,15 @@ namespace OpenSim.Framework
 
         public OSDMap PackForNotecard(bool NoHuds = true)
         {
-            OSDMap data = new OSDMap();
-
-            data["serial"] = OSD.FromInteger(m_serial);
-            data["height"] = OSD.FromReal(m_avatarHeight);
-            data["aphz"] = OSD.FromReal(AvatarPreferencesHoverZ);
+            OSDMap data = new()
+            {
+                ["serial"] = OSD.FromInteger(m_serial),
+                ["height"] = OSD.FromReal(m_avatarHeight),
+                ["aphz"] = OSD.FromReal(AvatarPreferencesHoverZ)
+            };
 
             // old regions may not like missing/empty wears
-            OSDArray wears = new OSDArray(MAXWEARABLE_LEGACY);
+            OSDArray wears = new(MAXWEARABLE_LEGACY);
             for (int i = 0; i< MAXWEARABLE_LEGACY; ++i)
                 wears.Add(new OSDArray());
             data["wearables"] = wears;
@@ -841,8 +843,10 @@ namespace OpenSim.Framework
             OSDArray textures;
 
             // allow old regions to still see something
-            textures = new OSDArray(TEXTURE_COUNT_PV7);
-            textures.Add(OSD.FromUUID(AppearanceManager.DEFAULT_AVATAR_TEXTURE));
+            textures = new OSDArray(TEXTURE_COUNT_PV7)
+            {
+                OSD.FromUUID(AppearanceManager.DEFAULT_AVATAR_TEXTURE)
+            };
             for (uint i = 1; i < TEXTURE_COUNT_PV7; ++i)
                 textures.Add(OSD.FromUUID(m_texture.GetFace(i).TextureID));
             data["textures"] = textures;
@@ -866,13 +870,13 @@ namespace OpenSim.Framework
             }
 
             // Visual Parameters
-            OSDBinary visualparams = new OSDBinary(m_visualparams);
+            OSDBinary visualparams = new(m_visualparams);
             data["visualparams"] = visualparams;
 
             lock (m_attachments)
             {
                 // Attachments
-                OSDArray attachs = new OSDArray(m_attachments.Count);
+                OSDArray attachs = new(m_attachments.Count);
                 foreach (AvatarAttachment attach in GetAttachments())
                 {
                     if (NoHuds &&
@@ -896,7 +900,7 @@ namespace OpenSim.Framework
             SetDefaultWearables();
             SetDefaultTexture();
             SetDefaultParams();
-            m_attachments = new Dictionary<int, List<AvatarAttachment>>();
+            m_attachments = [];
 
             if(data == null)
             {
@@ -944,7 +948,7 @@ namespace OpenSim.Framework
                 if (data.TryGetValue("te8", out tmpOSD))
                 {
                     byte[] teb = tmpOSD.AsBinary();
-                    Primitive.TextureEntry te = new Primitive.TextureEntry(teb, 0, teb.Length);
+                    Primitive.TextureEntry te = new(teb, 0, teb.Length);
                     m_texture = te;
                 }
                 else if (data.TryGetValue("textures", out tmpOSD) && (tmpOSD is OSDArray textures))
@@ -1006,7 +1010,7 @@ namespace OpenSim.Framework
                 {
                     for (int i = 0; i < attachs.Count; i++)
                     {
-                        AvatarAttachment att = new AvatarAttachment((OSDMap)attachs[i]);
+                        AvatarAttachment att = new((OSDMap)attachs[i]);
                         AppendAttachment(att);
 
                         //m_log.DebugFormat(

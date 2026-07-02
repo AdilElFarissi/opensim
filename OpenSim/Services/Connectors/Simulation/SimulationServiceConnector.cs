@@ -45,7 +45,7 @@ namespace OpenSim.Services.Connectors.Simulation
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         // we use this dictionary to track the pending updateagent requests, maps URI --> position update
-        private Dictionary<string,AgentPosition> m_updateAgentQueue = new Dictionary<string,AgentPosition>();
+        private Dictionary<string,AgentPosition> m_updateAgentQueue = [];
 
         //private GridRegion m_Region;
 
@@ -83,7 +83,7 @@ namespace OpenSim.Services.Connectors.Simulation
                 args["source_y"] = OSD.FromString(source.RegionLocY.ToString());
                 args["source_name"] = OSD.FromString(source.RegionName);
                 args["source_uuid"] = OSD.FromString(source.RegionID.ToString());
-                if (!String.IsNullOrEmpty(source.RawServerURI))
+                if (!string.IsNullOrEmpty(source.RawServerURI))
                     args["source_server_uri"] = OSD.FromString(source.RawServerURI);
             }
 
@@ -96,7 +96,7 @@ namespace OpenSim.Services.Connectors.Simulation
 
         public bool CreateAgent(GridRegion source, GridRegion destination, AgentCircuitData aCircuit, uint flags, EntityTransferContext ctx, out string reason)
         {
-            reason = String.Empty;
+            reason = string.Empty;
 
             if (destination == null)
             {
@@ -168,7 +168,7 @@ namespace OpenSim.Services.Connectors.Simulation
             return UpdateAgent(destination, (IAgentData)data, ctx, 200000); // yes, 200 seconds
         }
 
-        private ExpiringCache<string, bool> _failedSims = new ExpiringCache<string, bool>();
+        private ExpiringCache<string, bool> _failedSims = new();
         /// <summary>
         /// Send updated position information about an agent in this region to a neighbor
         /// This operation may be called very frequently if an avatar is moving about in
@@ -226,7 +226,7 @@ namespace OpenSim.Services.Connectors.Simulation
                     }
                 }
 
-                EntityTransferContext ctx = new EntityTransferContext(); // Dummy, not needed for position
+                EntityTransferContext ctx = new(); // Dummy, not needed for position
                 success = UpdateAgent(destination, (IAgentData)pos, ctx, 10000);
             }
             // we get here if success == false
@@ -294,21 +294,22 @@ namespace OpenSim.Services.Connectors.Simulation
             // Eventually, we want to use a caps url instead of the agentID
             string uri = destination.ServerURI + AgentPath() + agentID + "/" + destination.RegionID.ToString() + "/";
 
-            OSDMap request = new OSDMap();
-            request.Add("viaTeleport", OSD.FromBoolean(viaTeleport));
-            request.Add("position", OSD.FromString(position.ToString()));
-            // To those who still understad this field, we're telling them
-            // the lowest version just to be safe
-            request.Add("my_version", OSD.FromString(String.Format("SIMULATION/{0}", VersionInfo.SimulationServiceVersionSupportedMin)));
-            // New simulation service negotiation
-            request.Add("simulation_service_supported_min", OSD.FromReal(VersionInfo.SimulationServiceVersionSupportedMin));
-            request.Add("simulation_service_supported_max", OSD.FromReal(VersionInfo.SimulationServiceVersionSupportedMax));
-            request.Add("simulation_service_accepted_min", OSD.FromReal(VersionInfo.SimulationServiceVersionAcceptedMin));
-            request.Add("simulation_service_accepted_max", OSD.FromReal(VersionInfo.SimulationServiceVersionAcceptedMax));
+            OSDMap request = new()
+            {
+                { "viaTeleport", OSD.FromBoolean(viaTeleport) },
+                { "position", OSD.FromString(position.ToString()) },
+                // To those who still understad this field, we're telling them
+                // the lowest version just to be safe
+                { "my_version", OSD.FromString(string.Format("SIMULATION/{0}", VersionInfo.SimulationServiceVersionSupportedMin)) },
+                // New simulation service negotiation
+                { "simulation_service_supported_min", OSD.FromReal(VersionInfo.SimulationServiceVersionSupportedMin) },
+                { "simulation_service_supported_max", OSD.FromReal(VersionInfo.SimulationServiceVersionSupportedMax) },
+                { "simulation_service_accepted_min", OSD.FromReal(VersionInfo.SimulationServiceVersionAcceptedMin) },
+                { "simulation_service_accepted_max", OSD.FromReal(VersionInfo.SimulationServiceVersionAcceptedMax) },
+                { "context", ctx.Pack() }
+            };
 
-            request.Add("context", ctx.Pack());
-
-            OSDArray features = new OSDArray();
+            OSDArray features = [];
             foreach (UUID feature in featuresAvailable)
                 features.Add(OSD.FromString(feature.ToString()));
 
@@ -347,7 +348,7 @@ namespace OpenSim.Services.Connectors.Simulation
                         string versionString = tmpOSD.AsString();
                         if(versionString != string.Empty)
                         {
-                            String[] parts = versionString.Split(new char[] {'/'});
+                            string[] parts = versionString.Split(new char[] {'/'});
                             if (parts.Length > 1)
                             {
                                 ctx.InboundVersion = float.Parse(parts[1], Culture.FormatProvider);
@@ -472,12 +473,13 @@ namespace OpenSim.Services.Connectors.Simulation
 
             try
             {
-                OSDMap args = new OSDMap(16);
-
-                args["sog"] = OSD.FromString(sog.ToXml2());
-                args["extra"] = OSD.FromString(sog.ExtraToXmlString());
-                args["modified"] = OSD.FromBoolean(sog.HasGroupChanged);
-                args["new_position"] = newPosition.ToString();
+                OSDMap args = new(16)
+                {
+                    ["sog"] = OSD.FromString(sog.ToXml2()),
+                    ["extra"] = OSD.FromString(sog.ExtraToXmlString()),
+                    ["modified"] = OSD.FromBoolean(sog.HasGroupChanged),
+                    ["new_position"] = newPosition.ToString()
+                };
 
                 string state = sog.GetStateSnapshot();
                 if (state.Length > 0)

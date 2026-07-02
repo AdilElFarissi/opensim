@@ -431,7 +431,7 @@ namespace OpenSim.Framework
             set { m_LoadedCreationDateTime = value; }
         }
 
-        public String LoadedCreationDate
+        public string LoadedCreationDate
         {
             get
             {
@@ -441,7 +441,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public String LoadedCreationTime
+        public string LoadedCreationTime
         {
             get
             {
@@ -451,8 +451,8 @@ namespace OpenSim.Framework
             }
         }
 
-        private String m_LoadedCreationID;
-        public String LoadedCreationID
+        private string m_LoadedCreationID;
+        public string LoadedCreationID
         {
             get { return m_LoadedCreationID; }
             set { m_LoadedCreationID = value; }
@@ -488,7 +488,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// Our connected Telehub's SpawnPoints
         /// </summary>
-        public List<SpawnPoint> l_SpawnPoints = new();
+        public List<SpawnPoint> l_SpawnPoints = [];
 
         // Add a SpawnPoint
         // ** These are not region coordinates **

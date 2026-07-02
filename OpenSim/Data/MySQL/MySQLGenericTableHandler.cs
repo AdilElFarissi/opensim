@@ -39,7 +39,7 @@ namespace OpenSim.Data.MySQL
     {
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected Dictionary<string, FieldInfo> m_Fields = new Dictionary<string, FieldInfo>();
+        protected Dictionary<string, FieldInfo> m_Fields = [];
 
         protected List<string> m_ColumnNames = null;
         protected string m_Realm;
@@ -71,10 +71,10 @@ namespace OpenSim.Data.MySQL
             if (!string.IsNullOrEmpty(storeName))
             {
                 // We always use a new connection for any Migrations
-                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+                using (MySqlConnection dbcon = new(m_connectionString))
                 {
                     dbcon.Open();
-                    Migration m = new Migration(dbcon, Assembly, storeName);
+                    Migration m = new(dbcon, Assembly, storeName);
                     m.Update();
                 }
             }
@@ -101,7 +101,7 @@ namespace OpenSim.Data.MySQL
             if (m_ColumnNames != null)
                 return;
 
-            List<string> columnNames = new List<string>();
+            List<string> columnNames = [];
 
             DataTable schemaTable = reader.GetSchemaTable();
             foreach (DataRow row in schemaTable.Rows)
@@ -116,7 +116,7 @@ namespace OpenSim.Data.MySQL
 
         public virtual T[] Get(string field, string key)
         {   
-            using (MySqlCommand cmd = new MySqlCommand())
+            using (MySqlCommand cmd = new())
             {
                 cmd.Parameters.AddWithValue(field, key);
                 cmd.CommandText = $"select * from {m_Realm} where `{field}` = ?{field}";
@@ -131,9 +131,9 @@ namespace OpenSim.Data.MySQL
                 return new T[0];
 
             int flast = flen - 1;
-            StringBuilder sb = new StringBuilder(1024);
+            StringBuilder sb = new(1024);
             sb.AppendFormat("select * from {0} where {1} IN (?", m_Realm, field);
-            using (MySqlCommand cmd = new MySqlCommand())
+            using (MySqlCommand cmd = new())
             {
                 for (int i = 0 ; i < flen ; i++)
                 {
@@ -153,7 +153,7 @@ namespace OpenSim.Data.MySQL
 
         public virtual T[] Get(string[] fields, string[] keys)
         {
-            return Get(fields, keys, String.Empty);
+            return Get(fields, keys, string.Empty);
         }
 
         public virtual T[] Get(string[] fields, string[] keys, string options)
@@ -163,10 +163,10 @@ namespace OpenSim.Data.MySQL
                 return new T[0];
 
             int flast = flen - 1;
-            StringBuilder sb = new StringBuilder(1024);
+            StringBuilder sb = new(1024);
             sb.AppendFormat("select * from {0} where ", m_Realm);
 
-            using (MySqlCommand cmd = new MySqlCommand())
+            using (MySqlCommand cmd = new())
             {
                 for (int i = 0 ; i < flen ; i++)
                 {
@@ -188,7 +188,7 @@ namespace OpenSim.Data.MySQL
         {
             if (m_trans == null)
             {
-                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+                using (MySqlConnection dbcon = new(m_connectionString))
                 {
                     dbcon.Open();
                     T[] ret = DoQueryWithConnection(cmd, dbcon);
@@ -211,7 +211,7 @@ namespace OpenSim.Data.MySQL
 
         protected T[] DoQueryWithConnection(MySqlCommand cmd, MySqlConnection dbcon)
         {
-            List<T> result = new List<T>();
+            List<T> result = [];
 
             cmd.Connection = dbcon;
 
@@ -224,7 +224,7 @@ namespace OpenSim.Data.MySQL
 
                 while (reader.Read())
                 {
-                    T row = new T();
+                    T row = new();
 
                     foreach (string name in m_Fields.Keys)
                     {
@@ -260,13 +260,13 @@ namespace OpenSim.Data.MySQL
                     if (m_DataField != null)
                     {
                         Dictionary<string, string> data =
-                            new Dictionary<string, string>();
+                            [];
 
                         foreach (string col in m_ColumnNames)
                         {
                             data[col] = reader[col].ToString();
                             if (data[col] == null)
-                                data[col] = String.Empty;
+                                data[col] = string.Empty;
                         }
 
                         m_DataField.SetValue(row, data);
@@ -281,7 +281,7 @@ namespace OpenSim.Data.MySQL
 
         public virtual T[] Get(string where)
         {
-            using (MySqlCommand cmd = new MySqlCommand())
+            using (MySqlCommand cmd = new())
             {
                 cmd.CommandText = $"select * from {m_Realm} where {where}"; ;
 
@@ -293,11 +293,11 @@ namespace OpenSim.Data.MySQL
         {
             //m_log.DebugFormat("[MYSQL GENERIC TABLE HANDLER]: Store(T row) invoked");
 
-            using (MySqlCommand cmd = new MySqlCommand())
+            using (MySqlCommand cmd = new())
             {
                 string query = "";
-                List<String> names = new List<String>();
-                List<String> values = new List<String>();
+                List<string> names = [];
+                List<string> values = [];
 
                 foreach (FieldInfo fi in m_Fields.Values)
                 {
@@ -327,7 +327,7 @@ namespace OpenSim.Data.MySQL
                     }
                 }
 
-                query = $"replace into {m_Realm} (`" + String.Join("`,`", names.ToArray()) + "`) values (" + String.Join(",", values.ToArray()) + ")";
+                query = $"replace into {m_Realm} (`" + string.Join("`,`", names.ToArray()) + "`) values (" + string.Join(",", values.ToArray()) + ")";
 
                 cmd.CommandText = query;
 
@@ -354,10 +354,10 @@ namespace OpenSim.Data.MySQL
                 return false;
 
             int flast = flen - 1;
-            StringBuilder sb = new StringBuilder(1024);
+            StringBuilder sb = new(1024);
             sb.AppendFormat("delete from {0} where ", m_Realm);
 
-            using (MySqlCommand cmd = new MySqlCommand())
+            using (MySqlCommand cmd = new())
             {
                 for (int i = 0 ; i < flen ; i++)
                 {
@@ -385,10 +385,10 @@ namespace OpenSim.Data.MySQL
                 return 0;
 
             int flast = flen - 1;
-            StringBuilder sb = new StringBuilder(1024);
+            StringBuilder sb = new(1024);
             sb.AppendFormat("select count(*) from {0} where ", m_Realm);
 
-            using (MySqlCommand cmd = new MySqlCommand())
+            using (MySqlCommand cmd = new())
             {
                 for (int i = 0 ; i < flen ; i++)
                 {
@@ -408,9 +408,9 @@ namespace OpenSim.Data.MySQL
 
         public long GetCount(string where)
         {
-            using (MySqlCommand cmd = new MySqlCommand())
+            using (MySqlCommand cmd = new())
             {
-                string query = String.Format("select count(*) from {0} where {1}",
+                string query = string.Format("select count(*) from {0} where {1}",
                                              m_Realm, where);
 
                 cmd.CommandText = query;
@@ -425,7 +425,7 @@ namespace OpenSim.Data.MySQL
         {
             if (m_trans == null)
             {
-                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+                using (MySqlConnection dbcon = new(m_connectionString))
                 {
                     dbcon.Open();
                     cmd.Connection = dbcon;

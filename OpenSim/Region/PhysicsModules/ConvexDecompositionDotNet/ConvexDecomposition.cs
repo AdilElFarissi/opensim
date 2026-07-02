@@ -68,7 +68,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
         public static void calcConvexDecomposition(List<float3> vertices, List<int> indices, ConvexDecompositionCallback callback, float masterVolume, int depth,
             int maxDepth, float concavePercent, float mergePercent)
         {
-            float4 plane = new float4();
+            float4 plane = new();
             bool split = false;
 
             if (depth < maxDepth)
@@ -91,8 +91,8 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 
             if (depth >= maxDepth || !split)
             {
-                HullResult result = new HullResult();
-                HullDesc desc = new HullDesc();
+                HullResult result = new();
+                HullDesc desc = new();
 
                 desc.SetHullFlag(HullFlag.QF_TRIANGLES);
 
@@ -102,18 +102,18 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 
                 if (ret == HullError.QE_OK)
                 {
-                    ConvexResult r = new ConvexResult(result.OutputVertices, result.Indices);
+                    ConvexResult r = new(result.OutputVertices, result.Indices);
                     callback(r);
                 }
 
                 return;
             }
 
-            List<int> ifront = new List<int>();
-            List<int> iback = new List<int>();
+            List<int> ifront = [];
+            List<int> iback = [];
 
-            VertexPool vfront = new VertexPool();
-            VertexPool vback = new VertexPool();
+            VertexPool vfront = new();
+            VertexPool vback = new();
 
             // ok..now we are going to 'split' all of the input triangles against this plane!
             for (int i = 0; i < indices.Count / 3; i++)
@@ -122,7 +122,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
                 int i2 = indices[i * 3 + 1];
                 int i3 = indices[i * 3 + 2];
 
-                FaceTri t = new FaceTri(vertices, i1, i2, i3);
+                FaceTri t = new(vertices, i1, i2, i3);
 
                 float3[] front = new float3[4];
                 float3[] back = new float3[4];

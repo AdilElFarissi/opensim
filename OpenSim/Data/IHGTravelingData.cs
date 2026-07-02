@@ -39,7 +39,7 @@ namespace OpenSim.Data
 
         public HGTravelingData()
         {
-            Data = new Dictionary<string, string>();
+            Data = [];
         }
     }
 

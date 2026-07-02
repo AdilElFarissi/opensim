@@ -44,11 +44,11 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
     public class XferModule : INonSharedRegionModule, IXfer
     {
         private Scene m_scene;
-        private Dictionary<string, FileData> NewFiles = new Dictionary<string, FileData>();
-        private Dictionary<ulong, XferDownLoad> Transfers = new Dictionary<ulong, XferDownLoad>();
+        private Dictionary<string, FileData> NewFiles = [];
+        private Dictionary<ulong, XferDownLoad> Transfers = [];
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private object  timeTickLock = new object();
+        private object  timeTickLock = new();
         private int  lastTimeTick = 0;
         private int  lastFilesExpire = 0;
         private bool    inTimeTick = false;
@@ -170,10 +170,12 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                 }
                 else
                 {
-                    FileData fd = new FileData();
-                    fd.refsCount = 1;
-                    fd.Data = data;
-                    fd.timeStampMS = now;
+                    FileData fd = new()
+                    {
+                        refsCount = 1,
+                        Data = data,
+                        timeStampMS = now
+                    };
                     NewFiles.Add(fileName, fd);
                 }
             }
@@ -189,7 +191,7 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                 if(now - lastFilesExpire > 120000)
                 {
                     lastFilesExpire = now;
-                    List<string> expires = new List<string>();
+                    List<string> expires = [];
                     foreach(string fname in NewFiles.Keys)
                     {
                         if(NewFiles[fname].refsCount == 0 && now - NewFiles[fname].timeStampMS > 120000)
@@ -277,7 +279,7 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
                             if(burstSize > 32)
                                 burstSize = 32;
                             XferDownLoad transaction =
-                                new XferDownLoad(fileName, fileData, xferID, remoteClient, burstSize);
+                                new(fileName, fileData, xferID, remoteClient, burstSize);
 
                             Transfers.Add(xferID, transaction);
                             transaction.StartSend();
@@ -322,11 +324,11 @@ namespace OpenSim.Region.CoreModules.Agent.Xfer
         {
             public IClientAPI remoteClient;
             public byte[] Data = Array.Empty<byte>();
-            public string FileName = String.Empty;
+            public string FileName = string.Empty;
             public ulong XferID = 0;
             public bool isDeleted = false;
 
-            private object myLock = new object();
+            private object myLock = new();
             private int lastACKTimeMS;
             private int LastPacket;
             private int lastBytes;

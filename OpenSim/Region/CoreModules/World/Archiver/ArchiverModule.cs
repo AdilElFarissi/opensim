@@ -106,96 +106,113 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             bool mergeTerrain = false;
             bool mergeParcels = false;
             bool noObjects = false;
-            Vector3 displacement = new Vector3(0f, 0f, 0f);
-            String defaultUser = "";
+            Vector3 displacement = new(0f, 0f, 0f);
+            string defaultUser = "";
             float rotation = 0f;
-            Vector3 rotationCenter = new Vector3(Scene.RegionInfo.RegionSizeX / 2f, Scene.RegionInfo.RegionSizeY / 2f, 0);
-            Vector3 boundingOrigin = new Vector3(0f, 0f, Constants.MinSimulationHeight);
-            Vector3 boundingSize = new Vector3(Scene.RegionInfo.RegionSizeX, Scene.RegionInfo.RegionSizeY, Constants.MaxSimulationHeight - Constants.MinSimulationHeight);
+            Vector3 rotationCenter = new(Scene.RegionInfo.RegionSizeX / 2f, Scene.RegionInfo.RegionSizeY / 2f, 0);
+            Vector3 boundingOrigin = new(0f, 0f, Constants.MinSimulationHeight);
+            Vector3 boundingSize = new(Scene.RegionInfo.RegionSizeX, Scene.RegionInfo.RegionSizeY, Constants.MaxSimulationHeight - Constants.MinSimulationHeight);
             bool debug = false;
             
-            OptionSet options = new OptionSet();
-            options.Add("m|merge", delegate(string v) { mergeOar = (v != null); });
-            options.Add("mergeReplaceObjects", delegate (string v) { mergeReplaceObjects = (v != null); });
-            options.Add("s|skip-assets", delegate(string v) { skipAssets = (v != null); });
-            options.Add("force-assets", delegate(string v) { forceAssets = (v != null); });
-            options.Add("merge-terrain", delegate(string v) { mergeTerrain = (v != null); });
-            options.Add("force-terrain", delegate (string v) { mergeTerrain = (v != null); });   // downward compatibility
-            options.Add("forceterrain", delegate (string v) { mergeTerrain = (v != null); });   // downward compatibility
-            options.Add("merge-parcels", delegate(string v) { mergeParcels = (v != null); });
-            options.Add("force-parcels", delegate (string v) { mergeParcels = (v != null); });   // downward compatibility
-            options.Add("forceparcels", delegate (string v) { mergeParcels = (v != null); });   // downward compatibility
-            options.Add("no-objects", delegate(string v) { noObjects = (v != null); });
-            options.Add("default-user=", delegate(string v) { defaultUser = (v == null) ? "" : v; });
-            options.Add("displacement=", delegate(string v)
+            OptionSet options = new()
             {
-                try
+                { "m|merge", delegate (string v) { mergeOar = (v != null); } },
+                { "mergeReplaceObjects", delegate (string v) { mergeReplaceObjects = (v != null); } },
+                { "s|skip-assets", delegate (string v) { skipAssets = (v != null); } },
+                { "force-assets", delegate (string v) { forceAssets = (v != null); } },
+                { "merge-terrain", delegate (string v) { mergeTerrain = (v != null); } },
+                { "force-terrain", delegate (string v) { mergeTerrain = (v != null); } },   // downward compatibility
+                { "forceterrain", delegate (string v) { mergeTerrain = (v != null); } },   // downward compatibility
+                { "merge-parcels", delegate (string v) { mergeParcels = (v != null); } },
+                { "force-parcels", delegate (string v) { mergeParcels = (v != null); } },   // downward compatibility
+                { "forceparcels", delegate (string v) { mergeParcels = (v != null); } },   // downward compatibility
+                { "no-objects", delegate (string v) { noObjects = (v != null); } },
+                { "default-user=", delegate (string v) { defaultUser = (v == null) ? "" : v; } },
                 {
-                    displacement = v == null ? Vector3.Zero : Vector3.Parse(v);
-                }
-                catch
+                    "displacement=",
+                    delegate (string v)
                 {
-                    m_log.ErrorFormat("[ARCHIVER MODULE] failure parsing displacement");
-                    m_log.ErrorFormat("[ARCHIVER MODULE]    Must be represented as vector3: --displacement \"<128,128,0>\"");
-                    return;
+                    try
+                    {
+                        displacement = v == null ? Vector3.Zero : Vector3.Parse(v);
+                    }
+                    catch
+                    {
+                        m_log.ErrorFormat("[ARCHIVER MODULE] failure parsing displacement");
+                        m_log.ErrorFormat("[ARCHIVER MODULE]    Must be represented as vector3: --displacement \"<128,128,0>\"");
+                        return;
+                    }
                 }
-            });
-            options.Add("rotation=", delegate(string v)
-            {
-                try
+                },
                 {
-                    rotation = v == null ? 0f : float.Parse(v);
-                }
-                catch
+                    "rotation=",
+                    delegate (string v)
                 {
-                    m_log.ErrorFormat("[ARCHIVER MODULE] failure parsing rotation");
-                    m_log.ErrorFormat("[ARCHIVER MODULE]    Must be an angle in degrees between -360 and +360: --rotation 45");
-                    return;
+                    try
+                    {
+                        rotation = v == null ? 0f : float.Parse(v);
+                    }
+                    catch
+                    {
+                        m_log.ErrorFormat("[ARCHIVER MODULE] failure parsing rotation");
+                        m_log.ErrorFormat("[ARCHIVER MODULE]    Must be an angle in degrees between -360 and +360: --rotation 45");
+                        return;
+                    }
+                    //pass this in as degrees now, convert to radians later during actual work phase
+                    rotation = Math.Clamp(rotation, -359f, 359f);
                 }
-                //pass this in as degrees now, convert to radians later during actual work phase
-                rotation = Math.Clamp(rotation, -359f, 359f);
-            });
-            options.Add("rotation-center=", delegate(string v)
-            {
-                try
+                },
                 {
-                    m_log.Info("[ARCHIVER MODULE] Warning: --rotation-center no longer does anything and will be removed soon!");
-                    rotationCenter = v == null ? Vector3.Zero : Vector3.Parse(v);
-                }
-                catch
+                    "rotation-center=",
+                    delegate (string v)
                 {
-                    m_log.ErrorFormat("[ARCHIVER MODULE] failure parsing rotation displacement");
-                    m_log.ErrorFormat("[ARCHIVER MODULE]    Must be represented as vector3: --rotation-center \"<128,128,0>\"");
-                    return;
+                    try
+                    {
+                        m_log.Info("[ARCHIVER MODULE] Warning: --rotation-center no longer does anything and will be removed soon!");
+                        rotationCenter = v == null ? Vector3.Zero : Vector3.Parse(v);
+                    }
+                    catch
+                    {
+                        m_log.ErrorFormat("[ARCHIVER MODULE] failure parsing rotation displacement");
+                        m_log.ErrorFormat("[ARCHIVER MODULE]    Must be represented as vector3: --rotation-center \"<128,128,0>\"");
+                        return;
+                    }
                 }
-            });
-            options.Add("bounding-origin=", delegate(string v)
-            {
-                try
+                },
                 {
-                    boundingOrigin = v == null ? Vector3.Zero : Vector3.Parse(v);
-                }
-                catch
+                    "bounding-origin=",
+                    delegate (string v)
                 {
-                    m_log.ErrorFormat("[ARCHIVER MODULE] failure parsing bounding cube origin");
-                    m_log.ErrorFormat("[ARCHIVER MODULE]    Must be represented as vector3: --bounding-origin \"<128,128,0>\"");
-                    return;
+                    try
+                    {
+                        boundingOrigin = v == null ? Vector3.Zero : Vector3.Parse(v);
+                    }
+                    catch
+                    {
+                        m_log.ErrorFormat("[ARCHIVER MODULE] failure parsing bounding cube origin");
+                        m_log.ErrorFormat("[ARCHIVER MODULE]    Must be represented as vector3: --bounding-origin \"<128,128,0>\"");
+                        return;
+                    }
                 }
-            });
-            options.Add("bounding-size=", delegate(string v)
-            {
-                try
+                },
                 {
-                    boundingSize = v == null ? new Vector3(Scene.RegionInfo.RegionSizeX, Scene.RegionInfo.RegionSizeY, float.MaxValue) : Vector3.Parse(v);
-                }
-                catch
+                    "bounding-size=",
+                    delegate (string v)
                 {
-                    m_log.ErrorFormat("[ARCHIVER MODULE] failure parsing bounding cube size");
-                    m_log.ErrorFormat("[ARCHIVER MODULE]    Must be represented as a positive vector3: --bounding-size \"<256,256,4096>\"");
-                    return;
+                    try
+                    {
+                        boundingSize = v == null ? new Vector3(Scene.RegionInfo.RegionSizeX, Scene.RegionInfo.RegionSizeY, float.MaxValue) : Vector3.Parse(v);
+                    }
+                    catch
+                    {
+                        m_log.ErrorFormat("[ARCHIVER MODULE] failure parsing bounding cube size");
+                        m_log.ErrorFormat("[ARCHIVER MODULE]    Must be represented as a positive vector3: --bounding-size \"<256,256,4096>\"");
+                        return;
+                    }
                 }
-            });
-            options.Add("d|debug", delegate(string v) { debug = (v != null); });
+                },
+                { "d|debug", delegate (string v) { debug = (v != null); } }
+            };
 
             // Send a message to the region ready module
             /* bluewall* Disable this for the time being
@@ -214,7 +231,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 //            foreach (string param in mainParams)
 //                m_log.DebugFormat("GOT PARAM [{0}]", param);
 
-            Dictionary<string, object> archiveOptions = new Dictionary<string, object>();
+            Dictionary<string, object> archiveOptions = [];
             if (mergeOar) archiveOptions.Add("merge", null);
             if (skipAssets) archiveOptions.Add("skipAssets", null);
             if (forceAssets) archiveOptions.Add("forceAssets", null);
@@ -266,19 +283,19 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <param name="cmdparams"></param>
         public void HandleSaveOarConsoleCommand(string module, string[] cmdparams)
         {
-            Dictionary<string, object> options = new Dictionary<string, object>();
+            Dictionary<string, object> options = [];
 
-            OptionSet ops = new OptionSet();
-
-            // legacy argument [obsolete]
-            ops.Add("p|profile=", delegate(string v) { Console.WriteLine("\n WARNING: -profile option is obsolete and it will not work. Use -home instead.\n"); });
-            // preferred
-            ops.Add("h|home=", delegate(string v) { options["home"] = v; });
-
-            ops.Add("noassets", delegate(string v) { options["noassets"] = v != null; });
-            ops.Add("publish", v => options["wipe-owners"] = v != null);
-            ops.Add("perm=", delegate(string v) { options["checkPermissions"] = v; });
-            ops.Add("all", delegate(string v) { options["all"] = v != null; });
+            OptionSet ops = new()
+            {
+                // legacy argument [obsolete]
+                { "p|profile=", delegate (string v) { Console.WriteLine("\n WARNING: -profile option is obsolete and it will not work. Use -home instead.\n"); } },
+                // preferred
+                { "h|home=", delegate (string v) { options["home"] = v; } },
+                { "noassets", delegate (string v) { options["noassets"] = v != null; } },
+                { "publish", v => options["wipe-owners"] = v != null },
+                { "perm=", delegate (string v) { options["checkPermissions"] = v; } },
+                { "all", delegate (string v) { options["all"] = v != null; } }
+            };
 
             List<string> mainParams = ops.Parse(cmdparams);
 
@@ -316,7 +333,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         public void ArchiveRegion(Stream saveStream, Guid requestId)
         {
-            ArchiveRegion(saveStream, requestId, new Dictionary<string, object>());
+            ArchiveRegion(saveStream, requestId, []);
         }
 
         public void ArchiveRegion(Stream saveStream, Guid requestId, Dictionary<string, object> options)
@@ -326,7 +343,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         public void DearchiveRegion(string loadPath)
         {
-            Dictionary<string, object> archiveOptions = new Dictionary<string, object>();
+            Dictionary<string, object> archiveOptions = [];
             DearchiveRegion(loadPath, Guid.Empty, archiveOptions);
         }
 
@@ -340,7 +357,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         public void DearchiveRegion(Stream loadStream)
         {
-            Dictionary<string, object> archiveOptions = new Dictionary<string, object>();
+            Dictionary<string, object> archiveOptions = [];
             DearchiveRegion(loadStream, Guid.Empty, archiveOptions);
         }
         public void DearchiveRegion(Stream loadStream, Guid requestId, Dictionary<string, object> options)

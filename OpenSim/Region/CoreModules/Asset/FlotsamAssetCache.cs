@@ -80,9 +80,9 @@ namespace OpenSim.Region.CoreModules.Asset
         private ulong m_MemoryHits;
         private ulong m_weakRefHits;
 
-        private static readonly HashSet<string> m_CurrentlyWriting = new();
+        private static readonly HashSet<string> m_CurrentlyWriting = [];
         private static ObjectJobEngine m_assetFileWriteWorker = null;
-        private static HashSet<string> m_defaultAssets = new();
+        private static HashSet<string> m_defaultAssets = [];
 
         private bool m_FileCacheEnabled = true;
 
@@ -107,10 +107,10 @@ namespace OpenSim.Region.CoreModules.Asset
         private System.Timers.Timer m_CacheCleanTimer;
 
         private IAssetService m_AssetService;
-        private readonly List<Scene> m_Scenes = new();
+        private readonly List<Scene> m_Scenes = [];
         private readonly object timerLock = new();
 
-        private Dictionary<string,WeakReference> weakAssetReferences = new();
+        private Dictionary<string,WeakReference> weakAssetReferences = [];
         private readonly object weakAssetReferencesLock = new();
         private static bool m_updateFileTimeOnCacheHit = false;
 
@@ -118,9 +118,7 @@ namespace OpenSim.Region.CoreModules.Asset
 
         public FlotsamAssetCache()
         {
-            List<char> invalidChars = new();
-            invalidChars.AddRange(Path.GetInvalidPathChars());
-            invalidChars.AddRange(Path.GetInvalidFileNameChars());
+            List<char> invalidChars = [.. Path.GetInvalidPathChars(), .. Path.GetInvalidFileNameChars()];
             m_InvalidChars = invalidChars.ToArray();
         }
 
@@ -320,7 +318,7 @@ namespace OpenSim.Region.CoreModules.Asset
                         IAssetLoader assetLoader = ServerUtils.LoadPlugin<IAssetLoader>(m_assetLoader, Array.Empty<object>());
                         if (assetLoader is not null)
                         {
-                            HashSet<string> ids = new();
+                            HashSet<string> ids = [];
                             assetLoader.ForEachDefaultXmlAsset(
                                 m_assetLoaderArgs,
                                 delegate (AssetBase a)
@@ -780,7 +778,7 @@ namespace OpenSim.Region.CoreModules.Asset
             }
 
             lock (weakAssetReferencesLock)
-                weakAssetReferences = new Dictionary<string, WeakReference>();
+                weakAssetReferences = [];
         }
 
         private void CleanupExpiredFiles(object source, ElapsedEventArgs e)
@@ -826,7 +824,7 @@ namespace OpenSim.Region.CoreModules.Asset
 
             lock (weakAssetReferencesLock)
             {
-                weakAssetReferences = new Dictionary<string, WeakReference>();
+                weakAssetReferences = [];
                 m_weakRefHits=0;
             }
 
@@ -1156,7 +1154,7 @@ namespace OpenSim.Region.CoreModules.Asset
         {
             m_log.Info("[FLOTSAM ASSET CACHE] gather assets in use");
 
-            Dictionary<UUID, sbyte> gatheredids = new();
+            Dictionary<UUID, sbyte> gatheredids = [];
             UuidGatherer gatherer = new(m_AssetService, gatheredids);
 
             int cooldown = 0;
@@ -1291,7 +1289,7 @@ namespace OpenSim.Region.CoreModules.Asset
 
         private List<string> GenerateCacheHitReport()
         {
-            List<string> outputLines = new();
+            List<string> outputLines = [];
 
             double invReq = 100.0 / m_Requests;
 
@@ -1692,7 +1690,7 @@ namespace OpenSim.Region.CoreModules.Asset
             m_log.Info("[FLOTSAM ASSET CACHE] start loading local default assets");
 
             int count = 0;
-            HashSet<string> ids = new();
+            HashSet<string> ids = [];
             assetLoader.ForEachDefaultXmlAsset(
                     m_assetLoaderArgs,
                     delegate (AssetBase a)
@@ -1729,7 +1727,7 @@ namespace OpenSim.Region.CoreModules.Asset
                         Expire(a.ID);
                         ++count;
                     });
-            m_defaultAssets = new HashSet<string>();
+            m_defaultAssets = [];
             m_log.Info($"[FLOTSAM ASSET CACHE] deleted {count} local default assets");
         }
         #endregion

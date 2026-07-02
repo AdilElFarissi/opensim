@@ -100,24 +100,26 @@ namespace OpenSim.Framework
 
         public OSDMap Pack(EntityTransferContext ctx)
         {
-            OSDMap args = new OSDMap();
-            args["message_type"] = OSD.FromString("AgentPosition");
+            OSDMap args = new()
+            {
+                ["message_type"] = OSD.FromString("AgentPosition"),
 
-            args["region_handle"] = OSD.FromString(RegionHandle.ToString());
-            args["circuit_code"] = OSD.FromString(CircuitCode.ToString());
-            args["agent_uuid"] = OSD.FromUUID(AgentID);
-            args["session_uuid"] = OSD.FromUUID(SessionID);
+                ["region_handle"] = OSD.FromString(RegionHandle.ToString()),
+                ["circuit_code"] = OSD.FromString(CircuitCode.ToString()),
+                ["agent_uuid"] = OSD.FromUUID(AgentID),
+                ["session_uuid"] = OSD.FromUUID(SessionID),
 
-            args["position"] = OSD.FromString(Position.ToString());
-            args["velocity"] = OSD.FromString(Velocity.ToString());
-            args["center"] = OSD.FromString(Center.ToString());
-            args["size"] = OSD.FromString(Size.ToString());
-            args["at_axis"] = OSD.FromString(AtAxis.ToString());
-            args["left_axis"] = OSD.FromString(LeftAxis.ToString());
-            args["up_axis"] = OSD.FromString(UpAxis.ToString());
+                ["position"] = OSD.FromString(Position.ToString()),
+                ["velocity"] = OSD.FromString(Velocity.ToString()),
+                ["center"] = OSD.FromString(Center.ToString()),
+                ["size"] = OSD.FromString(Size.ToString()),
+                ["at_axis"] = OSD.FromString(AtAxis.ToString()),
+                ["left_axis"] = OSD.FromString(LeftAxis.ToString()),
+                ["up_axis"] = OSD.FromString(UpAxis.ToString()),
 
-            args["far"] = OSD.FromReal(Far);
-            args["changed_grid"] = OSD.FromBoolean(ChangedGrid);
+                ["far"] = OSD.FromReal(Far),
+                ["changed_grid"] = OSD.FromBoolean(ChangedGrid)
+            };
             //args["god_level"] = OSD.FromString(GodLevel.ToString());
             if(GodData != null)
             {
@@ -134,12 +136,14 @@ namespace OpenSim.Framework
 
             if (ChildrenCapSeeds != null && ChildrenCapSeeds.Count > 0)
             {
-                OSDArray childrenSeeds = new OSDArray(ChildrenCapSeeds.Count);
+                OSDArray childrenSeeds = new(ChildrenCapSeeds.Count);
                 foreach (KeyValuePair<ulong, string> kvp in ChildrenCapSeeds)
                 {
-                    OSDMap pair = new OSDMap();
-                    pair["handle"] = OSD.FromString(kvp.Key.ToString());
-                    pair["seed"] = OSD.FromString(kvp.Value);
+                    OSDMap pair = new()
+                    {
+                        ["handle"] = OSD.FromString(kvp.Key.ToString()),
+                        ["seed"] = OSD.FromString(kvp.Value)
+                    };
                     childrenSeeds.Add(pair);
                 }
                 args["children_seeds"] = childrenSeeds;
@@ -152,10 +156,10 @@ namespace OpenSim.Framework
         {
             OSD osdtmp;
             if (args.TryGetValue("region_handle", out osdtmp) && osdtmp != null)
-                _ = UInt64.TryParse(osdtmp.AsString(), out RegionHandle);
+                _ = ulong.TryParse(osdtmp.AsString(), out RegionHandle);
 
             if (args.TryGetValue("circuit_code", out osdtmp) && osdtmp != null)
-                _ = UInt32.TryParse(osdtmp.AsString(), out CircuitCode);
+                _ = uint.TryParse(osdtmp.AsString(), out CircuitCode);
 
             if (args.TryGetValue("agent_uuid", out osdtmp) && osdtmp != null)
                 AgentID = osdtmp.AsUUID();
@@ -198,14 +202,14 @@ namespace OpenSim.Framework
 
             if (args.TryGetValue("children_seeds", out osdtmp) && osdtmp is OSDArray childrenSeeds)
             {
-                ChildrenCapSeeds = new Dictionary<ulong, string>();
+                ChildrenCapSeeds = [];
                 foreach (OSD o in childrenSeeds)
                 {
                     if (o is OSDMap pair)
                     {
                         if (pair.TryGetValue("handle", out osdtmp) && osdtmp != null)
                         {
-                            if (UInt64.TryParse(osdtmp.AsString(), out ulong handle))
+                            if (ulong.TryParse(osdtmp.AsString(), out ulong handle))
                             { 
                                 if (pair.TryGetValue("seed", out osdtmp))
                                     ChildrenCapSeeds.TryAdd(handle, osdtmp.AsString());
@@ -228,8 +232,10 @@ namespace OpenSim.Framework
             SessionID = sid;
 
             // next: ???
-            Size = new Vector3();
-            Size.Z = cAgent.AVHeight;
+            Size = new Vector3
+            {
+                Z = cAgent.AVHeight
+            };
 
             Center = cAgent.cameraPosition;
             Far = cAgent.drawdistance;
@@ -260,10 +266,12 @@ namespace OpenSim.Framework
 
         public OSDMap PackUpdateMessage()
         {
-            OSDMap groupdata = new OSDMap();
-            groupdata["group_id"] = OSD.FromUUID(GroupID);
-            groupdata["group_powers"] = OSD.FromString(GroupPowers.ToString());
-            groupdata["accept_notices"] = OSD.FromBoolean(AcceptNotices);
+            OSDMap groupdata = new()
+            {
+                ["group_id"] = OSD.FromUUID(GroupID),
+                ["group_powers"] = OSD.FromString(GroupPowers.ToString()),
+                ["accept_notices"] = OSD.FromBoolean(AcceptNotices)
+            };
 
             return groupdata;
         }
@@ -274,7 +282,7 @@ namespace OpenSim.Framework
             if (args.TryGetValue("group_id", out osdtmp) && osdtmp != null)
                 GroupID = osdtmp.AsUUID();
             if (args.TryGetValue("group_powers", out osdtmp) && osdtmp != null)
-                UInt64.TryParse(osdtmp.AsString(), out GroupPowers);
+                ulong.TryParse(osdtmp.AsString(), out GroupPowers);
             if (args.TryGetValue("accept_notices", out osdtmp) && osdtmp != null)
                 AcceptNotices = osdtmp.AsBoolean();
         }
@@ -302,11 +310,13 @@ namespace OpenSim.Framework
 
         public OSDMap PackUpdateMessage()
         {
-            OSDMap controldata = new OSDMap();
-            controldata["object"] = OSD.FromUUID(ObjectID);
-            controldata["item"] = OSD.FromUUID(ItemID);
-            controldata["ignore"] = OSD.FromInteger(IgnoreControls);
-            controldata["event"] = OSD.FromInteger(EventControls);
+            OSDMap controldata = new()
+            {
+                ["object"] = OSD.FromUUID(ObjectID),
+                ["item"] = OSD.FromUUID(ItemID),
+                ["ignore"] = OSD.FromInteger(IgnoreControls),
+                ["event"] = OSD.FromInteger(EventControls)
+            };
 
             return controldata;
         }
@@ -366,7 +376,7 @@ namespace OpenSim.Framework
         //public Byte GodLevel;
         public bool AlwaysRun;
         public UUID PreyAgent;
-        public Byte AgentAccess;
+        public byte AgentAccess;
         public UUID ActiveGroupID;
         public string ActiveGroupName;
         public string ActiveGroupTitle = null;
@@ -378,7 +388,7 @@ namespace OpenSim.Framework
         public Animation[] Anims;
         public Animation DefaultAnim = null;
         public Animation AnimState = null;
-        public Byte MotionState = 0;
+        public byte MotionState = 0;
 
         public UUID ParentPart;
         public Vector3 SitOffset;
@@ -396,7 +406,7 @@ namespace OpenSim.Framework
         public List<ISceneObject> AttachmentObjects;
         public List<string> AttachmentObjectStates;
 
-        public Dictionary<string, UUID> MovementAnimationOverRides = new Dictionary<string, UUID>();
+        public Dictionary<string, UUID> MovementAnimationOverRides = [];
 
         public List<UUID> CachedFriendsOnline;
 
@@ -421,27 +431,29 @@ namespace OpenSim.Framework
         {
             //m_log.InfoFormat("[CHILDAGENTDATAUPDATE] Pack data");
 
-            OSDMap args = new OSDMap();
-            args["message_type"] = OSD.FromString("AgentData");
+            OSDMap args = new()
+            {
+                ["message_type"] = OSD.FromString("AgentData"),
 
-            args["region_id"] = OSD.FromString(RegionID.ToString());
-            args["circuit_code"] = OSD.FromString(CircuitCode.ToString());
-            args["agent_uuid"] = OSD.FromUUID(AgentID);
-            args["session_uuid"] = OSD.FromUUID(SessionID);
+                ["region_id"] = OSD.FromString(RegionID.ToString()),
+                ["circuit_code"] = OSD.FromString(CircuitCode.ToString()),
+                ["agent_uuid"] = OSD.FromUUID(AgentID),
+                ["session_uuid"] = OSD.FromUUID(SessionID),
 
-            args["position"] = OSD.FromString(Position.ToString());
-            args["velocity"] = OSD.FromString(Velocity.ToString());
-            args["center"] = OSD.FromString(Center.ToString());
-            args["size"] = OSD.FromString(Size.ToString());
-            args["at_axis"] = OSD.FromString(AtAxis.ToString());
-            args["left_axis"] = OSD.FromString(LeftAxis.ToString());
-            args["up_axis"] = OSD.FromString(UpAxis.ToString());
+                ["position"] = OSD.FromString(Position.ToString()),
+                ["velocity"] = OSD.FromString(Velocity.ToString()),
+                ["center"] = OSD.FromString(Center.ToString()),
+                ["size"] = OSD.FromString(Size.ToString()),
+                ["at_axis"] = OSD.FromString(AtAxis.ToString()),
+                ["left_axis"] = OSD.FromString(LeftAxis.ToString()),
+                ["up_axis"] = OSD.FromString(UpAxis.ToString()),
 
-            //backwards compatibility
-            args["changed_grid"] = OSD.FromBoolean(SenderWantsToWaitForRoot);
-            args["wait_for_root"] = OSD.FromBoolean(SenderWantsToWaitForRoot);
-            args["far"] = OSD.FromReal(Far);
-            args["aspect"] = OSD.FromReal(Aspect);
+                //backwards compatibility
+                ["changed_grid"] = OSD.FromBoolean(SenderWantsToWaitForRoot),
+                ["wait_for_root"] = OSD.FromBoolean(SenderWantsToWaitForRoot),
+                ["far"] = OSD.FromReal(Far),
+                ["aspect"] = OSD.FromReal(Aspect)
+            };
 
             if ((Throttles != null) && (Throttles.Length > 0))
                 args["throttles"] = OSD.FromBinary(Throttles);
@@ -476,12 +488,14 @@ namespace OpenSim.Framework
 
             if (ChildrenCapSeeds != null && ChildrenCapSeeds.Count > 0)
             {
-                OSDArray childrenSeeds = new OSDArray(ChildrenCapSeeds.Count);
+                OSDArray childrenSeeds = new(ChildrenCapSeeds.Count);
                 foreach (KeyValuePair<ulong, string> kvp in ChildrenCapSeeds)
                 {
-                    OSDMap pair = new OSDMap();
-                    pair["handle"] = OSD.FromString(kvp.Key.ToString());
-                    pair["seed"] = OSD.FromString(kvp.Value);
+                    OSDMap pair = new()
+                    {
+                        ["handle"] = OSD.FromString(kvp.Key.ToString()),
+                        ["seed"] = OSD.FromString(kvp.Value)
+                    };
                     childrenSeeds.Add(pair);
                 }
                 args["children_seeds"] = childrenSeeds;
@@ -489,7 +503,7 @@ namespace OpenSim.Framework
 
             if ((Anims != null) && (Anims.Length > 0))
             {
-                OSDArray anims = new OSDArray(Anims.Length);
+                OSDArray anims = new(Anims.Length);
                 foreach (Animation aanim in Anims)
                     anims.Add(aanim.PackUpdateMessage());
                 args["animations"] = anims;
@@ -507,13 +521,15 @@ namespace OpenSim.Framework
 
             if (MovementAnimationOverRides.Count > 0)
             {
-                OSDArray AOs = new OSDArray(MovementAnimationOverRides.Count);
+                OSDArray AOs = new(MovementAnimationOverRides.Count);
                 {
                     foreach (KeyValuePair<string, UUID> kvp in MovementAnimationOverRides)
                     {
-                        OSDMap ao = new OSDMap(2);
-                        ao["state"] = OSD.FromString(kvp.Key);
-                        ao["uuid"] = OSD.FromUUID(kvp.Value);
+                        OSDMap ao = new(2)
+                        {
+                            ["state"] = OSD.FromString(kvp.Key),
+                            ["uuid"] = OSD.FromUUID(kvp.Value)
+                        };
                         AOs.Add(ao);
                     }
                 }
@@ -530,7 +546,7 @@ namespace OpenSim.Framework
 
             if ((Controllers != null) && (Controllers.Length > 0))
             {
-                OSDArray controls = new OSDArray(Controllers.Length);
+                OSDArray controls = new(Controllers.Length);
                 foreach (ControllerData ctl in Controllers)
                     controls.Add(ctl.PackUpdateMessage());
                 args["controllers"] = controls;
@@ -546,13 +562,15 @@ namespace OpenSim.Framework
             if (AttachmentObjects != null)
             {
                 int i = 0;
-                OSDArray attObjs = new OSDArray(AttachmentObjects.Count);
+                OSDArray attObjs = new(AttachmentObjects.Count);
                 foreach (ISceneObject so in AttachmentObjects)
                 {
-                    OSDMap info = new OSDMap(4);
-                    info["sog"] = OSD.FromString(so.ToXml2());
-                    info["extra"] = OSD.FromString(so.ExtraToXmlString());
-                    info["modified"] = OSD.FromBoolean(so.HasGroupChanged);
+                    OSDMap info = new(4)
+                    {
+                        ["sog"] = OSD.FromString(so.ToXml2()),
+                        ["extra"] = OSD.FromString(so.ExtraToXmlString()),
+                        ["modified"] = OSD.FromBoolean(so.HasGroupChanged)
+                    };
                     try
                     {
                         info["state"] = OSD.FromString(AttachmentObjectStates[i++]);
@@ -572,9 +590,7 @@ namespace OpenSim.Framework
 
             if(CachedFriendsOnline != null && CachedFriendsOnline.Count > 0)
             {
-                OSDArray cfonl = new OSDArray(CachedFriendsOnline.Count);
-                foreach(UUID id in CachedFriendsOnline)
-                    cfonl.Add(id);
+                OSDArray cfonl = [.. CachedFriendsOnline];
                 args["cfonline"] = cfonl;
             }
 
@@ -594,7 +610,7 @@ namespace OpenSim.Framework
                 _ = UUID.TryParse(tmp.AsString(), out RegionID);
 
             if (args.TryGetValue("circuit_code", out tmp) && tmp != null)
-                UInt32.TryParse(tmp.AsString(), out CircuitCode);
+                uint.TryParse(tmp.AsString(), out CircuitCode);
 
             if (args.TryGetValue("agent_uuid", out tmp) && tmp != null)
                 AgentID = tmp.AsUUID();
@@ -636,7 +652,7 @@ namespace OpenSim.Framework
                 Throttles = tmp.AsBinary();
 
             if (args.TryGetValue("locomotion_state", out tmp) && tmp != null)
-                _ = UInt32.TryParse(tmp.AsString(), out LocomotionState);
+                _ = uint.TryParse(tmp.AsString(), out LocomotionState);
 
             if (args.TryGetValue("head_rotation", out tmp) && tmp != null)
                 _ = Quaternion.TryParse(tmp.AsString(), out HeadRotation);
@@ -645,7 +661,7 @@ namespace OpenSim.Framework
                 _ = Quaternion.TryParse(tmp.AsString(), out BodyRotation);
 
             if (args.TryGetValue("control_flags", out tmp) && tmp != null)
-                _ = UInt32.TryParse(tmp.AsString(), out ControlFlags);
+                _ = uint.TryParse(tmp.AsString(), out ControlFlags);
 
             if (args.TryGetValue("energy_level", out tmp) && tmp != null)
                 EnergyLevel = (float)tmp.AsReal();
@@ -660,7 +676,7 @@ namespace OpenSim.Framework
                 PreyAgent = tmp.AsUUID();
 
             if (args.TryGetValue("agent_access", out tmp) && tmp != null)
-                _ = Byte.TryParse(tmp.AsString(), out AgentAccess);
+                _ = byte.TryParse(tmp.AsString(), out AgentAccess);
 
             if (args.TryGetValue("agent_cof", out tmp) && tmp != null)
                 agentCOF = tmp.AsUUID();
@@ -685,12 +701,12 @@ namespace OpenSim.Framework
 
             if (args.TryGetValue("children_seeds", out tmp) && tmp is OSDArray childrenSeeds)
             {
-                ChildrenCapSeeds = new Dictionary<ulong, string>();
+                ChildrenCapSeeds = [];
                 foreach (OSD o in childrenSeeds)
                 {
                     if (o is OSDMap pair)
                     {
-                        if (pair.TryGetValue("handle", out tmp) && tmp != null && UInt64.TryParse(tmp.AsString(), out ulong handle))
+                        if (pair.TryGetValue("handle", out tmp) && tmp != null && ulong.TryParse(tmp.AsString(), out ulong handle))
                         {
                             if (pair.TryGetValue("seed", out tmp))
                                 ChildrenCapSeeds.TryAdd(handle, tmp.AsString());
@@ -787,7 +803,7 @@ namespace OpenSim.Framework
                 if (args.TryGetValue("texture_entry", out tmp) && tmp != null)
                 {
                     byte[] rawtextures = tmp.AsBinary();
-                    Primitive.TextureEntry textures = new Primitive.TextureEntry(rawtextures, 0, rawtextures.Length);
+                    Primitive.TextureEntry textures = new(rawtextures, 0, rawtextures.Length);
                     Appearance.SetTextureEntries(textures);
                 }
 
@@ -798,7 +814,7 @@ namespace OpenSim.Framework
                 {
                     for (int i = 0; i < wears.Count / 2; i++)
                     {
-                        AvatarWearable awear = new AvatarWearable((OSDArray)wears[i]);
+                        AvatarWearable awear = new((OSDArray)wears[i]);
                         Appearance.SetWearable(i, awear);
                     }
                 }
@@ -842,8 +858,8 @@ namespace OpenSim.Framework
             // Attachment objects
             if (args.TryGetValue("attach_objects", out tmp) && tmp is OSDArray attObjs)
             {
-                AttachmentObjects = new List<ISceneObject>();
-                AttachmentObjectStates = new List<string>();
+                AttachmentObjects = [];
+                AttachmentObjectStates = [];
                 foreach (OSD o in attObjs)
                 {
                     if (o is OSDMap info)

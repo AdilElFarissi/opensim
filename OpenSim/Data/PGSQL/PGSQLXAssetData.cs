@@ -93,10 +93,10 @@ namespace OpenSim.Data.PGSQL
             m_connectionString = connect;
             m_database = new PGSQLManager(m_connectionString);
 
-            using (NpgsqlConnection dbcon = new NpgsqlConnection(m_connectionString))
+            using (NpgsqlConnection dbcon = new(m_connectionString))
             {
                 dbcon.Open();
-                Migration m = new Migration(dbcon, Assembly, "XAssetStore");
+                Migration m = new(dbcon, Assembly, "XAssetStore");
                 m.Update();
             }
         }
@@ -133,11 +133,11 @@ namespace OpenSim.Data.PGSQL
             AssetBase asset = null;
             lock (m_dbLock)
             {
-                using (NpgsqlConnection dbcon = new NpgsqlConnection(m_connectionString))
+                using (NpgsqlConnection dbcon = new(m_connectionString))
                 {
                     dbcon.Open();
 
-                    using (NpgsqlCommand cmd = new NpgsqlCommand(
+                    using (NpgsqlCommand cmd = new(
                         @"SELECT name, description, access_time, ""AssetType"", local, temporary, asset_flags, creatorid, data
                             FROM XAssetsMeta
                             JOIN XAssetsData ON XAssetsMeta.hash = XAssetsData.Hash WHERE id=:ID",
@@ -155,10 +155,11 @@ namespace OpenSim.Data.PGSQL
                                         assetID,
                                         (string)dbReader["name"],
                                         Convert.ToSByte(dbReader["AssetType"]),
-                                        dbReader["creatorid"].ToString());
-
-                                    asset.Data = (byte[])dbReader["data"];
-                                    asset.Description = (string)dbReader["description"];
+                                        dbReader["creatorid"].ToString())
+                                    {
+                                        Data = (byte[])dbReader["data"],
+                                        Description = (string)dbReader["description"]
+                                    };
 
                                     string local = dbReader["local"].ToString();
                                     if (local.Equals("1") || local.Equals("true", StringComparison.InvariantCultureIgnoreCase))
@@ -171,10 +172,10 @@ namespace OpenSim.Data.PGSQL
 
                                     if (m_enableCompression)
                                     {
-                                        using(MemoryStream ms = new MemoryStream(asset.Data))
-                                        using(GZipStream decompressionStream = new GZipStream(ms, CompressionMode.Decompress))
+                                        using(MemoryStream ms = new(asset.Data))
+                                        using(GZipStream decompressionStream = new(ms, CompressionMode.Decompress))
                                         {
-                                            using(MemoryStream outputStream = new MemoryStream())
+                                            using(MemoryStream outputStream = new())
                                             {
                                                 decompressionStream.CopyTo(outputStream,int.MaxValue);
                                                 //                                        int compressedLength = asset.Data.Length;
@@ -215,7 +216,7 @@ namespace OpenSim.Data.PGSQL
 
             lock (m_dbLock)
             {
-                using (NpgsqlConnection dbcon = new NpgsqlConnection(m_connectionString))
+                using (NpgsqlConnection dbcon = new(m_connectionString))
                 {
                     dbcon.Open();
 
@@ -241,9 +242,9 @@ namespace OpenSim.Data.PGSQL
 
                         if (m_enableCompression)
                         {
-                            MemoryStream outputStream = new MemoryStream();
+                            MemoryStream outputStream = new();
 
-                            using (GZipStream compressionStream = new GZipStream(outputStream, CompressionMode.Compress, false))
+                            using (GZipStream compressionStream = new(outputStream, CompressionMode.Compress, false))
                             {
                                 // We have to close the compression stream in order to make sure it writes everything out to the underlying memory output stream.
                                 compressionStream.Close();
@@ -261,7 +262,7 @@ namespace OpenSim.Data.PGSQL
                         try
                         {
                             using (NpgsqlCommand cmd =
-                                new NpgsqlCommand(
+                                new(
                                     @"insert INTO XAssetsMeta(id, hash, name, description, ""AssetType"", local, temporary, create_time, access_time, asset_flags, creatorid)
                                        Select :ID, :Hash, :Name, :Description, :AssetType, :Local, :Temporary, :CreateTime, :AccessTime, :AssetFlags, :CreatorID
                                         where not exists( Select id from XAssetsMeta where id = :ID);
@@ -307,7 +308,7 @@ namespace OpenSim.Data.PGSQL
                             try
                             {
                                 using (NpgsqlCommand cmd =
-                                    new NpgsqlCommand(
+                                    new(
                                         @"INSERT INTO XAssetsData(hash, data) VALUES(:Hash, :Data)",
                                         dbcon))
                                 {
@@ -354,11 +355,11 @@ namespace OpenSim.Data.PGSQL
 
             lock (m_dbLock)
             {
-                using (NpgsqlConnection dbcon = new NpgsqlConnection(m_connectionString))
+                using (NpgsqlConnection dbcon = new(m_connectionString))
                 {
                     dbcon.Open();
                     NpgsqlCommand cmd =
-                        new NpgsqlCommand(@"update XAssetsMeta set access_time=:AccessTime where id=:ID", dbcon);
+                        new(@"update XAssetsMeta set access_time=:AccessTime where id=:ID", dbcon);
 
                     try
                     {
@@ -394,7 +395,7 @@ namespace OpenSim.Data.PGSQL
 
             bool exists = false;
 
-            using (NpgsqlCommand cmd = new NpgsqlCommand(@"SELECT hash FROM XAssetsData WHERE hash=:Hash", dbcon))
+            using (NpgsqlCommand cmd = new(@"SELECT hash FROM XAssetsData WHERE hash=:Hash", dbcon))
             {
                 cmd.Parameters.Add(m_database.CreateParameter("Hash", hash));
 
@@ -430,15 +431,15 @@ namespace OpenSim.Data.PGSQL
             if (uuids.Length == 0)
                 return [];
 
-            HashSet<UUID> exist = new HashSet<UUID>();
+            HashSet<UUID> exist = [];
 
             string ids = "'" + string.Join("','", uuids) + "'";
             string sql = string.Format(@"SELECT id FROM XAssetsMeta WHERE id IN ({0})", ids);
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
+            using (NpgsqlConnection conn = new(m_connectionString))
             {
                 conn.Open();
-                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+                using (NpgsqlCommand cmd = new(sql, conn))
                 {
                     using (NpgsqlDataReader reader = cmd.ExecuteReader())
                     {
@@ -470,10 +471,10 @@ namespace OpenSim.Data.PGSQL
 
             lock (m_dbLock)
             {
-                using (NpgsqlConnection dbcon = new NpgsqlConnection(m_connectionString))
+                using (NpgsqlConnection dbcon = new(m_connectionString))
                 {
                     dbcon.Open();
-                    using (NpgsqlCommand cmd = new NpgsqlCommand(@"SELECT id FROM XAssetsMeta WHERE id=:ID", dbcon))
+                    using (NpgsqlCommand cmd = new(@"SELECT id FROM XAssetsMeta WHERE id=:ID", dbcon))
                     {
                         cmd.Parameters.Add(m_database.CreateParameter("ID", uuid));
 
@@ -510,14 +511,14 @@ namespace OpenSim.Data.PGSQL
         /// <returns>A list of AssetMetadata objects.</returns>
         public List<AssetMetadata> FetchAssetMetadataSet(int start, int count)
         {
-            List<AssetMetadata> retList = new List<AssetMetadata>(count);
+            List<AssetMetadata> retList = new(count);
 
             lock (m_dbLock)
             {
-                using (NpgsqlConnection dbcon = new NpgsqlConnection(m_connectionString))
+                using (NpgsqlConnection dbcon = new(m_connectionString))
                 {
                     dbcon.Open();
-                    using(NpgsqlCommand cmd = new NpgsqlCommand(@"SELECT name, description, access_time, ""AssetType"", temporary, id, asset_flags, creatorid
+                    using(NpgsqlCommand cmd = new(@"SELECT name, description, access_time, ""AssetType"", temporary, id, asset_flags, creatorid
                                             FROM XAssetsMeta
                                             LIMIT :start, :count", dbcon))
                     {
@@ -530,17 +531,19 @@ namespace OpenSim.Data.PGSQL
                             {
                                 while (dbReader.Read())
                                 {
-                                    AssetMetadata metadata = new AssetMetadata();
-                                    metadata.Name = (string)dbReader["name"];
-                                    metadata.Description = (string)dbReader["description"];
-                                    metadata.Type = Convert.ToSByte(dbReader["AssetType"]);
-                                    metadata.Temporary = Convert.ToBoolean(dbReader["temporary"]);
-                                    metadata.Flags = (AssetFlags)Convert.ToInt32(dbReader["asset_flags"]);
-                                    metadata.FullID = DBGuid.FromDB(dbReader["id"]);
-                                    metadata.CreatorID = dbReader["creatorid"].ToString();
+                                    AssetMetadata metadata = new()
+                                    {
+                                        Name = (string)dbReader["name"],
+                                        Description = (string)dbReader["description"],
+                                        Type = Convert.ToSByte(dbReader["AssetType"]),
+                                        Temporary = Convert.ToBoolean(dbReader["temporary"]),
+                                        Flags = (AssetFlags)Convert.ToInt32(dbReader["asset_flags"]),
+                                        FullID = DBGuid.FromDB(dbReader["id"]),
+                                        CreatorID = dbReader["creatorid"].ToString()
+                                    };
 
                                     // We'll ignore this for now - it appears unused!
-    //                                metadata.SHA1 = dbReader["hash"]);
+                                    //                                metadata.SHA1 = dbReader["hash"]);
 
                                     UpdateAccessTime(metadata, (int)dbReader["access_time"]);
 
@@ -565,11 +568,11 @@ namespace OpenSim.Data.PGSQL
 
             lock (m_dbLock)
             {
-                using (NpgsqlConnection dbcon = new NpgsqlConnection(m_connectionString))
+                using (NpgsqlConnection dbcon = new(m_connectionString))
                 {
                     dbcon.Open();
 
-                    using (NpgsqlCommand cmd = new NpgsqlCommand(@"delete from XAssetsMeta where id=:ID", dbcon))
+                    using (NpgsqlCommand cmd = new(@"delete from XAssetsMeta where id=:ID", dbcon))
                     {
                         cmd.Parameters.Add(m_database.CreateParameter("ID", id));
                         cmd.ExecuteNonQuery();

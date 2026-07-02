@@ -51,7 +51,7 @@ namespace OpenSim.Region.CoreModules.World.Wind.Plugins
         private float m_varDirection = 30.0f;// Max Direction Variance
         private float m_rateChange = 1.0f; //
 
-        private Vector2 m_curPredominateWind = new Vector2();
+        private Vector2 m_curPredominateWind = new();
 
 
 
@@ -164,13 +164,14 @@ namespace OpenSim.Region.CoreModules.World.Wind.Plugins
 
         public System.Collections.Generic.Dictionary<string, string> WindParams()
         {
-            Dictionary<string, string> Params = new Dictionary<string, string>();
-
-            Params.Add("avgStrength", "average wind strength");
-            Params.Add("avgDirection", "average wind direction in degrees");
-            Params.Add("varStrength", "allowable variance in wind strength");
-            Params.Add("varDirection", "allowable variance in wind direction in +/- degrees");
-            Params.Add("rateChange", "rate of change");
+            Dictionary<string, string> Params = new()
+            {
+                { "avgStrength", "average wind strength" },
+                { "avgDirection", "average wind direction in degrees" },
+                { "varStrength", "allowable variance in wind strength" },
+                { "varDirection", "allowable variance in wind direction in +/- degrees" },
+                { "rateChange", "rate of change" }
+            };
 
             return Params;
         }
@@ -212,7 +213,7 @@ namespace OpenSim.Region.CoreModules.World.Wind.Plugins
                 case "rateChange":
                     return m_rateChange;
                 default:
-                    throw new Exception(String.Format("Unknown {0} parameter {1}", this.Name, param));
+                    throw new Exception(string.Format("Unknown {0} parameter {1}", this.Name, param));
 
             }
         }

@@ -46,22 +46,22 @@ namespace OpenSim.Framework
         private readonly Dictionary<string, int> _sessions;
         private readonly System.Timers.Timer _forgetTimer;  // Cleanup timer
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private readonly System.Threading.ReaderWriterLockSlim _blockLockSlim = new System.Threading.ReaderWriterLockSlim();
-        private readonly System.Threading.ReaderWriterLockSlim _sessionLockSlim = new System.Threading.ReaderWriterLockSlim();
+        private readonly System.Threading.ReaderWriterLockSlim _blockLockSlim = new();
+        private readonly System.Threading.ReaderWriterLockSlim _sessionLockSlim = new();
         public BasicDOSProtector(BasicDosProtectorOptions options)
         {
             _generalRequestTimes = new CircularBuffer<int>(options.MaxRequestsInTimeframe + 1, true);
             _generalRequestTimes.Put(0);
             _options = options;
-            _deeperInspection = new Dictionary<string, CircularBuffer<int>>();
-            _tempBlocked = new Dictionary<string, int>();
-            _sessions = new Dictionary<string, int>();
+            _deeperInspection = [];
+            _tempBlocked = [];
+            _sessions = [];
             _forgetTimer = new System.Timers.Timer();
             _forgetTimer.Elapsed += delegate
             {
                 _forgetTimer.Enabled = false;
 
-                List<string> removes = new List<string>();
+                List<string> removes = [];
                 _blockLockSlim.EnterReadLock();
                 foreach (string str in _tempBlocked.Keys)
                 {

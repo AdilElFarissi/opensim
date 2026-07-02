@@ -648,11 +648,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public object[] CaptureStackFrame(string funcName, int callNo, int nSaves)
         {
-            XMRStackFrame sf = new XMRStackFrame();
-            sf.nextSF = stackFrames;
-            sf.funcName = funcName;
-            sf.callNo = callNo;
-            sf.objArray = new object[nSaves];
+            XMRStackFrame sf = new()
+            {
+                nextSF = stackFrames,
+                funcName = funcName,
+                callNo = callNo,
+                objArray = new object[nSaves]
+            };
             stackFrames = sf;
             return sf.objArray;
         }
@@ -1280,7 +1282,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             string stwhole = ex.StackTrace;
             string[] stlines = stwhole.Split(new char[] { '\n' });
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
             foreach(string st in stlines)
             {
                 string stline = st.Trim();
@@ -1472,8 +1474,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             try
             {
                 migrateOutWriter = mow;
-                migrateOutObjects = new Dictionary<object, int>();
-                migrateOutLists = new Dictionary<object[], ObjLslList>();
+                migrateOutObjects = [];
+                migrateOutLists = [];
                 SendObjValue(ehArgs);
                 mow.Write(doGblInit);
                 mow.Write(stateCode);
@@ -1610,8 +1612,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 object[] data = llg.Data;
                 if(!migrateOutLists.TryGetValue(data, out ObjLslList ollg))
                 {
-                    ollg = new ObjLslList();
-                    ollg.objarray = data;
+                    ollg = new ObjLslList
+                    {
+                        objarray = data
+                    };
                     migrateOutLists[data] = ollg;
                 }
                 graph = ollg;
@@ -1691,9 +1695,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
             else if(graph is ScriptThrownException ScriptThrownExceptiongraph)
             {
-                MemoryStream memoryStream = new MemoryStream();
+                MemoryStream memoryStream = new();
                 System.Runtime.Serialization.Formatters.Binary.BinaryFormatter bformatter =
-                        new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
+                        new();
                 bformatter.Serialize(memoryStream, graph);
                 byte[] rawBytes = memoryStream.ToArray();
                 mow.Write((byte)Ser.THROWNEX);
@@ -1703,9 +1707,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
             else
             {
-                MemoryStream memoryStream = new MemoryStream();
+                MemoryStream memoryStream = new();
                 System.Runtime.Serialization.Formatters.Binary.BinaryFormatter bformatter =
-                        new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
+                        new();
                 bformatter.Serialize(memoryStream, graph);
                 byte[] rawBytes = memoryStream.ToArray();
                 mow.Write((byte)Ser.SYSERIAL);
@@ -1805,7 +1809,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             try
             {
                 migrateInReader = mir;
-                migrateInObjects = new Dictionary<int, object>();
+                migrateInObjects = [];
                 ehArgs = (object[])RecvObjValue() ?? [];
                 doGblInit = mir.ReadBoolean();
                 stateCode = mir.ReadInt32();
@@ -1821,11 +1825,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         newStateCode = mir.ReadInt32();
                         continue;
                     }
-                    XMRStackFrame thisSF = new XMRStackFrame();
-                    thisSF.funcName = funcName;
-                    thisSF.callNo = mir.ReadInt32();
-                    thisSF.objArray = (object[])RecvObjValue() ?? [];
-                    if(lastSF == null)
+                    XMRStackFrame thisSF = new()
+                    {
+                        funcName = funcName,
+                        callNo = mir.ReadInt32(),
+                        objArray = (object[])RecvObjValue() ?? []
+                    };
+                    if (lastSF == null)
                         stackFrames = thisSF;
                     else
                         lastSF.nextSF = thisSF;
@@ -1871,7 +1877,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 {
                     this.migrateInObjects.Add(ident, null);    // placeholder
                     object[] data = (object[])RecvObjValue() ?? [];  // read data, maybe using another index
-                    LSL_List list = new LSL_List(data);        // make LSL-level list
+                    LSL_List list = new(data);        // make LSL-level list
                     this.migrateInObjects[ident] = list;        // fill in slot
                     return list;
                 }
@@ -1934,7 +1940,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
                 case Ser.XMRARRAY:
                 {
-                    XMR_Array array = new XMR_Array(this);
+                    XMR_Array array = new(this);
                     this.migrateInObjects.Add(ident, array);
                     array.RecvArrayObj(this.RecvObjValue);
                     return array;
@@ -1962,7 +1968,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     return del;
 
                 case Ser.SDTCLOBJ:
-                    XMRSDTypeClObj clobj = new XMRSDTypeClObj();
+                    XMRSDTypeClObj clobj = new();
                     this.migrateInObjects.Add(ident, clobj);
                     clobj.Restore(this, this.RecvObjValue);
                     return clobj;
@@ -1971,9 +1977,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 {
                     int rawLength = mir.ReadInt32();
                     byte[] rawBytes = mir.ReadBytes(rawLength);
-                    MemoryStream memoryStream = new MemoryStream(rawBytes);
+                    MemoryStream memoryStream = new(rawBytes);
                     System.Runtime.Serialization.Formatters.Binary.BinaryFormatter bformatter =
-                            new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
+                            new();
                     object graph = bformatter.Deserialize(memoryStream);
                     this.migrateInObjects.Add(ident, graph);
                     return graph;
@@ -1983,9 +1989,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 {
                     int rawLength = mir.ReadInt32();
                     byte[] rawBytes = mir.ReadBytes(rawLength);
-                    MemoryStream memoryStream = new MemoryStream(rawBytes);
+                    MemoryStream memoryStream = new(rawBytes);
                     System.Runtime.Serialization.Formatters.Binary.BinaryFormatter bformatter =
-                            new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
+                            new();
                     object graph = bformatter.Deserialize(memoryStream);
                     this.migrateInObjects.Add(ident, graph);
                     ((ScriptThrownException)graph).thrown = RecvObjValue();

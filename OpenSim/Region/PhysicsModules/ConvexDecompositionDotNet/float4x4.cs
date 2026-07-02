@@ -31,10 +31,10 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 {
     public class float4x4
     {
-        public float4 x = new float4();
-        public float4 y = new float4();
-        public float4 z = new float4();
-        public float4 w = new float4();
+        public float4 x = new();
+        public float4 y = new();
+        public float4 z = new();
+        public float4 w = new();
 
         public float4x4()
         {
@@ -125,7 +125,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 
         public static float4x4 Inverse(float4x4 m)
         {
-            float4x4 d = new float4x4();
+            float4x4 d = new();
             //float dst = d.x.x;
             float[] tmp = new float[12]; // temp array for pairs
             float[] src = new float[16]; // array of transpose source matrix
@@ -210,8 +210,10 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
         public static float4x4 MatrixRigidInverse(float4x4 m)
         {
             float4x4 trans_inverse = MatrixTranslation(-m.w.xyz());
-            float4x4 rot = new float4x4(m);
-            rot.w = new float4(0f, 0f, 0f, 1f);
+            float4x4 rot = new(m)
+            {
+                w = new float4(0f, 0f, 0f, 1f)
+            };
             return trans_inverse * MatrixTranspose(rot);
         }
         public static float4x4 MatrixTranspose(float4x4 m)
@@ -236,7 +238,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
         }
         public static float4x4 MatrixLookAt(float3 eye, float3 at, float3 up)
         {
-            float4x4 m = new float4x4();
+            float4x4 m = new();
             m.w.w = 1.0f;
             m.w.setxyz(eye);
             m.z.setxyz(float3.normalize(eye - at));

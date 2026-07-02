@@ -98,7 +98,7 @@ namespace OpenSim.Framework.Monitoring
 
             string path = cmd[2];
 
-            using (StreamWriter sw = new StreamWriter(path, true))
+            using (StreamWriter sw = new(path, true))
             {
                 foreach (string line in GetReport())
                     sw.WriteLine(line);
@@ -112,8 +112,10 @@ namespace OpenSim.Framework.Monitoring
             if (m_loggingTimer != null)
                 Stop();
 
-            m_loggingTimer = new Timer(m_statsLogIntervalMs);
-            m_loggingTimer.AutoReset = false;
+            m_loggingTimer = new Timer(m_statsLogIntervalMs)
+            {
+                AutoReset = false
+            };
             m_loggingTimer.Elapsed += Log;
             m_loggingTimer.Start();
         }
@@ -136,12 +138,7 @@ namespace OpenSim.Framework.Monitoring
 
         private static List<string> GetReport()
         {
-            List<string> lines = new List<string>();
-
-            lines.Add(string.Format("*** STATS REPORT AT {0} ***", DateTime.Now));
-
-            foreach (string report in StatsManager.GetAllStatsReports())
-                lines.Add(report);
+            List<string> lines = [string.Format("*** STATS REPORT AT {0} ***", DateTime.Now), .. StatsManager.GetAllStatsReports()];
 
             return lines;
         }

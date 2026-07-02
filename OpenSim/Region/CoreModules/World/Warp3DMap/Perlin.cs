@@ -47,7 +47,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
         static Perlin()
         {
-            Random rng = new Random(SEED);
+            Random rng = new(SEED);
             int i, j, k;
 
             for (i = 0; i < B; i++)

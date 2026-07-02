@@ -82,9 +82,9 @@ namespace OpenSim
         protected string proxyUrl;
         protected int proxyOffset = 0;
 
-        public string userStatsURI = String.Empty;
-        public string managedStatsURI = String.Empty;
-        public string managedStatsPassword = String.Empty;
+        public string userStatsURI = string.Empty;
+        public string managedStatsURI = string.Empty;
+        public string managedStatsPassword = string.Empty;
 
         protected bool m_autoCreateClientStack = true;
 
@@ -105,7 +105,7 @@ namespace OpenSim
 
         public ConsoleCommand CreateAccount = null;
 
-        public List<IApplicationPlugin> m_plugins = new List<IApplicationPlugin>();
+        public List<IApplicationPlugin> m_plugins = [];
 
         private List<string> m_permsModules;
 
@@ -116,7 +116,7 @@ namespace OpenSim
         /// </value>
         public OpenSimConfigSource ConfigSource { get; private set; }
 
-        protected EnvConfigSource m_EnvConfigSource = new EnvConfigSource();
+        protected EnvConfigSource m_EnvConfigSource = new();
 
         public EnvConfigSource envConfigSource
         {
@@ -160,7 +160,7 @@ namespace OpenSim
             if (networkConfig != null)
             {
                 proxyUrl = networkConfig.GetString("proxy_url", "");
-                proxyOffset = Int32.Parse(networkConfig.GetString("proxy_offset", "0"));
+                proxyOffset = int.Parse(networkConfig.GetString("proxy_offset", "0"));
             }
 
             IConfig startupConfig = Config.Configs["Startup"];
@@ -173,14 +173,14 @@ namespace OpenSim
         protected virtual void LoadPlugins()
         {
             IConfig startupConfig = Config.Configs["Startup"];
-            string registryLocation = (startupConfig != null) ? startupConfig.GetString("RegistryLocation", String.Empty) : String.Empty;
+            string registryLocation = (startupConfig != null) ? startupConfig.GetString("RegistryLocation", string.Empty) : string.Empty;
 
             // The location can also be specified in the environment. If there
             // is no location in the configuration, we must call the constructor
             // without a location parameter to allow that to happen.
             if (registryLocation.Length == 0)
             {
-                using (PluginLoader<IApplicationPlugin> loader = new PluginLoader<IApplicationPlugin>(new ApplicationPluginInitialiser(this)))
+                using (PluginLoader<IApplicationPlugin> loader = new(new ApplicationPluginInitialiser(this)))
                 {
                     loader.Load("/OpenSim/Startup");
                     m_plugins = loader.Plugins;
@@ -188,7 +188,7 @@ namespace OpenSim
             }
             else
             {
-                using (PluginLoader<IApplicationPlugin> loader = new PluginLoader<IApplicationPlugin>(new ApplicationPluginInitialiser(this), registryLocation))
+                using (PluginLoader<IApplicationPlugin> loader = new(new ApplicationPluginInitialiser(this), registryLocation))
                 {
                     loader.Load("/OpenSim/Startup");
                     m_plugins = loader.Plugins;
@@ -233,10 +233,10 @@ namespace OpenSim
                 string permissionModules = Util.GetConfigVarFromSections<string>(Config, "permissionmodules",
                     new string[] { "Startup", "Permissions" }, "DefaultPermissionsModule");
 
-                m_permsModules =  new List<string>(permissionModules.Split(',').Select(m => m.Trim()));
+                m_permsModules = [.. permissionModules.Split(',').Select(m => m.Trim())];
 
-                managedStatsURI = startupConfig.GetString("ManagedStatsRemoteFetchURI", String.Empty);
-                managedStatsPassword = startupConfig.GetString("ManagedStatsRemoteFetchPassword", String.Empty);
+                managedStatsURI = startupConfig.GetString("ManagedStatsRemoteFetchURI", string.Empty);
+                managedStatsPassword = startupConfig.GetString("ManagedStatsRemoteFetchPassword", string.Empty);
             }
 
             // Load the simulation data service
@@ -244,8 +244,8 @@ namespace OpenSim
             if (simDataConfig == null)
                 throw new Exception("Configuration file is missing the [SimulationDataStore] section.  Have you copied OpenSim.ini.example to OpenSim.ini to reference config-include/ files?");
 
-            string module = simDataConfig.GetString("LocalServiceModule", String.Empty);
-            if (String.IsNullOrEmpty(module))
+            string module = simDataConfig.GetString("LocalServiceModule", string.Empty);
+            if (string.IsNullOrEmpty(module))
                 throw new Exception("Configuration file is missing the LocalServiceModule parameter in the [SimulationDataStore] section.");
 
             m_simulationDataService = ServerUtils.LoadPlugin<ISimulationDataService>(module, new object[] { Config });
@@ -256,8 +256,8 @@ namespace OpenSim
                         module));
 
             // Load the estate data service
-            module = Util.GetConfigVarFromSections<string>(Config, "LocalServiceModule", new string[]{"EstateDataStore", "EstateService"}, String.Empty);
-            if (String.IsNullOrEmpty(module))
+            module = Util.GetConfigVarFromSections<string>(Config, "LocalServiceModule", new string[]{"EstateDataStore", "EstateService"}, string.Empty);
+            if (string.IsNullOrEmpty(module))
                 throw new Exception("Configuration file is missing the LocalServiceModule parameter in the [EstateDataStore] or [EstateService] section");
 
             if (LoadEstateDataService)
@@ -321,7 +321,7 @@ namespace OpenSim
                     console.Commands.AddCommand(capitalizedTopic, false,
                                                   topic + " " + command,
                                                   topic + " " + commander.Commands[command].ShortHelp(),
-                                                  String.Empty, HandleCommanderCommand);
+                                                  string.Empty, HandleCommanderCommand);
                 }
             }
         }
@@ -484,7 +484,7 @@ namespace OpenSim
                     }
                 }
 
-                m_log.InfoFormat("[SCENE]: Secure permissions loading enabled, modules loaded: {0}", String.Join(" ", m_permsModules.ToArray()));
+                m_log.InfoFormat("[SCENE]: Secure permissions loading enabled, modules loaded: {0}", string.Join(" ", m_permsModules.ToArray()));
             }
 
             scene.SetModuleInterfaces();
@@ -716,7 +716,7 @@ namespace OpenSim
             if (!cleanup)
                 return;
 
-            if (!String.IsNullOrEmpty(scene.RegionInfo.RegionFile))
+            if (!string.IsNullOrEmpty(scene.RegionInfo.RegionFile))
             {
                 if (scene.RegionInfo.RegionFile.ToLower().EndsWith(".xml"))
                 {
@@ -727,7 +727,7 @@ namespace OpenSim
                 {
                     try
                     {
-                        IniConfigSource source = new IniConfigSource(scene.RegionInfo.RegionFile);
+                        IniConfigSource source = new(scene.RegionInfo.RegionFile);
                         if (source.Configs[scene.RegionInfo.RegionName] != null)
                         {
                             source.Configs.Remove(scene.RegionInfo.RegionName);
@@ -810,7 +810,7 @@ namespace OpenSim
         {
             //List<IClientNetworkServer> clientNetworkServers = null;
 
-            AgentCircuitManager circuitManager = new AgentCircuitManager();
+            AgentCircuitManager circuitManager = new();
             Scene scene = CreateScene(regionInfo, m_simulationDataService, m_estateDataService, circuitManager);
 
             scene.LoadWorldMap();
@@ -1067,7 +1067,7 @@ namespace OpenSim
             {
                 bool targetEstateJoined = false;
 
-                if (Int32.TryParse(targetEstateIDstr, out int targetEstateID) && targetEstateID > 99)
+                if (int.TryParse(targetEstateIDstr, out int targetEstateID) && targetEstateID > 99)
                 {
                     // Attempt to join the target estate given in Config by ID
                     foreach (EstateSettings estate in estates)
@@ -1144,7 +1144,7 @@ namespace OpenSim
                             string.Format(
                                 "Do you wish to join region {0} to an existing estate (yes/no)?", regInfo.RegionName),
                                 "yes",
-                                new List<string>() { "yes", "no" });
+                                ["yes", "no"]);
 
                     if (response == "no")
                     {

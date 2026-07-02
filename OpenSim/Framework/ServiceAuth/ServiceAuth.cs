@@ -35,7 +35,7 @@ namespace OpenSim.Framework.ServiceAuth
 
         public static IServiceAuth Create(IConfigSource config, string section)
         {
-            CompoundAuthentication compoundAuth = new CompoundAuthentication();
+            CompoundAuthentication compoundAuth = new();
 
             bool allowLlHttpRequestIn
                 = Util.GetConfigVarFromSections<bool>(config, "AllowllHTTPRequestIn", new string[] { "Network", section }, false);

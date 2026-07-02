@@ -31,8 +31,8 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 {
     public class VertexPool
     {
-        private List<float3> mVertices = new List<float3>();
-        private Dictionary<float3, int> mIndices = new Dictionary<float3, int>();
+        private List<float3> mVertices = [];
+        private Dictionary<float3, int> mIndices = [];
 
         public int getIndex(float3 vtx)
         {

@@ -57,9 +57,9 @@ namespace OpenSim.Data.MySQL
 
         public void LogoutRegionAgents(UUID regionID)
         {
-            using (MySqlCommand cmd = new MySqlCommand())
+            using (MySqlCommand cmd = new())
             {
-                cmd.CommandText = String.Format("delete from {0} where `RegionID`=?RegionID", m_Realm);
+                cmd.CommandText = string.Format("delete from {0} where `RegionID`=?RegionID", m_Realm);
 
                 cmd.Parameters.AddWithValue("?RegionID", regionID.ToString());
 
@@ -76,9 +76,9 @@ namespace OpenSim.Data.MySQL
             if (regionID.IsZero())
                 return false;
 
-            using (MySqlCommand cmd = new MySqlCommand())
+            using (MySqlCommand cmd = new())
             {
-                cmd.CommandText = String.Format("update {0} set RegionID=?RegionID, LastSeen=NOW() where `SessionID`=?SessionID", m_Realm);
+                cmd.CommandText = string.Format("update {0} set RegionID=?RegionID, LastSeen=NOW() where `SessionID`=?SessionID", m_Realm);
 
                 cmd.Parameters.AddWithValue("?SessionID", sessionID.ToString());
                 cmd.Parameters.AddWithValue("?RegionID", regionID.ToString());

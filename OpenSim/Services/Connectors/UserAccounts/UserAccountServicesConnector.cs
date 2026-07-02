@@ -43,7 +43,7 @@ namespace OpenSim.Services.Connectors
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
-        private string m_ServerURI = String.Empty;
+        private string m_ServerURI = string.Empty;
 
         public UserAccountServicesConnector()
         {
@@ -76,7 +76,7 @@ namespace OpenSim.Services.Connectors
                 throw new Exception("User account connector init error");
             }
 
-            OSHHTPHost tmp = new OSHHTPHost(serviceURI, true);
+            OSHHTPHost tmp = new(serviceURI, true);
             if (!tmp.IsResolvedHost)
             {
                 m_log.ErrorFormat("[ACCOUNT CONNECTOR]: {0}", tmp.IsValidHost ? "Could not resolve UserAccountServerURI" : "UserAccountServerURI is a invalid host");
@@ -90,29 +90,33 @@ namespace OpenSim.Services.Connectors
 
         public virtual UserAccount GetUserAccount(UUID scopeID, string firstName, string lastName)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            //sendData["SCOPEID"] = scopeID.ToString();
-            sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
-            sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
-            sendData["METHOD"] = "getaccount";
+            Dictionary<string, object> sendData = new()
+            {
+                //sendData["SCOPEID"] = scopeID.ToString();
+                ["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString(),
+                ["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString(),
+                ["METHOD"] = "getaccount",
 
-            sendData["ScopeID"] = scopeID;
-            sendData["FirstName"] = firstName.ToString();
-            sendData["LastName"] = lastName.ToString();
+                ["ScopeID"] = scopeID,
+                ["FirstName"] = firstName.ToString(),
+                ["LastName"] = lastName.ToString()
+            };
 
             return SendAndGetReply(sendData);
         }
 
         public virtual UserAccount GetUserAccount(UUID scopeID, string email)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            //sendData["SCOPEID"] = scopeID.ToString();
-            sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
-            sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
-            sendData["METHOD"] = "getaccount";
+            Dictionary<string, object> sendData = new()
+            {
+                //sendData["SCOPEID"] = scopeID.ToString();
+                ["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString(),
+                ["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString(),
+                ["METHOD"] = "getaccount",
 
-            sendData["ScopeID"] = scopeID;
-            sendData["Email"] = email;
+                ["ScopeID"] = scopeID,
+                ["Email"] = email
+            };
 
             return SendAndGetReply(sendData);
         }
@@ -120,28 +124,32 @@ namespace OpenSim.Services.Connectors
         public virtual UserAccount GetUserAccount(UUID scopeID, UUID userID)
         {
             //m_log.DebugFormat("[ACCOUNTS CONNECTOR]: GetUserAccount {0}", userID);
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            //sendData["SCOPEID"] = scopeID.ToString();
-            sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
-            sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
-            sendData["METHOD"] = "getaccount";
+            Dictionary<string, object> sendData = new()
+            {
+                //sendData["SCOPEID"] = scopeID.ToString();
+                ["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString(),
+                ["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString(),
+                ["METHOD"] = "getaccount",
 
-            sendData["ScopeID"] = scopeID;
-            sendData["UserID"] = userID.ToString();
+                ["ScopeID"] = scopeID,
+                ["UserID"] = userID.ToString()
+            };
 
             return SendAndGetReply(sendData);
         }
 
         public List<UserAccount> GetUserAccounts(UUID scopeID, string query)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            //sendData["SCOPEID"] = scopeID.ToString();
-            sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
-            sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
-            sendData["METHOD"] = "getaccounts";
+            Dictionary<string, object> sendData = new()
+            {
+                //sendData["SCOPEID"] = scopeID.ToString();
+                ["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString(),
+                ["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString(),
+                ["METHOD"] = "getaccounts",
 
-            sendData["ScopeID"] = scopeID.ToString();
-            sendData["query"] = query;
+                ["ScopeID"] = scopeID.ToString(),
+                ["query"] = query
+            };
 
             string reply = string.Empty;
             string reqString = ServerUtils.BuildQueryString(sendData);
@@ -164,7 +172,7 @@ namespace OpenSim.Services.Connectors
                 m_log.DebugFormat("[ACCOUNT CONNECTOR]: Exception when contacting user accounts server at {0}: {1}", uri, e.Message);
             }
 
-            List<UserAccount> accounts = new List<UserAccount>();
+            List<UserAccount> accounts = [];
 
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
 
@@ -181,7 +189,7 @@ namespace OpenSim.Services.Connectors
                 {
                     if (acc is Dictionary<string, object>)
                     {
-                        UserAccount pinfo = new UserAccount((Dictionary<string, object>)acc);
+                        UserAccount pinfo = new((Dictionary<string, object>)acc);
                         accounts.Add(pinfo);
                     }
                     else
@@ -197,7 +205,7 @@ namespace OpenSim.Services.Connectors
 
         public virtual List<UserAccount> GetUserAccounts(UUID scopeID, List<string> IDs)
         {
-            List<UserAccount> accs = new List<UserAccount>();
+            List<UserAccount> accs = [];
             bool multisuported = true;
             accs = doGetMultiUserAccounts(scopeID, IDs, out multisuported);
             if(multisuported)
@@ -218,14 +226,16 @@ namespace OpenSim.Services.Connectors
         private List<UserAccount> doGetMultiUserAccounts(UUID scopeID, List<string> IDs, out bool suported)
         {
             suported = true;
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            //sendData["SCOPEID"] = scopeID.ToString();
-            sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
-            sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
-            sendData["METHOD"] = "getmultiaccounts";
+            Dictionary<string, object> sendData = new()
+            {
+                //sendData["SCOPEID"] = scopeID.ToString();
+                ["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString(),
+                ["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString(),
+                ["METHOD"] = "getmultiaccounts",
 
-            sendData["ScopeID"] = scopeID.ToString();
-            sendData["IDS"] = new List<string>(IDs);
+                ["ScopeID"] = scopeID.ToString(),
+                ["IDS"] = new List<string>(IDs)
+            };
 
             string reply = string.Empty;
             string reqString = ServerUtils.BuildQueryString(sendData);
@@ -248,7 +258,7 @@ namespace OpenSim.Services.Connectors
                 m_log.DebugFormat("[ACCOUNT CONNECTOR]: Exception when contacting user accounts server at {0}: {1}", uri, e.Message);
             }
 
-            List<UserAccount> accounts = new List<UserAccount>();
+            List<UserAccount> accounts = [];
 
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
 
@@ -272,7 +282,7 @@ namespace OpenSim.Services.Connectors
                 {
                     if (acc is Dictionary<string, object>)
                     {
-                        UserAccount pinfo = new UserAccount((Dictionary<string, object>)acc);
+                        UserAccount pinfo = new((Dictionary<string, object>)acc);
                         accounts.Add(pinfo);
                     }
                     else
@@ -298,11 +308,13 @@ namespace OpenSim.Services.Connectors
 
         public virtual bool StoreUserAccount(UserAccount data)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            //sendData["SCOPEID"] = scopeID.ToString();
-            sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
-            sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
-            sendData["METHOD"] = "setaccount";
+            Dictionary<string, object> sendData = new()
+            {
+                //sendData["SCOPEID"] = scopeID.ToString();
+                ["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString(),
+                ["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString(),
+                ["METHOD"] = "setaccount"
+            };
 
             Dictionary<string, object> structData = data.ToKeyValuePairs();
 
@@ -333,15 +345,17 @@ namespace OpenSim.Services.Connectors
         /// <returns></returns>
         public virtual UserAccount CreateUser(string first, string last, string password, string email, UUID scopeID)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            //sendData["SCOPEID"] = scopeID.ToString();
-            sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
-            sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
-            sendData["METHOD"] = "createuser";
+            Dictionary<string, object> sendData = new()
+            {
+                //sendData["SCOPEID"] = scopeID.ToString();
+                ["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString(),
+                ["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString(),
+                ["METHOD"] = "createuser",
 
-            sendData["FirstName"] = first;
-            sendData["LastName"] = last;
-            sendData["Password"] = password;
+                ["FirstName"] = first,
+                ["LastName"] = last,
+                ["Password"] = password
+            };
             if (!string.IsNullOrEmpty(email))
                 sendData["Email"] = first;
             sendData["ScopeID"] = scopeID.ToString();

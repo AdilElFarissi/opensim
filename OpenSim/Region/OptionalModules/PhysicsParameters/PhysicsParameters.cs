@@ -46,7 +46,7 @@ namespace OpenSim.Region.OptionalModules.PhysicsParameters
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 //        private static string LogHeader = "[PHYSICS PARAMETERS]";
 
-        private List<Scene> m_scenes = new List<Scene>();
+        private List<Scene> m_scenes = [];
         private static bool m_commandsLoaded = false;
 
         #region ISharedRegionModule
@@ -181,7 +181,7 @@ namespace OpenSim.Region.OptionalModules.PhysicsParameters
                 return;
             }
             string parm = "xxx";
-            string valparm = String.Empty;
+            string valparm = string.Empty;
             uint localID = (uint)PhysParameterEntry.APPLY_TO_NONE;  // set default value
             try
             {

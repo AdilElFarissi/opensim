@@ -57,7 +57,7 @@ namespace OpenSim.Groups
         public HGGroupsServiceRobustConnector(IConfigSource config, IHttpServer server, string configName, IOfflineIMService im, IUserAccountService users) :
             base(config, server, configName)
         {
-            if (configName != String.Empty)
+            if (configName != string.Empty)
                 m_ConfigName = configName;
 
             m_log.DebugFormat("[Groups.RobustHGConnector]: Starting with config name {0}", m_ConfigName);
@@ -65,19 +65,19 @@ namespace OpenSim.Groups
             string homeURI = Util.GetConfigVarFromSections<string>(config, "HomeURI",
                 new string[] { "Startup", "Hypergrid", m_ConfigName}, string.Empty);
             if (homeURI.Length == 0)
-                throw new Exception(String.Format("[Groups.RobustHGConnector]: please provide the HomeURI [Startup] or in section {0}", m_ConfigName));
+                throw new Exception(string.Format("[Groups.RobustHGConnector]: please provide the HomeURI [Startup] or in section {0}", m_ConfigName));
 
             IConfig cnf = config.Configs[m_ConfigName];
             if (cnf == null)
-                throw new Exception(String.Format("[Groups.RobustHGConnector]: {0} section does not exist", m_ConfigName));
+                throw new Exception(string.Format("[Groups.RobustHGConnector]: {0} section does not exist", m_ConfigName));
 
             if (im == null)
             {
                 string imDll = cnf.GetString("OfflineIMService", string.Empty);
                 if (imDll.Length == 0)
-                    throw new Exception(String.Format("[Groups.RobustHGConnector]: please provide OfflineIMService in section {0}", m_ConfigName));
+                    throw new Exception(string.Format("[Groups.RobustHGConnector]: please provide OfflineIMService in section {0}", m_ConfigName));
 
-                Object[] args = new Object[] { config };
+                object[] args = new object[] { config };
                 im = ServerUtils.LoadPlugin<IOfflineIMService>(imDll, args);
             }
 
@@ -85,9 +85,9 @@ namespace OpenSim.Groups
             {
                 string usersDll = cnf.GetString("UserAccountService", string.Empty);
                 if (usersDll.Length == 0)
-                    throw new Exception(String.Format("[Groups.RobustHGConnector]: please provide UserAccountService in section {0}", m_ConfigName));
+                    throw new Exception(string.Format("[Groups.RobustHGConnector]: please provide UserAccountService in section {0}", m_ConfigName));
 
-                Object[] args = new Object[] { config };
+                object[] args = new object[] { config };
                 users = ServerUtils.LoadPlugin<IUserAccountService>(usersDll, args);
             }
 
@@ -114,7 +114,7 @@ namespace OpenSim.Groups
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             string body;
-            using(StreamReader sr = new StreamReader(requestData))
+            using(StreamReader sr = new(requestData))
                 body = sr.ReadToEnd();
 
             body = body.Trim();
@@ -164,7 +164,7 @@ namespace OpenSim.Groups
 
         byte[] HandleAddGroupProxy(Dictionary<string, object> request)
         {
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
 
             if (!request.TryGetValue("RequestingAgentID", out object oRequestingAgentID) ||
                     !request.TryGetValue("GroupID", out object oGroupID) ||
@@ -176,7 +176,7 @@ namespace OpenSim.Groups
             {
                 string RequestingAgentID = oRequestingAgentID.ToString();
                 string agentID = oAgentID.ToString();
-                UUID groupID = new UUID(oGroupID.ToString());
+                UUID groupID = new(oGroupID.ToString());
                 string accessToken = oAccessToken.ToString();
                 string location = oLocation.ToString();
                 string name = string.Empty;
@@ -196,14 +196,14 @@ namespace OpenSim.Groups
 
         byte[] HandleRemoveAgentFromGroup(Dictionary<string, object> request)
         {
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
 
             if (!request.ContainsKey("AccessToken") || !request.ContainsKey("AgentID") ||
                 !request.ContainsKey("GroupID"))
                 NullResult(result, "Bad network data");
             else
             {
-                UUID groupID = new UUID(request["GroupID"].ToString());
+                UUID groupID = new(request["GroupID"].ToString());
                 string agentID = request["AgentID"].ToString();
                 string token = request["AccessToken"].ToString();
 
@@ -219,7 +219,7 @@ namespace OpenSim.Groups
 
         byte[] HandleGetGroup(Dictionary<string, object> request)
         {
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
 
             if (!request.ContainsKey("RequestingAgentID") || !request.ContainsKey("AccessToken"))
                 NullResult(result, "Bad network data");
@@ -251,7 +251,7 @@ namespace OpenSim.Groups
 
         byte[] HandleGetGroupMembers(Dictionary<string, object> request)
         {
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
 
             if (!request.TryGetValue("RequestingAgentID", out object oRequestingAgentID) ||
                     !request.TryGetValue("GroupID", out object oGroupID) ||
@@ -259,7 +259,7 @@ namespace OpenSim.Groups
                 NullResult(result, "Bad network data");
             else
             {
-                UUID groupID = new UUID(oGroupID.ToString());
+                UUID groupID = new(oGroupID.ToString());
                 string requestingAgentID = oRequestingAgentID.ToString();
                 string token = oAccessToken.ToString();
 
@@ -270,7 +270,7 @@ namespace OpenSim.Groups
                 }
                 else
                 {
-                    Dictionary<string, object> dict = new Dictionary<string, object>();
+                    Dictionary<string, object> dict = [];
                     int i = 0;
                     foreach (ExtendedGroupMembersData m in members)
                     {
@@ -289,7 +289,7 @@ namespace OpenSim.Groups
 
         byte[] HandleGetGroupRoles(Dictionary<string, object> request)
         {
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
 
             if (!request.TryGetValue("RequestingAgentID", out object oRequestingAgentID) ||
                     !request.TryGetValue("GroupID", out object oGroupID) ||
@@ -297,7 +297,7 @@ namespace OpenSim.Groups
                 NullResult(result, "Bad network data");
             else
             {
-                UUID groupID = new UUID(oGroupID.ToString());
+                UUID groupID = new(oGroupID.ToString());
                 string requestingAgentID = oRequestingAgentID.ToString();
                 string token = oAccessToken.ToString();
 
@@ -308,7 +308,7 @@ namespace OpenSim.Groups
                 }
                 else
                 {
-                    Dictionary<string, object> dict = new Dictionary<string, object>();
+                    Dictionary<string, object> dict = [];
                     int i = 0;
                     foreach (GroupRolesData r in roles)
                         dict["r-" + i++] = GroupsDataUtils.GroupRolesData(r);
@@ -325,7 +325,7 @@ namespace OpenSim.Groups
 
         byte[] HandleGetRoleMembers(Dictionary<string, object> request)
         {
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
 
             if (!request.TryGetValue("RequestingAgentID", out object oRequestingAgentID) ||
                     !request.TryGetValue("GroupID", out object oGroupID) ||
@@ -333,7 +333,7 @@ namespace OpenSim.Groups
                 NullResult(result, "Bad network data");
             else
             {
-                UUID groupID = new UUID(oGroupID.ToString());
+                UUID groupID = new(oGroupID.ToString());
                 string requestingAgentID = oRequestingAgentID.ToString();
                 string token = oAccessToken.ToString();
 
@@ -344,7 +344,7 @@ namespace OpenSim.Groups
                 }
                 else
                 {
-                    Dictionary<string, object> dict = new Dictionary<string, object>();
+                    Dictionary<string, object> dict = [];
                     int i = 0;
                     foreach (ExtendedGroupRoleMembersData rm in rmembers)
                         dict["rm-" + i++] = GroupsDataUtils.GroupRoleMembersData(rm);
@@ -361,7 +361,7 @@ namespace OpenSim.Groups
 
         byte[] HandleAddNotice(Dictionary<string, object> request)
         {
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
 
             if (!request.TryGetValue("RequestingAgentID", out object oRequestingAgentID) ||
                     !request.TryGetValue("GroupID", out object oGroupID) ||
@@ -404,15 +404,15 @@ oMessage.ToString(), hasAtt, attType, attName, attItem, attOwner);
 
         byte[] HandleVerifyNotice(Dictionary<string, object> request)
         {
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
 
             if (!request.ContainsKey("NoticeID") || !request.ContainsKey("GroupID"))
                 NullResult(result, "Bad network data");
 
             else
             {
-                UUID noticeID = new UUID(request["NoticeID"].ToString());
-                UUID groupID = new UUID(request["GroupID"].ToString());
+                UUID noticeID = new(request["NoticeID"].ToString());
+                UUID groupID = new(request["GroupID"].ToString());
 
                 bool success = m_GroupsService.VerifyNotice(noticeID, groupID);
                 //m_log.DebugFormat("[XXX]: VerifyNotice returned {0}", success);
@@ -441,7 +441,7 @@ oMessage.ToString(), hasAtt, attType, attName, attItem, attOwner);
 
         private byte[] FailureResult()
         {
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
             NullResult(result, "Unknown method");
             string xmlString = ServerUtils.BuildXmlResponse(result);
             return Util.UTF8NoBomEncoding.GetBytes(xmlString);

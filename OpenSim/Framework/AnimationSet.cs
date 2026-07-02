@@ -87,7 +87,7 @@ namespace OpenSim.Framework
         }
 
         public int AnimationCount { get; private set; }
-        private Dictionary<string, KeyValuePair<string, UUID>> m_animations = new Dictionary<string, KeyValuePair<string, UUID>>();
+        private Dictionary<string, KeyValuePair<string, UUID>> m_animations = [];
 
         public UUID GetAnimation(string index)
         {
@@ -104,7 +104,7 @@ namespace OpenSim.Framework
             if (m_animations.TryGetValue(index, out val))
                 return val.Key;
 
-            return String.Empty;
+            return string.Empty;
         }
 
         public void SetAnimation(string index, string name, UUID anim)
@@ -118,7 +118,7 @@ namespace OpenSim.Framework
             m_animations[index] = new KeyValuePair<string, UUID>(name, anim);
         }
 
-        public AnimationSet(Byte[] data)
+        public AnimationSet(byte[] data)
         {
             string assetData = System.Text.Encoding.ASCII.GetString(data);
             Console.WriteLine("--------------------");
@@ -128,7 +128,7 @@ namespace OpenSim.Framework
         }
 
         public static readonly byte[] ZeroCountBytesReply = osUTF8.GetASCIIBytes("version 1\ncount 0\n");
-        public Byte[] ToBytes()
+        public byte[] ToBytes()
         {
             // If there was an error parsing the input, we give back an
             // empty set rather than the original data.

@@ -156,7 +156,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         public OMV.Vector3 Inertia { get; set; }
 
         // Reference to the physical body (btCollisionObject) of this object
-        public BulletBody PhysBody = new BulletBody(0);
+        public BulletBody PhysBody = new(0);
         // Reference to the physical shape (btCollisionShape) of this object
         public BSShape PhysShape = new BSShapeNull();
 
@@ -378,7 +378,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         public OMV.Vector3 LockedAngularAxis;  // zero means locked. one means free.
         public const float FreeAxis = 1f;
         public const float LockedAxis = 0f;
-        public readonly OMV.Vector3 LockedAxisFree = new OMV.Vector3(FreeAxis, FreeAxis, FreeAxis);  // All axis are free
+        public readonly OMV.Vector3 LockedAxisFree = new(FreeAxis, FreeAxis, FreeAxis);  // All axis are free
 
         // If an axis is locked (flagged above) then the limits of that axis are specified here.
         // Linear axis limits are relative to the object's starting coordinates.
@@ -509,12 +509,12 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         }
 
         // The collisions that have been collected for the next collision reporting (throttled by subscription)
-        protected CollisionEventUpdate CollisionCollection = new CollisionEventUpdate();
+        protected CollisionEventUpdate CollisionCollection = new();
         // This is the collision collection last reported to the Simulator.
-        public CollisionEventUpdate CollisionsLastReported = new CollisionEventUpdate();
+        public CollisionEventUpdate CollisionsLastReported = new();
         // Remember the collisions recorded in the last tick for fancy collision checking
         //     (like a BSCharacter walking up stairs).
-        public CollisionEventUpdate CollisionsLastTick = new CollisionEventUpdate();
+        public CollisionEventUpdate CollisionsLastTick = new();
         private long CollisionsLastTickStep = -1;
 
         // The simulation step is telling this object about a collision.
@@ -564,7 +564,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
             // If someone has subscribed for collision events log the collision so it will be reported up
             if (SubscribedEvents()) {
-                ContactPoint newContact = new ContactPoint(contactPoint, contactNormal, pentrationDepth);
+                ContactPoint newContact = new(contactPoint, contactNormal, pentrationDepth);
 
                 // Collision sound requires a velocity to know it should happen. This is a lot of computation for a little used feature.
                 OMV.Vector3 relvel = OMV.Vector3.Zero;
@@ -686,7 +686,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
         #region Per Simulation Step actions
 
-        public BSActorCollection PhysicalActors = new BSActorCollection();
+        public BSActorCollection PhysicalActors = new();
 
         // When an update to the physical properties happens, this event is fired to let
         //    different actors to modify the update before it is passed around
@@ -702,7 +702,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         #endregion // Per Simulation Step actions
 
         // High performance detailed logging routine used by the physical objects.
-        protected void DetailLog(string msg, params Object[] args)
+        protected void DetailLog(string msg, params object[] args)
         {
             if (PhysScene.PhysicsLogging.Enabled)
                 PhysScene.DetailLog(msg, args);

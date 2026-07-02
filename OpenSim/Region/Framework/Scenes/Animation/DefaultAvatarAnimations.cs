@@ -37,9 +37,9 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 
         public static readonly string DefaultAnimationsPath = "data/avataranimations.xml";
 
-        public static Dictionary<string, UUID> AnimsUUIDbyName = new Dictionary<string, UUID>();
-        public static Dictionary<UUID, string> AnimsNamesbyUUID = new Dictionary<UUID, string>();
-        public static Dictionary<UUID, string> AnimStateNames = new Dictionary<UUID, string>();
+        public static Dictionary<string, UUID> AnimsUUIDbyName = [];
+        public static Dictionary<UUID, string> AnimsNamesbyUUID = [];
+        public static Dictionary<UUID, string> AnimStateNames = [];
 
         static DefaultAvatarAnimations()
         {
@@ -54,10 +54,10 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         {
 //            Dictionary<string, UUID> animations = new Dictionary<string, UUID>();
 
-            using (XmlTextReader reader = new XmlTextReader(path))
+            using (XmlTextReader reader = new(path))
             {
                 reader.DtdProcessing = DtdProcessing.Ignore;
-                XmlDocument doc = new XmlDocument();
+                XmlDocument doc = new();
                 doc.Load(reader);
 //                if (doc.DocumentElement != null)
 //                {

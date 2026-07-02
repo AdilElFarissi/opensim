@@ -44,7 +44,7 @@ namespace OpenSim.Framework.Monitoring
 
         public virtual string Report()
         {
-            StringBuilder sb = new StringBuilder(Environment.NewLine);
+            StringBuilder sb = new(Environment.NewLine);
             sb.AppendFormat(
                 "Heap allocated:  {0}MB \t allocation rate (last/avg): {1}/{2}MB/s\n",
                 Math.Round(GC.GetTotalMemory(false) / 1024.0 / 1024.0),
@@ -85,8 +85,10 @@ namespace OpenSim.Framework.Monitoring
 
         public virtual OSDMap OReport(string uptime, string version)
         {
-            OSDMap ret = new OSDMap();
-            ret.Add("TotalMemory", new OSDReal(Math.Round(GC.GetTotalMemory(false) / 1024.0 / 1024.0)));
+            OSDMap ret = new()
+            {
+                { "TotalMemory", new OSDReal(Math.Round(GC.GetTotalMemory(false) / 1024.0 / 1024.0)) }
+            };
             return ret;
         }
 
@@ -97,8 +99,10 @@ namespace OpenSim.Framework.Monitoring
 
         public virtual OSDMap OReport(string uptime, string version, string scene)
         {
-            OSDMap ret = new OSDMap();
-            ret.Add("TotalMemory", new OSDReal(Math.Round(GC.GetTotalMemory(false) / 1024.0 / 1024.0)));
+            OSDMap ret = new()
+            {
+                { "TotalMemory", new OSDReal(Math.Round(GC.GetTotalMemory(false) / 1024.0 / 1024.0)) }
+            };
             return ret;
         }
     }

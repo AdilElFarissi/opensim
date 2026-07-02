@@ -51,11 +51,11 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
         private bool enabled = true;
         private bool m_UseNewAvnCode = false;
-        private List<Scene> m_SceneList = new List<Scene>();
-        private string m_RestURL = String.Empty;
+        private List<Scene> m_SceneList = [];
+        private string m_RestURL = string.Empty;
         IMessageTransferModule m_TransferModule = null;
         private bool m_ForwardOfflineGroupMessages = true;
-        private Dictionary<IClientAPI, List<UUID>> m_repliesSent= new Dictionary<IClientAPI, List<UUID>>();
+        private Dictionary<IClientAPI, List<UUID>> m_repliesSent= [];
 
         public void Initialise(IConfigSource config)
         {
@@ -276,7 +276,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                             else
                             {
                                 if (!m_repliesSent.ContainsKey(client))
-                                    m_repliesSent[client] = new List<UUID>();
+                                    m_repliesSent[client] = [];
                                 m_repliesSent[client].Add(new UUID(im.toAgentID));
                             }
                             break;

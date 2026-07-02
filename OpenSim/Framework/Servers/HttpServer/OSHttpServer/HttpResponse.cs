@@ -11,8 +11,8 @@ namespace OSHttpServer
     {
         private const string DefaultContentType = "text/html;charset=UTF-8";
         private readonly IHttpClientContext m_context;
-        private readonly ResponseCookies m_cookies = new();
-        private readonly NameValueCollection m_headers = new();
+        private readonly ResponseCookies m_cookies = [];
+        private readonly NameValueCollection m_headers = [];
         private string m_httpVersion;
         private Stream m_body;
         private long m_contentLength;

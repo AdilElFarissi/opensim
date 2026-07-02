@@ -264,7 +264,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// OnQueueEmpty event is triggered for textures</summary>
         public readonly int TextureSendLimit;
 
-        protected BlockingCollection<IncomingPacket> packetInbox = new();
+        protected BlockingCollection<IncomingPacket> packetInbox = [];
 
         /// <summary>Bandwidth throttle for this UDP server</summary>
         public TokenBucket Throttle { get; protected set; }
@@ -1015,7 +1015,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                 timeoutTicks = m_pausedAckTimeout;
 
             if (client.IsActive &&
-                (Environment.TickCount & Int32.MaxValue) - udpClient.TickLastPacketReceived > timeoutTicks)
+                (Environment.TickCount & int.MaxValue) - udpClient.TickLastPacketReceived > timeoutTicks)
             {
                 // We must set IsActive synchronously so that we can stop the packet loop reinvoking this method, even
                 // though it's set later on by LLClientView.Close()
@@ -1126,7 +1126,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             SyncSend(buffer);
 
             // Keep track of when this packet was sent out (right now)
-            Interlocked.Exchange(ref outgoingPacket.TickCount, Environment.TickCount & Int32.MaxValue);
+            Interlocked.Exchange(ref outgoingPacket.TickCount, Environment.TickCount & int.MaxValue);
 
             if (outgoingPacket.UnackedMethod == null)
                 FreeUDPBuffer(buffer);
@@ -1311,7 +1311,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             // Stats tracking
             Interlocked.Increment(ref udpClient.PacketsReceived);
 
-            int now = Environment.TickCount & Int32.MaxValue;
+            int now = Environment.TickCount & int.MaxValue;
             udpClient.TickLastPacketReceived = now;
 
             if(packet.NeedValidateIDs)
@@ -1516,7 +1516,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                         {
                             StartTime = now,
                             Path = (binStatsDir.Length > 0 ? binStatsDir + System.IO.Path.DirectorySeparatorChar.ToString() : "")
-                                + String.Format("packets-{0}.log", now.ToString("yyyyMMddHHmmss"))
+                                + string.Format("packets-{0}.log", now.ToString("yyyyMMddHHmmss"))
                         };
                         PacketLog.Log = new BinaryWriter(File.Open(PacketLog.Path, FileMode.Append, FileAccess.Write));
                     }
@@ -1728,8 +1728,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
                 LLUDPClient udpClient = new(this, ThrottleRates, Throttle, circuitCode, agentID, remoteEndPoint, m_defaultRTO, m_maxRTO);
 
-                client = new LLClientView(Scene, this, udpClient, sessionInfo, agentID, sessionID, circuitCode);
-                client.DebugPacketLevel = DefaultClientPacketDebugLevel;
+                client = new LLClientView(Scene, this, udpClient, sessionInfo, agentID, sessionID, circuitCode)
+                {
+                    DebugPacketLevel = DefaultClientPacketDebugLevel
+                };
 
                 ((LLClientView)client).DisableFacelights = m_disableFacelights;
 

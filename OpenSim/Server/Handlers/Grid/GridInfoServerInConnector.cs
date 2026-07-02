@@ -38,7 +38,7 @@ namespace OpenSim.Server.Handlers.Grid
         public GridInfoServerInConnector(IConfigSource config, IHttpServer server, string configName) :
             base(config, server, configName)
         {
-            GridInfoHandlers handlers = new GridInfoHandlers(config);
+            GridInfoHandlers handlers = new(config);
 
             IConfig gridCfg = config.Configs["GridInfoService"];
 

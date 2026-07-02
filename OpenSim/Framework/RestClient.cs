@@ -63,12 +63,12 @@ namespace OpenSim.Framework
         /// <summary>
         /// Path elements of the query
         /// </summary>
-        private readonly List<string> _pathElements = new();
+        private readonly List<string> _pathElements = [];
 
         /// <summary>
         /// Parameter elements of the query, e.g. min=34
         /// </summary>
-        private readonly Dictionary<string, string> _parameterElements = new();
+        private readonly Dictionary<string, string> _parameterElements = [];
 
         /// <summary>
         /// Request method. E.g. GET, POST, PUT or DELETE

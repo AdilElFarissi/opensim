@@ -68,26 +68,26 @@ namespace OpenSim.Framework
         public const int MaxTextureResolution = 2048;
 
         public static readonly string DefaultTexture = "89556747-24cb-43ed-920b-47caed15465f"; //plywood
-        public static readonly UUID DefaultTextureID = new UUID(DefaultTexture);
+        public static readonly UUID DefaultTextureID = new(DefaultTexture);
 
         public static readonly string DefaultScript = "2074003b-8d5f-40e5-8b20-581c1c50aedb"; // must be on default assets and cache
-        public static readonly UUID DefaultScriptID = new UUID(DefaultScript);
+        public static readonly UUID DefaultScriptID = new(DefaultScript);
         public static readonly string DefaultScriptText = "default\n{\n    state_entry()\n    {\n        llSay(0, \"Script running\");\n    }\n}";
         public static readonly byte[] DefaultScriptData = osUTF8.GetASCIIBytes(DefaultScriptText);
 
         public static readonly string EmptyNotecard = "4b6a777d-7bcd-4fc4-b06f-929b21e32925";
-        public static readonly UUID EmptyNotecardID = new UUID(EmptyNotecard);
+        public static readonly UUID EmptyNotecardID = new(EmptyNotecard);
         public static readonly byte[] EmptyNotecardData = osUTF8.GetASCIIBytes("Linden text version 2\n{\nLLEmbeddedItems version 1\n{\ncount 0\n}\nText length 0\n}\n\0");
 
         public static readonly string DefaultMaterial = "968cbad0-4dad-d64e-71b5-72bf13ad051a";
-        public static readonly UUID DefaultMaterialID = new UUID(DefaultMaterial);
+        public static readonly UUID DefaultMaterialID = new(DefaultMaterial);
 
         public static readonly string m_MrOpenSimIDString = "11111111-1111-0000-0000-000100bba000";
-        public static readonly UUID m_MrOpenSimID = new UUID(m_MrOpenSimIDString);
-        public static readonly DateTime m_MrOpenSimBorn = new DateTime(2007, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        public static readonly UUID m_MrOpenSimID = new(m_MrOpenSimIDString);
+        public static readonly DateTime m_MrOpenSimBorn = new(2007, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
         public static readonly string servicesAgentIDString = "6571e388-6218-4574-87db-f9379718315e";
-        public static readonly UUID servicesGodAgentID = new UUID(servicesAgentIDString);
+        public static readonly UUID servicesGodAgentID = new(servicesAgentIDString);
 
         public enum EstateAccessCodex : uint
         {

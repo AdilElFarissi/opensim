@@ -287,7 +287,7 @@ namespace OpenSim.Services.Connectors
                         };
 
                         if (!ret.TryGetValue("VERSION", out object retVer) ||
-                                !Int32.TryParse((string)retVer, out inventory.Version))
+                                !int.TryParse((string)retVer, out inventory.Version))
                             inventory.Version = -1;
 
                         //m_log.DebugFormat("[XXX]: Received {0} ({1}) {2} {3}", inventory.FolderID, fid, inventory.Version, inventory.OwnerID);
@@ -470,8 +470,8 @@ namespace OpenSim.Services.Connectors
 
         public bool MoveItems(UUID principalID, List<InventoryItemBase> items)
         {
-            List<string> idlist = new();
-            List<string> destlist = new();
+            List<string> idlist = [];
+            List<string> destlist = [];
 
             foreach (InventoryItemBase item in items)
             {
@@ -493,7 +493,7 @@ namespace OpenSim.Services.Connectors
 
         public bool DeleteItems(UUID principalID, List<UUID> itemIDs)
         {
-            List<string> slist = new();
+            List<string> slist = [];
 
             foreach (UUID f in itemIDs)
             {
@@ -832,7 +832,7 @@ namespace OpenSim.Services.Connectors
                 m_log.Info($"[XInventory]: POST {m_InventoryURL} took {ticks}ms {sendlen}/{rcvlen}bytes");
             }
 
-            return respDic ?? new Dictionary<string, object>();
+            return respDic ?? [];
         }
     }
 }

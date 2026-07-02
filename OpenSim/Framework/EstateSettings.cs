@@ -217,7 +217,7 @@ namespace OpenSim.Framework
             set { m_PublicAccess = value; }
         }
 
-        private string m_AbuseEmail = String.Empty;
+        private string m_AbuseEmail = string.Empty;
 
         public string AbuseEmail
         {
@@ -248,34 +248,34 @@ namespace OpenSim.Framework
 
         // All those lists...
         //
-        private List<UUID> l_EstateManagers = new();
+        private List<UUID> l_EstateManagers = [];
 
         public UUID[] EstateManagers
         {
             get { return l_EstateManagers.ToArray(); }
-            set { l_EstateManagers = new List<UUID>(value); }
+            set { l_EstateManagers = [.. value]; }
         }
 
-        private List<EstateBan> l_EstateBans = new();
+        private List<EstateBan> l_EstateBans = [];
 
         public EstateBan[] EstateBans
         {
             get { return l_EstateBans.ToArray(); }
-            set { l_EstateBans = new List<EstateBan>(value); }
+            set { l_EstateBans = [.. value]; }
         }
 
-        private List<UUID> l_EstateAccess = new();
+        private List<UUID> l_EstateAccess = [];
         public UUID[] EstateAccess
         {
             get { return l_EstateAccess.ToArray(); }
-            set { l_EstateAccess = new List<UUID>(value); }
+            set { l_EstateAccess = [.. value]; }
         }
 
-        private List<UUID> l_EstateGroups = new();
+        private List<UUID> l_EstateGroups = [];
         public UUID[] EstateGroups
         {
             get { return l_EstateGroups.ToArray(); }
-            set { l_EstateGroups = new List<UUID>(value); }
+            set { l_EstateGroups = [.. value]; }
         }
 
         public bool DoDenyMinors = true;
@@ -450,7 +450,7 @@ namespace OpenSim.Framework
 
         public Dictionary<string, object> ToMap()
         {
-            Dictionary<string, object> map = new();
+            Dictionary<string, object> map = [];
             PropertyInfo[] properties = this.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
             foreach (PropertyInfo p in properties)
             {
@@ -469,7 +469,7 @@ namespace OpenSim.Framework
                             int index = 0;
                             foreach (object o in (Array)value)
                                 args[index++] = o.ToString();
-                            map[p.Name] = String.Join(",", args);
+                            map[p.Name] = string.Join(",", args);
                         }
                     }
                     else // simple types
@@ -480,7 +480,7 @@ namespace OpenSim.Framework
             // EstateBans are special
             if (EstateBans.Length > 0)
             {
-                Dictionary<string, object> bans = new();
+                Dictionary<string, object> bans = [];
                 int i = 0;
                 foreach (EstateBan ban in EstateBans)
                     bans["ban" + i++] = ban.ToMap();
@@ -497,7 +497,7 @@ namespace OpenSim.Framework
         public override string ToString()
         {
             Dictionary<string, object> map = ToMap();
-            String result = String.Empty;
+            string result = string.Empty;
 
             foreach (KeyValuePair<string, object> kvp in map)
             {
@@ -538,7 +538,7 @@ namespace OpenSim.Framework
                 else
                 {
                     object value = p.GetValue(this, null);
-                    if (value is String)
+                    if (value is string)
                         p.SetValue(this, map[p.Name], null);
                     else if (value is uint)
                         p.SetValue(this, uint.Parse((string)map[p.Name]), null);
@@ -555,7 +555,7 @@ namespace OpenSim.Framework
                 if(oEstateBans is string bansmap)
                 {
                     // JSON encoded bans map
-                    Dictionary<string, EstateBan> bdata = new();
+                    Dictionary<string, EstateBan> bdata = [];
                     try
                     {
                         // bypass libovm, we dont need even more useless high level maps

@@ -29,7 +29,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 {
     public class Plane
     {
-        public float3 normal = new float3();
+        public float3 normal = new();
         public float dist; // distance below origin - the D from plane equasion Ax+By+Cz+D=0
 
         public Plane(float3 n, float d)

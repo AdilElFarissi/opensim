@@ -12,7 +12,7 @@ namespace OSHttpServer
     {
         /// <summary> Representation of a non-initialized class instance </summary>
         public static readonly HttpInput Empty = new("Empty", true);
-        private readonly Dictionary<string, HttpInputItem> _items = new();
+        private readonly Dictionary<string, HttpInputItem> _items = [];
         private string _name;
 
         /// <summary> Variable telling the class that it is non-initialized <see cref="Empty"/> </summary>

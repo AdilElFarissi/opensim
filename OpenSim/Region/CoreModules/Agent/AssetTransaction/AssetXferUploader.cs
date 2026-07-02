@@ -40,7 +40,8 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
     public class AssetXferUploader
     {
 
-        private List<UUID> defaultIDs = new List<UUID> {
+        private List<UUID> defaultIDs =
+        [
                 // Viewer's notion of the default texture
                 new UUID("5748decc-f629-461c-9a36-a35a221fe21f"), // others == default blank
                 new UUID("7ca39b4c-bd19-4699-aff7-f93fd03d3e7b"), // hair
@@ -54,7 +55,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                 // other transparency defined in assets
                 new UUID("3a367d1c-bef1-6d43-7595-e88c1e3aadb3"),
                 new UUID("1578a2b1-5179-4b53-b618-fe00ca5a5594"),
-                };
+                ];
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -92,9 +93,9 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
         private bool m_updateTaskItem;
         private TaskInventoryItem m_updateTaskItemData;
 
-        private string m_description = String.Empty;
+        private string m_description = string.Empty;
         private bool m_dumpAssetToFile;
-        private string m_name = String.Empty;
+        private string m_name = string.Empty;
 //        private bool m_storeLocal;
         private uint nextPerm = 0;
         private IClientAPI ourClient;
@@ -284,7 +285,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             {
                 DateTime now = DateTime.Now;
                 string filename =
-                        String.Format("{6}_{7}_{0:d2}{1:d2}{2:d2}_{3:d2}{4:d2}{5:d2}.dat",
+                        string.Format("{6}_{7}_{0:d2}{1:d2}{2:d2}_{3:d2}{4:d2}{5:d2}.dat",
                         now.Year, now.Month, now.Day, now.Hour, now.Minute,
                         now.Second, m_asset.Name, m_asset.Type);
                 SaveAssetToFile(filename, m_asset.Data);
@@ -299,7 +300,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                 Directory.CreateDirectory(assetPath);
             }
             FileStream fs = File.Create(Path.Combine(assetPath, filename));
-            BinaryWriter bw = new BinaryWriter(fs);
+            BinaryWriter bw = new(fs);
             bw.Write(data);
             bw.Close();
             fs.Close();
@@ -475,7 +476,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 
             m_Scene.AssetService.Store(m_asset);
 
-            InventoryItemBase item = new InventoryItemBase
+            InventoryItemBase item = new()
             {
                 Owner = ourClient.AgentId,
                 CreatorId = ourClient.AgentId.ToString(),
@@ -519,7 +520,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
             if (m_asset.Type == (sbyte)CustomAssetType.AnimationSet)
             {
 
-                AnimationSet animSet = new AnimationSet(m_asset.Data);
+                AnimationSet animSet = new(m_asset.Data);
 
                 retPerms &= animSet.Validate(x => {
                     const uint required = (uint)(PermissionMask.Transfer | PermissionMask.Copy);
@@ -556,7 +557,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                         {
                             string[] parts = line.Split();
 
-                            UUID tx = new UUID(parts[1]);
+                            UUID tx = new(parts[1]);
                             int id = Convert.ToInt32(parts[0]);
 
                             if (defaultIDs.Contains(tx) || tx.IsZero() ||
@@ -613,7 +614,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
 
         private Dictionary<int,UUID> ExtractTexturesFromOldData()
         {
-            Dictionary<int,UUID> result = new Dictionary<int,UUID>();
+            Dictionary<int,UUID> result = [];
             if (m_oldData == null)
                 return result;
 
@@ -634,7 +635,7 @@ namespace OpenSim.Region.CoreModules.Agent.AssetTransaction
                     {
                         string[] parts = line.Split();
 
-                        UUID tx = new UUID(parts[1]);
+                        UUID tx = new(parts[1]);
                         int id = Convert.ToInt32(parts[0]);
                         result[id] = tx;
                         textures--;

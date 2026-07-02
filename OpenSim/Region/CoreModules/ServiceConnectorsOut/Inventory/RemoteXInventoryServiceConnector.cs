@@ -322,7 +322,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
 
         public  List<InventoryItemBase> GetActiveGestures(UUID userId)
         {
-            return new List<InventoryItemBase>();
+            return [];
         }
 
         public  int GetAssetPermissions(UUID userID, UUID assetID)

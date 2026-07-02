@@ -57,8 +57,8 @@ namespace OpenSim.Region.Framework.Scenes
         public bool Enabled;
         private Scene m_scene;
 
-        static private ConcurrentQueue<DeleteToInventoryHolder> m_inventoryDeletes = new ConcurrentQueue<DeleteToInventoryHolder>();
-        static private object m_threadLock = new object();
+        static private ConcurrentQueue<DeleteToInventoryHolder> m_inventoryDeletes = new();
+        static private object m_threadLock = new();
         static private bool m_running;
 
         public AsyncSceneObjectGroupDeleter(Scene scene)
@@ -73,12 +73,14 @@ namespace OpenSim.Region.Framework.Scenes
                 List<SceneObjectGroup> objectGroups, IClientAPI remoteClient,
                 bool permissionToDelete)
         {
-            DeleteToInventoryHolder dtis = new DeleteToInventoryHolder();
-            dtis.action = action;
-            dtis.folderID = folderID;
-            dtis.objectGroups = objectGroups;
-            dtis.remoteClient = remoteClient;
-            dtis.permissionToDelete = permissionToDelete;
+            DeleteToInventoryHolder dtis = new()
+            {
+                action = action,
+                folderID = folderID,
+                objectGroups = objectGroups,
+                remoteClient = remoteClient,
+                permissionToDelete = permissionToDelete
+            };
 
             m_inventoryDeletes.Enqueue(dtis);
 

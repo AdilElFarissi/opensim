@@ -40,8 +40,8 @@ namespace pCampBot
     {
         private bool m_initialized;
         private int m_Requests = 2;
-        private Stopwatch m_StopWatch = new Stopwatch();
-        private List<UUID> m_processed = new List<UUID>();
+        private Stopwatch m_StopWatch = new();
+        private List<UUID> m_processed = [];
 
         public InventoryDownloadBehaviour()
         {
@@ -85,13 +85,15 @@ namespace pCampBot
 
                 if (fetch)
                 {
-                    List<InventoryFolder> m_foldersToFetch = new List<InventoryFolder>();
+                    List<InventoryFolder> m_foldersToFetch = [];
                     foreach (InventoryBase item in Bot.Client.Inventory.Store.GetContents(e.FolderID))
                     {
                         if (item is InventoryFolder)
                         {
-                            InventoryFolder f = new InventoryFolder(item.UUID);
-                            f.OwnerID = item.OwnerID;
+                            InventoryFolder f = new(item.UUID)
+                            {
+                                OwnerID = item.OwnerID
+                            };
                             m_foldersToFetch.Add(f);
                         }
                     }

@@ -89,8 +89,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             // Add to queue for all scripts in ObjectID object
             DetectParams[] det = new DetectParams[1];
-            det[0] = new DetectParams();
-            det[0].Key = agentID;
+            det[0] = new DetectParams
+            {
+                Key = agentID
+            };
             det[0].Populate(this.World);
 
             // Since this is an event from a shared module, all scenes will
@@ -134,7 +136,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             touches(localID, originalID, offsetPos, remoteClient, surfaceArgs, "touch");
         }
 
-        private static Vector3 zeroVec3 = new Vector3(0, 0, 0);
+        private static Vector3 zeroVec3 = new(0, 0, 0);
         public void touch_end(uint localID, uint originalID, IClientAPI remoteClient,
                               SurfaceTouchEventArgs surfaceArgs)
         {
@@ -162,8 +164,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             else
                 linknum = part.LinkNum;
 
-            DetectParams det = new DetectParams();
-            det.Key = remoteClient.AgentId;
+            DetectParams det = new()
+            {
+                Key = remoteClient.AgentId
+            };
             det.Populate(World);
             det.OffsetPos = new LSL_Vector(offsetPos.X,
                                            offsetPos.Y,
@@ -194,8 +198,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
             if ( parameter is UUID)
             {
-                DetectParams det = new DetectParams();
-                det.Key = (UUID)parameter;
+                DetectParams det = new()
+                {
+                    Key = (UUID)parameter
+                };
                 PostObjectEvent(localID, new EventParams(
                     "changed", new object[] { ch },
                     new DetectParams[] { det }));
@@ -251,7 +257,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 int i = 0;
                 foreach(DetectedObject detobj in col.Colliders)
                 {
-                    DetectParams d = new DetectParams();
+                    DetectParams d = new();
                     det[i++] = d;
 
                     d.Key = detobj.keyUUID;
@@ -260,7 +266,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
                 this.PostObjectEvent(localID, new EventParams(
                         eventname,
-                        new Object[] { dc },
+                        new object[] { dc },
                         det));
             }
         }
@@ -284,11 +290,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             foreach(DetectedObject detobj in col.Colliders)
             {
-                LSL_Vector vec = new LSL_Vector(detobj.posVector.X,
+                LSL_Vector vec = new(detobj.posVector.X,
                                                 detobj.posVector.Y,
                                                 detobj.posVector.Z);
-                EventParams eps = new EventParams(eventname,
-                                                  new Object[] { vec },
+                EventParams eps = new(eventname,
+                                                  new object[] { vec },
                                                   zeroDetectParams);
                 this.PostObjectEvent(localID, eps);
             }

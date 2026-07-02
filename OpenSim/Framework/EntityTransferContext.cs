@@ -44,10 +44,12 @@ namespace OpenSim.Framework
 
         public OSD Pack()
         {
-            OSDMap data = new OSDMap();
-            data["InboundVersion"] = OSD.FromReal(InboundVersion);
-            data["OutboundVersion"] = OSD.FromReal(OutboundVersion);
-            data["WearablesCount"] = OSD.FromInteger(WearablesCount);
+            OSDMap data = new()
+            {
+                ["InboundVersion"] = OSD.FromReal(InboundVersion),
+                ["OutboundVersion"] = OSD.FromReal(OutboundVersion),
+                ["WearablesCount"] = OSD.FromInteger(WearablesCount)
+            };
 
             return data;
         }

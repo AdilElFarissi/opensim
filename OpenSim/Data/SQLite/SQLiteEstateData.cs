@@ -47,7 +47,7 @@ namespace OpenSim.Data.SQLite
 
         private FieldInfo[] m_Fields;
         private Dictionary<string, FieldInfo> m_FieldMap =
-                new Dictionary<string, FieldInfo>();
+                [];
 
         protected virtual Assembly Assembly
         {
@@ -74,7 +74,7 @@ namespace OpenSim.Data.SQLite
             m_connection = new SQLiteConnection(m_connectionString);
             m_connection.Open();
 
-            Migration m = new Migration(m_connection, Assembly, "EstateStore");
+            Migration m = new(m_connection, Assembly, "EstateStore");
             m.Update();
 
             //m_connection.Close();
@@ -97,7 +97,7 @@ namespace OpenSim.Data.SQLite
 
         public EstateSettings LoadEstateSettings(UUID regionID, bool create)
         {
-            string sql = "select estate_settings."+String.Join(",estate_settings.", FieldList)+" from estate_map left join estate_settings on estate_map.EstateID = estate_settings.EstateID where estate_settings.EstateID is not null and RegionID = :RegionID";
+            string sql = "select estate_settings."+ string.Join(",estate_settings.", FieldList) +" from estate_map left join estate_settings on estate_map.EstateID = estate_settings.EstateID where estate_settings.EstateID is not null and RegionID = :RegionID";
 
             using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
             {
@@ -110,7 +110,7 @@ namespace OpenSim.Data.SQLite
 
         private EstateSettings DoLoad(SQLiteCommand cmd, UUID regionID, bool create)
         {
-            EstateSettings es = new EstateSettings();
+            EstateSettings es = new();
             es.OnSave += StoreEstateSettings;
             IDataReader r = null;
             try
@@ -164,7 +164,7 @@ namespace OpenSim.Data.SQLite
 
         public EstateSettings CreateNewEstate(int estateID)
         {
-            EstateSettings es = new EstateSettings();
+            EstateSettings es = new();
             
             es.OnSave += StoreEstateSettings;
             es.EstateID = Convert.ToUInt32(estateID);
@@ -182,7 +182,7 @@ namespace OpenSim.Data.SQLite
 
         private void DoCreate(EstateSettings es)
         {
-            List<string> names = new List<string>(FieldList);
+            List<string> names = [.. FieldList];
 
             using (SQLiteCommand cmd = m_connection.CreateCommand())
             {
@@ -202,7 +202,7 @@ namespace OpenSim.Data.SQLite
                     es.EstateID = a;
                 }
 
-                cmd.CommandText = "insert into estate_settings ("+String.Join(",", names.ToArray())+") values ( :"+String.Join(", :", names.ToArray())+")";
+                cmd.CommandText = "insert into estate_settings ("+ string.Join(",", names.ToArray())+") values ( :"+ string.Join(", :", names.ToArray())+")";
                 cmd.Parameters.Clear();
 
                 foreach (string name in FieldList)
@@ -226,17 +226,17 @@ namespace OpenSim.Data.SQLite
 
         public void StoreEstateSettings(EstateSettings es)
         {
-            List<string> fields = new List<string>(FieldList);
+            List<string> fields = [.. FieldList];
             fields.Remove("EstateID");
 
-            List<string> terms = new List<string>();
+            List<string> terms = [];
 
             foreach (string f in fields)
                 terms.Add(f+" = :"+f);
 
             using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
             {
-                cmd.CommandText = "update estate_settings set " + String.Join(", ", terms.ToArray()) + " where EstateID = :EstateID";
+                cmd.CommandText = "update estate_settings set " + string.Join(", ", terms.ToArray()) + " where EstateID = :EstateID";
                 cmd.Parameters.AddWithValue(":EstateID", es.EstateID);
 
                 foreach (string name in FieldList)
@@ -279,13 +279,14 @@ namespace OpenSim.Data.SQLite
 
             while (r.Read())
             {
-                EstateBan eb = new EstateBan();
-
-                eb.BannedUserID = DBGuid.FromDB(r["bannedUUID"]);
-                eb.BannedHostAddress = "0.0.0.0";
-                eb.BannedHostIPMask = "0.0.0.0";
-                eb.BanningUserID = DBGuid.FromDB(r["banningUUID"]);
-                eb.BanTime = Convert.ToInt32(r["banTime"]);
+                EstateBan eb = new()
+                {
+                    BannedUserID = DBGuid.FromDB(r["bannedUUID"]),
+                    BannedHostAddress = "0.0.0.0",
+                    BannedHostIPMask = "0.0.0.0",
+                    BanningUserID = DBGuid.FromDB(r["banningUUID"]),
+                    BanTime = Convert.ToInt32(r["banTime"])
+                };
                 es.AddBan(eb);
             }
             r.Close();
@@ -343,7 +344,7 @@ namespace OpenSim.Data.SQLite
 
         UUID[] LoadUUIDList(uint EstateID, string table)
         {
-            List<UUID> uuids = new List<UUID>();
+            List<UUID> uuids = [];
             IDataReader r;
 
             using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
@@ -358,7 +359,7 @@ namespace OpenSim.Data.SQLite
             {
                 // EstateBan eb = new EstateBan();
 
-                UUID uuid = new UUID();
+                UUID uuid = new();
                 UUID.TryParse(r["uuid"].ToString(), out uuid);
 
                 uuids.Add(uuid);
@@ -370,7 +371,7 @@ namespace OpenSim.Data.SQLite
 
         public EstateSettings LoadEstateSettings(int estateID)
         {
-            string sql = "select estate_settings."+String.Join(",estate_settings.", FieldList)+" from estate_settings where estate_settings.EstateID = :EstateID";
+            string sql = "select estate_settings."+ string.Join(",estate_settings.", FieldList)+" from estate_settings where estate_settings.EstateID = :EstateID";
 
             using (SQLiteCommand cmd = (SQLiteCommand)m_connection.CreateCommand())
             {
@@ -383,7 +384,7 @@ namespace OpenSim.Data.SQLite
 
         public List<EstateSettings> LoadEstateSettingsAll()
         {
-            List<EstateSettings> estateSettings = new List<EstateSettings>();
+            List<EstateSettings> estateSettings = [];
 
             List<int> estateIds = GetEstatesAll();
             foreach (int estateId in estateIds)
@@ -394,7 +395,7 @@ namespace OpenSim.Data.SQLite
 
         public List<int> GetEstates(string search)
         {
-            List<int> result = new List<int>();
+            List<int> result = [];
 
             string sql = "select EstateID from estate_settings where estate_settings.EstateName = :EstateName";
             IDataReader r;
@@ -418,7 +419,7 @@ namespace OpenSim.Data.SQLite
 
         public List<int> GetEstatesAll()
         {
-            List<int> result = new List<int>();
+            List<int> result = [];
 
             string sql = "select EstateID from estate_settings";
             IDataReader r;
@@ -441,7 +442,7 @@ namespace OpenSim.Data.SQLite
 
         public List<int> GetEstatesByOwner(UUID ownerID)
         {
-            List<int> result = new List<int>();
+            List<int> result = [];
 
             string sql = "select EstateID from estate_settings where estate_settings.EstateOwner = :EstateOwner";
             IDataReader r;
@@ -500,7 +501,7 @@ namespace OpenSim.Data.SQLite
 
         public List<UUID> GetRegions(int estateID)
         {
-            return new List<UUID>();
+            return [];
         }
 
         public bool DeleteEstate(int estateID)

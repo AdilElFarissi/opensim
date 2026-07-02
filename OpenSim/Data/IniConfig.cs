@@ -64,7 +64,7 @@ namespace OpenSim.Data
         public string ParseFileReadValue(string key)
         {
             using (StreamReader reader =
-                new StreamReader(_iniFileName))
+                new(_iniFileName))
             {
                 do
                 {

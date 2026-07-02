@@ -98,7 +98,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// These two objects hold the information about any formats used
         /// by modules that hold agent specific data.
         /// </summary>
-        protected List<UUID> FormatsOffered = new List<UUID>();
+        protected List<UUID> FormatsOffered = [];
         protected Dictionary<object, List<UUID>> FormatsWanted = [];
 
         protected Dictionary<string, object> ModuleAPIMethods = [];
@@ -386,7 +386,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public List<UUID> GetFormatsOffered()
         {
-            List<UUID> ret = new List<UUID>(FormatsOffered);
+            List<UUID> ret = [.. FormatsOffered];
 
             return ret;
         }
@@ -426,10 +426,10 @@ namespace OpenSim.Region.Framework.Scenes
         {
 //            m_log.DebugFormat("[SCENE BASE]: Registering interface {0}", typeof(M));
 
-            List<Object> l = null;
+            List<object> l = null;
             if (!ModuleInterfaces.TryGetValue(typeof(M), out l))
             {
-                l = new List<Object>();
+                l = [];
                 ModuleInterfaces.Add(typeof(M), l);
             }
 
@@ -460,7 +460,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (mod is IAgentStatefulModule)
                 return;
 
-            List<Object> l;
+            List<object> l;
             if (ModuleInterfaces.TryGetValue(typeof(M), out l))
             {
                 if (l.Remove(mod))
@@ -479,11 +479,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void StackModuleInterface<M>(M mod)
         {
-            List<Object> l;
+            List<object> l;
             if (ModuleInterfaces.ContainsKey(typeof(M)))
                 l = ModuleInterfaces[typeof(M)];
             else
-                l = new List<Object>();
+                l = [];
 
             if (l.Contains(mod))
                 return;
@@ -524,9 +524,9 @@ namespace OpenSim.Region.Framework.Scenes
         {
             if (ModuleInterfaces.ContainsKey(typeof(T)))
             {
-                List<T> ret = new List<T>();
+                List<T> ret = [];
 
-                foreach (Object o in ModuleInterfaces[typeof(T)])
+                foreach (object o in ModuleInterfaces[typeof(T)])
                     ret.Add((T)o);
                 return ret.ToArray();
             }

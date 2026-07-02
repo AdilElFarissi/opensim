@@ -128,7 +128,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
             }
             else
             {
-                float3 split = new float3();
+                float3 split = new();
                 intersect(p1, p2, split, plane);
 
                 if (r1 == PlaneTriResult.PTR_FRONT)
@@ -166,7 +166,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
             }
             else
             {
-                float3 split = new float3(); // split the point
+                float3 split = new(); // split the point
                 intersect(p2, p3, split, plane);
 
                 if (r3 == PlaneTriResult.PTR_FRONT)
@@ -188,7 +188,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
             // Next test ray segment P3 to P1
             if (r3 != r1) // if these are both on the same side...
             {
-                float3 split = new float3(); // split the point
+                float3 split = new(); // split the point
                 intersect(p3, p1, split, plane);
 
                 if (r1 == PlaneTriResult.PTR_FRONT)

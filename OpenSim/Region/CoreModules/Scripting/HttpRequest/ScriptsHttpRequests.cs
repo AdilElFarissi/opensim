@@ -215,7 +215,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                         VeriFyCertClient.DefaultRequestHeaders.ConnectionClose = true;
                     }
 
-                    m_pendingRequests = new Dictionary<UUID, HttpRequestClass>();
+                    m_pendingRequests = [];
 
                     m_jobEngine = new JobEngine("ScriptsHttpReq", "ScriptsHttpReq", 2000, maxThreads);
                     m_jobEngine.Start();
@@ -367,7 +367,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
             {
                 for (int i = 0; i < parameters.Count; i += 2)
                 {
-                    switch (Int32.Parse(parameters[i]))
+                    switch (int.Parse(parameters[i]))
                     {
                         case (int)HttpRequestConstants.HTTP_METHOD:
                             htc.HttpMethod = parameters[i + 1];
@@ -410,7 +410,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
                                    break;
 
                                 int nexti = i + 2;
-                                if (nexti >= parameters.Count || Char.IsDigit(parameters[nexti][0]))
+                                if (nexti >= parameters.Count || char.IsDigit(parameters[nexti][0]))
                                     break;
 
                                 i = nexti;
@@ -450,7 +450,7 @@ namespace OpenSim.Region.CoreModules.Scripting.HttpRequest
 
         public void StopHttpRequest(uint localID, UUID m_itemID)
         {
-            List<UUID> toremove = new();
+            List<UUID> toremove = [];
             lock (m_mainLock)
             {
                 foreach (HttpRequestClass tmpReq in m_pendingRequests.Values)

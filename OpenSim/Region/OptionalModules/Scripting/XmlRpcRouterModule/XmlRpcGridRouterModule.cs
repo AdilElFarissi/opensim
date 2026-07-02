@@ -53,10 +53,10 @@ namespace OpenSim.Region.OptionalModules.Scripting.XmlRpcGridRouterModule
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Dictionary<UUID, UUID> m_Channels =
-                new Dictionary<UUID, UUID>();
+                [];
 
         private bool m_Enabled = false;
-        private string m_ServerURI = String.Empty;
+        private string m_ServerURI = string.Empty;
 
         #region INonSharedRegionModule
 
@@ -69,7 +69,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.XmlRpcGridRouterModule
             if (startupConfig.GetString("XmlRpcRouterModule",
                     "XmlRpcRouterModule") == "XmlRpcGridRouterModule")
             {
-                m_ServerURI = startupConfig.GetString("XmlRpcHubURI", String.Empty);
+                m_ServerURI = startupConfig.GetString("XmlRpcHubURI", string.Empty);
                 if (m_ServerURI.Length == 0)
                 {
                     m_log.Error("[XMLRPC GRID ROUTER] Module configured but no URI given. Disabling");
@@ -131,10 +131,12 @@ namespace OpenSim.Region.OptionalModules.Scripting.XmlRpcGridRouterModule
             m_log.InfoFormat("[XMLRPC GRID ROUTER]: New receiver Obj: {0} Ch: {1} ID: {2} URI: {3}",
                                 objectID.ToString(), channel.ToString(), itemID.ToString(), uri);
 
-            XmlRpcInfo info = new XmlRpcInfo();
-            info.channel = channel;
-            info.uri = uri;
-            info.item = itemID;
+            XmlRpcInfo info = new()
+            {
+                channel = channel,
+                uri = uri,
+                item = itemID
+            };
 
             bool success = SynchronousRestObjectRequester.MakeRequest<XmlRpcInfo, bool>(
                     "POST", m_ServerURI+"/RegisterChannel/", info);
@@ -179,11 +181,12 @@ namespace OpenSim.Region.OptionalModules.Scripting.XmlRpcGridRouterModule
                 return false;
             }
 
-            XmlRpcInfo info = new XmlRpcInfo();
-
-            info.channel = m_Channels[itemID];
-            info.item = itemID;
-            info.uri = "http://0.0.0.0:00";
+            XmlRpcInfo info = new()
+            {
+                channel = m_Channels[itemID],
+                item = itemID,
+                uri = "http://0.0.0.0:00"
+            };
 
             if (info != null)
             {

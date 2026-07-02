@@ -32,7 +32,7 @@ namespace OpenSim.Framework
 {
     public class RegistryCore : IRegistryCore
     {
-        protected Dictionary<Type, object> m_moduleInterfaces = new Dictionary<Type, object>();
+        protected Dictionary<Type, object> m_moduleInterfaces = [];
 
         /// <summary>
         /// Register an Module interface.

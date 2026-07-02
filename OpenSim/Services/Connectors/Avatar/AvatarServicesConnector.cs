@@ -44,7 +44,7 @@ namespace OpenSim.Services.Connectors
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
-        private string m_ServerURI = String.Empty;
+        private string m_ServerURI = string.Empty;
 
         public AvatarServicesConnector()
         {
@@ -71,7 +71,7 @@ namespace OpenSim.Services.Connectors
             }
 
             string serviceURI = gridConfig.GetString("AvatarServerURI",
-                    String.Empty);
+                    string.Empty);
 
             if (serviceURI.Length == 0)
             {
@@ -94,19 +94,21 @@ namespace OpenSim.Services.Connectors
 
         public bool SetAppearance(UUID userID, AvatarAppearance appearance)
         {
-            AvatarData avatar = new AvatarData(appearance);
+            AvatarData avatar = new(appearance);
             return SetAvatar(userID,avatar);
         }
 
         public AvatarData GetAvatar(UUID userID)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            //sendData["SCOPEID"] = scopeID.ToString();
-            sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
-            sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
-            sendData["METHOD"] = "getavatar";
+            Dictionary<string, object> sendData = new()
+            {
+                //sendData["SCOPEID"] = scopeID.ToString();
+                ["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString(),
+                ["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString(),
+                ["METHOD"] = "getavatar",
 
-            sendData["UserID"] = userID;
+                ["UserID"] = userID
+            };
 
             string reply = string.Empty;
             string reqString = ServerUtils.BuildQueryString(sendData);
@@ -143,13 +145,15 @@ namespace OpenSim.Services.Connectors
 
         public bool SetAvatar(UUID userID, AvatarData avatar)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            //sendData["SCOPEID"] = scopeID.ToString();
-            sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
-            sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
-            sendData["METHOD"] = "setavatar";
+            Dictionary<string, object> sendData = new()
+            {
+                //sendData["SCOPEID"] = scopeID.ToString();
+                ["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString(),
+                ["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString(),
+                ["METHOD"] = "setavatar",
 
-            sendData["UserID"] = userID.ToString();
+                ["UserID"] = userID.ToString()
+            };
 
             Dictionary<string, object> structData = avatar.ToKeyValuePairs();
 
@@ -194,13 +198,15 @@ namespace OpenSim.Services.Connectors
 
         public bool ResetAvatar(UUID userID)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            //sendData["SCOPEID"] = scopeID.ToString();
-            sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
-            sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
-            sendData["METHOD"] = "resetavatar";
+            Dictionary<string, object> sendData = new()
+            {
+                //sendData["SCOPEID"] = scopeID.ToString();
+                ["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString(),
+                ["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString(),
+                ["METHOD"] = "resetavatar",
 
-            sendData["UserID"] = userID.ToString();
+                ["UserID"] = userID.ToString()
+            };
 
             string reqString = ServerUtils.BuildQueryString(sendData);
             string uri = m_ServerURI + "/avatar";
@@ -236,14 +242,16 @@ namespace OpenSim.Services.Connectors
 
         public bool SetItems(UUID userID, string[] names, string[] values)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
-            sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
-            sendData["METHOD"] = "setitems";
+            Dictionary<string, object> sendData = new()
+            {
+                ["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString(),
+                ["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString(),
+                ["METHOD"] = "setitems",
 
-            sendData["UserID"] = userID.ToString();
-            sendData["Names"] = new List<string>(names);
-            sendData["Values"] = new List<string>(values);
+                ["UserID"] = userID.ToString(),
+                ["Names"] = new List<string>(names),
+                ["Values"] = new List<string>(values)
+            };
 
             string reqString = ServerUtils.BuildQueryString(sendData);
             string uri = m_ServerURI + "/avatar";
@@ -279,14 +287,16 @@ namespace OpenSim.Services.Connectors
 
         public bool RemoveItems(UUID userID, string[] names)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            //sendData["SCOPEID"] = scopeID.ToString();
-            sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
-            sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
-            sendData["METHOD"] = "removeitems";
+            Dictionary<string, object> sendData = new()
+            {
+                //sendData["SCOPEID"] = scopeID.ToString();
+                ["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString(),
+                ["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString(),
+                ["METHOD"] = "removeitems",
 
-            sendData["UserID"] = userID.ToString();
-            sendData["Names"] = new List<string>(names);
+                ["UserID"] = userID.ToString(),
+                ["Names"] = new List<string>(names)
+            };
 
             string reqString = ServerUtils.BuildQueryString(sendData);
             string uri = m_ServerURI + "/avatar";

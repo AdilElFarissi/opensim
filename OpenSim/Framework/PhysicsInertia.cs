@@ -171,9 +171,9 @@ namespace OpenSim.Framework
 
         public string ToXml2()
         {
-            using (StringWriter sw = new StringWriter())
+            using (StringWriter sw = new())
             {
-                using (XmlTextWriter xwriter = new XmlTextWriter(sw))
+                using (XmlTextWriter xwriter = new(sw))
                 {
                     ToXml2(xwriter);
                 }
@@ -189,10 +189,10 @@ namespace OpenSim.Framework
 
             bool error;
             PhysicsInertiaData v;
-            UTF8Encoding enc = new UTF8Encoding();
-            using(MemoryStream ms = new MemoryStream(enc.GetBytes(text)))
+            UTF8Encoding enc = new();
+            using(MemoryStream ms = new(enc.GetBytes(text)))
             {
-                using(XmlTextReader xreader = new XmlTextReader(ms))
+                using(XmlTextReader xreader = new(ms))
                 {
                     xreader.DtdProcessing = DtdProcessing.Ignore;
                     v = new PhysicsInertiaData();
@@ -207,7 +207,7 @@ namespace OpenSim.Framework
 
         public static PhysicsInertiaData FromXml2(XmlReader reader)
         {
-            PhysicsInertiaData data = new PhysicsInertiaData();
+            PhysicsInertiaData data = new();
 
             bool errors = false;
 
@@ -223,14 +223,15 @@ namespace OpenSim.Framework
             errors = false;
             reader = _reader;
 
-            Dictionary<string, Action> m_XmlProcessors = new Dictionary<string, Action>();
+            Dictionary<string, Action> m_XmlProcessors = new()
+            {
+                { "MASS", ProcessXR_Mass },
+                { "CM", ProcessXR_CM },
+                { "INERTIA", ProcessXR_Inertia },
+                { "IROT", ProcessXR_InertiaRotation }
+            };
 
-            m_XmlProcessors.Add("MASS", ProcessXR_Mass);
-            m_XmlProcessors.Add("CM", ProcessXR_CM);
-            m_XmlProcessors.Add("INERTIA", ProcessXR_Inertia);
-            m_XmlProcessors.Add("IROT", ProcessXR_InertiaRotation);
-
-            reader.ReadStartElement("PhysicsInertia", String.Empty);
+            reader.ReadStartElement("PhysicsInertia", string.Empty);
 
             errors = EReadProcessors(
                 m_XmlProcessors,

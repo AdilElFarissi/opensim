@@ -178,7 +178,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             if (!objectTouchable)
                 return false;
             // Set up the surface args as if the touch is from a client that does not support this
-            SurfaceTouchEventArgs surfaceArgs = new SurfaceTouchEventArgs()
+            SurfaceTouchEventArgs surfaceArgs = new()
             {
                 FaceIndex = -1, // TOUCH_INVALID_FACE
                 Binormal =  Vector3.Zero, // TOUCH_INVALID_VECTOR
@@ -186,7 +186,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
                 STCoord = new Vector3(-1.0f, -1.0f, 0.0f), // TOUCH_INVALID_TEXCOORD
                 UVCoord = new Vector3(-1.0f, -1.0f, 0.0f) // TOUCH_INVALID_TEXCOORD
             };
-            List<SurfaceTouchEventArgs> touchArgs = new List<SurfaceTouchEventArgs>() { surfaceArgs };
+            List<SurfaceTouchEventArgs> touchArgs = [surfaceArgs];
             Vector3 offset = part.OffsetPosition * -1.0f;
             if (OnGrabObject == null)
                 return false;
@@ -263,7 +263,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             if (channel == 0 && message.Length == 0)
                 return;
 
-            OSChatMessage chatFromClient = new OSChatMessage()
+            OSChatMessage chatFromClient = new()
             {
                 Channel = channel,
                 From = Name,
@@ -595,7 +595,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             get { return m_lastname; }
         }
 
-        public virtual String Name
+        public virtual string Name
         {
             get { return FirstName + " " + LastName; }
         }
@@ -619,7 +619,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
         public string ActiveGroupName
         {
-            get { return String.Empty; }
+            get { return string.Empty; }
             set { }
         }
 
@@ -642,7 +642,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
 
         public Dictionary<UUID, ulong> GetGroupPowers()
         {
-            return new Dictionary<UUID, ulong>();
+            return [];
         }
 
         public void SetGroupPowers(Dictionary<UUID, ulong> powers) { }
@@ -992,7 +992,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
         {
         }
 
-        public void SendAvatarProperties(UUID avatarID, string aboutText, string bornOn, Byte[] membershipType,
+        public void SendAvatarProperties(UUID avatarID, string aboutText, string bornOn, byte[] membershipType,
                                          string flAbout, uint flags, UUID flImageID, UUID imageID, string profileURL,
                                          UUID partnerID)
         {
@@ -1060,7 +1060,7 @@ namespace OpenSim.Region.OptionalModules.World.NPC
             get { return m_remoteEndPoint; }
         }
 
-        public void SendBlueBoxMessage(UUID FromAvatarID, String FromAvatarName, String Message)
+        public void SendBlueBoxMessage(UUID FromAvatarID, string FromAvatarName, string Message)
         {
 
         }

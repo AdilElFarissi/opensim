@@ -156,9 +156,9 @@ namespace OpenSim.Framework.Serialization.External
         /// <exception cref="System.Xml.XmlException"></exception>
         public static LandData Deserialize(string serializedLandData)
         {
-            LandData landData = new LandData();
+            LandData landData = new();
 
-            using (XmlTextReader reader = new XmlTextReader(new StringReader(serializedLandData)))
+            using (XmlTextReader reader = new(new StringReader(serializedLandData)))
             {
                 reader.DtdProcessing = DtdProcessing.Ignore;
                 reader.ReadStartElement("LandData");
@@ -182,9 +182,11 @@ namespace OpenSim.Framework.Serialization.External
         /// </param>
         public static string Serialize(LandData landData, Dictionary<string, object> options)
         {
-            StringWriter sw = new StringWriter();
-            XmlTextWriter xtw = new XmlTextWriter(sw);
-            xtw.Formatting = Formatting.None;
+            StringWriter sw = new();
+            XmlTextWriter xtw = new(sw)
+            {
+                Formatting = Formatting.None
+            };
 
             xtw.WriteStartDocument();
             xtw.WriteStartElement("LandData");

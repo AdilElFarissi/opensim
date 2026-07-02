@@ -38,11 +38,12 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
             float cret = 0f;
             volume = 1f;
 
-            HullResult result = new HullResult();
-            HullDesc desc = new HullDesc();
-
-            desc.MaxFaces = 256;
-            desc.MaxVertices = 256;
+            HullResult result = new();
+            HullDesc desc = new()
+            {
+                MaxFaces = 256,
+                MaxVertices = 256
+            };
             desc.SetHullFlag(HullFlag.QF_TRIANGLES);
             desc.Vertices = vertices;
 
@@ -54,7 +55,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 
                 // ok..now..for each triangle on the original mesh..
                 // we extrude the points to the nearest point on the hull.
-                List<CTri> tris = new List<CTri>();
+                List<CTri> tris = [];
 
                 for (int i = 0; i < result.Indices.Count / 3; i++)
                 {
@@ -66,15 +67,15 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
                     float3 p2 = result.OutputVertices[i2];
                     float3 p3 = result.OutputVertices[i3];
 
-                    CTri t = new CTri(p1, p2, p3, i1, i2, i3);
+                    CTri t = new(p1, p2, p3, i1, i2, i3);
                     tris.Add(t);
                 }
 
                 // we have not pre-computed the plane equation for each triangle in the convex hull..
                 float totalVolume = 0;
 
-                List<CTri> ftris = new List<CTri>(); // 'feature' triangles.
-                List<CTri> input_mesh = new List<CTri>();
+                List<CTri> ftris = []; // 'feature' triangles.
+                List<CTri> input_mesh = [];
 
                 for (int i = 0; i < indices.Count / 3; i++)
                 {
@@ -86,7 +87,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
                     float3 p2 = vertices[i2];
                     float3 p3 = vertices[i3];
 
-                    CTri t = new CTri(p1, p2, p3, i1, i2, i3);
+                    CTri t = new(p1, p2, p3, i1, i2, i3);
                     input_mesh.Add(t);
                 }
 
@@ -100,7 +101,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
                     float3 p2 = vertices[i2];
                     float3 p3 = vertices[i3];
 
-                    CTri t = new CTri(p1, p2, p3, i1, i2, i3);
+                    CTri t = new(p1, p2, p3, i1, i2, i3);
 
                     featureMatch(t, tris, input_mesh);
 

@@ -38,7 +38,7 @@ namespace OpenSim.Data.PGSQL
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger( System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         protected string m_connectionString;
-        protected object m_dbLock = new object();
+        protected object m_dbLock = new();
 
         protected PGSqlFramework(string connectionString)
         {
@@ -54,7 +54,7 @@ namespace OpenSim.Data.PGSQL
         {
             lock (m_dbLock)
             {
-                using (NpgsqlConnection dbcon = new NpgsqlConnection(m_connectionString))
+                using (NpgsqlConnection dbcon = new(m_connectionString))
                 {
                     dbcon.Open();
                     cmd.Connection = dbcon;

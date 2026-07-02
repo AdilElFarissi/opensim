@@ -107,15 +107,17 @@ namespace OpenSim.Data.PGSQL
         */
         public UserAccountData Get(UUID principalID, UUID scopeID)
         {
-            UserAccountData ret = new UserAccountData();
-            ret.Data = new Dictionary<string, string>();
+            UserAccountData ret = new()
+            {
+                Data = []
+            };
 
             string sql = string.Format(@"select * from {0} where ""PrincipalID"" = :PrincipalID", m_Realm);
             if (scopeID != UUID.Zero)
                 sql += @" and ""ScopeID"" = :ScopeID";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_ConnectionString))
+            using (NpgsqlCommand cmd = new(sql, conn))
             {
                 cmd.Parameters.Add(m_database.CreateParameter("PrincipalID", principalID));
                 cmd.Parameters.Add(m_database.CreateParameter("ScopeID", scopeID));
@@ -132,7 +134,7 @@ namespace OpenSim.Data.PGSQL
 
                         if (m_ColumnNames == null)
                         {
-                            m_ColumnNames = new List<string>();
+                            m_ColumnNames = [];
 
                             DataTable schemaTable = result.GetSchemaTable();
                             foreach (DataRow row in schemaTable.Rows)
@@ -165,12 +167,12 @@ namespace OpenSim.Data.PGSQL
 
             string[] fields = new List<string>(data.Data.Keys).ToArray();
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand())
+            using (NpgsqlConnection conn = new(m_ConnectionString))
+            using (NpgsqlCommand cmd = new())
             {
                 m_log.DebugFormat("[USER]: Try to update user {0} {1}", data.FirstName, data.LastName);
 
-                StringBuilder updateBuilder = new StringBuilder();
+                StringBuilder updateBuilder = new();
                 updateBuilder.AppendFormat("update {0} set ", m_Realm);
                 bool first = true;
                 foreach (string field in fields)
@@ -216,11 +218,11 @@ namespace OpenSim.Data.PGSQL
                 {
                     m_log.DebugFormat("[USER]: Try to insert user {0} {1}", data.FirstName, data.LastName);
 
-                    StringBuilder insertBuilder = new StringBuilder();
+                    StringBuilder insertBuilder = new();
                     insertBuilder.AppendFormat(@"insert into {0} (""PrincipalID"", ""ScopeID"", ""FirstName"", ""LastName"", """, m_Realm);
-                    insertBuilder.Append(String.Join(@""", """, fields));
+                    insertBuilder.Append(string.Join(@""", """, fields));
                     insertBuilder.Append(@""") values (:principalID, :scopeID, :FirstName, :LastName, :");
-                    insertBuilder.Append(String.Join(", :", fields));
+                    insertBuilder.Append(string.Join(", :", fields));
                     insertBuilder.Append(");");
 
                     cmd.Parameters.Add(m_database.CreateParameter("FirstName", data.FirstName));
@@ -249,8 +251,8 @@ namespace OpenSim.Data.PGSQL
         public bool SetDataItem(UUID principalID, string item, string value)
         {
             string sql = string.Format(@"update {0} set {1} = :{1} where ""UUID"" = :UUID", m_Realm, item);
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_ConnectionString))
+            using (NpgsqlCommand cmd = new(sql, conn))
             {
                 if (m_FieldTypes.ContainsKey(item))
                     cmd.Parameters.Add(m_database.CreateParameter("\"" + item + "\"", value, m_FieldTypes[item]));
@@ -293,19 +295,19 @@ namespace OpenSim.Data.PGSQL
                 return new UserAccountData[0];
 
             string sql = "";
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand())
+            using (NpgsqlConnection conn = new(m_ConnectionString))
+            using (NpgsqlCommand cmd = new())
             {
                 if (words.Length == 1)
                 {
-                    sql = String.Format(@"select * from {0} where (""ScopeID""=:ScopeID or ""ScopeID""=:UUIDZero) and (LOWER(""FirstName"" COLLATE ""en_US.utf8"") like LOWER(:search) or LOWER(""LastName"" COLLATE ""en_US.utf8"") like LOWER(:search))", m_Realm);
+                    sql = string.Format(@"select * from {0} where (""ScopeID""=:ScopeID or ""ScopeID""=:UUIDZero) and (LOWER(""FirstName"" COLLATE ""en_US.utf8"") like LOWER(:search) or LOWER(""LastName"" COLLATE ""en_US.utf8"") like LOWER(:search))", m_Realm);
                     cmd.Parameters.Add(m_database.CreateParameter("ScopeID", scopeID));
                     cmd.Parameters.Add (m_database.CreateParameter("UUIDZero", UUID.Zero));
                     cmd.Parameters.Add(m_database.CreateParameter("search", "%" + words[0] + "%"));
                 }
                 else
                 {
-                    sql = String.Format(@"select * from {0} where (""ScopeID""=:ScopeID or ""ScopeID""=:UUIDZero) and (LOWER(""FirstName"" COLLATE ""en_US.utf8"") like LOWER(:searchFirst) or LOWER(""LastName"" COLLATE ""en_US.utf8"") like LOWER(:searchLast))", m_Realm);
+                    sql = string.Format(@"select * from {0} where (""ScopeID""=:ScopeID or ""ScopeID""=:UUIDZero) and (LOWER(""FirstName"" COLLATE ""en_US.utf8"") like LOWER(:searchFirst) or LOWER(""LastName"" COLLATE ""en_US.utf8"") like LOWER(:searchLast))", m_Realm);
                     cmd.Parameters.Add(m_database.CreateParameter("searchFirst", "%" + words[0] + "%"));
                     cmd.Parameters.Add(m_database.CreateParameter("searchLast", "%" + words[1] + "%"));
                     cmd.Parameters.Add (m_database.CreateParameter("UUIDZero", UUID.Zero));
@@ -320,8 +322,8 @@ namespace OpenSim.Data.PGSQL
 
         public UserAccountData[] GetUsersWhere(UUID scopeID, string where)
         {
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand())
+            using (NpgsqlConnection conn = new(m_ConnectionString))
+            using (NpgsqlCommand cmd = new())
             {
                 // Fix case sensitivity for PostgreSQL column names
                 where = where.Replace("PrincipalID", "\"PrincipalID\"")
@@ -335,7 +337,7 @@ namespace OpenSim.Data.PGSQL
                     cmd.Parameters.Add(m_database.CreateParameter("ScopeID", scopeID));
                 }
 
-                cmd.CommandText = String.Format("select * from {0} where " + where, m_Realm);
+                cmd.CommandText = string.Format("select * from {0} where " + where, m_Realm);
                 cmd.Connection = conn;
                 
                 conn.Open();

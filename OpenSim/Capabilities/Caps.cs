@@ -63,7 +63,7 @@ namespace OpenSim.Framework.Capabilities
 
         private readonly CapsHandlers m_capsHandlers;
         private readonly ConcurrentDictionary<string, PollServiceEventArgs> m_pollServiceHandlers = new ();
-        private readonly Dictionary<string, string> m_externalCapsHandlers = new ();
+        private readonly Dictionary<string, string> m_externalCapsHandlers = [];
 
         private readonly IHttpServer m_httpListener;
         private readonly UUID m_agentID;

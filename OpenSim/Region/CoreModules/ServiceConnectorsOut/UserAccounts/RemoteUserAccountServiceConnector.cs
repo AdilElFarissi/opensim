@@ -163,8 +163,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
 
         public override List<UserAccount> GetUserAccounts(UUID scopeID, List<string> IDs)
         {
-            List<UserAccount> accs = new List<UserAccount>();
-            List<string> missing = new List<string>();
+            List<UserAccount> accs = [];
+            List<string> missing = [];
 
             UUID uuid = UUID.Zero;
             UserAccount account;

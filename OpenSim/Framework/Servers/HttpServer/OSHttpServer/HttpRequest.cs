@@ -21,7 +21,7 @@ namespace OSHttpServer
         public static readonly char[] UriSplitters = new[] { '/' };
         public static uint baseID = 0;
 
-        private readonly NameValueCollection m_headers = new();
+        private readonly NameValueCollection m_headers = [];
         //private readonly HttpParam m_param = new(HttpInput.Empty, HttpInput.Empty);
         private Stream m_body = new MemoryStream();
         private int m_bodyBytesLeft;
@@ -153,14 +153,14 @@ namespace OSHttpServer
                 if(m_queryString is null)
                 {
                     if(m_uri is null || m_uri.Query.Length == 0)
-                        m_queryString = new NameValueCollection();
+                        m_queryString = [];
                     else
                     {
                         try
                         {
                             m_queryString = HttpUtility.ParseQueryString(m_uri.Query);
                         }
-                        catch { m_queryString = new NameValueCollection(); }
+                        catch { m_queryString = []; }
                     }
                 }
 

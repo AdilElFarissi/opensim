@@ -243,7 +243,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         protected void ShowEstatesCommand(string module, string[] cmd)
         {
-            StringBuilder report = new StringBuilder();
+            StringBuilder report = new();
             RegionInfo ri = m_module.Scene.RegionInfo;
             EstateSettings es = ri.EstateSettings;
 

@@ -51,14 +51,14 @@ namespace OpenSim.Framework.Console
         private const string LOGLEVEL_NONE = "(none)";
 
         // Used to extract categories for colourization.
-        private Regex m_categoryRegex = new Regex(
+        private Regex m_categoryRegex = new(
                 @"^(?<Front>.*?)\[(?<Category>[^\]]+)\]:?(?<End>.*)", RegexOptions.Singleline | RegexOptions.Compiled);
 
         private int m_cursorYPosition = -1;
         private int m_cursorXPosition = 0;
-        private StringBuilder m_commandLine = new StringBuilder();
+        private StringBuilder m_commandLine = new();
         private bool m_echo = true;
-        private List<string> m_history = new List<string>();
+        private List<string> m_history = [];
 
         private static readonly ConsoleColor[] Colors = {
             // the dark colors don't seem to be visible on some black background terminals like putty :(
@@ -102,8 +102,8 @@ namespace OpenSim.Framework.Console
 
             if (File.Exists(m_historyPath))
             {
-                List<string> originallines = new List<string>();
-                using (StreamReader history_file = new StreamReader(m_historyPath))
+                List<string> originallines = [];
+                using (StreamReader history_file = new(m_historyPath))
                 {
                     string line;
                     while ((line = history_file.ReadLine()) != null)
@@ -115,7 +115,7 @@ namespace OpenSim.Framework.Console
                             if(indx > 0)
                             {
                                 if(indx + 4 >= line.Length)
-                                    line = String.Empty;
+                                    line = string.Empty;
                                 else
                                    line = line.Substring(indx + 4);
                             }
@@ -132,7 +132,7 @@ namespace OpenSim.Framework.Console
                         originallines.RemoveAt(0);
                     }
 
-                    using (StreamWriter history_file = new StreamWriter(m_historyPath))
+                    using (StreamWriter history_file = new(m_historyPath))
                     {
                         foreach (string line in originallines)
                         {
@@ -160,7 +160,7 @@ namespace OpenSim.Framework.Console
             if (m_historyEnable)
             {
                 if (m_historytimestamps)
-                    text = String.Format("[{0} {1}]:> {2}", DateTime.Now.ToShortDateString(), DateTime.Now.ToShortTimeString(), text);
+                    text = string.Format("[{0} {1}]:> {2}", DateTime.Now.ToShortDateString(), DateTime.Now.ToShortTimeString(), text);
                 File.AppendAllText(m_historyPath, text + Environment.NewLine);
             }
         }
@@ -425,7 +425,7 @@ namespace OpenSim.Framework.Console
                 }
             }
 
-            string text = (components == null || components.Length == 0) ? format : String.Format(format, components);
+            string text = (components == null || components.Length == 0) ? format : string.Format(format, components);
 
             FireOnOutput(text);
 
@@ -468,7 +468,7 @@ namespace OpenSim.Framework.Console
             if (opts[0].StartsWith("Command help:"))
                 Output(opts[0]);
             else
-                Output(String.Format("Options: {0}", String.Join(" ", opts)));
+                Output(string.Format("Options: {0}", string.Join(" ", opts)));
 
             return true;
         }
@@ -507,7 +507,7 @@ namespace OpenSim.Framework.Console
                 }
                 char enteredChar = key.KeyChar;
 
-                if (!Char.IsControl(enteredChar))
+                if (!char.IsControl(enteredChar))
                 {
                     if (m_cursorXPosition >= 318)
                         continue;
@@ -615,8 +615,8 @@ namespace OpenSim.Framework.Console
                                     if (cmd[index].Contains(" "))
                                         cmd[index] = "\"" + cmd[index] + "\"";
                                 }
-                                AddToHistory(String.Join(" ", cmd));
-                                return String.Empty;
+                                AddToHistory(string.Join(" ", cmd));
+                                return string.Empty;
                             }
                         }
 

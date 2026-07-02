@@ -68,7 +68,7 @@ namespace OpenSim.Server.Handlers.UserAccounts
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             string body;
-            using(StreamReader sr = new StreamReader(requestData))
+            using(StreamReader sr = new(requestData))
                 body = sr.ReadToEnd();
             body = body.Trim();
 
@@ -120,7 +120,7 @@ namespace OpenSim.Server.Handlers.UserAccounts
         {
             UserAccount account = null;
             UUID scopeID = UUID.Zero;
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
 
             object otmp;
             if (request.TryGetValue("ScopeID", out otmp) && !UUID.TryParse(otmp.ToString(), out scopeID))
@@ -175,7 +175,7 @@ namespace OpenSim.Server.Handlers.UserAccounts
             if(!string.IsNullOrEmpty(query))
                 accounts = m_UserAccountService.GetUserAccounts(scopeID, query);
 
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
             if ((accounts == null) || accounts.Count == 0)
             {
                 result["result"] = "null";
@@ -216,7 +216,7 @@ namespace OpenSim.Server.Handlers.UserAccounts
                 return FailureResult();
             }
 
-            List<string> userIDs = new List<string>(lids.Count);
+            List<string> userIDs = new(lids.Count);
             foreach (string s in lids)
             {
                 if(UUID.TryParse(s, out UUID tmpid))
@@ -227,7 +227,7 @@ namespace OpenSim.Server.Handlers.UserAccounts
             if (userIDs.Count > 0)
                 accounts = m_UserAccountService.GetUserAccounts(scopeID, userIDs);
 
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
             if ((accounts == null) || accounts.Count == 0)
             {
                 result["result"] = "null";
@@ -302,8 +302,10 @@ namespace OpenSim.Server.Handlers.UserAccounts
                 return FailureResult();
             }
 
-            Dictionary<string, object> result = new Dictionary<string, object>();
-            result["result"] = existingAccount.ToKeyValuePairs();
+            Dictionary<string, object> result = new()
+            {
+                ["result"] = existingAccount.ToKeyValuePairs()
+            };
             return ResultToBytes(result);
         }
 
@@ -347,8 +349,10 @@ namespace OpenSim.Server.Handlers.UserAccounts
             if (createdUserAccount == null)
                 return FailureResult();
 
-            Dictionary<string, object> result = new Dictionary<string, object>();
-            result["result"] = createdUserAccount.ToKeyValuePairs();
+            Dictionary<string, object> result = new()
+            {
+                ["result"] = createdUserAccount.ToKeyValuePairs()
+            };
             return ResultToBytes(result);
         }
 

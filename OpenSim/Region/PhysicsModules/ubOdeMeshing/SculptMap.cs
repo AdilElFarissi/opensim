@@ -138,7 +138,7 @@ namespace PrimMesher
             int numRows = height;
             int numCols = width;
 
-            List<List<Vector3>> rows = new List<List<Vector3>>(numRows);
+            List<List<Vector3>> rows = new(numRows);
 
             float pixScale = 1.0f / 255;
 
@@ -147,7 +147,7 @@ namespace PrimMesher
 
             for (rowNdx = 0; rowNdx < numRows; rowNdx++)
             {
-                List<Vector3> row = new List<Vector3>(numCols);
+                List<Vector3> row = new(numCols);
                 for (colNdx = 0; colNdx < numCols; colNdx++)
                 {
 
@@ -165,7 +165,7 @@ namespace PrimMesher
 
         private Bitmap ScaleImage(Bitmap srcImage, int destWidth, int destHeight)
         {
-            Bitmap scaledImage = new Bitmap(destWidth, destHeight, PixelFormat.Format24bppRgb);
+            Bitmap scaledImage = new(destWidth, destHeight, PixelFormat.Format24bppRgb);
 
             Color c;
 

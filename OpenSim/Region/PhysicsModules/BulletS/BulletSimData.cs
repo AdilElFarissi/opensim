@@ -88,7 +88,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
         public override string ToString()
         {
-            StringBuilder buff = new StringBuilder();
+            StringBuilder buff = new();
             buff.Append("<id=");
             buff.Append(ID.ToString());
             buff.Append(",p=");
@@ -106,11 +106,11 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         public BulletShape()
         {
             shapeType = BSPhysicsShapeType.SHAPE_UNKNOWN;
-            shapeKey = (System.UInt64)FixedShapeKey.KEY_NONE;
+            shapeKey = (ulong)FixedShapeKey.KEY_NONE;
             isNativeShape = false;
         }
         public BSPhysicsShapeType shapeType;
-        public System.UInt64 shapeKey;
+        public ulong shapeKey;
         public bool isNativeShape;
 
         public virtual void Clear() { }
@@ -130,7 +130,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
         public override string ToString()
         {
-            StringBuilder buff = new StringBuilder();
+            StringBuilder buff = new();
             buff.Append("<p=");
             buff.Append(AddrString);
             buff.Append(",s=");
@@ -235,7 +235,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
     //     but, instead, use references to this dictionary. Finding and debugging
     //     collision flag problems will be made easier.
     public static Dictionary<CollisionType, CollisionTypeFilterGroup> CollisionTypeMasks
-                = new Dictionary<CollisionType, CollisionTypeFilterGroup>()
+                = new()
     {
         { CollisionType.Avatar,
                     new CollisionTypeFilterGroup(CollisionType.Avatar,

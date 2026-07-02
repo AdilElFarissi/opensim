@@ -49,8 +49,8 @@ namespace OpenSim.Data.PGSQL
                         $"\"MuteID\" = :MuteID and " +
                         $"\"MuteName\" = :MuteName";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand())
+            using (NpgsqlConnection conn = new(m_ConnectionString))
+            using (NpgsqlCommand cmd = new())
             {
                 cmd.CommandText = query;
                 cmd.Parameters.AddWithValue(":AgentID", agentID.ToString());

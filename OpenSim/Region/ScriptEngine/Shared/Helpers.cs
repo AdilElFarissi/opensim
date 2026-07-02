@@ -107,7 +107,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
             OffsetPos = new LSL_Types.Vector3();
             LinkNum = 0;
             Group = UUID.Zero;
-            Name = String.Empty;
+            Name = string.Empty;
             Owner = UUID.Zero;
             Position = new LSL_Types.Vector3();
             Rotation = new LSL_Types.Quaternion();
@@ -316,7 +316,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
         public object[] Params;
         public DetectParams[] DetectParams;
 
-        public static EventParams StateEntryParams = new EventParams("state_entry", new object[0], new DetectParams[0]);
+        public static EventParams StateEntryParams = new("state_entry", new object[0], new DetectParams[0]);
     }
 
 }

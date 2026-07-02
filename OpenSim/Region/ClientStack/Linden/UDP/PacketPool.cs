@@ -39,14 +39,14 @@ namespace OpenSim.Region.ClientStack.LindenUDP
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private static readonly PacketPool instance = new PacketPool();
+        private static readonly PacketPool instance = new();
 
         /// <summary>
         /// Pool of packets available for reuse.
         /// </summary>
-        private readonly Dictionary<PacketType, Stack<Packet>> pool = new Dictionary<PacketType, Stack<Packet>>();
+        private readonly Dictionary<PacketType, Stack<Packet>> pool = [];
 
-        private static Dictionary<Type, Stack<Object>> DataBlocks = new Dictionary<Type, Stack<Object>>();
+        private static Dictionary<Type, Stack<object>> DataBlocks = [];
 
         public static PacketPool Instance
         {

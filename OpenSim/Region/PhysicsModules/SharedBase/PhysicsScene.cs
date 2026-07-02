@@ -283,12 +283,12 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
 
         public virtual void RaycastWorld(Vector3 position, Vector3 direction, float length, int Count, RayCallback retMethod)
         {
-            retMethod?.Invoke(new List<ContactResult>());
+            retMethod?.Invoke([]);
         }
 
         public virtual List<ContactResult> RaycastWorld(Vector3 position, Vector3 direction, float length, int Count)
         {
-            return new List<ContactResult>();
+            return [];
         }
 
         public virtual object RaycastWorld(Vector3 position, Vector3 direction, float length, int Count, RayFilterFlags filter)
@@ -303,22 +303,22 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
 
         public virtual List<ContactResult> RaycastActor(PhysicsActor actor, Vector3 position, Vector3 direction, float length, int Count, RayFilterFlags flags)
         {
-            return new List<ContactResult>();
+            return [];
         }
 
         public virtual List<ContactResult> BoxProbe(Vector3 position, Vector3 size, Quaternion orientation, int Count, RayFilterFlags flags)
         {
-            return new List<ContactResult>();
+            return [];
         }
 
         public virtual List<ContactResult> SphereProbe(Vector3 position, float radius, int Count, RayFilterFlags flags)
         {
-            return new List<ContactResult>();
+            return [];
         }
 
         public virtual List<ContactResult> PlaneProbe(PhysicsActor actor, Vector4 plane, int Count, RayFilterFlags flags)
         {
-            return new List<ContactResult>();
+            return [];
         }
 
         public virtual int SitAvatar(PhysicsActor actor, Vector3 AbsolutePosition, Vector3 CameraPosition, Vector3 offset, Vector3 AvatarSize, SitAvatarCallback PhysicsSitResponse)

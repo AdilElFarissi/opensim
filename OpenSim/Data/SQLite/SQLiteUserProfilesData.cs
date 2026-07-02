@@ -47,7 +47,7 @@ namespace OpenSim.Data.SQLite
         private string m_connectionString;
 
         private Dictionary<string, FieldInfo> m_FieldMap =
-            new Dictionary<string, FieldInfo>();
+            [];
 
         protected virtual Assembly Assembly
         {
@@ -74,7 +74,7 @@ namespace OpenSim.Data.SQLite
             m_connection = new SQLiteConnection(m_connectionString);
             m_connection.Open();
 
-            Migration m = new Migration(m_connection, Assembly, "UserProfiles");
+            Migration m = new(m_connection, Assembly, "UserProfiles");
             m.Update();
         }
 
@@ -86,7 +86,7 @@ namespace OpenSim.Data.SQLite
         #region IProfilesData implementation
         public OSDArray GetClassifiedRecords(UUID creatorId)
         {
-            OSDArray data = new OSDArray();
+            OSDArray data = [];
             string query = "SELECT classifieduuid, name FROM classifieds WHERE creatoruuid = :Id";
             IDataReader reader = null;
 
@@ -99,7 +99,7 @@ namespace OpenSim.Data.SQLite
 
             while (reader.Read())
             {
-                OSDMap n = new OSDMap();
+                OSDMap n = [];
                 UUID Id = UUID.Zero;
                 string Name = null;
                 try
@@ -163,7 +163,7 @@ namespace OpenSim.Data.SQLite
             if(string.IsNullOrEmpty(ad.Description))
                 ad.Description = "No Description";
 
-            DateTime epoch = new DateTime(1970, 1, 1);
+            DateTime epoch = new(1970, 1, 1);
             DateTime now = DateTime.Now;
             TimeSpan epochnow = now - epoch;
             TimeSpan duration;
@@ -295,7 +295,7 @@ namespace OpenSim.Data.SQLite
 
             query += "SELECT `pickuuid`,`name` FROM userpicks WHERE ";
             query += "creatoruuid = :Id";
-            OSDArray data = new OSDArray();
+            OSDArray data = [];
 
             try
             {
@@ -308,10 +308,11 @@ namespace OpenSim.Data.SQLite
                     {
                         while (reader.Read())
                         {
-                            OSDMap record = new OSDMap();
-
-                            record.Add("pickuuid",OSD.FromString((string)reader["pickuuid"]));
-                            record.Add("name",OSD.FromString((string)reader["name"]));
+                            OSDMap record = new()
+                            {
+                                { "pickuuid", OSD.FromString((string)reader["pickuuid"]) },
+                                { "name", OSD.FromString((string)reader["name"]) }
+                            };
                             data.Add(record);
                         }
                     }
@@ -328,7 +329,7 @@ namespace OpenSim.Data.SQLite
         {
             IDataReader reader = null;
             string query = string.Empty;
-            UserProfilePick pick = new UserProfilePick();
+            UserProfilePick pick = new();
 
             query += "SELECT * FROM userpicks WHERE ";
             query += "creatoruuid = :CreatorId AND ";
@@ -479,7 +480,7 @@ namespace OpenSim.Data.SQLite
             query += "SELECT `notes` FROM usernotes WHERE ";
             query += "useruuid = :Id AND ";
             query += "targetuuid = :TargetId";
-            OSDArray data = new OSDArray();
+            OSDArray data = [];
 
             try
             {
@@ -777,7 +778,7 @@ namespace OpenSim.Data.SQLite
             query += "usersettings WHERE ";
             query += "useruuid = :Id";
 
-            OSDArray data = new OSDArray();
+            OSDArray data = [];
 
             try
             {
@@ -909,7 +910,7 @@ namespace OpenSim.Data.SQLite
         public OSDArray GetUserImageAssets(UUID avatarId)
         {
             IDataReader reader = null;
-            OSDArray data = new OSDArray();
+            OSDArray data = [];
             string query = "SELECT `snapshotuuid` FROM {0} WHERE `creatoruuid` = :Id";
 
             // Get classified image assets

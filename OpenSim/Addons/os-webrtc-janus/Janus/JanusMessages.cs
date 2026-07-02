@@ -47,7 +47,7 @@ namespace osWebRtcVoice
         protected static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         protected static readonly string LogHeader = "[JANUS MESSAGE]";
 
-        protected OSDMap m_message = new();
+        protected OSDMap m_message = [];
 
         public JanusMessage()
         {
@@ -381,7 +381,7 @@ namespace osWebRtcVoice
     // }
     public class PluginMsgReq : JanusMessageReq
     {
-        private OSDMap m_body = new();
+        private OSDMap m_body = [];
 
         // Note that the passed OSDMap is placed in the "body" section of the message
         public PluginMsgReq(OSDMap pBody) : base("message")

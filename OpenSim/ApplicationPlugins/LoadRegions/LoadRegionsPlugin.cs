@@ -120,7 +120,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
                 Environment.Exit(1);
             }
 
-            List<IScene> createdScenes = new List<IScene>();
+            List<IScene> createdScenes = [];
 
             for (int i = 0; i < regionsToLoad.Length; i++)
             {

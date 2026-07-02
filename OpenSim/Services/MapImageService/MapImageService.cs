@@ -59,7 +59,7 @@ namespace OpenSim.Services.MapImageService
 
         private static string m_TilesStoragePath = "maptiles";
 
-        private static object m_Sync = new object();
+        private static object m_Sync = new();
         private static bool m_Initialized = false;
         private static Color m_Watercolor = Color.FromArgb(29, 72, 96);
         private static Bitmap m_WaterBitmap = null;
@@ -81,7 +81,7 @@ namespace OpenSim.Services.MapImageService
                         //memory cache JPEG tile with just water.
                         m_WaterBitmap = new Bitmap(IMAGE_WIDTH, IMAGE_WIDTH, PixelFormat.Format24bppRgb);
                         FillImage(m_WaterBitmap, m_Watercolor);
-                        using (MemoryStream ms = new MemoryStream())
+                        using (MemoryStream ms = new())
                         {
                             m_WaterBitmap.Save(ms, ImageFormat.Jpeg);
                             ms.Seek(0, SeekOrigin.Begin);
@@ -148,7 +148,7 @@ namespace OpenSim.Services.MapImageService
             public UUID scopeID;
         }
 
-        private readonly Queue<MapToMultiRez> m_MultiRezToBuild = new Queue<MapToMultiRez>();
+        private readonly Queue<MapToMultiRez> m_MultiRezToBuild = new();
 
         private bool UpdateMultiResolutionFiles(int x, int y, UUID scopeID)
         {
@@ -246,7 +246,7 @@ namespace OpenSim.Services.MapImageService
                 {
                     if (File.Exists(fileName))
                     {
-                        Bitmap bm = new Bitmap(fileName);
+                        Bitmap bm = new(fileName);
                         if (bm.Width != IMAGE_WIDTH || bm.Height != IMAGE_WIDTH || bm.PixelFormat != PixelFormat.Format24bppRgb)
                         {
                             m_log.Error($"[MAP IMAGE SERVICE]: invalid map tile {fileName}: {bm.Width} , {bm.Height}, {bm.PixelFormat}");

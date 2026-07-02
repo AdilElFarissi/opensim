@@ -43,7 +43,7 @@ namespace OpenSim.Services.Connectors
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
-        private string m_ServerURI = String.Empty;
+        private string m_ServerURI = string.Empty;
 
         public GridUserServicesConnector()
         {
@@ -76,7 +76,7 @@ namespace OpenSim.Services.Connectors
                 throw new Exception("GridUser connector init error");
             }
 
-            OSHHTPHost tmp = new OSHHTPHost(serviceURI, true);
+            OSHHTPHost tmp = new(serviceURI, true);
             if (!tmp.IsResolvedHost)
             {
                 m_log.ErrorFormat("[GRIDUSER CONNECTOR]: {0}", tmp.IsValidHost ? "Could not resolve GridUserServerURI" : "GridUserServerURI is a invalid host");
@@ -94,13 +94,15 @@ namespace OpenSim.Services.Connectors
 
         public GridUserInfo LoggedIn(string userID)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            //sendData["SCOPEID"] = scopeID.ToString();
-            sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
-            sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
-            sendData["METHOD"] = "loggedin";
+            Dictionary<string, object> sendData = new()
+            {
+                //sendData["SCOPEID"] = scopeID.ToString();
+                ["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString(),
+                ["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString(),
+                ["METHOD"] = "loggedin",
 
-            sendData["UserID"] = userID;
+                ["UserID"] = userID
+            };
 
             return Get(sendData);
 
@@ -108,46 +110,54 @@ namespace OpenSim.Services.Connectors
 
         public bool LoggedOut(string userID, UUID sessionID, UUID region, Vector3 position, Vector3 lookat)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            //sendData["SCOPEID"] = scopeID.ToString();
-            sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
-            sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
-            sendData["METHOD"] = "loggedout";
+            Dictionary<string, object> sendData = new()
+            {
+                //sendData["SCOPEID"] = scopeID.ToString();
+                ["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString(),
+                ["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString(),
+                ["METHOD"] = "loggedout"
+            };
 
             return Set(sendData, userID, region, position, lookat);
         }
 
         public bool SetHome(string userID, UUID regionID, Vector3 position, Vector3 lookAt)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            //sendData["SCOPEID"] = scopeID.ToString();
-            sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
-            sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
-            sendData["METHOD"] = "sethome";
+            Dictionary<string, object> sendData = new()
+            {
+                //sendData["SCOPEID"] = scopeID.ToString();
+                ["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString(),
+                ["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString(),
+                ["METHOD"] = "sethome"
+            };
 
             return Set(sendData, userID, regionID, position, lookAt);
         }
 
         public bool SetLastPosition(string userID, UUID sessionID, UUID regionID, Vector3 position, Vector3 lookAt)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            //sendData["SCOPEID"] = scopeID.ToString();
-            sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
-            sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
-            sendData["METHOD"] = "setposition";
+            Dictionary<string, object> sendData = new()
+            {
+                //sendData["SCOPEID"] = scopeID.ToString();
+                ["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString(),
+                ["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString(),
+                ["METHOD"] = "setposition"
+            };
 
             return Set(sendData, userID, regionID, position, lookAt);
         }
 
         public GridUserInfo GetGridUserInfo(string userID)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            //sendData["SCOPEID"] = scopeID.ToString();
-            sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
-            sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
-            sendData["METHOD"] = "getgriduserinfo";
+            Dictionary<string, object> sendData = new()
+            {
+                //sendData["SCOPEID"] = scopeID.ToString();
+                ["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString(),
+                ["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString(),
+                ["METHOD"] = "getgriduserinfo",
 
-            sendData["UserID"] = userID;
+                ["UserID"] = userID
+            };
 
             return Get(sendData);
         }
@@ -235,13 +245,15 @@ namespace OpenSim.Services.Connectors
 
         public GridUserInfo[] GetGridUserInfo(string[] userIDs)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            //sendData["SCOPEID"] = scopeID.ToString();
-            sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
-            sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
-            sendData["METHOD"] = "getgriduserinfos";
+            Dictionary<string, object> sendData = new()
+            {
+                //sendData["SCOPEID"] = scopeID.ToString();
+                ["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString(),
+                ["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString(),
+                ["METHOD"] = "getgriduserinfos",
 
-            sendData["AgentIDs"] = new List<string>(userIDs);
+                ["AgentIDs"] = new List<string>(userIDs)
+            };
 
             string reply = string.Empty;
             string reqString = ServerUtils.BuildQueryString(sendData);
@@ -264,7 +276,7 @@ namespace OpenSim.Services.Connectors
                 m_log.DebugFormat("[GRID USER CONNECTOR]: Exception when contacting grid user server at {0}: {1}", uri, e.Message);
             }
 
-            List<GridUserInfo> rinfos = new List<GridUserInfo>();
+            List<GridUserInfo> rinfos = [];
 
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
 

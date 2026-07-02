@@ -41,7 +41,7 @@ namespace OpenSim.Services.Connectors
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private string m_ServerURI = String.Empty;
+        private string m_ServerURI = string.Empty;
 
         public MuteListServicesConnector()
         {
@@ -67,7 +67,7 @@ namespace OpenSim.Services.Connectors
             }
 
             string serviceURI = gridConfig.GetString("MuteListServerURI",
-                    String.Empty);
+                    string.Empty);
 
             if (serviceURI.Length == 0)
             {
@@ -79,12 +79,14 @@ namespace OpenSim.Services.Connectors
         }
 
         #region IMuteListService
-        public Byte[] MuteListRequest(UUID agentID, uint crc)
+        public byte[] MuteListRequest(UUID agentID, uint crc)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            sendData["METHOD"] = "get";
-            sendData["agentid"] = agentID.ToString();
-            sendData["mutecrc"] = crc.ToString();
+            Dictionary<string, object> sendData = new()
+            {
+                ["METHOD"] = "get",
+                ["agentid"] = agentID.ToString(),
+                ["mutecrc"] = crc.ToString()
+            };
 
             try
             {
@@ -97,7 +99,7 @@ namespace OpenSim.Services.Connectors
                     if (replyData.ContainsKey("result"))
                     {
                         string datastr = replyData["result"].ToString();
-                        if(String.IsNullOrWhiteSpace(datastr))
+                        if(string.IsNullOrWhiteSpace(datastr))
                             return null;
                         return Convert.FromBase64String(datastr);
                     }
@@ -117,16 +119,18 @@ namespace OpenSim.Services.Connectors
 
         public bool UpdateMute(MuteData mute)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            sendData["METHOD"] = "update";
-            sendData["agentid"] = mute.AgentID.ToString();
-            sendData["muteid"] = mute.MuteID.ToString();
+            Dictionary<string, object> sendData = new()
+            {
+                ["METHOD"] = "update",
+                ["agentid"] = mute.AgentID.ToString(),
+                ["muteid"] = mute.MuteID.ToString()
+            };
             if(mute.MuteType != 0)
                 sendData["mutetype"] = mute.MuteType.ToString();
             if(mute.MuteFlags != 0)
                 sendData["muteflags"] = mute.MuteFlags.ToString();
             sendData["mutestamp"] = mute.Stamp.ToString();
-            if(!String.IsNullOrEmpty(mute.MuteName))
+            if(!string.IsNullOrEmpty(mute.MuteName))
                 sendData["mutename"] = mute.MuteName;
 
             return doSimplePost(ServerUtils.BuildQueryString(sendData), "update");
@@ -134,11 +138,13 @@ namespace OpenSim.Services.Connectors
 
         public bool RemoveMute(UUID agentID, UUID muteID, string muteName)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            sendData["METHOD"] = "delete";
-            sendData["agentid"] = agentID.ToString();
-            sendData["muteid"] = muteID.ToString();
-            if(!String.IsNullOrEmpty(muteName))
+            Dictionary<string, object> sendData = new()
+            {
+                ["METHOD"] = "delete",
+                ["agentid"] = agentID.ToString(),
+                ["muteid"] = muteID.ToString()
+            };
+            if(!string.IsNullOrEmpty(muteName))
                 sendData["mutename"] = muteName;
 
             return doSimplePost(ServerUtils.BuildQueryString(sendData), "remove");

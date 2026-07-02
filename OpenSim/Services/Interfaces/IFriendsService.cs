@@ -61,10 +61,10 @@ namespace OpenSim.Services.Interfaces
                 Friend = tmpo.ToString();
             MyFlags = (int)FriendRights.None;
             if (kvp.TryGetValue("MyFlags", out tmpo) && tmpo is not null)
-                Int32.TryParse(tmpo.ToString(), out MyFlags);
+                int.TryParse(tmpo.ToString(), out MyFlags);
             TheirFlags = 0;
             if (kvp.TryGetValue("TheirFlags", out tmpo) && tmpo is not null)
-                Int32.TryParse(tmpo.ToString(), out TheirFlags);
+                int.TryParse(tmpo.ToString(), out TheirFlags);
         }
 
         public Dictionary<string, object> ToKeyValuePairs()

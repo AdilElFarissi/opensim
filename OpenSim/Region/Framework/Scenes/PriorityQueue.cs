@@ -70,7 +70,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Lock for enqueue and dequeue operations on the priority queue
         /// </summary>
-        private object m_mainLock = new object();
+        private object m_mainLock = new();
         public object syncRoot
         {
             get { return m_mainLock; }
@@ -309,7 +309,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             string s = "";
             for (int i = 0; i < NumberOfQueues; i++)
-                s += String.Format("{0,7} ", m_heaps[i].Count);
+                s += string.Format("{0,7} ", m_heaps[i].Count);
             return s;
         }
 

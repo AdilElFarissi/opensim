@@ -227,7 +227,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         public override void SetLocalScaling(BulletShape pShape, Vector3 pScale)
         {
             CollisionShape shape = (pShape as BulletShapeXNA).shape;
-            IndexedVector3 vec = new IndexedVector3(pScale.X, pScale.Y, pScale.Z);
+            IndexedVector3 vec = new(pScale.X, pScale.Y, pScale.Z);
             shape.SetLocalScaling(ref vec);
         }
 
@@ -338,7 +338,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         public override void ClearAllForces(BulletBody pCollisionObject)
         {
             CollisionObject collisionObject = (pCollisionObject as BulletBodyXNA).body;
-            IndexedVector3 zeroVector = new IndexedVector3(0, 0, 0);
+            IndexedVector3 zeroVector = new(0, 0, 0);
             collisionObject.SetInterpolationLinearVelocity(ref zeroVector);
             collisionObject.SetInterpolationAngularVelocity(ref zeroVector);
             IndexedMatrix bodytransform = collisionObject.GetWorldTransform();
@@ -357,14 +357,14 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         public override void SetInterpolationAngularVelocity(BulletBody pCollisionObject, Vector3 pVector3)
         {
             CollisionObject collisionObject = (pCollisionObject as BulletBodyXNA).rigidBody;
-            IndexedVector3 vec = new IndexedVector3(pVector3.X, pVector3.Y, pVector3.Z);
+            IndexedVector3 vec = new(pVector3.X, pVector3.Y, pVector3.Z);
             collisionObject.SetInterpolationAngularVelocity(ref vec);
         }
 	
         public override void SetAngularVelocity(BulletBody pBody, Vector3 pVector3)
         {
             RigidBody body = (pBody as BulletBodyXNA).rigidBody;
-            IndexedVector3 vec = new IndexedVector3(pVector3.X, pVector3.Y, pVector3.Z);
+            IndexedVector3 vec = new(pVector3.X, pVector3.Y, pVector3.Z);
             body.SetAngularVelocity(ref vec);
         }
         public override Vector3 GetTotalForce(BulletBody pBody)
@@ -388,21 +388,21 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         public override void SetInvInertiaDiagLocal(BulletBody pBody, Vector3 inert)
         {
             RigidBody body = (pBody as BulletBodyXNA).rigidBody;
-            IndexedVector3 iv3 = new IndexedVector3(inert.X, inert.Y, inert.Z);
+            IndexedVector3 iv3 = new(inert.X, inert.Y, inert.Z);
             body.SetInvInertiaDiagLocal(ref iv3);
         }
         public override void ApplyForce(BulletBody pBody, Vector3 force, Vector3 pos)
         {
             RigidBody body = (pBody as BulletBodyXNA).rigidBody;
-            IndexedVector3 forceiv3 = new IndexedVector3(force.X, force.Y, force.Z);
-            IndexedVector3 posiv3 = new IndexedVector3(pos.X, pos.Y, pos.Z);
+            IndexedVector3 forceiv3 = new(force.X, force.Y, force.Z);
+            IndexedVector3 posiv3 = new(pos.X, pos.Y, pos.Z);
             body.ApplyForce(ref forceiv3, ref posiv3);
         }
         public override void ApplyImpulse(BulletBody pBody, Vector3 imp, Vector3 pos)
         {
             RigidBody body = (pBody as BulletBodyXNA).rigidBody;
-            IndexedVector3 impiv3 = new IndexedVector3(imp.X, imp.Y, imp.Z);
-            IndexedVector3 posiv3 = new IndexedVector3(pos.X, pos.Y, pos.Z);
+            IndexedVector3 impiv3 = new(imp.X, imp.Y, imp.Z);
+            IndexedVector3 posiv3 = new(pos.X, pos.Y, pos.Z);
             body.ApplyImpulse(ref impiv3, ref posiv3);
         }
 	
@@ -415,8 +415,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         public override void SetTranslation(BulletBody pCollisionObject, Vector3 _position, Quaternion _orientation)
         {
             CollisionObject collisionObject = (pCollisionObject as BulletBodyXNA).body;
-            IndexedVector3 vposition = new IndexedVector3(_position.X, _position.Y, _position.Z);
-            IndexedQuaternion vquaternion = new IndexedQuaternion(_orientation.X, _orientation.Y, _orientation.Z,
+            IndexedVector3 vposition = new(_position.X, _position.Y, _position.Z);
+            IndexedQuaternion vquaternion = new(_orientation.X, _orientation.Y, _orientation.Z,
                                                                   _orientation.W);
             IndexedMatrix mat = IndexedMatrix.CreateFromQuaternion(vquaternion);
             mat._origin = vposition;
@@ -444,7 +444,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             RigidBody body = (pBody as BulletBodyXNA).rigidBody;
             if (body != null) // Can't set mass props on collision object.
             {
-                IndexedVector3 inertia = new IndexedVector3(plocalInertia.X, plocalInertia.Y, plocalInertia.Z);
+                IndexedVector3 inertia = new(plocalInertia.X, plocalInertia.Y, plocalInertia.Z);
                 body.SetMassProps(pphysMass, inertia);
             }
         }
@@ -453,7 +453,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         public override void SetObjectForce(BulletBody pBody, Vector3 _force)
         {
             RigidBody body = (pBody as BulletBodyXNA).rigidBody;
-            IndexedVector3 force = new IndexedVector3(_force.X, _force.Y, _force.Z);
+            IndexedVector3 force = new(_force.X, _force.Y, _force.Z);
             body.SetTotalForce(ref force);
         }
 	
@@ -466,7 +466,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         public override void SetLinearVelocity(BulletBody pBody, Vector3 _velocity)
         {
             RigidBody body = (pBody as BulletBodyXNA).rigidBody;
-            IndexedVector3 velocity = new IndexedVector3(_velocity.X, _velocity.Y, _velocity.Z);
+            IndexedVector3 velocity = new(_velocity.X, _velocity.Y, _velocity.Z);
             body.SetLinearVelocity(velocity);
         }
 	
@@ -523,7 +523,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             RigidBody body = (pBody as BulletBodyXNA).rigidBody;
             if (body != null) // Can't set collisionobject.set gravity
             {
-                IndexedVector3 gravity = new IndexedVector3(pGravity.X, pGravity.Y, pGravity.Z);
+                IndexedVector3 gravity = new(pGravity.X, pGravity.Y, pGravity.Z);
                 body.SetGravity(gravity);
             }
         }
@@ -539,8 +539,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         public override bool SetLinearLimits(BulletConstraint pConstraint, Vector3 low, Vector3 high)
         {
             Generic6DofConstraint constraint = (pConstraint as BulletConstraintXNA).constrain as Generic6DofConstraint;
-            IndexedVector3 lowlimit = new IndexedVector3(low.X, low.Y, low.Z);
-            IndexedVector3 highlimit = new IndexedVector3(high.X, high.Y, high.Z);
+            IndexedVector3 lowlimit = new(low.X, low.Y, low.Z);
+            IndexedVector3 highlimit = new(high.X, high.Y, high.Z);
             constraint.SetLinearLowerLimit(lowlimit);
             constraint.SetLinearUpperLimit(highlimit);
             return true;
@@ -549,8 +549,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         public override bool SetAngularLimits(BulletConstraint pConstraint, Vector3 low, Vector3 high)
         {
             Generic6DofConstraint constraint = (pConstraint as BulletConstraintXNA).constrain as Generic6DofConstraint;
-            IndexedVector3 lowlimit = new IndexedVector3(low.X, low.Y, low.Z);
-            IndexedVector3 highlimit = new IndexedVector3(high.X, high.Y, high.Z);
+            IndexedVector3 lowlimit = new(low.X, low.Y, low.Z);
+            IndexedVector3 highlimit = new(high.X, high.Y, high.Z);
             constraint.SetAngularLowerLimit(lowlimit);
             constraint.SetAngularUpperLimit(highlimit);
             return true;
@@ -584,17 +584,17 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             DiscreteDynamicsWorld world = (pWorld as BulletWorldXNA).world;
             RigidBody body1 = (pBody1 as BulletBodyXNA).rigidBody;
             RigidBody body2 = (pBody2 as BulletBodyXNA).rigidBody;
-            IndexedVector3 frame1v = new IndexedVector3(pframe1.X, pframe1.Y, pframe1.Z);
-            IndexedQuaternion frame1rot = new IndexedQuaternion(pframe1rot.X, pframe1rot.Y, pframe1rot.Z, pframe1rot.W);
+            IndexedVector3 frame1v = new(pframe1.X, pframe1.Y, pframe1.Z);
+            IndexedQuaternion frame1rot = new(pframe1rot.X, pframe1rot.Y, pframe1rot.Z, pframe1rot.W);
             IndexedMatrix frame1 = IndexedMatrix.CreateFromQuaternion(frame1rot);
             frame1._origin = frame1v;
 	
-            IndexedVector3 frame2v = new IndexedVector3(pframe2.X, pframe2.Y, pframe2.Z);
-            IndexedQuaternion frame2rot = new IndexedQuaternion(pframe2rot.X, pframe2rot.Y, pframe2rot.Z, pframe2rot.W);
+            IndexedVector3 frame2v = new(pframe2.X, pframe2.Y, pframe2.Z);
+            IndexedQuaternion frame2rot = new(pframe2rot.X, pframe2rot.Y, pframe2rot.Z, pframe2rot.W);
             IndexedMatrix frame2 = IndexedMatrix.CreateFromQuaternion(frame2rot);
             frame2._origin = frame2v;
 	
-            Generic6DofConstraint consttr = new Generic6DofConstraint(body1, body2, ref frame1, ref frame2,
+            Generic6DofConstraint consttr = new(body1, body2, ref frame1, ref frame2,
                                                                       puseLinearReferenceFrameA);
             consttr.CalculateTransforms();
             world.AddConstraint(consttr,pdisableCollisionsBetweenLinkedBodies);
@@ -608,12 +608,12 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         {
             DiscreteDynamicsWorld world = (pWorld as BulletWorldXNA).world;
             RigidBody body1 = (pBody1 as BulletBodyXNA).rigidBody;
-            IndexedVector3 frame1v = new IndexedVector3(pframe1.X, pframe1.Y, pframe1.Z);
-            IndexedQuaternion frame1rot = new IndexedQuaternion(pframe1rot.X, pframe1rot.Y, pframe1rot.Z, pframe1rot.W);
+            IndexedVector3 frame1v = new(pframe1.X, pframe1.Y, pframe1.Z);
+            IndexedQuaternion frame1rot = new(pframe1rot.X, pframe1rot.Y, pframe1rot.Z, pframe1rot.W);
             IndexedMatrix frame1 = IndexedMatrix.CreateFromQuaternion(frame1rot);
             frame1._origin = frame1v;
 	
-            Generic6DofConstraint consttr = new Generic6DofConstraint(body1, ref frame1, pUseLinearReferenceFrameB);
+            Generic6DofConstraint consttr = new(body1, ref frame1, pUseLinearReferenceFrameB);
             consttr.CalculateTransforms();
             world.AddConstraint(consttr,pdisableCollisionsBetweenLinkedBodies);
 	
@@ -635,16 +635,16 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             DiscreteDynamicsWorld world = (pWorld as BulletWorldXNA).world;
             RigidBody body1 = (pBody1 as BulletBodyXNA).rigidBody;
             RigidBody body2 = (pBody2 as BulletBodyXNA).rigidBody;
-            IndexedMatrix frame1 = new IndexedMatrix(IndexedBasisMatrix.Identity, new IndexedVector3(0, 0, 0));
-            IndexedMatrix frame2 = new IndexedMatrix(IndexedBasisMatrix.Identity, new IndexedVector3(0, 0, 0));
+            IndexedMatrix frame1 = new(IndexedBasisMatrix.Identity, new IndexedVector3(0, 0, 0));
+            IndexedMatrix frame2 = new(IndexedBasisMatrix.Identity, new IndexedVector3(0, 0, 0));
 	
-            IndexedVector3 joinPoint = new IndexedVector3(pjoinPoint.X, pjoinPoint.Y, pjoinPoint.Z);
+            IndexedVector3 joinPoint = new(pjoinPoint.X, pjoinPoint.Y, pjoinPoint.Z);
             IndexedMatrix mat = IndexedMatrix.Identity;
             mat._origin = new IndexedVector3(pjoinPoint.X, pjoinPoint.Y, pjoinPoint.Z);
             frame1._origin = body1.GetWorldTransform().Inverse()*joinPoint;
             frame2._origin = body2.GetWorldTransform().Inverse()*joinPoint;
 	
-            Generic6DofConstraint consttr = new Generic6DofConstraint(body1, body2, ref frame1, ref frame2, puseLinearReferenceFrameA);
+            Generic6DofConstraint consttr = new(body1, body2, ref frame1, ref frame2, puseLinearReferenceFrameA);
             consttr.CalculateTransforms();
             world.AddConstraint(consttr, pdisableCollisionsBetweenLinkedBodies);
 	
@@ -654,13 +654,13 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         public override bool SetFrames(BulletConstraint pConstraint, Vector3 pframe1, Quaternion pframe1rot, Vector3 pframe2, Quaternion pframe2rot)
         {
             Generic6DofConstraint constraint = (pConstraint as BulletConstraintXNA).constrain as Generic6DofConstraint;
-            IndexedVector3 frame1v = new IndexedVector3(pframe1.X, pframe1.Y, pframe1.Z);
-            IndexedQuaternion frame1rot = new IndexedQuaternion(pframe1rot.X, pframe1rot.Y, pframe1rot.Z, pframe1rot.W);
+            IndexedVector3 frame1v = new(pframe1.X, pframe1.Y, pframe1.Z);
+            IndexedQuaternion frame1rot = new(pframe1rot.X, pframe1rot.Y, pframe1rot.Z, pframe1rot.W);
             IndexedMatrix frame1 = IndexedMatrix.CreateFromQuaternion(frame1rot);
             frame1._origin = frame1v;
 	
-            IndexedVector3 frame2v = new IndexedVector3(pframe2.X, pframe2.Y, pframe2.Z);
-            IndexedQuaternion frame2rot = new IndexedQuaternion(pframe2rot.X, pframe2rot.Y, pframe2rot.Z, pframe2rot.W);
+            IndexedVector3 frame2v = new(pframe2.X, pframe2.Y, pframe2.Z);
+            IndexedQuaternion frame2rot = new(pframe2rot.X, pframe2rot.Y, pframe2rot.Z, pframe2rot.W);
             IndexedMatrix frame2 = IndexedMatrix.CreateFromQuaternion(frame2rot);
             frame2._origin = frame2v;
             constraint.SetFrames(ref frame1, ref frame2);
@@ -682,7 +682,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         public override Vector3 GetVelocityInLocalPoint(BulletBody pBody, Vector3 pos)
         {
             RigidBody body = (pBody as BulletBodyXNA).rigidBody;
-            IndexedVector3 posiv3 = new IndexedVector3(pos.X, pos.Y, pos.Z);
+            IndexedVector3 posiv3 = new(pos.X, pos.Y, pos.Z);
             IndexedVector3 iv3 = body.GetVelocityInLocalPoint(ref posiv3);
             return new Vector3(iv3.X, iv3.Y, iv3.Z);
         }
@@ -752,7 +752,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         public override void SetInterpolationLinearVelocity(BulletBody pCollisionObject, Vector3 VehicleVelocity)
         {
             CollisionObject collisionObject = (pCollisionObject as BulletBodyXNA).rigidBody;
-            IndexedVector3 velocity = new IndexedVector3(VehicleVelocity.X, VehicleVelocity.Y, VehicleVelocity.Z);
+            IndexedVector3 velocity = new(VehicleVelocity.X, VehicleVelocity.Y, VehicleVelocity.Z);
             collisionObject.SetInterpolationLinearVelocity(ref velocity);
         }
 	
@@ -1092,7 +1092,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         public override void SetCenterOfMassByPosRot(BulletBody pBody, Vector3 pos, Quaternion rot)
         {
             RigidBody body = (pBody as BulletBodyXNA).rigidBody;
-            IndexedQuaternion quat = new IndexedQuaternion(rot.X, rot.Y, rot.Z,rot.W);
+            IndexedQuaternion quat = new(rot.X, rot.Y, rot.Z,rot.W);
             IndexedMatrix mat = IndexedMatrix.CreateFromQuaternion(quat);
             mat._origin = new IndexedVector3(pos.X, pos.Y, pos.Z);
             body.SetCenterOfMassTransform( ref mat);
@@ -1103,25 +1103,25 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         public override void ApplyCentralForce(BulletBody pBody, Vector3 pfSum)
         {
             RigidBody body = (pBody as BulletBodyXNA).rigidBody;
-            IndexedVector3 fSum = new IndexedVector3(pfSum.X, pfSum.Y, pfSum.Z);
+            IndexedVector3 fSum = new(pfSum.X, pfSum.Y, pfSum.Z);
             body.ApplyCentralForce(ref fSum);
         }
         public override void ApplyCentralImpulse(BulletBody pBody, Vector3 pfSum)
         {
             RigidBody body = (pBody as BulletBodyXNA).rigidBody;
-            IndexedVector3 fSum = new IndexedVector3(pfSum.X, pfSum.Y, pfSum.Z);
+            IndexedVector3 fSum = new(pfSum.X, pfSum.Y, pfSum.Z);
             body.ApplyCentralImpulse(ref fSum);
         }
         public override void ApplyTorque(BulletBody pBody, Vector3 pfSum)
         {
             RigidBody body = (pBody as BulletBodyXNA).rigidBody;
-            IndexedVector3 fSum = new IndexedVector3(pfSum.X, pfSum.Y, pfSum.Z);
+            IndexedVector3 fSum = new(pfSum.X, pfSum.Y, pfSum.Z);
             body.ApplyTorque(ref fSum);
         }
         public override void ApplyTorqueImpulse(BulletBody pBody, Vector3 pfSum)
         {
             RigidBody body = (pBody as BulletBodyXNA).rigidBody;
-            IndexedVector3 fSum = new IndexedVector3(pfSum.X, pfSum.Y, pfSum.Z);
+            IndexedVector3 fSum = new(pfSum.X, pfSum.Y, pfSum.Z);
             body.ApplyTorqueImpulse(ref fSum);
         }
 	
@@ -1171,7 +1171,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             CollisionShape shape1 = (pShape as BulletShapeXNA).shape;
 	
             // TODO:  Turn this from a reference copy to a Value Copy.
-            BulletShapeXNA shape2 = new BulletShapeXNA(shape1, BSShapeTypeFromBroadPhaseNativeType(shape1.GetShapeType()));
+            BulletShapeXNA shape2 = new(shape1, BSShapeTypeFromBroadPhaseNativeType(shape1.GetShapeType()));
 	
             return shape2;
         }
@@ -1193,9 +1193,9 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             CollisionShape shape = (pShape as BulletShapeXNA).shape;
             //UpdateSingleAabb(world, shape);
             // TODO: Feed Update array into null
-            SimMotionState motionState = new SimMotionState(this, pLocalID, mat, null);
-            RigidBody body = new RigidBody(0,motionState,shape,IndexedVector3.Zero);
-            RigidBodyConstructionInfo constructionInfo = new RigidBodyConstructionInfo(0, motionState, shape, IndexedVector3.Zero)
+            SimMotionState motionState = new(this, pLocalID, mat, null);
+            RigidBody body = new(0,motionState,shape,IndexedVector3.Zero);
+            RigidBodyConstructionInfo constructionInfo = new(0, motionState, shape, IndexedVector3.Zero)
                                                              {
                                                                  m_mass = 0
                                                              };
@@ -1234,7 +1234,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             CollisionShape shape = (pShape as BulletShapeXNA).shape;
 	
             // TODO: Feed Update array into null
-            RigidBody body = new RigidBody(0, new DefaultMotionState( mat, IndexedMatrix.Identity), shape, IndexedVector3.Zero);
+            RigidBody body = new(0, new DefaultMotionState( mat, IndexedMatrix.Identity), shape, IndexedVector3.Zero);
             body.SetWorldTransform(mat);
             body.SetUserPointer(pLocalID);
             return new BulletBodyXNA(pLocalID, body);
@@ -1296,8 +1296,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         public override BulletShape BuildCapsuleShape(BulletWorld pWorld, float pRadius, float pHeight, Vector3 pScale)
         {
             DiscreteDynamicsWorld world = (pWorld as BulletWorldXNA).world;
-            IndexedVector3 scale = new IndexedVector3(pScale.X, pScale.Y, pScale.Z);
-            CapsuleShapeZ capsuleShapeZ = new CapsuleShapeZ(pRadius, pHeight);
+            IndexedVector3 scale = new(pScale.X, pScale.Y, pScale.Z);
+            CapsuleShapeZ capsuleShapeZ = new(pRadius, pHeight);
             capsuleShapeZ.SetMargin(world.WorldSettings.Params.collisionMargin);
             capsuleShapeZ.SetLocalScaling(ref scale);
 	
@@ -1318,7 +1318,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             Vector3 worldExtent = maxPosition;
             m_maxCollisions = maxCollisions;
             m_maxUpdatesPerFrame = maxUpdates;
-            specialCollisionObjects = new Dictionary<uint, GhostObject>();
+            specialCollisionObjects = [];
 	
             return new BulletWorldXNA(1, PhysicsScene, BSAPIXNA.Initialize2(worldExtent, configparms, maxCollisions, ref collisionArray, maxUpdates, ref updateArray, null));
         }
@@ -1329,10 +1329,11 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                             int mMaxUpdatesPerFrame, ref EntityProperties[] updateArray,
                             object mDebugLogCallbackHandle)
         {
-            CollisionWorld.WorldData.ParamData p = new CollisionWorld.WorldData.ParamData();
-	
-            p.angularDamping = BSParam.AngularDamping;
-            p.defaultFriction = o[0].defaultFriction;
+            CollisionWorld.WorldData.ParamData p = new()
+            {
+                angularDamping = BSParam.AngularDamping,
+                defaultFriction = o[0].defaultFriction
+            };
             p.defaultFriction = o[0].defaultFriction;
             p.defaultDensity = o[0].defaultDensity;
             p.defaultRestitution = o[0].defaultRestitution;
@@ -1384,10 +1385,10 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             p.linkConstraintCFM = BSParam.LinkConstraintCFM;
             p.linkConstraintSolverIterations = BSParam.LinkConstraintSolverIterations;
             p.physicsLoggingFrames = o[0].physicsLoggingFrames;
-            DefaultCollisionConstructionInfo ccci = new DefaultCollisionConstructionInfo();
+            DefaultCollisionConstructionInfo ccci = new();
 	
-            DefaultCollisionConfiguration cci = new DefaultCollisionConfiguration();
-            CollisionDispatcher m_dispatcher = new CollisionDispatcher(cci);
+            DefaultCollisionConfiguration cci = new();
+            CollisionDispatcher m_dispatcher = new(cci);
 	
 	
             if (p.maxPersistantManifoldPoolSize > 0)
@@ -1396,20 +1397,21 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 m_dispatcher.SetDispatcherFlags(DispatcherFlags.CD_DISABLE_CONTACTPOOL_DYNAMIC_ALLOCATION);
             //if (p.maxCollisionAlgorithmPoolSize >0 )
 	
-            DbvtBroadphase m_broadphase = new DbvtBroadphase();
+            DbvtBroadphase m_broadphase = new();
             //IndexedVector3 aabbMin = new IndexedVector3(0, 0, 0);
             //IndexedVector3 aabbMax = new IndexedVector3(256, 256, 256);
 	
             //AxisSweep3Internal m_broadphase2 = new AxisSweep3Internal(ref aabbMin, ref aabbMax, Convert.ToInt32(0xfffe), 0xffff, ushort.MaxValue/2, null, true);
             m_broadphase.GetOverlappingPairCache().SetInternalGhostPairCallback(new GhostPairCallback());
 	
-            SequentialImpulseConstraintSolver m_solver = new SequentialImpulseConstraintSolver();
-	
-            DiscreteDynamicsWorld world = new DiscreteDynamicsWorld(m_dispatcher, m_broadphase, m_solver, cci);
-	
-            world.LastCollisionDesc = 0;
-            world.LastEntityProperty = 0;
-	
+            SequentialImpulseConstraintSolver m_solver = new();
+
+            DiscreteDynamicsWorld world = new(m_dispatcher, m_broadphase, m_solver, cci)
+            {
+                LastCollisionDesc = 0,
+                LastEntityProperty = 0
+            };
+
             world.WorldSettings.Params = p;
             world.SetForceUpdateAllAabbs(p.shouldForceUpdateAllAabbs != 0);
             world.GetSolverInfo().m_solverMode = SolverMode.SOLVER_USE_WARMSTARTING | SolverMode.SOLVER_SIMD;
@@ -1614,8 +1616,10 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         public override BulletBody CreateGhostFromShape(BulletWorld pWorld, BulletShape pShape, uint pLocalID, Vector3 pRawPosition, Quaternion pRawOrientation)
         {
             DiscreteDynamicsWorld world = (pWorld as BulletWorldXNA).world;
-            IndexedMatrix bodyTransform = new IndexedMatrix();
-            bodyTransform._origin = new IndexedVector3(pRawPosition.X, pRawPosition.Y, pRawPosition.Z);
+            IndexedMatrix bodyTransform = new()
+            {
+                _origin = new IndexedVector3(pRawPosition.X, pRawPosition.Y, pRawPosition.Z)
+            };
             bodyTransform.SetRotation(new IndexedQuaternion(pRawOrientation.X,pRawOrientation.Y,pRawOrientation.Z,pRawOrientation.W));
             GhostObject gObj = new PairCachingGhostObject();
             gObj.SetWorldTransform(bodyTransform);
@@ -1676,7 +1680,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             }
             if (shape != null)
             {
-                IndexedVector3 scaling = new IndexedVector3(pShapeData.Scale.X, pShapeData.Scale.Y, pShapeData.Scale.Z);
+                IndexedVector3 scaling = new(pShapeData.Scale.X, pShapeData.Scale.Y, pShapeData.Scale.Z);
                 shape.SetMargin(world.WorldSettings.Params.collisionMargin);
                 shape.SetLocalScaling(ref scaling);
 	
@@ -1697,7 +1701,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         //LinksetRoot.PhysShape.ptr, newShape.ptr, displacementPos, displacementRot
         public override void AddChildShapeToCompoundShape(BulletShape pCShape, BulletShape paddShape, Vector3 displacementPos, Quaternion displacementRot)
         {
-            IndexedMatrix relativeTransform = new IndexedMatrix();
+            IndexedMatrix relativeTransform = new();
             CompoundShape compoundshape = (pCShape as BulletShapeXNA).shape as CompoundShape;
             CollisionShape addshape = (paddShape as BulletShapeXNA).shape;
 	
@@ -1861,7 +1865,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 	
         public override BulletShape CreateGroundPlaneShape(uint pLocalId, float pheight, float pcollisionMargin)
         {
-            StaticPlaneShape m_planeshape = new StaticPlaneShape(new IndexedVector3(0,0,1),(int)pheight );
+            StaticPlaneShape m_planeshape = new(new IndexedVector3(0,0,1),(int)pheight );
             m_planeshape.SetMargin(pcollisionMargin);
             m_planeshape.SetUserPointer(pLocalId);
             return new BulletShapeXNA(m_planeshape, BSPhysicsShapeType.SHAPE_GROUNDPLANE);
@@ -1878,13 +1882,13 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             RigidBody body2 = (pBody2 as BulletBodyXNA).rigidBody;
             if (body1 != null && body2 != null)
             {
-                IndexedVector3 frame1v = new IndexedVector3(pframe1.X, pframe1.Y, pframe1.Z);
-                IndexedQuaternion frame1rot = new IndexedQuaternion(pframe1rot.X, pframe1rot.Y, pframe1rot.Z, pframe1rot.W);
+                IndexedVector3 frame1v = new(pframe1.X, pframe1.Y, pframe1.Z);
+                IndexedQuaternion frame1rot = new(pframe1rot.X, pframe1rot.Y, pframe1rot.Z, pframe1rot.W);
                 IndexedMatrix frame1 = IndexedMatrix.CreateFromQuaternion(frame1rot);
                 frame1._origin = frame1v;
 	
-                IndexedVector3 frame2v = new IndexedVector3(pframe2.X, pframe2.Y, pframe2.Z);
-                IndexedQuaternion frame2rot = new IndexedQuaternion(pframe2rot.X, pframe2rot.Y, pframe2rot.Z, pframe2rot.W);
+                IndexedVector3 frame2v = new(pframe2.X, pframe2.Y, pframe2.Z);
+                IndexedQuaternion frame2rot = new(pframe2rot.X, pframe2rot.Y, pframe2rot.Z, pframe2rot.W);
                 IndexedMatrix frame2 = IndexedMatrix.CreateFromQuaternion(frame2rot);
                 frame2._origin = frame2v;
 	
@@ -1907,10 +1911,10 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             RigidBody rb2 = (pBody2 as BulletBodyXNA).rigidBody;
             if (rb1 != null && rb2 != null)
             {
-                IndexedVector3 pivotInA = new IndexedVector3(ppivotInA.X, ppivotInA.Y, ppivotInA.Z);
-                IndexedVector3 pivotInB = new IndexedVector3(ppivotInB.X, ppivotInB.Y, ppivotInB.Z);
-                IndexedVector3 axisInA = new IndexedVector3(paxisInA.X, paxisInA.Y, paxisInA.Z);
-                IndexedVector3 axisInB = new IndexedVector3(paxisInB.X, paxisInB.Y, paxisInB.Z);
+                IndexedVector3 pivotInA = new(ppivotInA.X, ppivotInA.Y, ppivotInA.Z);
+                IndexedVector3 pivotInB = new(ppivotInB.X, ppivotInB.Y, ppivotInB.Z);
+                IndexedVector3 axisInA = new(paxisInA.X, paxisInA.Y, paxisInA.Z);
+                IndexedVector3 axisInB = new(paxisInB.X, paxisInB.Y, paxisInB.Z);
                 constrain = new HingeConstraint(rb1, rb2, ref pivotInA, ref pivotInB, ref axisInA, ref axisInB, puseLinearReferenceFrameA);
                 world.AddConstraint(constrain, pdisableCollisionsBetweenLinkedBodies);
             }
@@ -1928,13 +1932,13 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             RigidBody rb2 = (pBody2 as BulletBodyXNA).rigidBody;
             if (rb1 != null && rb2 != null)
             {
-                IndexedVector3 frame1v = new IndexedVector3(pframe1.X, pframe1.Y, pframe1.Z);
-                IndexedQuaternion frame1rot = new IndexedQuaternion(pframe1rot.X, pframe1rot.Y, pframe1rot.Z, pframe1rot.W);
+                IndexedVector3 frame1v = new(pframe1.X, pframe1.Y, pframe1.Z);
+                IndexedQuaternion frame1rot = new(pframe1rot.X, pframe1rot.Y, pframe1rot.Z, pframe1rot.W);
                 IndexedMatrix frame1 = IndexedMatrix.CreateFromQuaternion(frame1rot);
                 frame1._origin = frame1v;
 	
-                IndexedVector3 frame2v = new IndexedVector3(pframe2.X, pframe2.Y, pframe2.Z);
-                IndexedQuaternion frame2rot = new IndexedQuaternion(pframe2rot.X, pframe2rot.Y, pframe2rot.Z, pframe2rot.W);
+                IndexedVector3 frame2v = new(pframe2.X, pframe2.Y, pframe2.Z);
+                IndexedQuaternion frame2rot = new(pframe2rot.X, pframe2rot.Y, pframe2rot.Z, pframe2rot.W);
                 IndexedMatrix frame2 = IndexedMatrix.CreateFromQuaternion(frame2rot);
                 frame2._origin = frame2v;
 	
@@ -1955,13 +1959,13 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             RigidBody rb2 = (pBody2 as BulletBodyXNA).rigidBody;
             if (rb1 != null && rb2 != null)
             {
-                IndexedVector3 frame1v = new IndexedVector3(pframe1.X, pframe1.Y, pframe1.Z);
-                IndexedQuaternion frame1rot = new IndexedQuaternion(pframe1rot.X, pframe1rot.Y, pframe1rot.Z, pframe1rot.W);
+                IndexedVector3 frame1v = new(pframe1.X, pframe1.Y, pframe1.Z);
+                IndexedQuaternion frame1rot = new(pframe1rot.X, pframe1rot.Y, pframe1rot.Z, pframe1rot.W);
                 IndexedMatrix frame1 = IndexedMatrix.CreateFromQuaternion(frame1rot);
                 frame1._origin = frame1v;
 	
-                IndexedVector3 frame2v = new IndexedVector3(pframe2.X, pframe2.Y, pframe2.Z);
-                IndexedQuaternion frame2rot = new IndexedQuaternion(pframe2rot.X, pframe2rot.Y, pframe2rot.Z, pframe2rot.W);
+                IndexedVector3 frame2v = new(pframe2.X, pframe2.Y, pframe2.Z);
+                IndexedQuaternion frame2rot = new(pframe2rot.X, pframe2rot.Y, pframe2rot.Z, pframe2rot.W);
                 IndexedMatrix frame2 = IndexedMatrix.CreateFromQuaternion(frame2rot);
                 frame2._origin = frame2v;
 	
@@ -2002,8 +2006,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             RigidBody rb2 = (pBody2 as BulletBodyXNA).rigidBody;
             if (rb1 != null && rb2 != null)
             {
-                IndexedVector3 pivotInA = new IndexedVector3(ppivotInA.X, ppivotInA.Y, ppivotInA.Z);
-                IndexedVector3 pivotInB = new IndexedVector3(ppivotInB.X, ppivotInB.Y, ppivotInB.Z);
+                IndexedVector3 pivotInA = new(ppivotInA.X, ppivotInA.Y, ppivotInA.Z);
+                IndexedVector3 pivotInB = new(ppivotInB.X, ppivotInB.Y, ppivotInB.Z);
                 constrain = new Point2PointConstraint(rb1, rb2, ref pivotInA, ref pivotInB);
                 world.AddConstraint(constrain, pdisableCollisionsBetweenLinkedBodies);
             }
@@ -2013,7 +2017,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         public override BulletShape CreateHullShape(BulletWorld pWorld, int pHullCount, float[] pConvHulls)
         {
             DiscreteDynamicsWorld world = (pWorld as BulletWorldXNA).world;
-            CompoundShape compoundshape = new CompoundShape(false);
+            CompoundShape compoundshape = new(false);
 	
             compoundshape.SetMargin(world.WorldSettings.Params.collisionMargin);
             int ii = 1;
@@ -2022,18 +2026,18 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             {
                 int vertexCount = (int) pConvHulls[ii];
 	
-                IndexedVector3 centroid = new IndexedVector3(pConvHulls[ii + 1], pConvHulls[ii + 2], pConvHulls[ii + 3]);
+                IndexedVector3 centroid = new(pConvHulls[ii + 1], pConvHulls[ii + 2], pConvHulls[ii + 3]);
                 IndexedMatrix childTrans = IndexedMatrix.Identity;
                 childTrans._origin = centroid;
 	
-                List<IndexedVector3> virts = new List<IndexedVector3>();
+                List<IndexedVector3> virts = [];
                 int ender = ((ii + 4) + (vertexCount*3));
                 for (int iii = ii + 4; iii < ender; iii+=3)
                 {
 	
                     virts.Add(new IndexedVector3(pConvHulls[iii], pConvHulls[iii + 1], pConvHulls[iii +2]));
                 }
-                ConvexHullShape convexShape = new ConvexHullShape(virts, vertexCount);
+                ConvexHullShape convexShape = new(virts, vertexCount);
                 convexShape.SetMargin(world.WorldSettings.Params.collisionMargin);
                 compoundshape.AddChildShape(ref childTrans, convexShape);
                 ii += (vertexCount*3 + 4);
@@ -2067,23 +2071,25 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 if (verticesAsFloats[iter] < 0 && verticesAsFloats[iter] > -0.0001) verticesAsFloats[iter] = 0;
             }
 	
-            ObjectArray<int> indicesarr = new ObjectArray<int>(indices);
-            ObjectArray<float> vertices = new ObjectArray<float>(verticesAsFloats);
+            ObjectArray<int> indicesarr = [.. indices];
+            ObjectArray<float> vertices = [.. verticesAsFloats];
             DumpRaw(indicesarr,vertices,pIndicesCount,pVerticesCount);
             DiscreteDynamicsWorld world = (pWorld as BulletWorldXNA).world;
-            IndexedMesh mesh = new IndexedMesh();
-            mesh.m_indexType = PHY_ScalarType.PHY_INTEGER;
-            mesh.m_numTriangles = pIndicesCount/3;
-            mesh.m_numVertices = pVerticesCount;
-            mesh.m_triangleIndexBase = indicesarr;
-            mesh.m_vertexBase = vertices;
-            mesh.m_vertexStride = 3;
-            mesh.m_vertexType = PHY_ScalarType.PHY_FLOAT;
-            mesh.m_triangleIndexStride = 3;
-	
-            TriangleIndexVertexArray tribuilder = new TriangleIndexVertexArray();
+            IndexedMesh mesh = new()
+            {
+                m_indexType = PHY_ScalarType.PHY_INTEGER,
+                m_numTriangles = pIndicesCount / 3,
+                m_numVertices = pVerticesCount,
+                m_triangleIndexBase = indicesarr,
+                m_vertexBase = vertices,
+                m_vertexStride = 3,
+                m_vertexType = PHY_ScalarType.PHY_FLOAT,
+                m_triangleIndexStride = 3
+            };
+
+            TriangleIndexVertexArray tribuilder = new();
             tribuilder.AddIndexedMesh(mesh, PHY_ScalarType.PHY_INTEGER);
-            BvhTriangleMeshShape meshShape = new BvhTriangleMeshShape(tribuilder, true,true);
+            BvhTriangleMeshShape meshShape = new(tribuilder, true,true);
             meshShape.SetMargin(world.WorldSettings.Params.collisionMargin);
            // world.UpdateSingleAabb(meshShape);
             return new BulletShapeXNA(meshShape, BSPhysicsShapeType.SHAPE_MESH);
@@ -2096,22 +2102,23 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         }
         public static void DumpRaw(ObjectArray<int>indices, ObjectArray<float> vertices, int pIndicesCount,int pVerticesCount )
         {
-	
-            String fileName = "objTest3.raw";
-            String completePath = System.IO.Path.Combine(Util.configDir(), fileName);
-            StreamWriter sw = new StreamWriter(completePath);
-            IndexedMesh mesh = new IndexedMesh();
-	
-            mesh.m_indexType = PHY_ScalarType.PHY_INTEGER;
-            mesh.m_numTriangles = pIndicesCount / 3;
-            mesh.m_numVertices = pVerticesCount;
-            mesh.m_triangleIndexBase = indices;
-            mesh.m_vertexBase = vertices;
-            mesh.m_vertexStride = 3;
-            mesh.m_vertexType = PHY_ScalarType.PHY_FLOAT;
-            mesh.m_triangleIndexStride = 3;
-	
-            TriangleIndexVertexArray tribuilder = new TriangleIndexVertexArray();
+
+            string fileName = "objTest3.raw";
+            string completePath = System.IO.Path.Combine(Util.configDir(), fileName);
+            StreamWriter sw = new(completePath);
+            IndexedMesh mesh = new()
+            {
+                m_indexType = PHY_ScalarType.PHY_INTEGER,
+                m_numTriangles = pIndicesCount / 3,
+                m_numVertices = pVerticesCount,
+                m_triangleIndexBase = indices,
+                m_vertexBase = vertices,
+                m_vertexStride = 3,
+                m_vertexType = PHY_ScalarType.PHY_FLOAT,
+                m_triangleIndexStride = 3
+            };
+
+            TriangleIndexVertexArray tribuilder = new();
             tribuilder.AddIndexedMesh(mesh, PHY_ScalarType.PHY_INTEGER);
 	
 	
@@ -2130,22 +2137,23 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         }
         public static void DumpRaw(int[] indices, float[] vertices, int pIndicesCount, int pVerticesCount)
         {
-	
-            String fileName = "objTest6.raw";
-            String completePath = System.IO.Path.Combine(Util.configDir(), fileName);
-            StreamWriter sw = new StreamWriter(completePath);
-            IndexedMesh mesh = new IndexedMesh();
-	
-            mesh.m_indexType = PHY_ScalarType.PHY_INTEGER;
-            mesh.m_numTriangles = pIndicesCount / 3;
-            mesh.m_numVertices = pVerticesCount;
-            mesh.m_triangleIndexBase = indices;
-            mesh.m_vertexBase = vertices;
-            mesh.m_vertexStride = 3;
-            mesh.m_vertexType = PHY_ScalarType.PHY_FLOAT;
-            mesh.m_triangleIndexStride = 3;
-	
-            TriangleIndexVertexArray tribuilder = new TriangleIndexVertexArray();
+
+            string fileName = "objTest6.raw";
+            string completePath = System.IO.Path.Combine(Util.configDir(), fileName);
+            StreamWriter sw = new(completePath);
+            IndexedMesh mesh = new()
+            {
+                m_indexType = PHY_ScalarType.PHY_INTEGER,
+                m_numTriangles = pIndicesCount / 3,
+                m_numVertices = pVerticesCount,
+                m_triangleIndexBase = indices,
+                m_vertexBase = vertices,
+                m_vertexStride = 3,
+                m_vertexType = PHY_ScalarType.PHY_FLOAT,
+                m_triangleIndexStride = 3
+            };
+
+            TriangleIndexVertexArray tribuilder = new();
             tribuilder.AddIndexedMesh(mesh, PHY_ScalarType.PHY_INTEGER);
 	
 	
@@ -2179,7 +2187,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                                     float scaleFactor, float collisionMargin)
         {
             const int upAxis = 2;
-            HeightfieldTerrainShape terrainShape = new HeightfieldTerrainShape((int)size.X, (int)size.Y,
+            HeightfieldTerrainShape terrainShape = new((int)size.X, (int)size.Y,
                                                                                heightMap,  scaleFactor,
                                                                                minHeight, maxHeight, upAxis,
                                                                                 false);
@@ -2332,7 +2340,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             ObjectArray<BroadphasePair> pairs = cache.GetOverlappingPairArray();
 	
             DiscreteDynamicsWorld world = (PhysicsScene.World as BulletWorldXNA).world;
-            PersistentManifoldArray manifoldArray = new PersistentManifoldArray();
+            PersistentManifoldArray manifoldArray = [];
             BroadphasePair collisionPair;
             PersistentManifold contactManifold;
 	
@@ -2393,7 +2401,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 	
             //ulong collisionID = ((ulong) idA << 32) | idB;
 	
-            CollisionDesc cDesc = new CollisionDesc()
+            CollisionDesc cDesc = new()
                                                 {
                                                     aID = idA,
                                                     bID = idB,
@@ -2410,7 +2418,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         }
         private static EntityProperties GetDebugProperties(BulletWorld pWorld, BulletBody pCollisionObject)
         {
-            EntityProperties ent = new EntityProperties();
+            EntityProperties ent = new();
             DiscreteDynamicsWorld world = (pWorld as BulletWorldXNA).world;
             CollisionObject collisionObject = (pCollisionObject as BulletBodyXNA).rigidBody;
             IndexedMatrix transform = collisionObject.GetWorldTransform();
@@ -2426,7 +2434,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             return ent;
         }
 	
-        public override bool UpdateParameter(BulletWorld world, uint localID, String parm, float value) { /* TODO */
+        public override bool UpdateParameter(BulletWorld world, uint localID, string parm, float value) { /* TODO */
             return false; }
 	
         public override Vector3 GetLocalScaling(BulletShape pShape)
@@ -2445,11 +2453,11 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 {
                     CollisionObject AvoidBody = (NotMe as BulletBodyXNA).body;
 	
-                    IndexedVector3 rOrigin = new IndexedVector3(_RayOrigin.X, _RayOrigin.Y, _RayOrigin.Z);
-                    IndexedVector3 rEnd = new IndexedVector3(_RayOrigin.X, _RayOrigin.Y, _RayOrigin.Z - pRayHeight);
+                    IndexedVector3 rOrigin = new(_RayOrigin.X, _RayOrigin.Y, _RayOrigin.Z);
+                    IndexedVector3 rEnd = new(_RayOrigin.X, _RayOrigin.Y, _RayOrigin.Z - pRayHeight);
                     using (
                         ClosestNotMeRayResultCallback rayCallback =
-                                                new ClosestNotMeRayResultCallback(rOrigin, rEnd, AvoidBody)
+                                                new(rOrigin, rEnd, AvoidBody)
                         )
                     {
                         world.RayTest(ref rOrigin, ref rEnd, rayCallback);

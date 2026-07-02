@@ -55,7 +55,7 @@ namespace OpenSim.Region.CoreModules
         private IConfig m_windConfig;
         private IWindModelPlugin m_activeWindPlugin = null;
         private string m_dWindPluginName = "SimpleRandomWind";
-        private Dictionary<string, IWindModelPlugin> m_availableWindPlugins = new Dictionary<string, IWindModelPlugin>();
+        private Dictionary<string, IWindModelPlugin> m_availableWindPlugins = [];
 
         // Simplified windSpeeds based on the fact that the client protocal tracks at a resolution of 16m
         private Vector2[] windSpeeds = new Vector2[16 * 16];
@@ -142,7 +142,7 @@ namespace OpenSim.Region.CoreModules
 
                 foreach (KeyValuePair<string, string> kvp in windPlugin.WindParams())
                 {
-                    string windCommand = String.Format("wind {0} {1}", windPlugin.Name, kvp.Key);
+                    string windCommand = string.Format("wind {0} {1}", windPlugin.Name, kvp.Key);
                     m_scene.AddCommand("Regions", this, windCommand, string.Format("{0} [<value>]", windCommand), kvp.Value, "", HandleConsoleParamCommand);
                 }
             }
@@ -372,7 +372,7 @@ namespace OpenSim.Region.CoreModules
             }
             else
             {
-                throw new Exception(String.Format("Could not find plugin {0}", plugin));
+                throw new Exception(string.Format("Could not find plugin {0}", plugin));
             }
         }
 
@@ -385,7 +385,7 @@ namespace OpenSim.Region.CoreModules
             }
             else
             {
-                throw new Exception(String.Format("Could not find plugin {0}", plugin));
+                throw new Exception(string.Format("Could not find plugin {0}", plugin));
             }
         }
 
@@ -399,7 +399,7 @@ namespace OpenSim.Region.CoreModules
                 }
                 else
                 {
-                    return String.Empty;
+                    return string.Empty;
                 }
             }
         }

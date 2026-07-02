@@ -139,7 +139,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public List<ILandObject> AllParcels()
         {
-            return m_landManagementModule is not null ? m_landManagementModule.AllParcels() : new List<ILandObject>();
+            return m_landManagementModule is not null ? m_landManagementModule.AllParcels() : [];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -151,7 +151,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public List<ILandObject> ParcelsNearPoint(Vector3 position)
         {
-            return m_landManagementModule is not null ? m_landManagementModule.ParcelsNearPoint(position) : new List<ILandObject>();
+            return m_landManagementModule is not null ? m_landManagementModule.ParcelsNearPoint(position) : [];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

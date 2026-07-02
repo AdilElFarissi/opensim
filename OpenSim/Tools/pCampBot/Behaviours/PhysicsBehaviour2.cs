@@ -54,7 +54,7 @@ namespace pCampBot
             {
                 counter = 0;
 
-                Vector3 target = new Vector3(Bot.Random.Next(1, 254), Bot.Random.Next(1, 254), Bot.Client.Self.SimPosition.Z);
+                Vector3 target = new(Bot.Random.Next(1, 254), Bot.Random.Next(1, 254), Bot.Client.Self.SimPosition.Z);
                 MyTurnToward(target);
 
                 Bot.Client.Self.Movement.AtPos = true;

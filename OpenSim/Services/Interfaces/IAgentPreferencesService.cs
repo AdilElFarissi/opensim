@@ -84,15 +84,17 @@ namespace OpenSim.Services.Interfaces
 
         public Dictionary<string, object> ToKeyValuePairs()
         {
-            Dictionary<string, object> result = new Dictionary<string, object>();
-            result["PrincipalID"] = PrincipalID.ToString();
-            result["AccessPrefs"] = AccessPrefs.ToString();
-            result["HoverHeight"] = HoverHeight.ToString();
-            result["Language"] = Language.ToString();
-            result["LanguageIsPublic"] = LanguageIsPublic.ToString();
-            result["PermEveryone"] = PermEveryone.ToString();
-            result["PermGroup"] = PermGroup.ToString();
-            result["PermNextOwner"] = PermNextOwner.ToString();
+            Dictionary<string, object> result = new()
+            {
+                ["PrincipalID"] = PrincipalID.ToString(),
+                ["AccessPrefs"] = AccessPrefs.ToString(),
+                ["HoverHeight"] = HoverHeight.ToString(),
+                ["Language"] = Language.ToString(),
+                ["LanguageIsPublic"] = LanguageIsPublic.ToString(),
+                ["PermEveryone"] = PermEveryone.ToString(),
+                ["PermGroup"] = PermGroup.ToString(),
+                ["PermNextOwner"] = PermNextOwner.ToString()
+            };
             return result;
         }
 

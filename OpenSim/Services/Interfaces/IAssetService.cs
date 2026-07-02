@@ -76,7 +76,7 @@ namespace OpenSim.Services.Interfaces
         /// was not contactable, if it is not in the database, etc.).
         /// </param>
         /// <returns>True if the id was parseable, false otherwise</returns>
-        bool Get(string id, Object sender, AssetRetrieved handler);
+        bool Get(string id, object sender, AssetRetrieved handler);
         void Get(string id, string ForeignAssetService, bool StoreOnLocalGrid, SimpleAssetRetrieved callBack);
 
         /// <summary>

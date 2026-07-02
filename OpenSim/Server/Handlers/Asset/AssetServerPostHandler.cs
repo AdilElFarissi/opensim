@@ -59,7 +59,7 @@ namespace OpenSim.Server.Handlers.Asset
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             AssetBase asset;
-            XmlSerializer xs = new XmlSerializer(typeof(AssetBase));
+            XmlSerializer xs = new(typeof(AssetBase));
 
             try
             {

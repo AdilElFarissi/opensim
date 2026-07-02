@@ -74,7 +74,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         private void AcceptClient(TcpClient client)
         {
-            IRCClientView cv = new IRCClientView(client, m_baseScene);
+            IRCClientView cv = new(client, m_baseScene);
 
             if (OnNewIRCClient != null)
                 OnNewIRCClient(cv);

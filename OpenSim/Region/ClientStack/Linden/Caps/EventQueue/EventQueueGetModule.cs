@@ -59,10 +59,10 @@ namespace OpenSim.Region.ClientStack.Linden
 
         protected Scene m_scene;
 
-        private readonly Dictionary<UUID, int> m_ids = new();
+        private readonly Dictionary<UUID, int> m_ids = [];
 
-        private readonly Dictionary<UUID, Queue<byte[]>> queues = new();
-        private readonly Dictionary<UUID, UUID> m_AvatarQueueUUIDMapping = new();
+        private readonly Dictionary<UUID, Queue<byte[]>> queues = [];
+        private readonly Dictionary<UUID, UUID> m_AvatarQueueUUIDMapping = [];
 
         #region INonSharedRegionModule methods
         public virtual void Initialise(IConfigSource config)

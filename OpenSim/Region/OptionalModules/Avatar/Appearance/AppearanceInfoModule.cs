@@ -47,7 +47,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private List<Scene> m_scenes = new List<Scene>();
+        private List<Scene> m_scenes = [];
 
 //        private IAvatarFactoryModule m_avatarFactory;
 
@@ -285,7 +285,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
 
             string rawUuid = cmd[2];
 
-            HashSet<ScenePresence> matchedAvatars = new HashSet<ScenePresence>();
+            HashSet<ScenePresence> matchedAvatars = [];
 
             lock (m_scenes)
             {
@@ -336,7 +336,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
                 optionalTargetLastName = cmd[3];
             }
 
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
 
             if (targetNameSupplied)
             {
@@ -352,7 +352,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
             }
             else
             {
-                ConsoleDisplayTable cdt = new ConsoleDisplayTable();
+                ConsoleDisplayTable cdt = new();
                 cdt.AddColumn("Name", ConsoleDisplayUtil.UserNameSize);
                 cdt.AddColumn("Wearables", 2);
 
@@ -391,8 +391,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
             string firstname = cmd[2];
             string lastname = cmd[3];
 
-            StringBuilder sb = new StringBuilder();
-            UuidGatherer uuidGatherer = new UuidGatherer(m_scenes[0].AssetService);
+            StringBuilder sb = new();
+            UuidGatherer uuidGatherer = new(m_scenes[0].AssetService);
 
             lock (m_scenes)
             {
@@ -422,8 +422,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
                                 {
                                     WearableItem wi = aw[j];
 
-                                    ConsoleDisplayList cdl = new ConsoleDisplayList();
-                                    cdl.Indent = 2;
+                                    ConsoleDisplayList cdl = new()
+                                    {
+                                        Indent = 2
+                                    };
                                     cdl.AddRow("Item UUID", wi.ItemID);
                                     cdl.AddRow("Assets", "");
                                     sb.Append(cdl.ToString());
@@ -435,8 +437,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
 
                                     bool[] existChecks = scene.AssetService.AssetsExist(assetStrings);
 
-                                    ConsoleDisplayTable cdt = new ConsoleDisplayTable();
-                                    cdt.Indent = 4;
+                                    ConsoleDisplayTable cdt = new()
+                                    {
+                                        Indent = 4
+                                    };
                                     cdt.AddColumn("Type", 10);
                                     cdt.AddColumn("UUID", ConsoleDisplayUtil.UuidSize);
                                     cdt.AddColumn("Found", 5);
@@ -464,7 +468,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Appearance
         {
             sb.AppendFormat("\nWearables for {0}\n", sp.Name);
 
-            ConsoleDisplayTable cdt = new ConsoleDisplayTable();
+            ConsoleDisplayTable cdt = new();
             cdt.AddColumn("Type", 10);
             cdt.AddColumn("Item UUID", ConsoleDisplayUtil.UuidSize);
             cdt.AddColumn("Asset UUID", ConsoleDisplayUtil.UuidSize);

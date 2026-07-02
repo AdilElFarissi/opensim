@@ -56,11 +56,11 @@ namespace OpenSim.Data.PGSQL
 
         public void LogoutRegionAgents(UUID regionID)
         {
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand())
+            using (NpgsqlConnection conn = new(m_ConnectionString))
+            using (NpgsqlCommand cmd = new())
             {
 
-                cmd.CommandText = String.Format("DELETE FROM {0} WHERE \"RegionID\" = :regionID", m_Realm);
+                cmd.CommandText = string.Format("DELETE FROM {0} WHERE \"RegionID\" = :regionID", m_Realm);
 
                 cmd.Parameters.Add(m_database.CreateParameter("RegionID", regionID));
                 cmd.Connection = conn;
@@ -78,11 +78,11 @@ namespace OpenSim.Data.PGSQL
             if (regionID.IsZero())
                 return false;
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand())
+            using (NpgsqlConnection conn = new(m_ConnectionString))
+            using (NpgsqlCommand cmd = new())
             {
 
-                cmd.CommandText = String.Format("UPDATE {0} SET \"RegionID\" = :regionID, \"LastSeen\" = now() WHERE \"SessionID\" = :sessionID", m_Realm);
+                cmd.CommandText = string.Format("UPDATE {0} SET \"RegionID\" = :regionID, \"LastSeen\" = now() WHERE \"SessionID\" = :sessionID", m_Realm);
 
                 cmd.Parameters.Add(m_database.CreateParameter("SessionID", sessionID));
                 cmd.Parameters.Add(m_database.CreateParameter("RegionID", regionID));

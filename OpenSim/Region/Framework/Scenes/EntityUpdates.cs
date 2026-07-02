@@ -151,7 +151,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public override string ToString()
         {
-            return String.Format("[{0},{1},{2}]", PriorityQueue, EntryOrder, m_entity.LocalId);
+            return string.Format("[{0},{1},{2}]", PriorityQueue, EntryOrder, m_entity.LocalId);
         }
     }
 
@@ -160,7 +160,7 @@ namespace OpenSim.Region.Framework.Scenes
         const int MAXSIZE = 32768;
         const int PREALLOC = 16384;
         private static readonly EntityUpdate[] m_pool = new EntityUpdate[MAXSIZE];
-        private static readonly object m_poollock = new object();
+        private static readonly object m_poollock = new();
         private static int m_poolPtr;
         //private static int m_min = int.MaxValue;
         //private static int m_max = int.MinValue;

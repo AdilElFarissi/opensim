@@ -49,7 +49,7 @@ namespace OpenSim.Framework.Monitoring
         public static string StatsPassword { get; set; }
 
         // All subcommands
-        public static HashSet<string> SubCommands = new HashSet<string> { AllSubCommand, ListSubCommand };
+        public static HashSet<string> SubCommands = [AllSubCommand, ListSubCommand];
 
         /// <summary>
         /// Registered stats categorized by category/container/shortname
@@ -58,7 +58,7 @@ namespace OpenSim.Framework.Monitoring
         /// Do not add or remove directly from this dictionary.
         /// </remarks>
         public static SortedDictionary<string, SortedDictionary<string, SortedDictionary<string, Stat>>> RegisteredStats
-            = new SortedDictionary<string, SortedDictionary<string, SortedDictionary<string, Stat>>>();
+            = [];
 
 //        private static AssetStatsCollector assetStats;
 //        private static UserStatsCollector userStats;
@@ -127,7 +127,7 @@ namespace OpenSim.Framework.Monitoring
                         }
                         else
                         {
-                            if (String.IsNullOrEmpty(containerName))
+                            if (string.IsNullOrEmpty(containerName))
                             {
                                 OutputCategoryStatsToConsole(con, category);
                             }
@@ -136,7 +136,7 @@ namespace OpenSim.Framework.Monitoring
                                 SortedDictionary<string, Stat> container;
                                 if (category.TryGetValue(containerName, out container))
                                 {
-                                    if (String.IsNullOrEmpty(statName))
+                                    if (string.IsNullOrEmpty(statName))
                                     {
                                         OutputContainerStatsToConsole(con, container);
                                     }
@@ -175,7 +175,7 @@ namespace OpenSim.Framework.Monitoring
 
         public static List<string> GetAllStatsReports()
         {
-            List<string> reports = new List<string>();
+            List<string> reports = [];
 
             foreach (var category in RegisteredStats.Values)
                 reports.AddRange(GetCategoryStatsReports(category));
@@ -192,7 +192,7 @@ namespace OpenSim.Framework.Monitoring
 
         private static string MemoryReport()
         {
-            StringBuilder sb = new StringBuilder(Environment.NewLine);
+            StringBuilder sb = new(Environment.NewLine);
             sb.AppendFormat(
                 "Heap allocated:  {0}MB \t allocation rate (last/avg): {1}/{2}MB/s\n",
                 Math.Round(GC.GetTotalMemory(false) / 1024.0 / 1024.0),
@@ -229,7 +229,7 @@ namespace OpenSim.Framework.Monitoring
         private static List<string> GetCategoryStatsReports(
             SortedDictionary<string, SortedDictionary<string, Stat>> category)
         {
-            List<string> reports = new List<string>();
+            List<string> reports = [];
 
             foreach (var container in category.Values)
                 reports.AddRange(GetContainerStatsReports(container));
@@ -246,7 +246,7 @@ namespace OpenSim.Framework.Monitoring
 
         private static List<string> GetContainerStatsReports(SortedDictionary<string, Stat> container)
         {
-            List<string> reports = new List<string>();
+            List<string> reports = [];
 
             foreach (Stat stat in container.Values)
                 reports.Add(stat.ToConsoleString());
@@ -296,7 +296,7 @@ namespace OpenSim.Framework.Monitoring
         // Case matters.
         public static OSDMap GetStatsAsOSDMap(string pCategoryName, string pContainerName, string pStatName)
         {
-            OSDMap map = new OSDMap();
+            OSDMap map = [];
 
             lock (RegisteredStats)
             {
@@ -304,21 +304,21 @@ namespace OpenSim.Framework.Monitoring
                 {
                     // Do this category if null spec, "all" subcommand or category name matches passed parameter.
                     // Skip category if none of the above.
-                    if (!(String.IsNullOrEmpty(pCategoryName) || pCategoryName == AllSubCommand || pCategoryName == catName))
+                    if (!(string.IsNullOrEmpty(pCategoryName) || pCategoryName == AllSubCommand || pCategoryName == catName))
                         continue;
 
-                    OSDMap contMap = new OSDMap();
+                    OSDMap contMap = [];
                     foreach (string contName in RegisteredStats[catName].Keys)
                     {
                         if (!(string.IsNullOrEmpty(pContainerName) || pContainerName == AllSubCommand || pContainerName == contName))
                             continue;
 
-                        OSDMap statMap = new OSDMap();
+                        OSDMap statMap = [];
 
                         SortedDictionary<string, Stat> theStats = RegisteredStats[catName][contName];
                         foreach (string statName in theStats.Keys)
                         {
-                            if (!(String.IsNullOrEmpty(pStatName) || pStatName == AllSubCommand || pStatName == statName))
+                            if (!(string.IsNullOrEmpty(pStatName) || pStatName == AllSubCommand || pStatName == statName))
                                 continue;
 
                             statMap.Add(statName, theStats[statName].ToBriefOSDMap());
@@ -335,12 +335,12 @@ namespace OpenSim.Framework.Monitoring
 
         public static Hashtable HandleStatsRequest(Hashtable request)
         {
-            Hashtable responsedata = new Hashtable();
+            Hashtable responsedata = [];
 //            string regpath = request["uri"].ToString();
             int response_code = 200;
             string contenttype = "text/json";
 
-            if (StatsPassword != String.Empty && (!request.ContainsKey("pass") || request["pass"].ToString() != StatsPassword))
+            if (StatsPassword != string.Empty && (!request.ContainsKey("pass") || request["pass"].ToString() != StatsPassword))
             {
                 responsedata["int_response_code"] = response_code;
                 responsedata["content_type"] = "text/plain";
@@ -420,10 +420,10 @@ namespace OpenSim.Framework.Monitoring
                     return false;
 
                 if (container == null)
-                    container = new SortedDictionary<string, Stat>();
+                    container = [];
 
                 if (category == null)
-                    category = new SortedDictionary<string, SortedDictionary<string, Stat>>();
+                    category = [];
 
                 container[stat.ShortName] = stat;
                 category[stat.Container] = container;
@@ -513,7 +513,7 @@ namespace OpenSim.Framework.Monitoring
                     if (containerStats.ContainsKey(statShortName))
                     {
                         if (stats == null)
-                            stats = new List<Stat>();
+                            stats = [];
 
                         stats.Add(containerStats[statShortName]);
                     }

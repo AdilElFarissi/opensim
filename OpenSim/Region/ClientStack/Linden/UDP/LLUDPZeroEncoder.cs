@@ -377,7 +377,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe void AddShortString(string str, int maxlen)
         {
-            if (String.IsNullOrEmpty(str))
+            if (string.IsNullOrEmpty(str))
             {
                 AddZeros(1);
                 return;
@@ -400,7 +400,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe void AddShortString(string str, int maxchars, int maxlen)
         {
-            if (String.IsNullOrEmpty(str))
+            if (string.IsNullOrEmpty(str))
             {
                 AddZeros(1);
                 return;
@@ -747,7 +747,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe void AddShortString(string str, int maxlen)
         {
-            if (String.IsNullOrEmpty(str))
+            if (string.IsNullOrEmpty(str))
             {
                 AddZeros(1);
                 return;
@@ -770,7 +770,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public unsafe void AddShortString(string str, int maxchars, int maxlen)
         {
-            if (String.IsNullOrEmpty(str))
+            if (string.IsNullOrEmpty(str))
             {
                 AddZeros(1);
                 return;

@@ -156,7 +156,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private static DynamicMethod markerInterfaceDummy = MakeMarkerInterfaceDummy();
         private static DynamicMethod MakeMarkerInterfaceDummy()
         {
-            DynamicMethod dm = new DynamicMethod("XMRSDTypeClObj.MarkerInterfaceDummy", null, new Type[] { typeof(XMRSDTypeClObj) });
+            DynamicMethod dm = new("XMRSDTypeClObj.MarkerInterfaceDummy", null, new Type[] { typeof(XMRSDTypeClObj) });
             ILGenerator ilGen = dm.GetILGenerator();
             ilGen.Emit(OpCodes.Ret);
             return dm;

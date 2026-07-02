@@ -43,7 +43,7 @@ namespace OpenSim.Services.Connectors
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
-        private string m_ServerURI = String.Empty;
+        private string m_ServerURI = string.Empty;
 
         public AuthenticationServicesConnector()
         {
@@ -70,7 +70,7 @@ namespace OpenSim.Services.Connectors
             }
 
             string serviceURI = assetConfig.GetString("AuthenticationServerURI",
-                    String.Empty);
+                    string.Empty);
 
             if (serviceURI.Length == 0)
             {
@@ -91,12 +91,14 @@ namespace OpenSim.Services.Connectors
 
         public string Authenticate(UUID principalID, string password, int lifetime)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            sendData["LIFETIME"] = lifetime.ToString();
-            sendData["PRINCIPAL"] = principalID.ToString();
-            sendData["PASSWORD"] = password;
+            Dictionary<string, object> sendData = new()
+            {
+                ["LIFETIME"] = lifetime.ToString(),
+                ["PRINCIPAL"] = principalID.ToString(),
+                ["PASSWORD"] = password,
 
-            sendData["METHOD"] = "authenticate";
+                ["METHOD"] = "authenticate"
+            };
 
             string reply = SynchronousRestFormsRequester.MakeRequest("POST",
                     m_ServerURI + "/auth/plain",
@@ -106,7 +108,7 @@ namespace OpenSim.Services.Connectors
                     reply);
 
             if (replyData["Result"].ToString() != "Success")
-                return String.Empty;
+                return string.Empty;
 
             return replyData["Token"].ToString();
         }
@@ -114,12 +116,14 @@ namespace OpenSim.Services.Connectors
         public bool Verify(UUID principalID, string token, int lifetime)
         {
 //            m_log.Error("[XXX]: Verify");
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            sendData["LIFETIME"] = lifetime.ToString();
-            sendData["PRINCIPAL"] = principalID.ToString();
-            sendData["TOKEN"] = token;
+            Dictionary<string, object> sendData = new()
+            {
+                ["LIFETIME"] = lifetime.ToString(),
+                ["PRINCIPAL"] = principalID.ToString(),
+                ["TOKEN"] = token,
 
-            sendData["METHOD"] = "verify";
+                ["METHOD"] = "verify"
+            };
 
             string reply = SynchronousRestFormsRequester.MakeRequest("POST",
                     m_ServerURI + "/auth/plain",
@@ -136,11 +140,13 @@ namespace OpenSim.Services.Connectors
 
         public bool Release(UUID principalID, string token)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            sendData["PRINCIPAL"] = principalID.ToString();
-            sendData["TOKEN"] = token;
+            Dictionary<string, object> sendData = new()
+            {
+                ["PRINCIPAL"] = principalID.ToString(),
+                ["TOKEN"] = token,
 
-            sendData["METHOD"] = "release";
+                ["METHOD"] = "release"
+            };
 
             string reply = SynchronousRestFormsRequester.MakeRequest("POST",
                     m_ServerURI + "/auth/plain",

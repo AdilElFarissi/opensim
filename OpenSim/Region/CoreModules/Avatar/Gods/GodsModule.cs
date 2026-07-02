@@ -50,7 +50,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>Special UUID for actions that apply to all agents</summary>
-        private static readonly UUID ALL_AGENTS = new UUID("44e87126-e794-4ded-05b3-7c42da3d5cdb");
+        private static readonly UUID ALL_AGENTS = new("44e87126-e794-4ded-05b3-7c42da3d5cdb");
 
         protected Scene m_scene;
         protected IDialogModule m_dialogModule;
@@ -336,9 +336,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Gods
         {
             if (msg.dialog == (uint)250) // Nonlocal kick
             {
-                UUID agentID = new UUID(msg.toAgentID);
+                UUID agentID = new(msg.toAgentID);
                 string reason = msg.message;
-                UUID godID = new UUID(msg.fromAgentID);
+                UUID godID = new(msg.fromAgentID);
                 uint kickMode = (uint)msg.binaryBucket[0];
 
                 if(godID == Constants.servicesGodAgentID)

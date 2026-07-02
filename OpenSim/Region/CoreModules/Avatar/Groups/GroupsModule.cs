@@ -46,18 +46,18 @@ namespace OpenSim.Region.CoreModules.Avatar.Groups
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Dictionary<UUID, GroupMembershipData> m_GroupMap =
-                new Dictionary<UUID, GroupMembershipData>();
+                [];
 
         private Dictionary<UUID, IClientAPI> m_ClientMap =
-                new Dictionary<UUID, IClientAPI>();
+                [];
 
         private UUID opensimulatorGroupID =
-                new UUID("00000000-68f9-1111-024e-222222111123");
+                new("00000000-68f9-1111-024e-222222111123");
 
-        private List<Scene> m_SceneList = new List<Scene>();
+        private List<Scene> m_SceneList = [];
 
         private static GroupMembershipData osGroup =
-                new GroupMembershipData();
+                new();
 
         private bool m_Enabled = false;
 

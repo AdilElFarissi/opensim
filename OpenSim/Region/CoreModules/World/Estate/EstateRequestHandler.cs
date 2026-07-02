@@ -48,7 +48,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected EstateModule m_EstateModule;
-        protected Object m_RequestLock = new Object();
+        protected object m_RequestLock = new();
         private string token;
 
         public EstateSimpleRequestHandler(EstateModule fmodule, string _token) : base("/estate")
@@ -73,7 +73,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             try
             {
                 string body;
-                using (StreamReader sr = new StreamReader(httpRequest.InputStream))
+                using (StreamReader sr = new(httpRequest.InputStream))
                     body = sr.ReadToEnd();
 
                 body = body.Trim();
@@ -152,7 +152,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             if (!request.ContainsKey("EstateID"))
                 return FailureResult();
 
-            if (!Int32.TryParse(request["EstateID"].ToString(), out EstateID))
+            if (!int.TryParse(request["EstateID"].ToString(), out EstateID))
                 return FailureResult();
 
             foreach (Scene s in m_EstateModule.Scenes)
@@ -186,7 +186,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             if (!UUID.TryParse(request["PreyID"].ToString(), out PreyID))
                 return FailureResult();
 
-            if (!Int32.TryParse(request["EstateID"].ToString(), out EstateID))
+            if (!int.TryParse(request["EstateID"].ToString(), out EstateID))
                 return FailureResult();
 
             foreach (Scene s in m_EstateModule.Scenes)
@@ -208,8 +208,8 @@ namespace OpenSim.Region.CoreModules.World.Estate
         byte[] EstateMessage(Dictionary<string, object> request)
         {
             UUID FromID = UUID.Zero;
-            string FromName = String.Empty;
-            string Message = String.Empty;
+            string FromName = string.Empty;
+            string Message = string.Empty;
             int EstateID = 0;
 
             if (!request.ContainsKey("FromID") ||
@@ -223,7 +223,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             if (!UUID.TryParse(request["FromID"].ToString(), out FromID))
                 return FailureResult();
 
-            if (!Int32.TryParse(request["EstateID"].ToString(), out EstateID))
+            if (!int.TryParse(request["EstateID"].ToString(), out EstateID))
                 return FailureResult();
 
             FromName = request["FromName"].ToString();
@@ -257,7 +257,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             if (!UUID.TryParse(request["CovenantID"].ToString(), out CovenantID))
                 return FailureResult();
 
-            if (!Int32.TryParse(request["EstateID"].ToString(), out EstateID))
+            if (!int.TryParse(request["EstateID"].ToString(), out EstateID))
                 return FailureResult();
 
             foreach (Scene s in m_EstateModule.Scenes)
@@ -275,7 +275,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
             if (!request.ContainsKey("EstateID"))
                 return FailureResult();
-            if (!Int32.TryParse(request["EstateID"].ToString(), out EstateID))
+            if (!int.TryParse(request["EstateID"].ToString(), out EstateID))
                 return FailureResult();
 
             foreach (Scene s in m_EstateModule.Scenes)
@@ -298,7 +298,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         private byte[] BoolResult(bool value)
         {
-            XmlDocument doc = new XmlDocument();
+            XmlDocument doc = new();
 
             XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
                     "", "");

@@ -36,7 +36,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private Dictionary<string,Type> m_Apis = new Dictionary<string,Type>();
+        private Dictionary<string,Type> m_Apis = [];
 
         public string[] GetApis()
         {
@@ -55,7 +55,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
                     if (name.EndsWith("_Api"))
                     {
-                        string sname = new string(name[..^4]);
+                        string sname = new(name[..^4]);
                         m_Apis[sname] = t;
                     }
                 }

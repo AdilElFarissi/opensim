@@ -46,7 +46,7 @@ namespace OpenSim.Region.CoreModules.Hypergrid
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         // Remember the map area that each client has been exposed to in this region
-        private Dictionary<UUID, List<MapBlockData>> m_SeenMapBlocks = new Dictionary<UUID, List<MapBlockData>>();
+        private Dictionary<UUID, List<MapBlockData>> m_SeenMapBlocks = [];
 
         private string m_MapImageServerURL = string.Empty;
 
@@ -160,7 +160,7 @@ namespace OpenSim.Region.CoreModules.Hypergrid
                     else
                     {
                         List<MapBlockData> seen = m_SeenMapBlocks[remoteClient.AgentId];
-                        List<MapBlockData> newBlocks = new List<MapBlockData>();
+                        List<MapBlockData> newBlocks = [];
                         foreach (MapBlockData b in mapBlocks)
                             if (seen.Find(delegate(MapBlockData bdata) { return bdata.X == b.X && bdata.Y == b.Y; }) == null)
                                 newBlocks.Add(b);

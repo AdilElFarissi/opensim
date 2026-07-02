@@ -55,7 +55,7 @@ namespace OpenSim.Server.Handlers.Presence
         protected override byte[] ProcessRequest(string path, Stream requestData,
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-            StreamReader sr = new StreamReader(requestData);
+            StreamReader sr = new(requestData);
             string body = sr.ReadToEnd();
             sr.Close();
             body = body.Trim();
@@ -105,7 +105,7 @@ namespace OpenSim.Server.Handlers.Presence
 
         byte[] LoginAgent(Dictionary<string, object> request)
         {
-            string user = String.Empty;
+            string user = string.Empty;
             UUID session = UUID.Zero;
             UUID ssession = UUID.Zero;
 
@@ -193,7 +193,7 @@ namespace OpenSim.Server.Handlers.Presence
 
             PresenceInfo pinfo = m_PresenceService.GetAgent(session);
 
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
             if (pinfo == null)
                 result["result"] = "null";
             else
@@ -226,7 +226,7 @@ namespace OpenSim.Server.Handlers.Presence
 
             PresenceInfo[] pinfos = m_PresenceService.GetAgents(userIDs);
 
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
             if ((pinfos == null) || ((pinfos != null) && (pinfos.Length == 0)))
                 result["result"] = "null";
             else
@@ -248,7 +248,7 @@ namespace OpenSim.Server.Handlers.Presence
 
         private byte[] SuccessResult()
         {
-            XmlDocument doc = new XmlDocument();
+            XmlDocument doc = new();
 
             XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
                     "", "");
@@ -270,7 +270,7 @@ namespace OpenSim.Server.Handlers.Presence
 
         private byte[] FailureResult()
         {
-            XmlDocument doc = new XmlDocument();
+            XmlDocument doc = new();
 
             XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
                     "", "");

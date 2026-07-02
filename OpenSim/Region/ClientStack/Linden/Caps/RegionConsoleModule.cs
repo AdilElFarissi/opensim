@@ -51,10 +51,10 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private Scene m_scene;
         private IEventQueue m_eventQueue;
-        private Commands m_commands = new Commands();
+        private Commands m_commands = new();
         public ICommands Commands { get { return m_commands; } }
 
-        ConcurrentDictionary<UUID, OnOutputDelegate> currentConsoles = new ConcurrentDictionary<UUID, OnOutputDelegate>();
+        ConcurrentDictionary<UUID, OnOutputDelegate> currentConsoles = new();
 
         public event ConsoleMessage OnConsoleMessage;
 
@@ -140,12 +140,12 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private void Help(string module, string[] cmd)
         {
-            UUID agentID = new UUID(cmd[cmd.Length - 1]);
+            UUID agentID = new(cmd[cmd.Length - 1]);
             Array.Resize(ref cmd, cmd.Length - 1);
 
             List<string> help = Commands.GetHelp(cmd);
 
-            string reply = String.Empty;
+            string reply = string.Empty;
 
             foreach (string s in help)
             {

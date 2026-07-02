@@ -82,7 +82,7 @@ namespace OpenSim.Framework.Monitoring
 
         public override string ToConsoleString()
         {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
 
             sb.AppendFormat(
                 "{0}.{1}.{2} : {3:0.##}{4} ({5}/{6})",

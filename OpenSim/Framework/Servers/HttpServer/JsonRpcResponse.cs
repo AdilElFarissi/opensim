@@ -42,7 +42,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
     public class JsonRpcError
     {
-        internal OSDMap Error = new OSDMap();
+        internal OSDMap Error = [];
 
         public int Code
         {
@@ -116,7 +116,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             get; set;
         }
 
-        public OSDMap Reply = new OSDMap();
+        public OSDMap Reply = [];
 
         public JsonRpcResponse()
         {

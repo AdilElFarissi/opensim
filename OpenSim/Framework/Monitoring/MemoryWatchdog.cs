@@ -99,7 +99,7 @@ namespace OpenSim.Framework.Monitoring
         /// <summary>
         /// Historical samples for calculating moving average.
         /// </summary>
-        private static Queue<double> m_samples = new Queue<double>(m_maxSamples);
+        private static Queue<double> m_samples = new(m_maxSamples);
 
         public static void Update()
         {

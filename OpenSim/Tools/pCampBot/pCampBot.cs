@@ -70,7 +70,7 @@ namespace pCampBot
             }
             else
             {
-                BotManager bm = new BotManager();
+                BotManager bm = new();
 
                 string iniFilePath = Path.GetFullPath(Path.Combine(Util.configDir(), ConfigFileName));
 
@@ -120,10 +120,10 @@ namespace pCampBot
             }
         }
 
-        private static IConfig ParseConfig(String[] args)
+        private static IConfig ParseConfig(string[] args)
         {
             //Set up our nifty config..  thanks to nini
-            ArgvConfigSource cs = new ArgvConfigSource(args);
+            ArgvConfigSource cs = new(args);
 
             cs.AddSwitch("Startup", "connect", "c");
             cs.AddSwitch("Startup", "botcount", "n");

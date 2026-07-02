@@ -37,8 +37,8 @@ namespace OpenSim.Region.Framework.Scenes
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private object MAOLock = new object();
-        private Dictionary<string, UUID> m_overrides = new Dictionary<string, UUID>();
+        private object MAOLock = new();
+        private Dictionary<string, UUID> m_overrides = [];
         public void SetOverride(string state, UUID animID)
         {
             if (animID.IsZero())

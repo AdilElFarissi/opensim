@@ -77,7 +77,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         private EntityTransferModule m_mod;
 
-        private Dictionary<UUID, AgentTransferState> m_agentsInTransit = new Dictionary<UUID, AgentTransferState>();
+        private Dictionary<UUID, AgentTransferState> m_agentsInTransit = [];
 
         public EntityTransferStateMachine(EntityTransferModule module)
         {

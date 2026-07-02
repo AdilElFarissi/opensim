@@ -85,7 +85,7 @@ namespace OpenSim.Data.PGSQL
             {
                 try
                 {
-                    using (NpgsqlCommand cmd = new NpgsqlCommand(sql, (NpgsqlConnection)conn))
+                    using (NpgsqlCommand cmd = new(sql, (NpgsqlConnection)conn))
                     {
                         cmd.ExecuteNonQuery();
                     }

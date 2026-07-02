@@ -45,11 +45,13 @@ namespace OpenSim.Region.UserStatistics
 
         public Hashtable ProcessModel(Hashtable pParams)
         {
-            Hashtable modeldata = new Hashtable();
-            modeldata.Add("Scenes", pParams["Scenes"]);
-            modeldata.Add("Reports", pParams["Reports"]);
+            Hashtable modeldata = new()
+            {
+                { "Scenes", pParams["Scenes"] },
+                { "Reports", pParams["Reports"] }
+            };
             SQLiteConnection dbConn = (SQLiteConnection)pParams["DatabaseConnection"];
-            List<SessionList> lstSessions = new List<SessionList>();
+            List<SessionList> lstSessions = [];
             Hashtable requestvars = (Hashtable) pParams["RequestVars"];
 
 
@@ -104,7 +106,7 @@ namespace OpenSim.Region.UserStatistics
 
                 sql += " ORDER BY a.name_f, a.name_l, b.last_updated;";
 
-                SQLiteCommand cmd = new SQLiteCommand(sql, dbConn);
+                SQLiteCommand cmd = new(sql, dbConn);
 
                 if (puserUUID.Length > 0)
                     cmd.Parameters.Add(new SQLiteParameter(":agent_id", puserUUID));
@@ -117,27 +119,32 @@ namespace OpenSim.Region.UserStatistics
                 {
                     UUID userUUID = UUID.Zero;
 
-                    SessionList activeSessionList = new SessionList();
-                    activeSessionList.user_id=UUID.Random();
+                    SessionList activeSessionList = new()
+                    {
+                        user_id = UUID.Random()
+                    };
                     while (sdr.Read())
                     {
                         UUID readUUID = UUID.Parse(sdr["agent_id"].ToString());
                         if (readUUID != userUUID)
                         {
-                            activeSessionList = new SessionList();
-                            activeSessionList.user_id = readUUID;
-                            activeSessionList.firstname = sdr["name_f"].ToString();
-                            activeSessionList.lastname = sdr["name_l"].ToString();
-                            activeSessionList.sessions = new List<ShortSessionData>();
+                            activeSessionList = new SessionList
+                            {
+                                user_id = readUUID,
+                                firstname = sdr["name_f"].ToString(),
+                                lastname = sdr["name_l"].ToString(),
+                                sessions = []
+                            };
                             lstSessions.Add(activeSessionList);
                         }
 
-                        ShortSessionData ssd = new ShortSessionData();
-
-                        ssd.last_update = Utils.UnixTimeToDateTime((uint)Convert.ToInt32(sdr["last_updated"]));
-                        ssd.start_time = Utils.UnixTimeToDateTime((uint)Convert.ToInt32(sdr["start_time"]));
-                        ssd.session_id = UUID.Parse(sdr["session_id"].ToString());
-                        ssd.client_version = sdr["client_version"].ToString();
+                        ShortSessionData ssd = new()
+                        {
+                            last_update = Utils.UnixTimeToDateTime((uint)Convert.ToInt32(sdr["last_updated"])),
+                            start_time = Utils.UnixTimeToDateTime((uint)Convert.ToInt32(sdr["start_time"])),
+                            session_id = UUID.Parse(sdr["session_id"].ToString()),
+                            client_version = sdr["client_version"].ToString()
+                        };
                         activeSessionList.sessions.Add(ssd);
 
                         userUUID = activeSessionList.user_id;
@@ -172,7 +179,7 @@ TD.align_top { vertical-align: top; }
 </STYLE>
 ";
 
-            StringBuilder output = new StringBuilder();
+            StringBuilder output = new();
             HTMLUtil.HtmlHeaders_O(ref output);
             output.Append(STYLESHEET);
             HTMLUtil.HtmlHeaders_C(ref output);

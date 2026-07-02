@@ -47,7 +47,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public LinksetData(int limit)
         {
-            Data = new Dictionary<string, LinksetDataEntry>();
+            Data = [];
 
             m_MemoryLimit = limit;
             m_MemoryUsed = 0;
@@ -55,7 +55,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public LinksetData(int limit, int used)
         {
-            Data = new Dictionary<string, LinksetDataEntry>();
+            Data = [];
 
             m_MemoryLimit = limit;
             m_MemoryUsed = used;
@@ -268,7 +268,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return Array.Empty<string>();
                 try
                 {
-                    ret = new List<string>();
+                    ret = [];
                     Regex reg = new(pattern, RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(1));
 
                     foreach (var kvp in Data)
@@ -504,7 +504,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             try
             {
-                using BinaryWriter bw = new BinaryWriter(ms, System.Text.Encoding.UTF8, true);
+                using BinaryWriter bw = new(ms, System.Text.Encoding.UTF8, true);
                 bw.Write((byte)1); // storage version
                 bw.Write7BitEncodedInt(m_MemoryLimit);
                 lock (linksetDataLock)
@@ -533,7 +533,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             try
             {
-                using BinaryReader br = new BinaryReader(new MemoryStream(data));
+                using BinaryReader br = new(new MemoryStream(data));
                 int version = br.Read7BitEncodedInt();
                 int memoryLimit = br.Read7BitEncodedInt();
                 if(memoryLimit < 0 || memoryLimit > 256 * 1024)
@@ -542,7 +542,7 @@ namespace OpenSim.Region.Framework.Scenes
                 int count = br.Read7BitEncodedInt();
                 if(count == 0)
                     return null;
-                LinksetData ld = new LinksetData(memoryLimit);
+                LinksetData ld = new(memoryLimit);
                 for(int i = 0; i < count; i++)
                 {
                     string key = br.ReadString();

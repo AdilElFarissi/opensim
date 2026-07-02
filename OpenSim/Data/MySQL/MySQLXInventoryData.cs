@@ -153,7 +153,7 @@ namespace OpenSim.Data.MySQL
             if (!base.Delete(fields, vals))
                 return false;
 
-            HashSet<UUID> deletedItemFolderUUIDs = new HashSet<UUID>();
+            HashSet<UUID> deletedItemFolderUUIDs = [];
 
             Array.ForEach<XInventoryItem>(retrievedItems, i => deletedItemFolderUUIDs.Add(i.parentFolderID));
 
@@ -171,9 +171,9 @@ namespace OpenSim.Data.MySQL
 
             UUID oldParent = retrievedItems[0].parentFolderID;
 
-            using (MySqlCommand cmd = new MySqlCommand())
+            using (MySqlCommand cmd = new())
             {
-                cmd.CommandText = String.Format("update {0} set parentFolderID = ?ParentFolderID where inventoryID = ?InventoryID", m_Realm);
+                cmd.CommandText = string.Format("update {0} set parentFolderID = ?ParentFolderID where inventoryID = ?InventoryID", m_Realm);
                 cmd.Parameters.AddWithValue("?ParentFolderID", newParent);
                 cmd.Parameters.AddWithValue("?InventoryID", id);
 
@@ -189,7 +189,7 @@ namespace OpenSim.Data.MySQL
 
         public XInventoryItem[] GetActiveGestures(UUID principalID)
         {
-            using (MySqlCommand cmd  = new MySqlCommand())
+            using (MySqlCommand cmd  = new())
             {
                 //cmd.CommandText = String.Format("select * from inventoryitems where avatarId = ?uuid and assetType = ?type and flags & 1", m_Realm);
 
@@ -204,11 +204,11 @@ namespace OpenSim.Data.MySQL
 
         public int GetAssetPermissions(UUID principalID, UUID assetID)
         {
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            using (MySqlConnection dbcon = new(m_connectionString))
             {
                 dbcon.Open();
 
-                using (MySqlCommand cmd = new MySqlCommand())
+                using (MySqlCommand cmd = new())
                 {
                     cmd.Connection = dbcon;
 
@@ -263,7 +263,7 @@ namespace OpenSim.Data.MySQL
 
             UUID oldParentFolderUUID = folders[0].parentFolderID;
 
-            using (MySqlCommand cmd = new MySqlCommand())
+            using (MySqlCommand cmd = new())
             {
                 cmd.CommandText = $"update {m_Realm} set parentFolderID = ?ParentFolderID where folderID = ?folderID";
                 cmd.Parameters.AddWithValue("?ParentFolderID", newParentFolderID);

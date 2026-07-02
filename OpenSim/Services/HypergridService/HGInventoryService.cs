@@ -75,13 +75,13 @@ namespace OpenSim.Services.HypergridService
                 if (userAccountsDll.Length == 0)
                     throw new Exception("Please specify UserAccountsService in HGInventoryService configuration");
 
-                Object[] args = new Object[] { config };
+                object[] args = new object[] { config };
                 m_UserAccountService = ServerUtils.LoadPlugin<IUserAccountService>(userAccountsDll, args);
                 if (m_UserAccountService == null)
-                    throw new Exception(String.Format("Unable to create UserAccountService from {0}", userAccountsDll));
+                    throw new Exception(string.Format("Unable to create UserAccountService from {0}", userAccountsDll));
 
                 m_HomeURL = Util.GetConfigVarFromSections<string>(config, "HomeURI",
-                    new string[] { "Startup", "Hypergrid", m_ConfigName }, String.Empty);
+                    new string[] { "Startup", "Hypergrid", m_ConfigName }, string.Empty);
 
                 m_Cache = UserAccountCache.CreateUserAccountCache(m_UserAccountService);
             }
@@ -99,7 +99,7 @@ namespace OpenSim.Services.HypergridService
         public override List<InventoryFolderBase> GetInventorySkeleton(UUID principalID)
         {
             // NOGO for this inventory service
-            return new List<InventoryFolderBase>();
+            return [];
         }
 
         public override InventoryFolderBase GetRootFolder(UUID principalID)
@@ -184,9 +184,9 @@ namespace OpenSim.Services.HypergridService
         {
             List<InventoryFolderBase> direct = lst.FindAll(delegate(InventoryFolderBase f) { return f.ParentID == root; });
             if (direct == null)
-                return new List<InventoryFolderBase>();
+                return [];
 
-            List<InventoryFolderBase> indirect = new List<InventoryFolderBase>();
+            List<InventoryFolderBase> indirect = [];
             foreach (InventoryFolderBase f in direct)
                 indirect.AddRange(GetDescendents(lst, f.ID));
 

@@ -20,7 +20,7 @@ namespace OSHttpServer
         /// <summary> Representation of a non-initialized <see cref="HttpInputItem"/>.</summary>
         public static readonly HttpInputItem Empty = new(string.Empty, true);
         private readonly IDictionary<string, HttpInputItem> _items = new Dictionary<string, HttpInputItem>();
-        private readonly List<string> _values = new();
+        private readonly List<string> _values = [];
         private string _name;
         private readonly bool _ignoreChanges;
         

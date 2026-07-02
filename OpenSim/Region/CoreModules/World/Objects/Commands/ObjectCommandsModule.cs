@@ -221,7 +221,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
         {
             List<SceneObjectGroup> sceneObjects = m_scene.GetSceneObjectGroups().FindAll(searchPredicate);
 
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
 
             foreach (SceneObjectGroup so in sceneObjects)
             {
@@ -237,11 +237,11 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
         private void OutputSopsToConsole(Predicate<SceneObjectPart> searchPredicate, bool showFull)
         {
             List<SceneObjectGroup> sceneObjects = m_scene.GetSceneObjectGroups();
-            List<SceneObjectPart> parts = new List<SceneObjectPart>();
+            List<SceneObjectPart> parts = [];
 
             sceneObjects.ForEach(so => parts.AddRange(Array.FindAll<SceneObjectPart>(so.Parts, searchPredicate)));
 
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
 
             foreach (SceneObjectPart part in parts)
             {
@@ -288,7 +288,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 return;
             }
 
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
             AddSceneObjectReport(sb, so, showFull);
 
             m_console.Output(sb.ToString());
@@ -301,9 +301,11 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             bool showFull = false;
             bool useRegex = false;
-            OptionSet options = new OptionSet();
-            options.Add("full", v => showFull = v != null );
-            options.Add("regex", v => useRegex = v != null );
+            OptionSet options = new()
+            {
+                { "full", v => showFull = v != null },
+                { "regex", v => useRegex = v != null }
+            };
 
             List<string> mainParams = options.Parse(cmdparams);
 
@@ -319,7 +321,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             if (useRegex)
             {
-                Regex nameRegex = new Regex(name);
+                Regex nameRegex = new(name);
                 searchPredicate = so => nameRegex.IsMatch(so.Name);
             }
             else
@@ -389,7 +391,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 return;
 
 //            bool showFull = false;
-            OptionSet options = new OptionSet();
+            OptionSet options = [];
 //            options.Add("full", v => showFull = v != null );
 
             List<string> mainParams = options.Parse(cmdparams);
@@ -418,7 +420,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 return;
             }
 
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
             AddScenePartReport(sb, sop, true);
 
             m_console.Output(sb.ToString());
@@ -430,7 +432,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                 return;
 
 //            bool showFull = false;
-            OptionSet options = new OptionSet();
+            OptionSet options = [];
 //            options.Add("full", v => showFull = v != null );
 
             List<string> mainParams = options.Parse(cmdparams);
@@ -470,9 +472,11 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
 //            bool showFull = false;
             bool useRegex = false;
-            OptionSet options = new OptionSet();
-//            options.Add("full", v => showFull = v != null );
-            options.Add("regex", v => useRegex = v != null );
+            OptionSet options = new()
+            {
+                //            options.Add("full", v => showFull = v != null );
+                { "regex", v => useRegex = v != null }
+            };
 
             List<string> mainParams = options.Parse(cmdparams);
 
@@ -489,7 +493,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             if (useRegex)
             {
-                Regex nameRegex = new Regex(name);
+                Regex nameRegex = new(name);
                 searchPredicate = sop => nameRegex.IsMatch(sop.Name);
             }
             else
@@ -536,7 +540,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             if (!ConsoleUtil.CheckFileDoesNotExist(m_console, fileName))
                 return;
 
-            using (XmlTextWriter xtw = new XmlTextWriter(fileName, Encoding.UTF8))
+            using (XmlTextWriter xtw = new(fileName, Encoding.UTF8))
             {
                 xtw.Formatting = Formatting.Indented;
                 SceneObjectSerializer.ToOriginalXmlFormat(so, xtw, true);
@@ -575,7 +579,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
         private StringBuilder AddSummarySceneObjectReport(StringBuilder sb, SceneObjectGroup so)
         {
-            ConsoleDisplayList cdl = new ConsoleDisplayList();
+            ConsoleDisplayList cdl = new();
             cdl.AddRow("Name", so.Name);
             cdl.AddRow("Description", so.Description);
             cdl.AddRow("Local ID", so.LocalId);
@@ -599,7 +603,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
         /// </param>
         private StringBuilder AddScenePartReport(StringBuilder sb, SceneObjectPart sop, bool showFull)
         {
-            ConsoleDisplayList cdl = new ConsoleDisplayList();
+            ConsoleDisplayList cdl = new();
             cdl.AddRow("Name", sop.Name);
             cdl.AddRow("Description", sop.Description);
             cdl.AddRow("Local ID", sop.LocalId);
@@ -684,7 +688,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             object itemsOutput;
             if (showFull)
             {
-                StringBuilder itemsSb = new StringBuilder("\n");
+                StringBuilder itemsSb = new("\n");
                 itemsOutput = AddScenePartItemsReport(itemsSb, sop.Inventory).ToString();
             }
             else
@@ -699,8 +703,10 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
         private StringBuilder AddScenePartItemsReport(StringBuilder sb, IEntityInventory inv)
         {
-            ConsoleDisplayTable cdt = new ConsoleDisplayTable();
-            cdt.Indent = 2;
+            ConsoleDisplayTable cdt = new()
+            {
+                Indent = 2
+            };
 
             cdt.AddColumn("Name", 50);
             cdt.AddColumn("Type", 12);
@@ -754,7 +760,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                     if (!UUID.TryParse(o, out match))
                         return;
 
-                    deletes = new List<SceneObjectGroup>();
+                    deletes = [];
 
                     m_scene.ForEachSOG(delegate (SceneObjectGroup g)
                     {
@@ -771,7 +777,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                     if (!UUID.TryParse(o, out match))
                         return;
 
-                    deletes = new List<SceneObjectGroup>();
+                    deletes = [];
 
                     m_scene.ForEachSOG(delegate (SceneObjectGroup g)
                     {
@@ -791,7 +797,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                         return;
 
                     requireConfirmation = false;
-                    deletes = new List<SceneObjectGroup>();
+                    deletes = [];
 
                     SceneObjectGroup so;
                     if (localId == ConsoleUtil.LocalIdNotFound)
@@ -815,7 +821,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
                     break;
 
                 case "outside":
-                    deletes = new List<SceneObjectGroup>();
+                    deletes = [];
 
                     m_scene.ForEachSOG(delegate (SceneObjectGroup g)
                     {
@@ -897,12 +903,12 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
 
             string name = mainParams[3];
 
-            List<SceneObjectGroup> sceneObjects = new List<SceneObjectGroup>();
+            List<SceneObjectGroup> sceneObjects = [];
             Action<SceneObjectGroup> searchAction;
 
             if (useRegex)
             {
-                Regex nameRegex = new Regex(name);
+                Regex nameRegex = new(name);
                 searchAction = so => { if (nameRegex.IsMatch(so.Name)) {if(!so.IsAttachment) sceneObjects.Add(so);}};
             }
             else

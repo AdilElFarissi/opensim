@@ -68,13 +68,13 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         // Used to send cloud and wind patches
         public static LayerDataPacket CreateLayerDataPacketStandardSize(TerrainPatch[] patches, byte type)
         {
-            LayerDataPacket layer = new LayerDataPacket { LayerID = { Type = type } };
-            TerrainPatch.GroupHeader header = new TerrainPatch.GroupHeader { Stride = STRIDE, PatchSize = 16 };
+            LayerDataPacket layer = new() { LayerID = { Type = type } };
+            TerrainPatch.GroupHeader header = new() { Stride = STRIDE, PatchSize = 16 };
 
             // Should be enough to fit even the most poorly packed data
             byte[] data = new byte[patches.Length * 256 * 2];
 
-            BitPack bitpack = new BitPack(data, 0);
+            BitPack bitpack = new(data, 0);
             bitpack.PackBits(header.Stride, 16);
             bitpack.PackBits(header.PatchSize, 8);
             bitpack.PackBits(type, 8);
@@ -107,7 +107,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
 
         private static TerrainPatch.Header PrescanPatch(float[] patch)
         {
-            TerrainPatch.Header header = new TerrainPatch.Header();
+            TerrainPatch.Header header = new();
             float zmax = -99999999.0f;
             float zmin = 99999999.0f;
 
@@ -189,7 +189,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             terrData.GetPatchMinMax(patchX, patchY, out float zmin, out float zmax);
             frange = ((zmax - zmin) + 1.0f);
 
-            TerrainPatch.Header header = new TerrainPatch.Header()
+            TerrainPatch.Header header = new()
             {
                 DCOffset = zmin,
                 Range = (int)frange

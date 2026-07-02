@@ -54,18 +54,18 @@ namespace OpenSim.Region.DataSnapshot
         private bool m_enabled = false;
         private bool m_configLoaded = false;
 
-        private Dictionary<string, string> m_gridinfo = new Dictionary<string, string>();
+        private Dictionary<string, string> m_gridinfo = [];
         private string m_snapsDir = "DataSnapshot";
         private string m_exposure_level = "minimum";
 
         //Lists of stuff we need
-        private List<Scene> m_scenes = new List<Scene>();
-        private List<IDataSnapshotProvider> m_dataproviders = new List<IDataSnapshotProvider>();
+        private List<Scene> m_scenes = [];
+        private List<IDataSnapshotProvider> m_dataproviders = [];
 
         //Various internal objects
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        internal object m_syncInit = new object();
-        private object m_serializeGen = new object();
+        internal object m_syncInit = new();
+        private object m_serializeGen = new();
 
         //DataServices and networking
         private string m_dataServices = "noservices";
@@ -114,7 +114,7 @@ namespace OpenSim.Region.DataSnapshot
                     {
                         m_enabled = config.Configs["DataSnapshot"].GetBoolean("index_sims", m_enabled);
                         string gatekeeper = Util.GetConfigVarFromSections<string>(config, "GatekeeperURI",
-                            new string[] { "Startup", "Hypergrid", "GridService" }, String.Empty);
+                            new string[] { "Startup", "Hypergrid", "GridService" }, string.Empty);
                         // Legacy. Remove soon!
                         if (string.IsNullOrEmpty(gatekeeper))
                         {
@@ -209,7 +209,7 @@ namespace OpenSim.Region.DataSnapshot
             m_snapStore.RemoveScene(restartedScene);
 
             //Getting around the fact that we can't remove objects from a collection we are enumerating over
-            List<IDataSnapshotProvider> providersToRemove = new List<IDataSnapshotProvider>();
+            List<IDataSnapshotProvider> providersToRemove = [];
 
             foreach (IDataSnapshotProvider provider in m_dataproviders)
             {
@@ -293,9 +293,9 @@ namespace OpenSim.Region.DataSnapshot
         private void AddDataServicesVars(IConfig config)
         {
             // Make sure the services given this way aren't in m_dataServices already
-            List<string> servs = new(m_dataServices.Split(';'));
+            List<string> servs = [.. m_dataServices.Split(';')];
 
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
             string[] keys = config.GetKeys();
 
             if (keys.Length > 0)
@@ -329,7 +329,7 @@ namespace OpenSim.Region.DataSnapshot
 
             CheckStale();
 
-            XmlDocument requestedSnap = new XmlDocument();
+            XmlDocument requestedSnap = new();
             requestedSnap.AppendChild(requestedSnap.CreateXmlDeclaration("1.0", null, null));
             requestedSnap.AppendChild(requestedSnap.CreateWhitespace("\r\n"));
 
@@ -377,7 +377,7 @@ namespace OpenSim.Region.DataSnapshot
 
         private XmlDocument GetErrorMessage(string regionName, Exception e)
         {
-            XmlDocument errorMessage = new XmlDocument();
+            XmlDocument errorMessage = new();
             XmlNode error = errorMessage.CreateNode(XmlNodeType.Element, "error", "");
             XmlNode region = errorMessage.CreateNode(XmlNodeType.Element, "region", "");
             region.InnerText = regionName;
@@ -404,7 +404,7 @@ namespace OpenSim.Region.DataSnapshot
             for (int i = 0; i < services.Length; i++)
             {
                 string url = services[i].Trim();
-                using (RestClient cli = new RestClient(url))
+                using (RestClient cli = new(url))
                 {
                     cli.AddQueryParameter("service", serviceName);
                     cli.AddQueryParameter("host", m_hostname);

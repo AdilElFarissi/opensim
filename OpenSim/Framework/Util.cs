@@ -169,8 +169,8 @@ namespace OpenSim.Framework
         private static uint nextXferID = 5000;
 
         // Get a list of invalid file characters (OS dependent)
-        private static readonly string regexInvalidFileChars = $"[{new String(Path.GetInvalidFileNameChars())}]";
-        private static readonly string regexInvalidPathChars = $"[{new String(Path.GetInvalidPathChars())}]";
+        private static readonly string regexInvalidFileChars = $"[{new string(Path.GetInvalidFileNameChars())}]";
+        private static readonly string regexInvalidPathChars = $"[{new string(Path.GetInvalidPathChars())}]";
         private static readonly object XferLock = new();
 
         public static readonly char[] SplitCommaArray = [','];
@@ -766,7 +766,7 @@ namespace OpenSim.Framework
         /// A <see cref="OSD"/>
         /// </param>
         /// <returns>
-        /// A <see cref="System.String"/>
+        /// A <see cref="string"/>
         /// </returns>
         public static string GetFormattedXml(OSD osd)
         {
@@ -1720,7 +1720,7 @@ namespace OpenSim.Framework
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string FieldToString(byte[] bytes)
         {
-            return FieldToString(bytes, String.Empty);
+            return FieldToString(bytes, string.Empty);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -1742,7 +1742,7 @@ namespace OpenSim.Framework
         public static string FieldToString(byte[] bytes, string fieldName)
         {
             // Check for a common case
-            if (bytes.Length == 0) return String.Empty;
+            if (bytes.Length == 0) return string.Empty;
 
             StringBuilder output = new();
             bool printable = true;
@@ -1801,7 +1801,7 @@ namespace OpenSim.Framework
             return output.ToString();
         }
 
-        private static readonly IPEndPoint dummyIPEndPoint = new IPEndPoint(IPAddress.Any, 0);
+        private static readonly IPEndPoint dummyIPEndPoint = new(IPAddress.Any, 0);
         private static readonly ExpiringCacheOS<string, IPAddress> dnscache = new(30000);
         private static readonly ExpiringCacheOS<SocketAddress, EndPoint> EndpointsCache = new(300000);
 
@@ -1835,7 +1835,7 @@ namespace OpenSim.Framework
         /// <returns>An IP address, or null</returns>
         public static IPAddress GetHostFromDNS(string dnsAddress)
         {
-            if (String.IsNullOrWhiteSpace(dnsAddress))
+            if (string.IsNullOrWhiteSpace(dnsAddress))
                 return null;
 
             if (dnscache.TryGetValue(dnsAddress, 300000, out IPAddress ia) && ia != null)
@@ -1896,7 +1896,7 @@ namespace OpenSim.Framework
 
         public static IPEndPoint getEndPoint(string hostname, int port)
         {
-            if (String.IsNullOrWhiteSpace(hostname))
+            if (string.IsNullOrWhiteSpace(hostname))
                 return null;
 
             if (dnscache.TryGetValue(hostname, 300000, out IPAddress ia) && ia != null)
@@ -2046,7 +2046,7 @@ namespace OpenSim.Framework
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string SafePath(string path)
         {
-            return Regex.Replace(path, regexInvalidPathChars, String.Empty);
+            return Regex.Replace(path, regexInvalidPathChars, string.Empty);
         }
 
         /// <summary>
@@ -2057,7 +2057,7 @@ namespace OpenSim.Framework
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string SafeFileName(string filename)
         {
-            return Regex.Replace(filename, regexInvalidFileChars, String.Empty);
+            return Regex.Replace(filename, regexInvalidFileChars, string.Empty);
         }
 
         //
@@ -2139,7 +2139,7 @@ namespace OpenSim.Framework
             {
                 FileInfo f = new(FileName);
 
-                if (!String.IsNullOrEmpty(f.Extension))
+                if (!string.IsNullOrEmpty(f.Extension))
                 {
                     Name = f.FullName[..f.FullName.LastIndexOf('.')];
                 }
@@ -2237,11 +2237,11 @@ namespace OpenSim.Framework
                 if (cnf == null)
                     continue;
 
-                if (typeof(T) == typeof(String))
+                if (typeof(T) == typeof(string))
                     val = cnf.GetString(varname, (string)val);
-                else if (typeof(T) == typeof(Boolean))
+                else if (typeof(T) == typeof(bool))
                     val = cnf.GetBoolean(varname, (bool)val);
-                else if (typeof(T) == typeof(Int32))
+                else if (typeof(T) == typeof(int))
                     val = cnf.GetInt(varname, (int)val);
                 else if (typeof(T) == typeof(float))
                     val = cnf.GetFloat(varname, (float)val);
@@ -2395,23 +2395,23 @@ namespace OpenSim.Framework
             {
                 if (!fieldInfo.IsStatic)
                 {
-                    if (fieldInfo.FieldType == typeof(System.String))
+                    if (fieldInfo.FieldType == typeof(string))
                     {
                         fieldInfo.SetValue(settingsClass, config.Get(fieldInfo.Name, (string)fieldInfo.GetValue(settingsClass)));
                     }
-                    else if (fieldInfo.FieldType == typeof(System.Boolean))
+                    else if (fieldInfo.FieldType == typeof(bool))
                     {
                         fieldInfo.SetValue(settingsClass, config.GetBoolean(fieldInfo.Name, (bool)fieldInfo.GetValue(settingsClass)));
                     }
-                    else if (fieldInfo.FieldType == typeof(System.Int32))
+                    else if (fieldInfo.FieldType == typeof(int))
                     {
                         fieldInfo.SetValue(settingsClass, config.GetInt(fieldInfo.Name, (int)fieldInfo.GetValue(settingsClass)));
                     }
-                    else if (fieldInfo.FieldType == typeof(System.Single))
+                    else if (fieldInfo.FieldType == typeof(float))
                     {
                         fieldInfo.SetValue(settingsClass, config.GetFloat(fieldInfo.Name, (float)fieldInfo.GetValue(settingsClass)));
                     }
-                    else if (fieldInfo.FieldType == typeof(System.UInt32))
+                    else if (fieldInfo.FieldType == typeof(uint))
                     {
                         fieldInfo.SetValue(settingsClass, Convert.ToUInt32(config.Get(fieldInfo.Name, ((uint)fieldInfo.GetValue(settingsClass)).ToString())));
                     }
@@ -2423,23 +2423,23 @@ namespace OpenSim.Framework
             {
                 if ((propInfo.CanRead) && (propInfo.CanWrite))
                 {
-                    if (propInfo.PropertyType == typeof(System.String))
+                    if (propInfo.PropertyType == typeof(string))
                     {
                         propInfo.SetValue(settingsClass, config.Get(propInfo.Name, (string)propInfo.GetValue(settingsClass, null)), null);
                     }
-                    else if (propInfo.PropertyType == typeof(System.Boolean))
+                    else if (propInfo.PropertyType == typeof(bool))
                     {
                         propInfo.SetValue(settingsClass, config.GetBoolean(propInfo.Name, (bool)propInfo.GetValue(settingsClass, null)), null);
                     }
-                    else if (propInfo.PropertyType == typeof(System.Int32))
+                    else if (propInfo.PropertyType == typeof(int))
                     {
                         propInfo.SetValue(settingsClass, config.GetInt(propInfo.Name, (int)propInfo.GetValue(settingsClass, null)), null);
                     }
-                    else if (propInfo.PropertyType == typeof(System.Single))
+                    else if (propInfo.PropertyType == typeof(float))
                     {
                         propInfo.SetValue(settingsClass, config.GetFloat(propInfo.Name, (float)propInfo.GetValue(settingsClass, null)), null);
                     }
-                    if (propInfo.PropertyType == typeof(System.UInt32))
+                    if (propInfo.PropertyType == typeof(uint))
                     {
                         propInfo.SetValue(settingsClass, Convert.ToUInt32(config.Get(propInfo.Name, ((uint)propInfo.GetValue(settingsClass, null)).ToString())), null);
                     }
@@ -2513,7 +2513,7 @@ namespace OpenSim.Framework
         /// </summary>
         /// <param name="UUID"></param>
         /// <returns></returns>
-        public static String ToRawUuidString(UUID UUID)
+        public static string ToRawUuidString(UUID UUID)
         {
             return UUID.Guid.ToString("n");
         }
@@ -2547,7 +2547,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public static void SerializeToFile(string filename, Object obj)
+        public static void SerializeToFile(string filename, object obj)
         {
             var formatter = new BinaryFormatter();
             try
@@ -2561,7 +2561,7 @@ namespace OpenSim.Framework
             }
         }
 
-        public static Object DeserializeFromFile(string filename)
+        public static object DeserializeFromFile(string filename)
         {
             try
             {
@@ -2756,7 +2756,7 @@ namespace OpenSim.Framework
         /// </returns>
         public static string GetOperatingSystemInformation()
         {
-            return String.Empty;
+            return string.Empty;
             //string os;
             //if (Environment.OSVersion.Platform != PlatformID.Unix)
             //{
@@ -2840,7 +2840,7 @@ namespace OpenSim.Framework
         {
             char[] chars = src.ToCharArray();
             BinaryToASCII(chars);
-            return new String(chars);
+            return new string(chars);
         }
 
         /// <summary>
@@ -2860,7 +2860,7 @@ namespace OpenSim.Framework
             {
                 int read = stream.Read(data, offset, remaining);
                 if (read <= 0)
-                    throw new EndOfStreamException(String.Format("End of stream reached with {0} bytes left to read", remaining));
+                    throw new EndOfStreamException(string.Format("End of stream reached with {0} bytes left to read", remaining));
                 remaining -= read;
                 offset += read;
             }
@@ -2944,7 +2944,7 @@ namespace OpenSim.Framework
 
         public static string[] Glob(string path)
         {
-            string vol = String.Empty;
+            string vol = string.Empty;
 
             if (Path.VolumeSeparatorChar != Path.DirectorySeparatorChar)
             {
@@ -2962,13 +2962,13 @@ namespace OpenSim.Framework
             // Glob
 
             path = vol;
-            if (vol != String.Empty)
-                path += new String(new char[] { Path.VolumeSeparatorChar, Path.DirectorySeparatorChar });
+            if (vol != string.Empty)
+                path += new string(new char[] { Path.VolumeSeparatorChar, Path.DirectorySeparatorChar });
             else
-                path = new String(new char[] { Path.DirectorySeparatorChar });
+                path = new string(new char[] { Path.DirectorySeparatorChar });
 
-            List<string> paths = new();
-            List<string> found = new();
+            List<string> paths = [];
+            List<string> found = [];
             paths.Add(path);
 
             int compIndex = -1;
@@ -2976,7 +2976,7 @@ namespace OpenSim.Framework
             {
                 compIndex++;
 
-                List<string> addpaths = new();
+                List<string> addpaths = [];
                 foreach (string p in paths)
                 {
                     string[] dirs = Directory.GetDirectories(p, c);
@@ -3303,7 +3303,7 @@ namespace OpenSim.Framework
                 if (rangeValues.Length == 2)
                 {
                     string rawStart = rangeValues[0].Trim();
-                    if (rawStart != "" && !Int32.TryParse(rawStart, out start))
+                    if (rawStart != "" && !int.TryParse(rawStart, out start))
                         return false;
 
                     if (start < 0)
@@ -3315,7 +3315,7 @@ namespace OpenSim.Framework
                         end = -1;
                         return true;
                     }
-                    else if (Int32.TryParse(rawEnd, out end))
+                    else if (int.TryParse(rawEnd, out end))
                         return end > 0;
                 }
             }
@@ -3359,7 +3359,7 @@ namespace OpenSim.Framework
 
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool SetProcessInformation(IntPtr hProcess, int ProcessInformationClass,
-                    IntPtr ProcessInformation, UInt32 ProcessInformationSize);
+                    IntPtr ProcessInformation, uint ProcessInformationSize);
 
         [StructLayout(LayoutKind.Sequential)]
         private struct PROCESS_POWER_THROTTLING_STATE
@@ -3571,14 +3571,14 @@ namespace OpenSim.Framework
             return new Dictionary<string, int>(m_fireAndForgetCallsMade);
         }
 
-        private static readonly Dictionary<string, int> m_fireAndForgetCallsMade = new();
+        private static readonly Dictionary<string, int> m_fireAndForgetCallsMade = [];
 
         public static Dictionary<string, int> GetFireAndForgetCallsInProgress()
         {
             return new Dictionary<string, int>(m_fireAndForgetCallsInProgress);
         }
 
-        private static readonly Dictionary<string, int> m_fireAndForgetCallsInProgress = new();
+        private static readonly Dictionary<string, int> m_fireAndForgetCallsInProgress = [];
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void FireAndForget(System.Threading.WaitCallback callback)
@@ -3880,12 +3880,12 @@ namespace OpenSim.Framework
         /// This trims it to a 12 day interval so don't let your frame time get too long.
         /// </summary>
         /// <returns></returns>
-        public static Int32 EnvironmentTickCount()
+        public static int EnvironmentTickCount()
         {
             return Environment.TickCount & EnvironmentTickCountMask;
         }
 
-        const Int32 EnvironmentTickCountMask = 0x3fffffff;
+        const int EnvironmentTickCountMask = 0x3fffffff;
 
         /// <summary>
         /// Environment.TickCount is an int but it counts all 32 bits so it goes positive
@@ -3895,9 +3895,9 @@ namespace OpenSim.Framework
         /// <param name="newValue"></param>
         /// <param name="prevValue"></param>
         /// <returns>subtraction of passed prevValue from current Environment.TickCount</returns>
-        public static Int32 EnvironmentTickCountSubtract(Int32 newValue, Int32 prevValue)
+        public static int EnvironmentTickCountSubtract(int newValue, int prevValue)
         {
-            Int32 diff = newValue - prevValue;
+            int diff = newValue - prevValue;
             return (diff >= 0) ? diff : (diff + EnvironmentTickCountMask + 1);
         }
 
@@ -3907,7 +3907,7 @@ namespace OpenSim.Framework
         /// 'EnvironmentTickCount()') and accounts for any wrapping.
         /// </summary>
         /// <returns>subtraction of passed prevValue from current Environment.TickCount</returns>
-        public static Int32 EnvironmentTickCountSubtract(Int32 prevValue)
+        public static int EnvironmentTickCountSubtract(int prevValue)
         {
             return EnvironmentTickCountSubtract(EnvironmentTickCount(), prevValue);
         }
@@ -3915,7 +3915,7 @@ namespace OpenSim.Framework
         // Returns value of Tick Count A - TickCount B accounting for wrapping of TickCount
         // Assumes both tcA and tcB came from previous calls to Util.EnvironmentTickCount().
         // A positive return value indicates A occured later than B
-        public static Int32 EnvironmentTickCountCompare(Int32 tcA, Int32 tcB)
+        public static int EnvironmentTickCountCompare(int tcA, int tcB)
         {
             // A, B and TC are all between 0 and 0x3fffffff
             int tc = EnvironmentTickCount();
@@ -4030,7 +4030,7 @@ namespace OpenSim.Framework
             PrintCallStack(m_log.DebugFormat);
         }
 
-        public delegate void DebugPrinter(string msg, params Object[] parm);
+        public delegate void DebugPrinter(string msg, params object[] parm);
         public static void PrintCallStack(DebugPrinter printer)
         {
             StackTrace stackTrace = new(true);           // get call stack
@@ -4121,9 +4121,9 @@ namespace OpenSim.Framework
             Vector3 vec;
 
             reader.ReadStartElement(name);
-            vec.X = reader.ReadElementContentAsFloat(reader.Name, String.Empty); // X or x
-            vec.Y = reader.ReadElementContentAsFloat(reader.Name, String.Empty); // Y or y
-            vec.Z = reader.ReadElementContentAsFloat(reader.Name, String.Empty); // Z or z
+            vec.X = reader.ReadElementContentAsFloat(reader.Name, string.Empty); // X or x
+            vec.Y = reader.ReadElementContentAsFloat(reader.Name, string.Empty); // Y or y
+            vec.Z = reader.ReadElementContentAsFloat(reader.Name, string.Empty); // Z or z
             reader.ReadEndElement();
 
             return vec;
@@ -4139,16 +4139,16 @@ namespace OpenSim.Framework
                 switch (reader.Name.ToLower())
                 {
                     case "x":
-                        quat.X = reader.ReadElementContentAsFloat(reader.Name, String.Empty);
+                        quat.X = reader.ReadElementContentAsFloat(reader.Name, string.Empty);
                         break;
                     case "y":
-                        quat.Y = reader.ReadElementContentAsFloat(reader.Name, String.Empty);
+                        quat.Y = reader.ReadElementContentAsFloat(reader.Name, string.Empty);
                         break;
                     case "z":
-                        quat.Z = reader.ReadElementContentAsFloat(reader.Name, String.Empty);
+                        quat.Z = reader.ReadElementContentAsFloat(reader.Name, string.Empty);
                         break;
                     case "w":
-                        quat.W = reader.ReadElementContentAsFloat(reader.Name, String.Empty);
+                        quat.W = reader.ReadElementContentAsFloat(reader.Name, string.Empty);
                         break;
                 }
             }
@@ -4160,7 +4160,7 @@ namespace OpenSim.Framework
 
         public static T ReadEnum<T>(XmlReader reader, string name)
         {
-            string value = reader.ReadElementContentAsString(name, String.Empty);
+            string value = reader.ReadElementContentAsString(name, string.Empty);
             // !!!!! to deal with flags without commas
             if (value.Contains(' ') && !value.Contains(','))
                 value = value.Replace(" ", ", ");
@@ -4736,7 +4736,7 @@ namespace OpenSim.Framework
         /// <param name="lastName">last name (e.g. User)</param>
         /// <param name="homeURI">homeURI (e.g. http://foo.com)</param>
         /// <returns>a string of the form uuid[;homeURI[;first last]]</returns>
-        public static string UniversalIdentifier(UUID id, String firstName, String lastName, String homeURI)
+        public static string UniversalIdentifier(UUID id, string firstName, string lastName, string homeURI)
         {
             string agentsURI = homeURI;
             if (!agentsURI.EndsWith('/'))
@@ -4766,7 +4766,7 @@ namespace OpenSim.Framework
         /// <param name="lastName"></param>
         /// <param name="homeURI"></param>
         /// <returns>string of the form first.last @foo.com or first last</returns>
-        public static string UniversalName(String firstName, String lastName, String homeURI)
+        public static string UniversalName(string firstName, string lastName, string homeURI)
         {
             Uri uri;
             try
@@ -4812,7 +4812,7 @@ namespace OpenSim.Framework
             // assume that it contains the real viewer name, and we return it.
             foreach (char c in name)
             {
-                if (Char.IsLetter(c))
+                if (char.IsLetter(c))
                     return name;
             }
 

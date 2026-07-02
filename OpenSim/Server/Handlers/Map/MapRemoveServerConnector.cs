@@ -59,7 +59,7 @@ namespace OpenSim.Server.Handlers.MapImage
         {
             IConfig serverConfig = config.Configs[m_ConfigName];
             if (serverConfig == null)
-                throw new Exception(String.Format("No section {0} in config file", m_ConfigName));
+                throw new Exception(string.Format("No section {0} in config file", m_ConfigName));
 
             string mapService = serverConfig.GetString("LocalServiceModule", string.Empty);
 
@@ -69,7 +69,7 @@ namespace OpenSim.Server.Handlers.MapImage
             object[] args = new object[] { config };
             m_MapService = ServerUtils.LoadPlugin<IMapImageService>(mapService, args);
 
-            string gridService = serverConfig.GetString("GridService", String.Empty);
+            string gridService = serverConfig.GetString("GridService", string.Empty);
             if (!string.IsNullOrWhiteSpace(gridService))
                 m_GridService = ServerUtils.LoadPlugin<IGridService>(gridService, args);
 
@@ -102,7 +102,7 @@ namespace OpenSim.Server.Handlers.MapImage
             try
             {
                 string body;
-                using (StreamReader sr = new StreamReader(httpRequest.InputStream))
+                using (StreamReader sr = new(httpRequest.InputStream))
                     body = sr.ReadToEnd();
                 body = body.Trim();
 
@@ -118,8 +118,8 @@ namespace OpenSim.Server.Handlers.MapImage
 
                 httpResponse.StatusCode = (int)HttpStatusCode.OK;
                 int x = 0, y = 0;
-                Int32.TryParse(request["X"].ToString(), out x);
-                Int32.TryParse(request["Y"].ToString(), out y);
+                int.TryParse(request["X"].ToString(), out x);
+                int.TryParse(request["Y"].ToString(), out y);
 //                UUID scopeID = new UUID("07f8d88e-cd5e-4239-a0ed-843f75d09992");
                 UUID scopeID = UUID.Zero;
                 if (request.ContainsKey("SCOPE"))

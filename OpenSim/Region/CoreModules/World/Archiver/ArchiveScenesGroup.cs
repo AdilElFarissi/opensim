@@ -63,8 +63,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
         public ArchiveScenesGroup()
         {
-            Regions = new SortedDictionary<uint, SortedDictionary<uint, Scene>>();
-            m_regionDirs = new Dictionary<UUID, string>();
+            Regions = [];
+            m_regionDirs = [];
             Rect = new Rectangle(0, 0, 0, 0);
         }
 
@@ -76,7 +76,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             SortedDictionary<uint, Scene> row;
             if (!Regions.TryGetValue(y, out row))
             {
-                row = new SortedDictionary<uint, Scene>();
+                row = [];
                 Regions[y] = row;
             }
 

@@ -186,11 +186,13 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
             UUID sessionID = UUID.Random();
 
             GridInstantMessage m = new(scene, client.AgentId,
-                    client.FirstName+" "+client.LastName, targetid,
+                    client.FirstName + " " + client.LastName, targetid,
                     (byte)InstantMessageDialog.RequestTeleport, false,
                     message, sessionID, false, presence.AbsolutePosition,
-                    [], true);
-            m.RegionID = client.Scene.RegionInfo.RegionID.Guid;
+                    [], true)
+            {
+                RegionID = client.Scene.RegionInfo.RegionID.Guid
+            };
 
             m_log.Debug($"[HG LURE MODULE]: RequestTeleport sessionID={m.imSessionID}, regionID={m.RegionID}, message={m.message}");
             m_PendingLures.Add(sessionID, m, 7200000); // 2 hours
@@ -229,8 +231,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
                     if (m_thisGridInfo.IsLocalGrid(url, true) == 0)
                     {
                         m_log.Debug($"[HG LURE MODULE]: Luring agent to grid {url} region {im.RegionID} position {im.Position}");
-                        GatekeeperServiceConnector gConn = new GatekeeperServiceConnector();
-                        GridRegion gatekeeper = new GridRegion { ServerURI = url };
+                        GatekeeperServiceConnector gConn = new();
+                        GridRegion gatekeeper = new() { ServerURI = url };
                         string homeURI = scene.GetAgentHomeURI(client.AgentId);
 
                         GridRegion finalDestination = gConn.GetHyperlinkRegion(gatekeeper, regionID, client.AgentId, homeURI, out string message);

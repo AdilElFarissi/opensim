@@ -42,7 +42,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         public int Group = 0;
         public int Others = 0;
         public int Selected = 0;
-        public Dictionary <UUID, int> Users = new Dictionary <UUID, int>();
+        public Dictionary <UUID, int> Users = [];
     }
 
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "PrimCountModule")]
@@ -52,13 +52,13 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         private Scene m_Scene;
         private Dictionary<UUID, PrimCounts> m_PrimCounts =
-                new Dictionary<UUID, PrimCounts>();
+                [];
         private Dictionary<UUID, UUID> m_OwnerMap =
-                new Dictionary<UUID, UUID>();
+                [];
         private Dictionary<UUID, int> m_SimwideCounts =
-                new Dictionary<UUID, int>();
+                [];
         private Dictionary<UUID, ParcelCounts> m_ParcelCounts =
-                new Dictionary<UUID, ParcelCounts>();
+                [];
 
         /// <value>
         /// For now, a simple simwide taint to get this up. Later parcel based
@@ -69,7 +69,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// </value>
         private bool m_Tainted = true;
 
-        private Object m_TaintLock = new Object();
+        private object m_TaintLock = new();
 
         public Type ReplaceableInterface
         {
@@ -470,7 +470,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
             lock (m_PrimCounts)
             {
-                List<UUID> primcountKeys = new List<UUID>(m_PrimCounts.Keys);
+                List<UUID> primcountKeys = [.. m_PrimCounts.Keys];
                 foreach (UUID k in primcountKeys)
                 {
                     if (!m_OwnerMap.ContainsKey(k))

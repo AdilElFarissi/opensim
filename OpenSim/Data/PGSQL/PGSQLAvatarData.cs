@@ -47,11 +47,11 @@ namespace OpenSim.Data.PGSQL
 
         public bool Delete(UUID principalID, string name)
         {
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand())
+            using (NpgsqlConnection conn = new(m_ConnectionString))
+            using (NpgsqlCommand cmd = new())
             {
 
-                cmd.CommandText = String.Format("DELETE FROM {0} where \"PrincipalID\" = :PrincipalID and \"Name\" = :Name", m_Realm);
+                cmd.CommandText = string.Format("DELETE FROM {0} where \"PrincipalID\" = :PrincipalID and \"Name\" = :Name", m_Realm);
                 cmd.Parameters.Add(m_database.CreateParameter("PrincipalID", principalID));
                 cmd.Parameters.Add(m_database.CreateParameter("Name", name));
                 cmd.Connection = conn;

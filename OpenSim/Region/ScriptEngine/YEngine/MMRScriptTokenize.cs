@@ -202,7 +202,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private Token lastToken;        // last token created so far
         private string cameFrom;        // where the source came from
         private TextWriter saveSource;  // save copy of source here (or null)
-        private Options options = new Options();
+        private Options options = new();
 
         /**
          * @brief convert a source file in the form of a string
@@ -217,10 +217,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             sourceHash = null;
 
-             // Now do the tokenization.
-            TokenBegin tokenBegin = new TokenBegin(emsg, "", 0, 0);
-            tokenBegin.cameFrom = cameFrom;
-            tokenBegin.saveSource = saveSource;
+            // Now do the tokenization.
+            TokenBegin tokenBegin = new(emsg, "", 0, 0)
+            {
+                cameFrom = cameFrom,
+                saveSource = saveSource
+            };
             tokenBegin.lastToken = tokenBegin;
             tokenBegin.source = source;
             tokenBegin.filNam = cameFrom;
@@ -237,7 +239,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             System.Security.Cryptography.MD5 md5 = System.Security.Cryptography.MD5.Create();
             byte[] hashBytes = md5.ComputeHash(new TokenStream(tokenBegin));
             int hashBytesLen = hashBytes.Length;
-            StringBuilder sb = new StringBuilder(hashBytesLen * 2);
+            StringBuilder sb = new(hashBytesLen * 2);
             for(int i = 0; i < hashBytesLen; i++)
             {
                 sb.Append(hashBytes[i].ToString("X2"));
@@ -448,7 +450,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                  // Check for quoted strings.
                 if(c == '"')
                 {
-                    StringBuilder sb = new StringBuilder();
+                    StringBuilder sb = new();
                     bool backslash;
                     int j;
 
@@ -572,32 +574,32 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                             name = "rotation";  // see lslangtest1.lsl
                         if(keywords.ContainsKey(name))
                         {
-                            Object[] args = new Object[] { emsg, filNam, lineNo, i - bolIdx };
+                            object[] args = new object[] { emsg, filNam, lineNo, i - bolIdx };
                             AppendToken((Token)keywords[name].Invoke(args));
                         }
                         else if(options.arrays && arrayKeywords.ContainsKey(name))
                         {
-                            Object[] args = new Object[] { emsg, filNam, lineNo, i - bolIdx };
+                            object[] args = new object[] { emsg, filNam, lineNo, i - bolIdx };
                             AppendToken((Token)arrayKeywords[name].Invoke(args));
                         }
                         else if(options.advFlowCtl && advFlowCtlKeywords.ContainsKey(name))
                         {
-                            Object[] args = new Object[] { emsg, filNam, lineNo, i - bolIdx };
+                            object[] args = new object[] { emsg, filNam, lineNo, i - bolIdx };
                             AppendToken((Token)advFlowCtlKeywords[name].Invoke(args));
                         }
                         else if(options.tryCatch && tryCatchKeywords.ContainsKey(name))
                         {
-                            Object[] args = new Object[] { emsg, filNam, lineNo, i - bolIdx };
+                            object[] args = new object[] { emsg, filNam, lineNo, i - bolIdx };
                             AppendToken((Token)tryCatchKeywords[name].Invoke(args));
                         }
                         else if(options.objects && objectsKeywords.ContainsKey(name))
                         {
-                            Object[] args = new Object[] { emsg, filNam, lineNo, i - bolIdx };
+                            object[] args = new object[] { emsg, filNam, lineNo, i - bolIdx };
                             AppendToken((Token)objectsKeywords[name].Invoke(args));
                         }
                         else if(options.chars && charsKeywords.ContainsKey(name))
                         {
-                            Object[] args = new Object[] { emsg, filNam, lineNo, i - bolIdx };
+                            object[] args = new object[] { emsg, filNam, lineNo, i - bolIdx };
                             AppendToken((Token)charsKeywords[name].Invoke(args));
                         }
                         else
@@ -671,7 +673,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     }
                     if(j < delims.Length)
                     {
-                        Object[] args = { emsg, filNam, lineNo, i - bolIdx };
+                        object[] args = { emsg, filNam, lineNo, i - bolIdx };
                         Token kwToken = (Token)delims[j].ctorInfo.Invoke(args);
                         AppendToken(kwToken);
                         i += --len;
@@ -684,9 +686,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
         }
 
-        private static int strcasecmp(String s, String t)
+        private static int strcasecmp(string s, string t)
         {
-            return String.Compare(s, t, StringComparison.OrdinalIgnoreCase);
+            return string.Compare(s, t, StringComparison.OrdinalIgnoreCase);
         }
 
         /**
@@ -947,7 +949,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private void TokenError(int i, string message)
         {
-            Token temp = new Token(this.emsg, this.filNam, this.lineNo, i - this.bolIdx);
+            Token temp = new(this.emsg, this.filNam, this.lineNo, i - this.bolIdx);
             temp.ErrorMsg(message);
             youveAnError = true;
         }
@@ -981,55 +983,55 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         }
 
         private static Delim[] delims = new Delim[] {
-            new Delim ("...", typeof (TokenKwDotDotDot)),
-            new Delim ("&&&", typeof (TokenKwAndAndAnd)),
-            new Delim ("|||", typeof (TokenKwOrOrOr)),
-            new Delim ("<<=", typeof (TokenKwAsnLSh)),
-            new Delim (">>=", typeof (TokenKwAsnRSh)),
-            new Delim ("<=",  typeof (TokenKwCmpLE)),
-            new Delim (">=",  typeof (TokenKwCmpGE)),
-            new Delim ("==",  typeof (TokenKwCmpEQ)),
-            new Delim ("!=",  typeof (TokenKwCmpNE)),
-            new Delim ("++",  typeof (TokenKwIncr)),
-            new Delim ("--",  typeof (TokenKwDecr)),
-            new Delim ("&&",  typeof (TokenKwAndAnd)),
-            new Delim ("||",  typeof (TokenKwOrOr)),
-            new Delim ("+=",  typeof (TokenKwAsnAdd)),
-            new Delim ("&=",  typeof (TokenKwAsnAnd)),
-            new Delim ("-=",  typeof (TokenKwAsnSub)),
-            new Delim ("*=",  typeof (TokenKwAsnMul)),
-            new Delim ("/=",  typeof (TokenKwAsnDiv)),
-            new Delim ("%=",  typeof (TokenKwAsnMod)),
-            new Delim ("|=",  typeof (TokenKwAsnOr)),
-            new Delim ("^=",  typeof (TokenKwAsnXor)),
-            new Delim ("<<",  typeof (TokenKwLSh)),
-            new Delim (">>",  typeof (TokenKwRSh)),
-            new Delim ("~",   typeof (TokenKwTilde)),
-            new Delim ("!",   typeof (TokenKwExclam)),
-            new Delim ("@",   typeof (TokenKwAt)),
-            new Delim ("%",   typeof (TokenKwMod)),
-            new Delim ("^",   typeof (TokenKwXor)),
-            new Delim ("&",   typeof (TokenKwAnd)),
-            new Delim ("*",   typeof (TokenKwMul)),
-            new Delim ("(",   typeof (TokenKwParOpen)),
-            new Delim (")",   typeof (TokenKwParClose)),
-            new Delim ("-",   typeof (TokenKwSub)),
-            new Delim ("+",   typeof (TokenKwAdd)),
-            new Delim ("=",   typeof (TokenKwAssign)),
-            new Delim ("{",   typeof (TokenKwBrcOpen)),
-            new Delim ("}",   typeof (TokenKwBrcClose)),
-            new Delim ("[",   typeof (TokenKwBrkOpen)),
-            new Delim ("]",   typeof (TokenKwBrkClose)),
-            new Delim (";",   typeof (TokenKwSemi)),
-            new Delim (":",   typeof (TokenKwColon)),
-            new Delim ("<",   typeof (TokenKwCmpLT)),
-            new Delim (">",   typeof (TokenKwCmpGT)),
-            new Delim (",",   typeof (TokenKwComma)),
-            new Delim (".",   typeof (TokenKwDot)),
-            new Delim ("?",   typeof (TokenKwQMark)),
-            new Delim ("/",   typeof (TokenKwDiv)),
-            new Delim ("|",   typeof (TokenKwOr)),
-            new Delim ("#",   typeof (TokenKwHash))
+            new("...", typeof (TokenKwDotDotDot)),
+            new("&&&", typeof (TokenKwAndAndAnd)),
+            new("|||", typeof (TokenKwOrOrOr)),
+            new("<<=", typeof (TokenKwAsnLSh)),
+            new(">>=", typeof (TokenKwAsnRSh)),
+            new("<=",  typeof (TokenKwCmpLE)),
+            new(">=",  typeof (TokenKwCmpGE)),
+            new("==",  typeof (TokenKwCmpEQ)),
+            new("!=",  typeof (TokenKwCmpNE)),
+            new("++",  typeof (TokenKwIncr)),
+            new("--",  typeof (TokenKwDecr)),
+            new("&&",  typeof (TokenKwAndAnd)),
+            new("||",  typeof (TokenKwOrOr)),
+            new("+=",  typeof (TokenKwAsnAdd)),
+            new("&=",  typeof (TokenKwAsnAnd)),
+            new("-=",  typeof (TokenKwAsnSub)),
+            new("*=",  typeof (TokenKwAsnMul)),
+            new("/=",  typeof (TokenKwAsnDiv)),
+            new("%=",  typeof (TokenKwAsnMod)),
+            new("|=",  typeof (TokenKwAsnOr)),
+            new("^=",  typeof (TokenKwAsnXor)),
+            new("<<",  typeof (TokenKwLSh)),
+            new(">>",  typeof (TokenKwRSh)),
+            new("~",   typeof (TokenKwTilde)),
+            new("!",   typeof (TokenKwExclam)),
+            new("@",   typeof (TokenKwAt)),
+            new("%",   typeof (TokenKwMod)),
+            new("^",   typeof (TokenKwXor)),
+            new("&",   typeof (TokenKwAnd)),
+            new("*",   typeof (TokenKwMul)),
+            new("(",   typeof (TokenKwParOpen)),
+            new(")",   typeof (TokenKwParClose)),
+            new("-",   typeof (TokenKwSub)),
+            new("+",   typeof (TokenKwAdd)),
+            new("=",   typeof (TokenKwAssign)),
+            new("{",   typeof (TokenKwBrcOpen)),
+            new("}",   typeof (TokenKwBrcClose)),
+            new("[",   typeof (TokenKwBrkOpen)),
+            new("]",   typeof (TokenKwBrkClose)),
+            new(";",   typeof (TokenKwSemi)),
+            new(":",   typeof (TokenKwColon)),
+            new("<",   typeof (TokenKwCmpLT)),
+            new(">",   typeof (TokenKwCmpGT)),
+            new(",",   typeof (TokenKwComma)),
+            new(".",   typeof (TokenKwDot)),
+            new("?",   typeof (TokenKwQMark)),
+            new("/",   typeof (TokenKwDiv)),
+            new("|",   typeof (TokenKwOr)),
+            new("#",   typeof (TokenKwHash))
         };
 
         /**
@@ -1046,102 +1048,108 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         private static Dictionary<string, System.Reflection.ConstructorInfo> BuildKeywords()
         {
-            Dictionary<string, System.Reflection.ConstructorInfo> kws = new Dictionary<string, System.Reflection.ConstructorInfo>();
-
-            kws.Add("default", GetTokenCtor(typeof(TokenKwDefault)));
-            kws.Add("do", GetTokenCtor(typeof(TokenKwDo)));
-            kws.Add("else", GetTokenCtor(typeof(TokenKwElse)));
-            kws.Add("float", GetTokenCtor(typeof(TokenTypeFloat)));
-            kws.Add("for", GetTokenCtor(typeof(TokenKwFor)));
-            kws.Add("if", GetTokenCtor(typeof(TokenKwIf)));
-            kws.Add("integer", GetTokenCtor(typeof(TokenTypeInt)));
-            kws.Add("list", GetTokenCtor(typeof(TokenTypeList)));
-            kws.Add("jump", GetTokenCtor(typeof(TokenKwJump)));
-            kws.Add("key", GetTokenCtor(typeof(TokenTypeKey)));
-            kws.Add("return", GetTokenCtor(typeof(TokenKwRet)));
-            kws.Add("rotation", GetTokenCtor(typeof(TokenTypeRot)));
-            kws.Add("state", GetTokenCtor(typeof(TokenKwState)));
-            kws.Add("string", GetTokenCtor(typeof(TokenTypeStr)));
-            kws.Add("vector", GetTokenCtor(typeof(TokenTypeVec)));
-            kws.Add("while", GetTokenCtor(typeof(TokenKwWhile)));
+            Dictionary<string, System.Reflection.ConstructorInfo> kws = new()
+            {
+                { "default", GetTokenCtor(typeof(TokenKwDefault)) },
+                { "do", GetTokenCtor(typeof(TokenKwDo)) },
+                { "else", GetTokenCtor(typeof(TokenKwElse)) },
+                { "float", GetTokenCtor(typeof(TokenTypeFloat)) },
+                { "for", GetTokenCtor(typeof(TokenKwFor)) },
+                { "if", GetTokenCtor(typeof(TokenKwIf)) },
+                { "integer", GetTokenCtor(typeof(TokenTypeInt)) },
+                { "list", GetTokenCtor(typeof(TokenTypeList)) },
+                { "jump", GetTokenCtor(typeof(TokenKwJump)) },
+                { "key", GetTokenCtor(typeof(TokenTypeKey)) },
+                { "return", GetTokenCtor(typeof(TokenKwRet)) },
+                { "rotation", GetTokenCtor(typeof(TokenTypeRot)) },
+                { "state", GetTokenCtor(typeof(TokenKwState)) },
+                { "string", GetTokenCtor(typeof(TokenTypeStr)) },
+                { "vector", GetTokenCtor(typeof(TokenTypeVec)) },
+                { "while", GetTokenCtor(typeof(TokenKwWhile)) }
+            };
 
             return kws;
         }
 
         private static Dictionary<string, System.Reflection.ConstructorInfo> BuildArrayKeywords()
         {
-            Dictionary<string, System.Reflection.ConstructorInfo> kws = new Dictionary<string, System.Reflection.ConstructorInfo>();
-
-            kws.Add("array", GetTokenCtor(typeof(TokenTypeArray)));
-            kws.Add("foreach", GetTokenCtor(typeof(TokenKwForEach)));
-            kws.Add("in", GetTokenCtor(typeof(TokenKwIn)));
-            kws.Add("is", GetTokenCtor(typeof(TokenKwIs)));
-            kws.Add("object", GetTokenCtor(typeof(TokenTypeObject)));
-            kws.Add("undef", GetTokenCtor(typeof(TokenKwUndef)));
+            Dictionary<string, System.Reflection.ConstructorInfo> kws = new()
+            {
+                { "array", GetTokenCtor(typeof(TokenTypeArray)) },
+                { "foreach", GetTokenCtor(typeof(TokenKwForEach)) },
+                { "in", GetTokenCtor(typeof(TokenKwIn)) },
+                { "is", GetTokenCtor(typeof(TokenKwIs)) },
+                { "object", GetTokenCtor(typeof(TokenTypeObject)) },
+                { "undef", GetTokenCtor(typeof(TokenKwUndef)) }
+            };
 
             return kws;
         }
 
         private static Dictionary<string, System.Reflection.ConstructorInfo> BuildAdvFlowCtlKeywords()
         {
-            Dictionary<string, System.Reflection.ConstructorInfo> kws = new Dictionary<string, System.Reflection.ConstructorInfo>();
-
-            kws.Add("break", GetTokenCtor(typeof(TokenKwBreak)));
-            kws.Add("case", GetTokenCtor(typeof(TokenKwCase)));
-            kws.Add("constant", GetTokenCtor(typeof(TokenKwConst)));
-            kws.Add("continue", GetTokenCtor(typeof(TokenKwCont)));
-            kws.Add("switch", GetTokenCtor(typeof(TokenKwSwitch)));
+            Dictionary<string, System.Reflection.ConstructorInfo> kws = new()
+            {
+                { "break", GetTokenCtor(typeof(TokenKwBreak)) },
+                { "case", GetTokenCtor(typeof(TokenKwCase)) },
+                { "constant", GetTokenCtor(typeof(TokenKwConst)) },
+                { "continue", GetTokenCtor(typeof(TokenKwCont)) },
+                { "switch", GetTokenCtor(typeof(TokenKwSwitch)) }
+            };
 
             return kws;
         }
 
         private static Dictionary<string, System.Reflection.ConstructorInfo> BuildTryCatchKeywords()
         {
-            Dictionary<string, System.Reflection.ConstructorInfo> kws = new Dictionary<string, System.Reflection.ConstructorInfo>();
-
-            kws.Add("catch", GetTokenCtor(typeof(TokenKwCatch)));
-            kws.Add("exception", GetTokenCtor(typeof(TokenTypeExc)));
-            kws.Add("scriptexception", GetTokenCtor(typeof(TokenTypeExc)));
-            kws.Add("finally", GetTokenCtor(typeof(TokenKwFinally)));
-            kws.Add("throw", GetTokenCtor(typeof(TokenKwThrow)));
-            kws.Add("try", GetTokenCtor(typeof(TokenKwTry)));
+            Dictionary<string, System.Reflection.ConstructorInfo> kws = new()
+            {
+                { "catch", GetTokenCtor(typeof(TokenKwCatch)) },
+                { "exception", GetTokenCtor(typeof(TokenTypeExc)) },
+                { "scriptexception", GetTokenCtor(typeof(TokenTypeExc)) },
+                { "finally", GetTokenCtor(typeof(TokenKwFinally)) },
+                { "throw", GetTokenCtor(typeof(TokenKwThrow)) },
+                { "try", GetTokenCtor(typeof(TokenKwTry)) }
+            };
             
             return kws;
         }
 
         private static Dictionary<string, System.Reflection.ConstructorInfo> BuildObjectsKeywords()
         {
-            Dictionary<string, System.Reflection.ConstructorInfo> kws = new Dictionary<string, System.Reflection.ConstructorInfo>();
-
-            kws.Add("abstract", GetTokenCtor(typeof(TokenKwAbstract)));
-            kws.Add("base", GetTokenCtor(typeof(TokenKwBase)));
-            kws.Add("class", GetTokenCtor(typeof(TokenKwClass)));
-            kws.Add("constructor", GetTokenCtor(typeof(TokenKwConstructor)));
-            kws.Add("delegate", GetTokenCtor(typeof(TokenKwDelegate)));
-            kws.Add("destructor", GetTokenCtor(typeof(TokenKwDestructor)));
-            kws.Add("final", GetTokenCtor(typeof(TokenKwFinal)));
-            kws.Add("get", GetTokenCtor(typeof(TokenKwGet)));
-            kws.Add("interface", GetTokenCtor(typeof(TokenKwInterface)));
-            kws.Add("new", GetTokenCtor(typeof(TokenKwNew)));
-            kws.Add("override", GetTokenCtor(typeof(TokenKwOverride)));
-            kws.Add("partial", GetTokenCtor(typeof(TokenKwPartial)));
-            kws.Add("private", GetTokenCtor(typeof(TokenKwPrivate)));
-            kws.Add("protected", GetTokenCtor(typeof(TokenKwProtected)));
-            kws.Add("public", GetTokenCtor(typeof(TokenKwPublic)));
-            kws.Add("set", GetTokenCtor(typeof(TokenKwSet)));
-            kws.Add("static", GetTokenCtor(typeof(TokenKwStatic)));
-            kws.Add("this", GetTokenCtor(typeof(TokenKwThis)));
-            kws.Add("typedef", GetTokenCtor(typeof(TokenKwTypedef)));
-            kws.Add("virtual", GetTokenCtor(typeof(TokenKwVirtual)));
+            Dictionary<string, System.Reflection.ConstructorInfo> kws = new()
+            {
+                { "abstract", GetTokenCtor(typeof(TokenKwAbstract)) },
+                { "base", GetTokenCtor(typeof(TokenKwBase)) },
+                { "class", GetTokenCtor(typeof(TokenKwClass)) },
+                { "constructor", GetTokenCtor(typeof(TokenKwConstructor)) },
+                { "delegate", GetTokenCtor(typeof(TokenKwDelegate)) },
+                { "destructor", GetTokenCtor(typeof(TokenKwDestructor)) },
+                { "final", GetTokenCtor(typeof(TokenKwFinal)) },
+                { "get", GetTokenCtor(typeof(TokenKwGet)) },
+                { "interface", GetTokenCtor(typeof(TokenKwInterface)) },
+                { "new", GetTokenCtor(typeof(TokenKwNew)) },
+                { "override", GetTokenCtor(typeof(TokenKwOverride)) },
+                { "partial", GetTokenCtor(typeof(TokenKwPartial)) },
+                { "private", GetTokenCtor(typeof(TokenKwPrivate)) },
+                { "protected", GetTokenCtor(typeof(TokenKwProtected)) },
+                { "public", GetTokenCtor(typeof(TokenKwPublic)) },
+                { "set", GetTokenCtor(typeof(TokenKwSet)) },
+                { "static", GetTokenCtor(typeof(TokenKwStatic)) },
+                { "this", GetTokenCtor(typeof(TokenKwThis)) },
+                { "typedef", GetTokenCtor(typeof(TokenKwTypedef)) },
+                { "virtual", GetTokenCtor(typeof(TokenKwVirtual)) }
+            };
 
             return kws;
         }
 
         private static Dictionary<string, System.Reflection.ConstructorInfo> BuildCharsKeywords()
         {
-            Dictionary<string, System.Reflection.ConstructorInfo> kws = new Dictionary<string, System.Reflection.ConstructorInfo>();
-
-            kws.Add("char", GetTokenCtor(typeof(TokenTypeChar)));
+            Dictionary<string, System.Reflection.ConstructorInfo> kws = new()
+            {
+                { "char", GetTokenCtor(typeof(TokenTypeChar)) }
+            };
 
             return kws;
         }
@@ -1244,7 +1252,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return "\"" + val + "\"";
 
             int len = val.Length;
-            StringBuilder sb = new StringBuilder(len * 2 + 2);
+            StringBuilder sb = new(len * 2 + 2);
             sb.Append('"');
             for(int i = 0; i < len; i++)
             {

@@ -50,7 +50,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
 
         public ITerrainChannel LoadFile(string filename)
         {
-            FileInfo file = new FileInfo(filename);
+            FileInfo file = new(filename);
             FileStream s = file.Open(FileMode.Open, FileAccess.Read);
             ITerrainChannel retval = LoadStream(s);
 
@@ -61,11 +61,11 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
 
         public ITerrainChannel LoadFile(string filename, int offsetX, int offsetY, int fileWidth, int fileHeight, int sectionWidth, int sectionHeight)
         {
-            TerrainChannel retval = new TerrainChannel(sectionWidth, sectionHeight);
+            TerrainChannel retval = new(sectionWidth, sectionHeight);
 
-            FileInfo file = new FileInfo(filename);
+            FileInfo file = new(filename);
             FileStream s = file.Open(FileMode.Open, FileAccess.Read);
-            BinaryReader bs = new BinaryReader(s);
+            BinaryReader bs = new(s);
 
             bool eof = false;
 
@@ -93,8 +93,8 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
                         break;
                     case "ALTW":
                         eof = true;
-                        Int16 heightScale = bs.ReadInt16();
-                        Int16 baseHeight = bs.ReadInt16();
+                        short heightScale = bs.ReadInt16();
+                        short baseHeight = bs.ReadInt16();
 
                         int currFileYOffset = 0;
 
@@ -162,9 +162,9 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
             int h = (int)Constants.RegionSize;
 
             // create a dummy channel (in case data is bad)
-            TerrainChannel retval = new TerrainChannel(w, h);
+            TerrainChannel retval = new(w, h);
 
-            BinaryReader bs = new BinaryReader(s);
+            BinaryReader bs = new(s);
 
             bool eof = false;
             if (Encoding.ASCII.GetString(bs.ReadBytes(16)) == "TERRAGENTERRAIN ")
@@ -215,7 +215,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
 
         public void SaveFile(string filename, ITerrainChannel map)
         {
-            FileInfo file = new FileInfo(filename);
+            FileInfo file = new(filename);
             FileStream s = file.Open(FileMode.Create, FileAccess.Write);
             SaveStream(s, map);
 
@@ -224,7 +224,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
 
         public void SaveStream(Stream stream, ITerrainChannel map)
         {
-            BinaryWriter bs = new BinaryWriter(stream);
+            BinaryWriter bs = new(stream);
 
             //find the max and min heights on the map
             float heightMax = map[0,0];
@@ -290,10 +290,10 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
                     float elevation = (float)((map[x,y] - baseHeight) * factor); // see LoadStream for inverse
 
                     // clamp rounding issues
-                    if (elevation > Int16.MaxValue)
-                        elevation = Int16.MaxValue;
-                    else if (elevation < Int16.MinValue)
-                        elevation = Int16.MinValue;
+                    if (elevation > short.MaxValue)
+                        elevation = short.MaxValue;
+                    else if (elevation < short.MinValue)
+                        elevation = short.MinValue;
 
                     bs.Write(Convert.ToInt16(elevation));
                 }

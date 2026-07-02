@@ -10,12 +10,12 @@ namespace OSHttpServer
     public class HttpParam : IHttpInput
     {
         /// <summary> Representation of a non-initialized HttpParam </summary>
-        public static readonly HttpParam Empty = new HttpParam(HttpInput.Empty, HttpInput.Empty);
+        public static readonly HttpParam Empty = new(HttpInput.Empty, HttpInput.Empty);
 
         private IHttpInput m_form;
         private IHttpInput m_query;
 
-        private List<HttpInputItem> _items = new List<HttpInputItem>();
+        private List<HttpInputItem> _items = [];
 
         /// <summary>Initialises the class to hold a value either from a post request or a querystring request</summary>
         public HttpParam(IHttpInput form, IHttpInput query)
@@ -87,8 +87,7 @@ namespace OSHttpServer
         ///<filterpriority>1</filterpriority>
         IEnumerator<HttpInputItem> IEnumerable<HttpInputItem>.GetEnumerator()
         {
-            List<HttpInputItem> items = new List<HttpInputItem>(m_query);
-            items.AddRange(m_form);
+            List<HttpInputItem> items = [.. m_query, .. m_form];
             return items.GetEnumerator();
         }
 
@@ -104,8 +103,7 @@ namespace OSHttpServer
         ///<filterpriority>2</filterpriority>
         public IEnumerator GetEnumerator()
         {
-            List<HttpInputItem> items = new List<HttpInputItem>(m_query);
-            items.AddRange(m_form);
+            List<HttpInputItem> items = [.. m_query, .. m_form];
             return items.GetEnumerator();
         }
 

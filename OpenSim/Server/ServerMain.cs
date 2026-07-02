@@ -47,7 +47,7 @@ namespace OpenSim.Server
         private static readonly ILog m_log = LogManager.GetLogger( MethodBase.GetCurrentMethod().DeclaringType);
 
         protected static HttpServerBase m_Server = null;
-        protected static List<IServiceConnector> m_ServiceConnectors = new();
+        protected static List<IServiceConnector> m_ServiceConnectors = [];
 
         protected static PluginLoader loader;
         private static bool m_NoVerifyCertChain = false;
@@ -128,7 +128,7 @@ namespace OpenSim.Server
             IConfig servicesConfig = m_Server.Config.Configs["ServiceList"];
             if (servicesConfig != null)
             {
-                List<string> servicesList = new();
+                List<string> servicesList = [];
                 if (!string.IsNullOrEmpty(connList))
                     servicesList.Add(connList);
 

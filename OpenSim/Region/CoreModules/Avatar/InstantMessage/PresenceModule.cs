@@ -50,7 +50,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         public event BulkPresenceData OnBulkPresenceData;
 #pragma warning restore 0067
 
-        protected List<Scene> m_Scenes = new List<Scene>();
+        protected List<Scene> m_Scenes = [];
 
         protected IPresenceService m_PresenceService = null;
 
@@ -117,7 +117,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
             client.AddGenericPacketHandler("requestonlinenotification", OnRequestOnlineNotification);
         }
 
-        public void OnRequestOnlineNotification(Object sender, string method, List<String> args)
+        public void OnRequestOnlineNotification(object sender, string method, List<string> args)
         {
             if (sender is not IClientAPI)
                 return;
@@ -127,18 +127,18 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
 
             PresenceInfo[] status = PresenceService.GetAgents(args.ToArray());
 
-            List<UUID> online = new();
-            List<UUID> offline = new();
+            List<UUID> online = [];
+            List<UUID> offline = [];
 
             foreach (PresenceInfo pi in status)
             {
-                UUID uuid = new UUID(pi.UserID);
+                UUID uuid = new(pi.UserID);
                 if (!online.Contains(uuid))
                     online.Add(uuid);
             }
             foreach (string s in args)
             {
-                UUID uuid = new UUID(s);
+                UUID uuid = new(s);
                 if (!online.Contains(uuid) && !offline.Contains(uuid))
                     offline.Add(uuid);
             }

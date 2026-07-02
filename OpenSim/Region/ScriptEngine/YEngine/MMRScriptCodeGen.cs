@@ -231,7 +231,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             errorMessageToken = tokenScript;
 
              // Set up dictionary to translate state names to their index number.
-            stateIndices = new Dictionary<string, int>();
+            stateIndices = [];
 
              // Assign each state its own unique index.
              // The default state gets 0.
@@ -750,7 +750,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                  // Note that the reducer made sure there is at least a default constructor for every class.
                 if(numFilled >= sdtClass.numVirtFuncs)
                 {
-                    List<TokenDeclVar> newobjDeclFuncs = new ();
+                    List<TokenDeclVar> newobjDeclFuncs = [];
                     foreach(TokenDeclVar ctorDeclFunc in sdtClass.members)
                     {
                         if((ctorDeclFunc.funcNameSig != null) && ctorDeclFunc.funcNameSig.val.StartsWith("$ctor("))
@@ -927,7 +927,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private void GenerateStateEventHandlers(string statename, TokenStateBody body)
         {
-            Dictionary<string, TokenDeclVar> statehandlers = new();
+            Dictionary<string, TokenDeclVar> statehandlers = [];
             for(Token t = body.eventFuncs; t != null; t = t.nextToken)
             {
                 TokenDeclVar tdv = (TokenDeclVar)t;
@@ -1441,7 +1441,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             if (!isTrivial)
             {
                 // Build list of locals and temps active at all the call labels.
-                activeTemps = new List<ScriptMyLocal>();
+                activeTemps = [];
                 foreach (CallLabel cl in allCallLabels)
                 {
                     foreach (ScriptMyLocal lcl in cl.callLabel.whereAmI.localsReadBeforeWritten)
@@ -2828,7 +2828,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         continue;
                     }
                 }
-                if(String.Compare(thisCase.str2, thisCase.str1, StringComparison.Ordinal) < 0)
+                if(string.Compare(thisCase.str2, thisCase.str1, StringComparison.Ordinal) < 0)
                 {
                     ErrorMsg(thisCase.rVal2, "must be .ge. first value for the case");
                     continue;
@@ -2890,7 +2890,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             TokenSwitchCase t = r;
             while(true)
             {
-                if(String.Compare(n.str2, t.str1, StringComparison.Ordinal) < 0)
+                if(string.Compare(n.str2, t.str1, StringComparison.Ordinal) < 0)
                 {
                     if(t.lowerCase == null)
                     {
@@ -2900,7 +2900,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     t = t.lowerCase;
                     continue;
                 }
-                if(String.Compare(n.str1, t.str2, StringComparison.Ordinal) > 0)
+                if(string.Compare(n.str1, t.str2, StringComparison.Ordinal) > 0)
                 {
                     if(t.higherCase == null)
                     {
@@ -3244,12 +3244,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
                 catchVarLocExc = new CompValuLocalVar(tryStmt.catchVar.type, tryStmt.catchVar.name.val, this);
             }
-            else if(tryStmt.catchVar.type.ToSysType() == typeof(String))
+            else if(tryStmt.catchVar.type.ToSysType() == typeof(string))
             {
                 catchVarLocStr = new CompValuTemp(tryStmt.catchVar.type, this);
             }
 
-            ScriptMyLocal excLocal = ilGen.DeclareLocal(typeof(String), "catchstr_" + tryStmt.Unique);
+            ScriptMyLocal excLocal = ilGen.DeclareLocal(typeof(string), "catchstr_" + tryStmt.Unique);
 
             ilGen.BeginCatchBlock(typeof(Exception));     // start of the catch block that can catch any exception
             ilGen.Emit(tryStmt.catchStmt, OpCodes.Call, scriptRestoreCatchExceptionUnwrap);
@@ -3263,7 +3263,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 catThrown.Pop(this, tryStmt);              // store exception object in catThrown
                 catchVarLocExc.Pop(this, tryStmt.catchVar.name);      // also store in script-visible variable
             }
-            else if(tryStmt.catchVar.type.ToSysType() == typeof(String))
+            else if(tryStmt.catchVar.type.ToSysType() == typeof(string))
             {
                 tryStmt.catchVar.location = catchVarLocStr;
                 ilGen.Emit(tryStmt.catchStmt, OpCodes.Dup);
@@ -4135,7 +4135,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
 
                  // We are adding something.  Maybe it's a bunch of strings together.
-                List<TokenRVal> scorvs = new ();
+                List<TokenRVal> scorvs = [];
                 if(StringConcatOperands(token.rValLeft, token.rValRight, scorvs, token.opcode))
                 {
                      // Evaluate all the operands, right-to-left on purpose per LSL scripting.

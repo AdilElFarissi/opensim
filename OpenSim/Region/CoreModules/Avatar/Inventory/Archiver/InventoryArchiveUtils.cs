@@ -142,7 +142,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             InventoryFolderBase rootFolder = inventoryService.GetRootFolder(userId);
 
             if (null == rootFolder)
-                return new List<InventoryFolderBase>();
+                return [];
 
             return FindFoldersByPath(inventoryService, rootFolder, path);
         }
@@ -171,7 +171,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         public static List<InventoryFolderBase> FindFoldersByPath(
             IInventoryService inventoryService, InventoryFolderBase startFolder, string path)
         {
-            List<InventoryFolderBase> foundFolders = new List<InventoryFolderBase>();
+            List<InventoryFolderBase> foundFolders = [];
 
             if (path.Length == 0)
             {
@@ -282,7 +282,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             InventoryFolderBase rootFolder = inventoryService.GetRootFolder(userId);
 
             if (null == rootFolder)
-                return new List<InventoryItemBase>();
+                return [];
 
             return FindItemsByPath(inventoryService, rootFolder, path);
         }
@@ -306,7 +306,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         public static List<InventoryItemBase> FindItemsByPath(
             IInventoryService inventoryService, InventoryFolderBase startFolder, string path)
         {
-            List<InventoryItemBase> foundItems = new List<InventoryItemBase>();
+            List<InventoryItemBase> foundItems = [];
 
             // If the path isn't just / then trim any starting extraneous slashes
             path = path.TrimStart(new char[] { PATH_DELIMITER });
@@ -393,7 +393,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         {
 //            m_log.DebugFormat("ESCAPING PATH {0}", path);
 
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
 
             bool singleEscapeChar = false;
             for (int i = 0; i < path.Length; i++)

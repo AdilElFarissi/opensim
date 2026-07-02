@@ -96,8 +96,8 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
 
         private const int DEBUG_CHANNEL = 0x7fffffff;
 
-        private object mainLock = new object();
-        private Dictionary<int, List<ListenerInfo>> m_listenersByChannel = new Dictionary<int, List<ListenerInfo>>();
+        private object mainLock = new();
+        private Dictionary<int, List<ListenerInfo>> m_listenersByChannel = [];
         private int m_maxlisteners = 1000;
         private int m_maxhandles = 65;
         private int m_curlisteners;
@@ -239,13 +239,13 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
 
                     if (newHandle > 0)
                     {
-                        ListenerInfo li = new ListenerInfo(newHandle,
+                        ListenerInfo li = new(newHandle,
                                 itemID, hostID, channel, name, id, msg,
                                 regexBitfield);
 
                         if (!m_listenersByChannel.TryGetValue(channel, out List<ListenerInfo> listeners))
                         {
-                            listeners = new List<ListenerInfo>();
+                            listeners = [];
                             m_listenersByChannel.Add(channel, listeners);
                         }
                         listeners.Add(li);
@@ -319,8 +319,8 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         /// <param name="scriptID">UUID of the script</param>
         public void DeleteListener(UUID scriptID)
         {
-            List<int> emptyChannels = new List<int>();
-            List<ListenerInfo> removedListeners = new List<ListenerInfo>();
+            List<int> emptyChannels = [];
+            List<ListenerInfo> removedListeners = [];
             lock (mainLock)
             {
                 foreach (KeyValuePair<int, List<ListenerInfo>> lis in m_listenersByChannel)
@@ -453,7 +453,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                     return;
 
                 // Get uuid of attachments
-                HashSet<UUID> targets = new HashSet<UUID>();
+                HashSet<UUID> targets = [];
                 foreach (SceneObjectGroup sog in attachments)
                 {
                     if (!sog.IsDeleted)
@@ -477,7 +477,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
 
         #endregion
 
-        private void DeliverClientMessage(Object sender, OSChatMessage e)
+        private void DeliverClientMessage(object sender, OSChatMessage e)
         {
             // validate type and set range
             float maxDistanceSQ;
@@ -534,7 +534,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         /// <returns></returns>
         private int GetNewHandle(UUID itemID)
         {
-            List<int> handles = new List<int>();
+            List<int> handles = [];
 
             // build a list of used keys for this specific itemID...
             foreach (KeyValuePair<int, List<ListenerInfo>> lis in m_listenersByChannel)
@@ -596,7 +596,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
         /// <returns></returns>
         public List<ListenerInfo> GetListeners(UUID itemID, int channel, string name, UUID id, string msg)
         {
-            List<ListenerInfo> collection = new List<ListenerInfo>();
+            List<ListenerInfo> collection = [];
 
             lock (mainLock)
             {
@@ -868,9 +868,9 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
             }
         }
 
-        public Object[] GetSerializationData(UUID itemID)
+        public object[] GetSerializationData(UUID itemID)
         {
-            List<Object> data = new List<Object>();
+            List<object> data = [];
 
             lock (mainLock)
             {
@@ -886,16 +886,16 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
             return data.ToArray();
         }
 
-        public void CreateFromData(UUID itemID, UUID hostID, Object[] data)
+        public void CreateFromData(UUID itemID, UUID hostID, object[] data)
         {
             int idx = 0;
-            Object[] item = new Object[6];
+            object[] item = new object[6];
             int dataItemLength = 6;
 
             while (idx < data.Length)
             {
                 dataItemLength = (idx + 7 == data.Length || (idx + 7 < data.Length && data[idx + 7] is bool)) ? 7 : 6;
-                item = new Object[dataItemLength];
+                item = new object[dataItemLength];
                 Array.Copy(data, idx, item, 0, dataItemLength);
 
                 ListenerInfo info = ListenerInfo.FromData(itemID, hostID, item);
@@ -904,7 +904,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
                 {
                     if (!m_listenersByChannel.ContainsKey((int)item[2]))
                     {
-                        m_listenersByChannel.Add((int)item[2], new List<ListenerInfo>());
+                        m_listenersByChannel.Add((int)item[2], []);
                     }
                     m_listenersByChannel[(int)item[2]].Add(info);
                 }
@@ -1016,9 +1016,9 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
             RegexBitfield = regexBitfield;
         }
 
-        public Object[] GetSerializationData()
+        public object[] GetSerializationData()
         {
-            Object[] data = new Object[7];
+            object[] data = new object[7];
 
             data[0] = IsActive;
             data[1] = Handle;
@@ -1031,7 +1031,7 @@ namespace OpenSim.Region.CoreModules.Scripting.WorldComm
             return data;
         }
 
-        public static ListenerInfo FromData(UUID _ItemID, UUID hostID, Object[] data)
+        public static ListenerInfo FromData(UUID _ItemID, UUID hostID, object[] data)
         {
             return new ListenerInfo()
             {

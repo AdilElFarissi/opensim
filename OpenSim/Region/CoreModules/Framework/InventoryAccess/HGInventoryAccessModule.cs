@@ -227,7 +227,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 prefix = string.Empty;
             suffix = " @ " + m_thisGridInfo.GateKeeperURLNoEndSlash;
             Vector3 pos = presence.AbsolutePosition;
-            return String.Format(Culture.FormatProvider, "Landmark version 2\nregion_id {0}\nlocal_pos {1} {2} {3}\nregion_handle {4}\ngatekeeper {5}\n",
+            return string.Format(Culture.FormatProvider, "Landmark version 2\nregion_id {0}\nlocal_pos {1} {2} {3}\nregion_handle {4}\ngatekeeper {5}\n",
                                 presence.Scene.RegionInfo.RegionID,
                                 pos.X, pos.Y, pos.Z,
                                 presence.RegionHandle,
@@ -244,12 +244,12 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             // We need to construct this here to satisfy the calling convention.
             // Better this in two places than five formal params in all others.
-            InventoryItemBase item = new InventoryItemBase
+            InventoryItemBase item = new()
             {
                 Owner = remoteClient.AgentId,
                 AssetType = (int)AssetType.Unknown,
                 AssetID = newAssetID,
-                Name = String.Empty
+                Name = string.Empty
             };
 
             PostInventoryAsset(item, 0);
@@ -283,7 +283,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                     Owner = agentID,
                     AssetType = (int)AssetType.Unknown,
                     AssetID = assetID,
-                    Name = String.Empty
+                    Name = string.Empty
                 };
 
                 PostInventoryAsset(item, 0);
@@ -481,7 +481,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             InventoryFolderBase root = m_Scene.InventoryService.GetRootFolder(client.AgentId);
             InventoryCollection content = m_Scene.InventoryService.GetFolderContent(client.AgentId, root.ID);
 
-           List<InventoryFolderBase> keep = new List<InventoryFolderBase>();
+           List<InventoryFolderBase> keep = [];
 
             foreach (InventoryFolderBase f in content.Folders)
             {
@@ -511,7 +511,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 m_log.DebugFormat("[HG INVENTORY ACCESS MODULE]: Changing root inventory for user {0}", client.Name);
                 InventoryCollection content = m_Scene.InventoryService.GetFolderContent(client.AgentId, root.ID);
 
-                List<InventoryFolderBase> keep = new List<InventoryFolderBase>();
+                List<InventoryFolderBase> keep = [];
 
                 foreach (InventoryFolderBase f in content.Folders)
                 {

@@ -62,12 +62,12 @@ namespace OpenSim.Framework.Servers
         /// </summary>
 
         private int m_periodDiagnosticTimerMS = 60 * 60 * 1000;
-        private Timer m_periodicDiagnosticsTimer = new Timer(60 * 60 * 1000);
+        private Timer m_periodicDiagnosticsTimer = new(60 * 60 * 1000);
 
         /// <summary>
         /// Random uuid for private data
         /// </summary>
-        protected string m_osSecret = String.Empty;
+        protected string m_osSecret = string.Empty;
 
         protected BaseHttpServer m_httpServer;
         public BaseHttpServer HttpServer
@@ -155,14 +155,14 @@ namespace OpenSim.Framework.Servers
         /// <returns>
         /// A list of strings that represent different help topics on which more information is available
         /// </returns>
-        protected virtual List<string> GetHelpTopics() { return new List<string>(); }
+        protected virtual List<string> GetHelpTopics() { return []; }
 
         /// <summary>
         /// Print statistics to the logfile, if they are active
         /// </summary>
         protected void LogDiagnostics(object source, ElapsedEventArgs e)
         {
-            StringBuilder sb = new StringBuilder("DIAGNOSTICS\n\n");
+            StringBuilder sb = new("DIAGNOSTICS\n\n");
             sb.Append(GetUptimeReport());
             sb.Append(StatsManager.SimExtraStats.Report());
             sb.Append(Environment.NewLine);

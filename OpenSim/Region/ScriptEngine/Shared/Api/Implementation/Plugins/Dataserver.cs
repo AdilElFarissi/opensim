@@ -47,7 +47,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             }
         }
 
-        private Dictionary<string, DataserverRequest> DataserverRequests =  new Dictionary<string, DataserverRequest>();
+        private Dictionary<string, DataserverRequest> DataserverRequests =  [];
 
         public Dataserver(AsyncCommandManager CmdManager)
         {
@@ -71,7 +71,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
         {
             string ID = UUID.Random().ToString();
             m_CmdManager.m_ScriptEngine.PostObjectEvent(localID,
-                    new EventParams("dataserver", new Object[]
+                    new EventParams("dataserver", new object[]
                             { new LSL_Types.LSLString(ID),
                             new LSL_Types.LSLString(reply)},
                     new DetectParams[0]));
@@ -86,7 +86,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 if (DataserverRequests.ContainsKey(identifier))
                     return UUID.Zero;
 
-                DataserverRequest ds = new DataserverRequest()
+                DataserverRequest ds = new()
                 {
                     localID = localID,
                     itemID = itemID,
@@ -121,7 +121,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 if (DataserverRequests.ContainsKey(identifier))
                     return UUID.Zero;
 
-                DataserverRequest ds = new DataserverRequest()
+                DataserverRequest ds = new()
                 {
                     localID = localID,
                     itemID = itemID,
@@ -147,7 +147,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             {
                 string identifier = UUID.Random().ToString();
 
-                DataserverRequest ds = new DataserverRequest()
+                DataserverRequest ds = new()
                 {
                     localID = localID,
                     itemID = itemID,
@@ -208,7 +208,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             }
 
             m_CmdManager.m_ScriptEngine.PostObjectEvent(ds.localID,
-                    new EventParams("dataserver", new Object[]
+                    new EventParams("dataserver", new object[]
                     {
                         new LSL_Types.LSLString(ds.ID.ToString()),
                         new LSL_Types.LSLString(reply)
@@ -220,7 +220,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
         {
             lock (DataserverRequests)
             {
-                List<string> toremove = new List<string>(DataserverRequests.Count);
+                List<string> toremove = new(DataserverRequests.Count);
                 foreach (DataserverRequest ds in DataserverRequests.Values)
                 {
                     if (ds.itemID.Equals(itemID))
@@ -237,7 +237,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
         {
             lock (DataserverRequests)
             {
-                List<string> toremove = new List<string>(DataserverRequests.Count);
+                List<string> toremove = new(DataserverRequests.Count);
                 DateTime expirebase = DateTime.UtcNow.AddSeconds(-30);
                 foreach (DataserverRequest ds in DataserverRequests.Values)
                 {

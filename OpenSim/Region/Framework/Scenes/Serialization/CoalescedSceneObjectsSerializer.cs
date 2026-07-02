@@ -67,9 +67,9 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         /// <returns></returns>
         public static string ToXml(CoalescedSceneObjects coa, bool doScriptStates)
         {
-            using (StringWriter sw = new StringWriter())
+            using (StringWriter sw = new())
             {
-                using (XmlTextWriter writer = new XmlTextWriter(sw))
+                using (XmlTextWriter writer = new(sw))
                 {
                     Vector3 size;
 
@@ -127,7 +127,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             try
             {
                 // Quickly check if this is a coalesced object, without fully parsing the XML
-                using (XmlTextReader reader = new XmlTextReader(new StringReader(xml)))
+                using (XmlTextReader reader = new(new StringReader(xml)))
                 {
                     reader.DtdProcessing = DtdProcessing.Ignore;
                     reader.MoveToContent(); // skip possible xml declaration
@@ -142,7 +142,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                     }
                 }
 
-                XmlDocument doc = new XmlDocument();
+                XmlDocument doc = new();
                 doc.LoadXml(xml);
                 XmlElement e = (XmlElement)doc.SelectSingleNode("/CoalescedObject");
                 if (e == null)
@@ -200,9 +200,9 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 // Quickly check if this is a coalesced object, without fully parsing the XML
                 using (ms = new MemoryStream(data, 0, len, false))
                 {
-                    using(StreamReader sr = new StreamReader(ms, Encoding.UTF8))
+                    using(StreamReader sr = new(ms, Encoding.UTF8))
                     {
-                        using (XmlTextReader reader = new XmlTextReader(sr))
+                        using (XmlTextReader reader = new(sr))
                         {
                             reader.DtdProcessing = DtdProcessing.Ignore;
                             reader.MoveToContent(); // skip possible xml declaration

@@ -54,9 +54,9 @@ namespace OpenSim.Region.CoreModules.Framework
         /// <summary>
         /// Each agent has its own capabilities handler.
         /// </summary>
-        protected readonly Dictionary<uint, Caps> m_capsObjects = new();
-        protected readonly Dictionary<UUID, string> m_capsPaths = new();
-        protected readonly Dictionary<UUID, Dictionary<ulong, string>> m_childrenSeeds = new();
+        protected readonly Dictionary<uint, Caps> m_capsObjects = [];
+        protected readonly Dictionary<UUID, string> m_capsPaths = [];
+        protected readonly Dictionary<UUID, Dictionary<ulong, string>> m_childrenSeeds = [];
 
         public void Initialise(IConfigSource source)
         {
@@ -216,7 +216,7 @@ namespace OpenSim.Region.CoreModules.Framework
                 m_capsPaths[agent.AgentID] = agent.CapsPath;
 
             lock (m_childrenSeeds)
-                m_childrenSeeds[agent.AgentID] = (agent.ChildrenCapSeeds ?? new Dictionary<ulong, string>());
+                m_childrenSeeds[agent.AgentID] = (agent.ChildrenCapSeeds ?? []);
         }
 
         public string GetCapsPath(UUID agentId)
@@ -236,7 +236,7 @@ namespace OpenSim.Region.CoreModules.Framework
                 if (m_childrenSeeds.TryGetValue(agentID, out Dictionary<ulong, string> seeds))
                     return seeds;
             }
-            return new Dictionary<ulong, string>();
+            return [];
         }
 
         public void DropChildSeed(UUID agentID, ulong handle)
@@ -330,7 +330,7 @@ namespace OpenSim.Region.CoreModules.Framework
                 return;
             }
 
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
             sb.AppendFormat("Region {0}:\n", m_scene.Name);
 
             if (cmdParams.Length == 5)

@@ -355,7 +355,7 @@ namespace OpenSim.Services.InventoryService
 
             // Since we probably don't get a valid principal here, either ...
             //
-            List<InventoryItemBase> invItems = new();
+            List<InventoryItemBase> invItems = [];
 
             XInventoryItem[] items = m_Database.GetItems(
                     ["parentFolderID"],
@@ -645,9 +645,9 @@ namespace OpenSim.Services.InventoryService
             XInventoryItem[] items = m_Database.GetActiveGestures(principalID);
 
             if (items.Length == 0)
-                return new List<InventoryItemBase>();
+                return [];
 
-            List<InventoryItemBase> ret = new();
+            List<InventoryItemBase> ret = [];
 
             foreach (XInventoryItem x in items)
                 ret.Add(ConvertToOpenSim(x));

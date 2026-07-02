@@ -47,12 +47,12 @@ namespace OpenSim.Server.Handlers.Asset
         public AssetServiceConnector(IConfigSource config, IHttpServer server, string configName) :
                 base(config, server, configName)
         {
-            if (configName != String.Empty)
+            if (configName != string.Empty)
                 m_ConfigName = configName;
 
             IConfig serverConfig = config.Configs[m_ConfigName];
             if (serverConfig == null)
-                throw new Exception(String.Format("No section '{0}' in config file", m_ConfigName));
+                throw new Exception(string.Format("No section '{0}' in config file", m_ConfigName));
 
             string assetService = serverConfig.GetString("LocalServiceModule", string.Empty);
 
@@ -162,9 +162,9 @@ namespace OpenSim.Server.Handlers.Asset
             if (!ConsoleUtil.CheckFileDoesNotExist(MainConsole.Instance, fileName))
                 return;
 
-            using (FileStream fs = new FileStream(fileName, FileMode.CreateNew))
+            using (FileStream fs = new(fileName, FileMode.CreateNew))
             {
-                using (BinaryWriter bw = new BinaryWriter(fs))
+                using (BinaryWriter bw = new(fs))
                 {
                     bw.Write(asset.Data);
                 }
@@ -212,7 +212,7 @@ namespace OpenSim.Server.Handlers.Asset
                 Array.Copy(asset.Data, off, line, 0, len);
 
                 string text = BitConverter.ToString(line);
-                MainConsole.Instance.Output(String.Format("{0:x4}: {1}", off, text));
+                MainConsole.Instance.Output(string.Format("{0:x4}: {1}", off, text));
             }
         }
     }

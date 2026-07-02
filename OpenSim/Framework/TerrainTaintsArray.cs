@@ -41,7 +41,7 @@ namespace OpenSim.Framework
 
         private volatile int m_ntainted;
 
-        private object m_mainlock = new object();
+        private object m_mainlock = new();
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

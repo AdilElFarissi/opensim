@@ -60,9 +60,9 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
         /// Dynamic monitors also exist (we don't know any of the details of what stats we get back here)
         /// but these are currently hardcoded.
         /// </remarks>
-        private readonly List<IMonitor> m_staticMonitors = new List<IMonitor>();
+        private readonly List<IMonitor> m_staticMonitors = [];
 
-        private readonly List<IAlert> m_alerts = new List<IAlert>();
+        private readonly List<IAlert> m_alerts = [];
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public MonitorModule()
@@ -396,10 +396,10 @@ namespace OpenSim.Region.CoreModules.Framework.Monitoring
             m_log.Error("[Monitor] " + reporter.Name + " for " + m_scene.RegionInfo.RegionName + " reports " + reason + " (Fatal: " + fatal + ")");
         }
 
-        private List<Stat> registeredStats = new List<Stat>();
+        private List<Stat> registeredStats = [];
         private void MakeStat(string pName, string pUnitName, Action<Stat> act)
         {
-            Stat tempStat = new Stat(pName, pName, pName, pUnitName, "scene", m_scene.RegionInfo.RegionName, StatType.Pull, act, StatVerbosity.Info);
+            Stat tempStat = new(pName, pName, pName, pUnitName, "scene", m_scene.RegionInfo.RegionName, StatType.Pull, act, StatVerbosity.Info);
             StatsManager.RegisterStat(tempStat);
             registeredStats.Add(tempStat);
         }

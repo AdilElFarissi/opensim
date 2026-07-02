@@ -38,9 +38,9 @@ namespace OpenSim.Region.Framework.Scenes.Animation
     {
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private OpenSim.Framework.Animation m_implicitDefaultAnimation = new OpenSim.Framework.Animation();
-        private OpenSim.Framework.Animation m_defaultAnimation = new OpenSim.Framework.Animation();
-        private readonly List<OpenSim.Framework.Animation> m_animations = new List<OpenSim.Framework.Animation>();
+        private OpenSim.Framework.Animation m_implicitDefaultAnimation = new();
+        private OpenSim.Framework.Animation m_defaultAnimation = new();
+        private readonly List<OpenSim.Framework.Animation> m_animations = [];
 
         public OpenSim.Framework.Animation DefaultAnimation
         {
@@ -253,9 +253,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         //    followed by the other animations.
         public OSDArray ToOSDArray()
         {
-            OSDArray ret = new OSDArray();
-            ret.Add(DefaultAnimation.PackUpdateMessage());
-            ret.Add(ImplicitDefaultAnimation.PackUpdateMessage());
+            OSDArray ret = [DefaultAnimation.PackUpdateMessage(), ImplicitDefaultAnimation.PackUpdateMessage()];
 
             foreach (OpenSim.Framework.Animation anim in m_animations)
                 ret.Add(anim.PackUpdateMessage());
@@ -333,7 +331,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
 
         public override string ToString()
         {
-            StringBuilder buff = new StringBuilder();
+            StringBuilder buff = new();
             buff.Append("dflt=");
             buff.Append(DefaultAnimation.ToString());
             buff.Append(",iDflt=");

@@ -49,7 +49,7 @@ namespace OpenSim.Services.Interfaces
     {
         public static GridInstantMessage GridInstantMessage(Dictionary<string, object> dict)
         {
-            GridInstantMessage im = new GridInstantMessage();
+            GridInstantMessage im = new();
             object otmp;
 
             if (dict.TryGetValue("BinaryBucket", out otmp) && otmp is string bbs)
@@ -81,7 +81,7 @@ namespace OpenSim.Services.Interfaces
                 im.offline = byte.Parse(off);
 
             if (dict.TryGetValue("EstateID", out otmp) && otmp is string eid)
-                im.ParentEstateID = UInt32.Parse(eid);
+                im.ParentEstateID = uint.Parse(eid);
 
             if (dict.TryGetValue("Position", out otmp) && otmp is string vpos)
                 im.Position = Vector3.Parse(vpos);
@@ -90,7 +90,7 @@ namespace OpenSim.Services.Interfaces
                 im.RegionID = new Guid(rid);
 
             if (dict.TryGetValue("Timestamp", out otmp) && otmp is string ts)
-                im.timestamp = UInt32.Parse(ts);
+                im.timestamp = uint.Parse(ts);
 
             if (dict.TryGetValue("ToAgentID", out otmp) && otmp is string tid)
                 im.toAgentID = new Guid(tid);
@@ -100,21 +100,22 @@ namespace OpenSim.Services.Interfaces
 
         public static Dictionary<string, object> GridInstantMessage(GridInstantMessage im)
         {
-            Dictionary<string, object> dict = new Dictionary<string, object>();
-
-            dict["BinaryBucket"] = OpenMetaverse.Utils.BytesToHexString(im.binaryBucket, im.binaryBucket.Length, null);
-            dict["Dialog"] = im.dialog.ToString();
-            dict["FromAgentID"] = im.fromAgentID.ToString();
-            dict["FromAgentName"] = im.fromAgentName == null ? string.Empty : im.fromAgentName;
-            dict["FromGroup"] = im.fromGroup.ToString();
-            dict["SessionID"] = im.imSessionID.ToString();
-            dict["Message"] = im.message == null ? string.Empty : im.message;
-            dict["Offline"] = im.offline.ToString();
-            dict["EstateID"] = im.ParentEstateID.ToString();
-            dict["Position"] = im.Position.ToString();
-            dict["RegionID"] = im.RegionID.ToString();
-            dict["Timestamp"] = im.timestamp.ToString();
-            dict["ToAgentID"] = im.toAgentID.ToString();
+            Dictionary<string, object> dict = new()
+            {
+                ["BinaryBucket"] = OpenMetaverse.Utils.BytesToHexString(im.binaryBucket, im.binaryBucket.Length, null),
+                ["Dialog"] = im.dialog.ToString(),
+                ["FromAgentID"] = im.fromAgentID.ToString(),
+                ["FromAgentName"] = im.fromAgentName == null ? string.Empty : im.fromAgentName,
+                ["FromGroup"] = im.fromGroup.ToString(),
+                ["SessionID"] = im.imSessionID.ToString(),
+                ["Message"] = im.message == null ? string.Empty : im.message,
+                ["Offline"] = im.offline.ToString(),
+                ["EstateID"] = im.ParentEstateID.ToString(),
+                ["Position"] = im.Position.ToString(),
+                ["RegionID"] = im.RegionID.ToString(),
+                ["Timestamp"] = im.timestamp.ToString(),
+                ["ToAgentID"] = im.toAgentID.ToString()
+            };
 
             return dict;
         }

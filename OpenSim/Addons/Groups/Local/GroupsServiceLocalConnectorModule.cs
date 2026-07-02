@@ -67,7 +67,7 @@ namespace OpenSim.Groups
         private void Init(IConfigSource config)
         {
             m_GroupsService = new GroupsService(config);
-            m_Scenes = new List<Scene>();
+            m_Scenes = [];
         }
 
         #region ISharedRegionModule
@@ -184,7 +184,7 @@ namespace OpenSim.Groups
                 return members;
             }
 
-            return new List<GroupMembersData>();
+            return [];
         }
 
         public bool AddGroupRole(string RequestingAgentID, UUID groupID, UUID roleID, string name, string description, string title, ulong powers, out string reason)
@@ -216,7 +216,7 @@ namespace OpenSim.Groups
                 return rm;
             }
 
-            return new List<GroupRoleMembersData>();
+            return [];
 
         }
 

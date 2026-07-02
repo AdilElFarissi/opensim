@@ -67,12 +67,12 @@ namespace OpenSim.Tools.Configger
         {
             bool iniFileExists = false;
 
-            List<string> sources = new List<string>();
+            List<string> sources = [];
 
             string masterFileName = startupConfig.GetString("inimaster", "OpenSimDefaults.ini");
 
             if (masterFileName == "none")
-                masterFileName = String.Empty;
+                masterFileName = string.Empty;
 
             if (IsUri(masterFileName))
             {
@@ -84,7 +84,7 @@ namespace OpenSim.Tools.Configger
                 string masterFilePath = Path.GetFullPath(
                         Path.Combine(Util.configDir(), masterFileName));
 
-                if (masterFileName != String.Empty)
+                if (masterFileName != string.Empty)
                 {
                     if (File.Exists(masterFilePath))
                     {
@@ -231,7 +231,7 @@ namespace OpenSim.Tools.Configger
                 try
                 {
                     XmlReader r = XmlReader.Create(iniPath);
-                    XmlConfigSource cs = new XmlConfigSource(r);
+                    XmlConfigSource cs = new(r);
                     m_config.Merge(cs);
 
                     success = true;

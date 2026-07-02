@@ -63,7 +63,7 @@ namespace OpenSim.Framework.Capabilities
             if(hash == null)
                 return Array.Empty<byte>();
 
-            TRequest llsdRequest = new TRequest();
+            TRequest llsdRequest = new();
             LLSDHelpers.DeserialiseOSDMap(hash, llsdRequest);
 
             TResponse response = m_method(llsdRequest);

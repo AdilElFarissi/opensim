@@ -107,11 +107,11 @@ namespace OpenSim.Region.CoreModules.World.Permissions
         /// </value>
         private UserSet m_allowedScriptEditors = UserSet.All;
 
-        private readonly Dictionary<string, bool> GrantLSL = new();
-        private readonly Dictionary<string, bool> GrantCS = new();
-        private readonly Dictionary<string, bool> GrantVB = new();
-        private readonly Dictionary<string, bool> GrantJS = new();
-        private readonly Dictionary<string, bool> GrantYP = new();
+        private readonly Dictionary<string, bool> GrantLSL = [];
+        private readonly Dictionary<string, bool> GrantCS = [];
+        private readonly Dictionary<string, bool> GrantVB = [];
+        private readonly Dictionary<string, bool> GrantJS = [];
+        private readonly Dictionary<string, bool> GrantYP = [];
 
         private IFriendsModule m_friendsModule;
         private IFriendsModule FriendsModule
@@ -151,7 +151,7 @@ namespace OpenSim.Region.CoreModules.World.Permissions
             string permissionModules = Util.GetConfigVarFromSections<string>(config, "permissionmodules",
                 new string[] { "Startup", "Permissions" }, "DefaultPermissionsModule");
 
-            List<string> modules = new(permissionModules.Split(',').Select(m => m.Trim()));
+            List<string> modules = [.. permissionModules.Split(',').Select(m => m.Trim())];
 
             if (!modules.Contains("DefaultPermissionsModule"))
                 return;

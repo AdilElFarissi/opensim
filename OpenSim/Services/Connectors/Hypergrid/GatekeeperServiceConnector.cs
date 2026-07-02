@@ -48,7 +48,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private static UUID m_HGMapImage = new UUID("00000000-0000-1111-9999-000000000013");
+        private static UUID m_HGMapImage = new("00000000-0000-1111-9999-000000000013");
 
         private IAssetService m_AssetService;
 
@@ -82,13 +82,17 @@ namespace OpenSim.Services.Connectors.Hypergrid
             sizeX = (int)Constants.RegionSize;
             sizeY = (int)Constants.RegionSize;
 
-            Hashtable hash = new Hashtable();
-            hash["region_name"] = info.RegionName;
+            Hashtable hash = new()
+            {
+                ["region_name"] = info.RegionName
+            };
 
-            IList paramList = new ArrayList();
-            paramList.Add(hash);
+            IList paramList = new ArrayList
+            {
+                hash
+            };
 
-            XmlRpcRequest request = new XmlRpcRequest("link_region", paramList);
+            XmlRpcRequest request = new("link_region", paramList);
             m_log.Debug("[GATEKEEPER SERVICE CONNECTOR]: Linking to " + info.ServerURI);
             XmlRpcResponse response = null;
             try
@@ -116,7 +120,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
             try
             {
                 bool success = false;
-                Boolean.TryParse((string)hash["result"], out success);
+                bool.TryParse((string)hash["result"], out success);
                 if (success)
                 {
                     UUID.TryParse((string)hash["uuid"], out regionID);
@@ -138,11 +142,11 @@ namespace OpenSim.Services.Connectors.Hypergrid
                     }
                     if (hash["size_x"] != null)
                     {
-                        Int32.TryParse((string)hash["size_x"], out sizeX);
+                        int.TryParse((string)hash["size_x"], out sizeX);
                     }
                     if (hash["size_y"] != null)
                     {
-                        Int32.TryParse((string)hash["size_y"], out sizeY);
+                        int.TryParse((string)hash["size_y"], out sizeY);
                     }
                 }
             }
@@ -176,7 +180,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
                 if (!File.Exists(filename))
                 {
                     m_log.DebugFormat("[GATEKEEPER SERVICE CONNECTOR]: downloading...");
-                    using(WebClient c = new WebClient())
+                    using(WebClient c = new())
                         c.DownloadFile(imageURL, filename);
                 }
                 else
@@ -186,18 +190,19 @@ namespace OpenSim.Services.Connectors.Hypergrid
 
                 byte[] imageData = null;
 
-                using (Bitmap bitmap = new Bitmap(filename))
+                using (Bitmap bitmap = new(filename))
                 {
                     //m_log.Debug("Size: " + m.PhysicalDimension.Height + "-" + m.PhysicalDimension.Width);
                     imageData = OpenJPEG.EncodeFromImage(bitmap, false);
                 }
 
-                AssetBase ass = new AssetBase(UUID.Random(), "region " + name, (sbyte)AssetType.Texture, regionID.ToString());
+                AssetBase ass = new(UUID.Random(), "region " + name, (sbyte)AssetType.Texture, regionID.ToString())
+                {
+                    // !!! for now
+                    //info.RegionSettings.TerrainImageID = ass.FullID;
 
-                // !!! for now
-                //info.RegionSettings.TerrainImageID = ass.FullID;
-
-                ass.Data = imageData;
+                    Data = imageData
+                };
 
                 m_AssetService.Store(ass);
 
@@ -213,8 +218,10 @@ namespace OpenSim.Services.Connectors.Hypergrid
 
         public GridRegion GetHyperlinkRegion(GridRegion gatekeeper, UUID regionID, UUID agentID, string agentHomeURI, out string message)
         {
-            Hashtable hash = new Hashtable();
-            hash["region_uuid"] = regionID.ToString();
+            Hashtable hash = new()
+            {
+                ["region_uuid"] = regionID.ToString()
+            };
             if (!agentID.IsZero())
             {
                 hash["agent_id"] = agentID.ToString();
@@ -222,10 +229,12 @@ namespace OpenSim.Services.Connectors.Hypergrid
                     hash["agent_home_uri"] = agentHomeURI;
             }
 
-            IList paramList = new ArrayList();
-            paramList.Add(hash);
+            IList paramList = new ArrayList
+            {
+                hash
+            };
 
-            XmlRpcRequest request = new XmlRpcRequest("get_region", paramList);
+            XmlRpcRequest request = new("get_region", paramList);
             m_log.Debug("[GATEKEEPER SERVICE CONNECTOR]: contacting " + gatekeeper.ServerURI);
             XmlRpcResponse response = null;
             try
@@ -253,7 +262,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
             try
             {
                 bool success = false;
-                Boolean.TryParse((string)hash["result"], out success);
+                bool.TryParse((string)hash["result"], out success);
 
                 if (hash["message"] != null)
                     message = (string)hash["message"];
@@ -264,32 +273,32 @@ namespace OpenSim.Services.Connectors.Hypergrid
 
                 if (success)
                 {
-                    GridRegion region = new GridRegion();
+                    GridRegion region = new();
 
                     UUID.TryParse((string)hash["uuid"], out region.RegionID);
                     //m_log.Debug(">> HERE, uuid: " + region.RegionID);
                     int n = 0;
                     if (hash["x"] != null)
                     {
-                        Int32.TryParse((string)hash["x"], out n);
+                        int.TryParse((string)hash["x"], out n);
                         region.RegionLocX = n;
                         //m_log.Debug(">> HERE, x: " + region.RegionLocX);
                     }
                     if (hash["y"] != null)
                     {
-                        Int32.TryParse((string)hash["y"], out n);
+                        int.TryParse((string)hash["y"], out n);
                         region.RegionLocY = n;
                         //m_log.Debug(">> HERE, y: " + region.RegionLocY);
                     }
                     if (hash["size_x"] != null)
                     {
-                        Int32.TryParse((string)hash["size_x"], out n);
+                        int.TryParse((string)hash["size_x"], out n);
                         region.RegionSizeX = n;
                         //m_log.Debug(">> HERE, x: " + region.RegionLocX);
                     }
                     if (hash["size_y"] != null)
                     {
-                        Int32.TryParse((string)hash["size_y"], out n);
+                        int.TryParse((string)hash["size_y"], out n);
                         region.RegionSizeY = n;
                         //m_log.Debug(">> HERE, y: " + region.RegionLocY);
                     }
@@ -306,14 +315,14 @@ namespace OpenSim.Services.Connectors.Hypergrid
                     if (hash["http_port"] != null)
                     {
                         uint p = 0;
-                        UInt32.TryParse((string)hash["http_port"], out p);
+                        uint.TryParse((string)hash["http_port"], out p);
                         region.HttpPort = p;
                         //m_log.Debug(">> HERE, http_port: " + region.HttpPort);
                     }
                     if (hash["internal_port"] != null)
                     {
                         int p = 0;
-                        Int32.TryParse((string)hash["internal_port"], out p);
+                        int.TryParse((string)hash["internal_port"], out p);
                         region.InternalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), p);
                         //m_log.Debug(">> HERE, internal_port: " + region.InternalEndPoint);
                     }

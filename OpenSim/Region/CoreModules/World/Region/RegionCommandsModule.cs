@@ -131,10 +131,10 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             RegionInfo ri = m_scene.RegionInfo;
             RegionSettings rs = ri.RegionSettings;
 
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
             sb.AppendFormat("Region information for {0}\n", m_scene.Name);
 
-            ConsoleDisplayList dispList = new ConsoleDisplayList();
+            ConsoleDisplayList dispList = new();
             dispList.AddRow("Region ID", ri.RegionID);
             dispList.AddRow("Region handle", ri.RegionHandle);
             dispList.AddRow("Region location", string.Format("{0},{1}", ri.RegionLocX, ri.RegionLocY));
@@ -285,10 +285,10 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             float activeScripts           = stats[19];
             float scriptLinesPerSecond    = stats[23];
 
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
             sb.AppendFormat("Scene statistics for {0}\n", m_scene.RegionInfo.RegionName);
 
-            ConsoleDisplayList dispList = new ConsoleDisplayList();
+            ConsoleDisplayList dispList = new();
             dispList.AddRow("Time Dilation", timeDilation);
             dispList.AddRow("Sim FPS", simFps);
             dispList.AddRow("Physics FPS", physicsFps);
@@ -321,7 +321,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             if (!(MainConsole.Instance.ConsoleScene == null || MainConsole.Instance.ConsoleScene == m_scene))
                 return;
 
-            System.Text.StringBuilder caps = new System.Text.StringBuilder();
+            System.Text.StringBuilder caps = new();
 
             RegionInfo sr = m_scene.RegionInfo;
             caps.AppendFormat("*** Neighbours of {0} ({1}) ***\n", sr.RegionName, sr.RegionID);
@@ -340,7 +340,7 @@ namespace OpenSim.Region.CoreModules.World.Objects.Commands
             if (!(MainConsole.Instance.ConsoleScene == null || MainConsole.Instance.ConsoleScene == m_scene))
                 return;
 
-            System.Text.StringBuilder caps = new System.Text.StringBuilder();
+            System.Text.StringBuilder caps = new();
             int maxview = (int)m_scene.MaxRegionViewDistance;
             RegionInfo sr = m_scene.RegionInfo;
             caps.AppendFormat("*** Regions that can be seen from {0} ({1}) (MaxRegionViewDistance {2}m) ***\n", sr.RegionName, sr.RegionID, maxview);

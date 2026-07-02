@@ -62,7 +62,7 @@ namespace OpenSim.Region.OptionalModules
             string permissionModules = Util.GetConfigVarFromSections<string>(config, "permissionmodules",
                 new string[] { "Startup", "Permissions" }, "DefaultPermissionsModule");
 
-            List<string> modules = new List<string>(permissionModules.Split(',').Select(m => m.Trim()));
+            List<string> modules = [.. permissionModules.Split(',').Select(m => m.Trim())];
 
             if(!modules.Contains("PrimLimitsModule"))
                 return;
@@ -216,7 +216,7 @@ namespace OpenSim.Region.OptionalModules
                         if (ownerID != estateSettings.EstateOwner)
                         {
                             // caller is NOT the Estate owner
-                            List<UUID> mgrs = new List<UUID>(estateSettings.EstateManagers);
+                            List<UUID> mgrs = [.. estateSettings.EstateManagers];
                             if (!mgrs.Contains(ownerID))
                             {
                                 // caller is not an Estate Manager

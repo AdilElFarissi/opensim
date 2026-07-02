@@ -60,14 +60,14 @@ namespace OpenSim.Server.Handlers.Hypergrid
         }
 
         public InstantMessageServerConnector(IConfigSource config, IHttpServer server, IInstantMessageSimConnector simConnector) :
-                base(config, server, String.Empty)
+                base(config, server, string.Empty)
         {
             IConfig gridConfig = config.Configs["HGInstantMessageService"];
             if (gridConfig != null)
             {
                 string serviceDll = gridConfig.GetString("LocalServiceModule", string.Empty);
 
-                Object[] args = new Object[] { config, simConnector };
+                object[] args = new object[] { config, simConnector };
                 m_IMService = ServerUtils.LoadPlugin<IInstantMessage>(serviceDll, args);
             }
             if (m_IMService == null)
@@ -161,7 +161,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
                         fromGroup = true;
 
                     string requestData2 = (string)requestData["offline"];
-                    if (String.IsNullOrEmpty(requestData2))
+                    if (string.IsNullOrEmpty(requestData2))
                     {
                         offline = 0;
                     }
@@ -202,20 +202,22 @@ namespace OpenSim.Server.Handlers.Hypergrid
                     }
 
                     // Create a New GridInstantMessageObject the the data
-                    GridInstantMessage gim = new GridInstantMessage();
-                    gim.fromAgentID = fromAgentID.Guid;
-                    gim.fromAgentName = fromAgentName;
-                    gim.fromGroup = fromGroup;
-                    gim.imSessionID = imSessionID.Guid;
-                    gim.RegionID = RegionID.Guid;
-                    gim.timestamp = timestamp;
-                    gim.toAgentID = toAgentID.Guid;
-                    gim.message = message;
-                    gim.dialog = dialog;
-                    gim.offline = offline;
-                    gim.ParentEstateID = ParentEstateID;
-                    gim.Position = Position;
-                    gim.binaryBucket = binaryBucket;
+                    GridInstantMessage gim = new()
+                    {
+                        fromAgentID = fromAgentID.Guid,
+                        fromAgentName = fromAgentName,
+                        fromGroup = fromGroup,
+                        imSessionID = imSessionID.Guid,
+                        RegionID = RegionID.Guid,
+                        timestamp = timestamp,
+                        toAgentID = toAgentID.Guid,
+                        message = message,
+                        dialog = dialog,
+                        offline = offline,
+                        ParentEstateID = ParentEstateID,
+                        Position = Position,
+                        binaryBucket = binaryBucket
+                    };
 
                     successful = m_IMService.IncomingInstantMessage(gim);
 
@@ -229,9 +231,11 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
             //Send response back to region calling if it was successful
             // calling region uses this to know when to look up a user's location again.
-            XmlRpcResponse resp = new XmlRpcResponse();
-            Hashtable respdata = new Hashtable();
-            respdata["success"] = successful ? "TRUE" : "FALSE";
+            XmlRpcResponse resp = new();
+            Hashtable respdata = new()
+            {
+                ["success"] = successful ? "TRUE" : "FALSE"
+            };
             resp.Value = respdata;
 
             return resp;

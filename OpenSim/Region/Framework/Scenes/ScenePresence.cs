@@ -292,7 +292,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Server Side Animation Override
         /// </value>
         public MovementAnimationOverrides Overrides { get; private set; }
-        public String sitAnimation = "SIT";
+        public string sitAnimation = "SIT";
         /// <summary>
         /// Attachments recorded on this avatar.
         /// </summary>
@@ -300,11 +300,11 @@ namespace OpenSim.Region.Framework.Scenes
         /// TODO: For some reason, we effectively have a list both here and in Appearance.  Need to work out if this is
         /// necessary.
         /// </remarks>
-        private readonly List<SceneObjectGroup> m_attachments = new();
+        private readonly List<SceneObjectGroup> m_attachments = [];
 
-        public Object AttachmentsSyncLock { get; private set; }
+        public object AttachmentsSyncLock { get; private set; }
 
-        private readonly Dictionary<UUID, ScriptControllers> scriptedcontrols = new();
+        private readonly Dictionary<UUID, ScriptControllers> scriptedcontrols = [];
         private ScriptControlled IgnoredControls = ScriptControlled.CONTROL_ZERO;
         private ScriptControlled LastCommands = ScriptControlled.CONTROL_ZERO;
         private bool MouseDown = false;
@@ -345,7 +345,7 @@ namespace OpenSim.Region.Framework.Scenes
             set { PhysicsActor.IsColliding = value; }
         }
 
-        private List<uint> m_lastColliders = new();
+        private List<uint> m_lastColliders = [];
         private bool m_lastLandCollide;
 
         private TeleportFlags m_teleportFlags;
@@ -394,12 +394,12 @@ namespace OpenSim.Region.Framework.Scenes
         private float m_healRatePerFrame = 0.05f;
 
         private static readonly Vector3[] Dir_Vectors = new Vector3[6] {
-                new Vector3(1.0f, 0, 0), //FORWARD
-                new Vector3(-1.0f,0,0), //BACK
-                new Vector3(0, 1.0f,0), //LEFT
-                new Vector3(0,-1.0f,0), //RIGHT
-                new Vector3(0,0, 1.0f), //UP
-                new Vector3(0,0,-1.0f) //DOWN
+                new(1.0f, 0, 0), //FORWARD
+                new(-1.0f,0,0), //BACK
+                new(0, 1.0f,0), //LEFT
+                new(0,-1.0f,0), //RIGHT
+                new(0,0, 1.0f), //UP
+                new(0,0,-1.0f) //DOWN
         };
 
         private enum Dir_ControlFlags : uint
@@ -499,7 +499,7 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_InTransitScriptStates; }
             private set { m_InTransitScriptStates = value; }
         }
-        private List<string> m_InTransitScriptStates = new();
+        private List<string> m_InTransitScriptStates = [];
 
         /// <summary>
         /// Position at which a significant movement was made
@@ -1027,7 +1027,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (Scene.CapsModule != null)
                 seeds = Scene.CapsModule.GetChildrenSeeds(UUID);
             else
-                seeds = new Dictionary<ulong, string>();
+                seeds = [];
             KnownRegions = seeds;
         }
 
@@ -1115,7 +1115,7 @@ namespace OpenSim.Region.Framework.Scenes
         public ScenePresence(IClientAPI client, Scene world, AvatarAppearance appearance, PresenceType type)
         {
             m_scene = world;
-            AttachmentsSyncLock = new Object();
+            AttachmentsSyncLock = new object();
             AllowMovement = true;
             IsChildAgent = true;
             m_sendCoarseLocationsMethod = SendCoarseLocationsDefault;
@@ -1134,7 +1134,7 @@ namespace OpenSim.Region.Framework.Scenes
             ControllingClient = client;
             Firstname = ControllingClient.FirstName;
             Lastname = ControllingClient.LastName;
-            Name = String.Format("{0} {1}", Firstname, Lastname);
+            Name = string.Format("{0} {1}", Firstname, Lastname);
             m_uuid = client.AgentId;
             LocalId = m_scene.AllocateLocalId();
             LegacySitOffsets = m_scene.LegacySitOffsets;
@@ -1963,7 +1963,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         // neighbouring regions we have enabled a child agent in
         // holds the seed cap for the child agent in that region
-        private Dictionary<ulong, string> m_knownChildRegions = new();
+        private Dictionary<ulong, string> m_knownChildRegions = [];
 
         struct spRegionSizeInfo
         {
@@ -1977,7 +1977,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        private readonly Dictionary<ulong, spRegionSizeInfo> m_knownChildRegionsSizeInfo = new();
+        private readonly Dictionary<ulong, spRegionSizeInfo> m_knownChildRegionsSizeInfo = [];
 
         public void AddNeighbourRegion(GridRegion region, string capsPath)
         {
@@ -2065,7 +2065,7 @@ namespace OpenSim.Region.Framework.Scenes
             get
             {
                 lock (m_knownChildRegions)
-                    return new List<ulong>(m_knownChildRegions.Keys);
+                    return [.. m_knownChildRegions.Keys];
             }
         }
 
@@ -4641,7 +4641,7 @@ namespace OpenSim.Region.Framework.Scenes
         public List<ulong> GetChildAgentsToClose(ulong newRegionHandle, int newRegionSizeX, int newRegionSizeY)
         {
             ulong curRegionHandle = m_scene.RegionInfo.RegionHandle;
-            List<ulong> byebyeRegions = new();
+            List<ulong> byebyeRegions = [];
 
             if(newRegionHandle == curRegionHandle) //??
                 return byebyeRegions;
@@ -4719,7 +4719,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void closeAllChildAgents()
         {
-            List<ulong> byebyeRegions = new();
+            List<ulong> byebyeRegions = [];
             List<ulong> knownRegions = KnownRegionHandles;
             foreach (ulong handle in knownRegions)
             {
@@ -4910,7 +4910,7 @@ namespace OpenSim.Region.Framework.Scenes
                 cAgent.ActiveGroupID = ControllingClient.ActiveGroupId;
                 cAgent.ActiveGroupName = ControllingClient.ActiveGroupName;
                 if(Grouptitle == null)
-                    cAgent.ActiveGroupTitle = String.Empty;
+                    cAgent.ActiveGroupTitle = string.Empty;
                 else
                     cAgent.ActiveGroupTitle = Grouptitle;
             }
@@ -5312,7 +5312,7 @@ namespace OpenSim.Region.Framework.Scenes
         public List<SceneObjectGroup> GetAttachments()
         {
             lock (m_attachments)
-                return new List<SceneObjectGroup>(m_attachments);
+                return [.. m_attachments];
         }
 
         /// <summary>
@@ -5322,7 +5322,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <returns>Returns an empty list if there were no attachments at the point.</returns>
         public List<SceneObjectGroup> GetAttachments(uint attachmentPoint)
         {
-            List<SceneObjectGroup> attachments = new();
+            List<SceneObjectGroup> attachments = [];
 
             if (attachmentPoint >= 0)
             {
@@ -5859,7 +5859,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void UnRegisterSeatControls(UUID obj)
         {
-            List<UUID> takers = new();
+            List<UUID> takers = [];
 
             foreach (ScriptControllers c in scriptedcontrols.Values)
             {
@@ -6378,7 +6378,7 @@ namespace OpenSim.Region.Framework.Scenes
         private ColliderArgs CreateColliderArgs(SceneObjectPart dest, List<uint> colliders)
         {
             ColliderArgs colliderArgs = new();
-            List<DetectedObject> colliding = new();
+            List<DetectedObject> colliding = [];
             foreach (uint localId in colliders)
             {
                 if (localId == 0)
@@ -6429,7 +6429,7 @@ namespace OpenSim.Region.Framework.Scenes
             if ((dest.RootPart.ScriptEvents & ev) != 0)
             {
                 ColliderArgs LandCollidingMessage = new();
-                List<DetectedObject> colliding = new(){CreateDetObjectForGround()};
+                List<DetectedObject> colliding = [CreateDetObjectForGround()];
                 LandCollidingMessage.Colliders = colliding;
 
                 notify(dest.RootPart.LocalId, LandCollidingMessage);
@@ -6479,7 +6479,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 if(ParcelAllowThisAvatarSounds)
                 {
-                    List<CollisionForSoundInfo> soundinfolist = new();
+                    List<CollisionForSoundInfo> soundinfolist = [];
                     CollisionForSoundInfo soundinfo;
                     ContactPoint curcontact;
 
@@ -6634,10 +6634,10 @@ namespace OpenSim.Region.Framework.Scenes
         private void ParcelCrossCheck(UUID currentParcelID,UUID previusParcelID,
                             bool currentParcelHide, bool previusParcelHide, bool oldhide, bool check)
         {
-            List<ScenePresence> killsToSendto = new();
-            List<ScenePresence> killsToSendme = new();
-            List<ScenePresence> viewsToSendto = new();
-            List<ScenePresence> viewsToSendme = new();
+            List<ScenePresence> killsToSendto = [];
+            List<ScenePresence> killsToSendme = [];
+            List<ScenePresence> viewsToSendto = [];
+            List<ScenePresence> viewsToSendme = [];
             List<ScenePresence> allpresences;
 
             if (IsInTransit || IsChildAgent)

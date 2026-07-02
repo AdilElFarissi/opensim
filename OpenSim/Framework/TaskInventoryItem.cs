@@ -147,7 +147,7 @@ namespace OpenSim.Framework
 
         #region ICloneable Members
 
-        public Object Clone()
+        public object Clone()
         {
             return MemberwiseClone();
         }

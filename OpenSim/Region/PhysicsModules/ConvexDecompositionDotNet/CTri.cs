@@ -89,7 +89,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 
         public bool clip(float3 start, ref float3 end)
         {
-            float3 sect = new float3();
+            float3 sect = new();
             bool hit = lineIntersectsTriangle(start, end, mP1, mP2, mP3, ref sect);
 
             if (hit)
@@ -130,8 +130,8 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
             addTri(indices, 0, 3, 5, ref tcount);
             addTri(indices, 0, 5, 2, ref tcount);
 
-            List<float3> vertices = new List<float3> { mP1, mP2, mP3, mNear1, mNear2, mNear3 };
-            List<int> indexList = new List<int>(indices);
+            List<float3> vertices = [mP1, mP2, mP3, mNear1, mNear2, mNear3];
+            List<int> indexList = [.. indices];
 
             float v = Concavity.computeMeshVolume(vertices, indexList);
             return v;
@@ -139,12 +139,13 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 
         public float raySect(float3 p, float3 dir, ref float3 sect)
         {
-            float4 plane = new float4();
-
-            plane.x = mNormal.x;
-            plane.y = mNormal.y;
-            plane.z = mNormal.z;
-            plane.w = mPlaneD;
+            float4 plane = new()
+            {
+                x = mNormal.x,
+                y = mNormal.y,
+                z = mNormal.z,
+                w = mPlaneD
+            };
 
             float3 dest = p + dir * 100000f;
 
@@ -155,12 +156,13 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 
         public float planeDistance(float3 p)
         {
-            float4 plane = new float4();
-
-            plane.x = mNormal.x;
-            plane.y = mNormal.y;
-            plane.z = mNormal.z;
-            plane.w = mPlaneD;
+            float4 plane = new()
+            {
+                x = mNormal.x,
+                y = mNormal.y,
+                z = mNormal.z,
+                w = mPlaneD
+            };
 
             return DistToPt(p, plane);
         }
@@ -216,9 +218,9 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 
         public void addWeighted(List<Wpoint> list)
         {
-            Wpoint p1 = new Wpoint(mP1, mC1);
-            Wpoint p2 = new Wpoint(mP2, mC2);
-            Wpoint p3 = new Wpoint(mP3, mC3);
+            Wpoint p1 = new(mP1, mC1);
+            Wpoint p2 = new(mP2, mC2);
+            Wpoint p3 = new(mP3, mC3);
 
             float3 d1 = mNear1 - mP1;
             float3 d2 = mNear2 - mP2;
@@ -232,9 +234,9 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
             d2 = d2 + mP2;
             d3 = d3 + mP3;
 
-            Wpoint p4 = new Wpoint(d1, mC1);
-            Wpoint p5 = new Wpoint(d2, mC2);
-            Wpoint p6 = new Wpoint(d3, mC3);
+            Wpoint p4 = new(d1, mC1);
+            Wpoint p5 = new(d2, mC2);
+            Wpoint p6 = new(d3, mC3);
 
             list.Add(p1);
             list.Add(p2);
@@ -258,10 +260,12 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
         {
             float dp1 = DistToPt(p1, plane);
 
-            float3 dir = new float3();
-            dir.x = p2[0] - p1[0];
-            dir.y = p2[1] - p1[1];
-            dir.z = p2[2] - p1[2];
+            float3 dir = new()
+            {
+                x = p2[0] - p1[0],
+                y = p2[1] - p1[1],
+                z = p2[2] - p1[2]
+            };
 
             float dot1 = dir[0] * plane[0] + dir[1] * plane[1] + dir[2] * plane[2];
             float dot2 = dp1 - plane[3];

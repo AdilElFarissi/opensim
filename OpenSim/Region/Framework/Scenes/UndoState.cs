@@ -46,8 +46,10 @@ namespace OpenSim.Region.Framework.Scenes
         ///
         public UndoState(SceneObjectPart part, ObjectChangeType change)
         {
-            data = new ObjectChangeData();
-            data.change = change;
+            data = new ObjectChangeData
+            {
+                change = change
+            };
             creationtime = DateTime.UtcNow;
             SceneObjectGroup sog = part.ParentGroup;
             if (sog.RootPart == part)
@@ -146,8 +148,8 @@ namespace OpenSim.Region.Framework.Scenes
     public class UndoRedoState
     {
         int size;
-        public LinkedList<UndoState> m_redo = new LinkedList<UndoState>();
-        public LinkedList<UndoState> m_undo = new LinkedList<UndoState>();
+        public LinkedList<UndoState> m_redo = new();
+        public LinkedList<UndoState> m_undo = new();
 
         /// <summary>
         /// creates a new UndoRedoState with default states memory size
@@ -228,7 +230,7 @@ namespace OpenSim.Region.Framework.Scenes
                 while (m_undo.Count >= size)
                     m_undo.RemoveLast();
 
-                UndoState nUndo = new UndoState(part, change);
+                UndoState nUndo = new(part, change);
                 m_undo.AddFirst(nUndo);
             }
         }

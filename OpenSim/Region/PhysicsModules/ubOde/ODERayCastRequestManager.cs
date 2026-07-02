@@ -201,7 +201,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 callback(false, Vector3.Zero, 0, 0, Vector3.Zero);
  
             else if (req.callbackMethod is RayCallback raycallback)
-                raycallback(new List<ContactResult>());
+                raycallback([]);
         }
 
         private const RayFilterFlags FilterActiveSpace = RayFilterFlags.physical | RayFilterFlags.LSLPhantom;

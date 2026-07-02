@@ -60,7 +60,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             else
             {
                 IConfig startupConfig = (IConfig)m_configSource.Configs["Startup"];
-                string url = startupConfig.GetString("regionload_webserver_url", String.Empty).Trim();
+                string url = startupConfig.GetString("regionload_webserver_url", string.Empty).Trim();
                 bool allowRegionless = startupConfig.GetBoolean("allow_regionless", false);
 
                 if (url.Length == 0)
@@ -80,10 +80,10 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
 
                         try
                         {
-                            string xmlSource = String.Empty;
+                            string xmlSource = string.Empty;
                             m_log.Debug("[WEBLOADER]: Downloading region information...");
                             using (HttpWebResponse webResponse = (HttpWebResponse)webRequest.GetResponse())
-                            using (StreamReader reader = new StreamReader(webResponse.GetResponseStream()))
+                            using (StreamReader reader = new(webResponse.GetResponseStream()))
                             {
                                 string tempStr;
                                 while ((tempStr = reader.ReadLine()) != null)
@@ -94,7 +94,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
 
                             m_log.Debug("[WEBLOADER]: Done downloading region information from server. Total Bytes: " +
                                         xmlSource.Length);
-                            XmlDocument xmlDoc = new XmlDocument();
+                            XmlDocument xmlDoc = new();
                             xmlDoc.LoadXml(xmlSource);
                             if (xmlDoc.FirstChild.Name == "Nini")
                             {

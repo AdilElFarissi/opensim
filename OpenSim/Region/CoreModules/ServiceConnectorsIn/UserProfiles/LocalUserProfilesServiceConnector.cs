@@ -48,7 +48,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Profile
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private Dictionary<UUID, Scene> regions = new Dictionary<UUID, Scene>();
+        private Dictionary<UUID, Scene> regions = [];
 
         public IUserProfilesService ServiceModule
         {
@@ -111,7 +111,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Profile
 
             Enabled = true;
 
-            string serviceDll = config.GetString("LocalServiceModule", String.Empty);
+            string serviceDll = config.GetString("LocalServiceModule", string.Empty);
 
             if (serviceDll.Length == 0)
             {
@@ -119,7 +119,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Profile
                 return;
             }
 
-            Object[] args = new Object[] { source, ConfigName };
+            object[] args = new object[] { source, ConfigName };
             ServiceModule = ServerUtils.LoadPlugin<IUserProfilesService>(serviceDll, args);
 
             if (ServiceModule == null)
@@ -130,7 +130,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Profile
 
             Enabled = true;
 
-            JsonRpcProfileHandlers handler = new JsonRpcProfileHandlers(ServiceModule);
+            JsonRpcProfileHandlers handler = new(ServiceModule);
 
             Server.AddJsonRPCHandler("avatarclassifiedsrequest", handler.AvatarClassifiedsRequest);
             Server.AddJsonRPCHandler("classified_update", handler.ClassifiedUpdate);

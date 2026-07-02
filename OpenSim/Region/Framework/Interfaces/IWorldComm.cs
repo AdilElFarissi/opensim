@@ -48,7 +48,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// 2 corresponds to IWorldCommListenerInfo::GetMessage()
         /// </summary>
         int RegexBitfield { get; }
-        Object[] GetSerializationData();
+        object[] GetSerializationData();
 
         void Deactivate();
         void Activate();
@@ -131,7 +131,7 @@ namespace OpenSim.Region.Framework.Interfaces
         void ListenControl(UUID itemID, int handle, int active);
         void ListenRemove(UUID itemID, int handle);
         void DeleteListener(UUID itemID);
-        Object[] GetSerializationData(UUID itemID);
-        void CreateFromData(UUID itemID, UUID hostID, Object[] data);
+        object[] GetSerializationData(UUID itemID);
+        void CreateFromData(UUID itemID, UUID hostID, object[] data);
     }
 }

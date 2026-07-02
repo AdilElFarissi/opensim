@@ -571,9 +571,9 @@ namespace OpenSim.Region.Framework.Scenes
 
         public string ToXml2()
         {
-            using (StringWriter sw = new StringWriter())
+            using (StringWriter sw = new())
             {
-                using (XmlTextWriter xwriter = new XmlTextWriter(sw))
+                using (XmlTextWriter xwriter = new(sw))
                 {
                     ToXml2(xwriter);
                 }
@@ -587,12 +587,14 @@ namespace OpenSim.Region.Framework.Scenes
             if (text.Length == 0)
                 return null;
 
-            UTF8Encoding enc = new UTF8Encoding();
-            MemoryStream ms = new MemoryStream(enc.GetBytes(text));
-            XmlTextReader xreader = new XmlTextReader(ms);
-            xreader.DtdProcessing = DtdProcessing.Ignore;
+            UTF8Encoding enc = new();
+            MemoryStream ms = new(enc.GetBytes(text));
+            XmlTextReader xreader = new(ms)
+            {
+                DtdProcessing = DtdProcessing.Ignore
+            };
 
-            SOPVehicle v = new SOPVehicle();
+            SOPVehicle v = new();
             bool error;
 
             v.FromXml2(xreader, out error);
@@ -609,7 +611,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public static SOPVehicle FromXml2(XmlReader reader)
         {
-            SOPVehicle vehicle = new SOPVehicle();
+            SOPVehicle vehicle = new();
 
             bool errors = false;
 
@@ -626,51 +628,50 @@ namespace OpenSim.Region.Framework.Scenes
             reader = _reader;
 
             Dictionary<string, Action> m_VehicleXmlProcessors
-            = new Dictionary<string, Action>();
+            = new()
+            {
+                { "TYPE", ProcessXR_type },
+                { "FLAGS", ProcessXR_flags },
 
-            m_VehicleXmlProcessors.Add("TYPE", ProcessXR_type);
-            m_VehicleXmlProcessors.Add("FLAGS", ProcessXR_flags);
+                // Linear properties
+                { "LMDIR", ProcessXR_linearMotorDirection },
+                { "LMFTIME", ProcessXR_linearFrictionTimescale },
+                { "LMDTIME", ProcessXR_linearMotorDecayTimescale },
+                { "LMTIME", ProcessXR_linearMotorTimescale },
+                { "LMOFF", ProcessXR_linearMotorOffset },
 
-            // Linear properties
-            m_VehicleXmlProcessors.Add("LMDIR", ProcessXR_linearMotorDirection);
-            m_VehicleXmlProcessors.Add("LMFTIME", ProcessXR_linearFrictionTimescale);
-            m_VehicleXmlProcessors.Add("LMDTIME", ProcessXR_linearMotorDecayTimescale);
-            m_VehicleXmlProcessors.Add("LMTIME", ProcessXR_linearMotorTimescale);
-            m_VehicleXmlProcessors.Add("LMOFF", ProcessXR_linearMotorOffset);
+                //Angular properties
+                { "AMDIR", ProcessXR_angularMotorDirection },
+                { "AMTIME", ProcessXR_angularMotorTimescale },
+                { "AMDTIME", ProcessXR_angularMotorDecayTimescale },
+                { "AMFTIME", ProcessXR_angularFrictionTimescale },
 
-            //Angular properties
-            m_VehicleXmlProcessors.Add("AMDIR", ProcessXR_angularMotorDirection);
-            m_VehicleXmlProcessors.Add("AMTIME", ProcessXR_angularMotorTimescale);
-            m_VehicleXmlProcessors.Add("AMDTIME", ProcessXR_angularMotorDecayTimescale);
-            m_VehicleXmlProcessors.Add("AMFTIME", ProcessXR_angularFrictionTimescale);
+                //Deflection properties
+                { "ADEFF", ProcessXR_angularDeflectionEfficiency },
+                { "ADTIME", ProcessXR_angularDeflectionTimescale },
+                { "LDEFF", ProcessXR_linearDeflectionEfficiency },
+                { "LDTIME", ProcessXR_linearDeflectionTimescale },
 
-            //Deflection properties
-            m_VehicleXmlProcessors.Add("ADEFF", ProcessXR_angularDeflectionEfficiency);
-            m_VehicleXmlProcessors.Add("ADTIME", ProcessXR_angularDeflectionTimescale);
-            m_VehicleXmlProcessors.Add("LDEFF", ProcessXR_linearDeflectionEfficiency);
-            m_VehicleXmlProcessors.Add("LDTIME", ProcessXR_linearDeflectionTimescale);
+                //Banking properties
+                { "BEFF", ProcessXR_bankingEfficiency },
+                { "BMIX", ProcessXR_bankingMix },
+                { "BTIME", ProcessXR_bankingTimescale },
 
-            //Banking properties
-            m_VehicleXmlProcessors.Add("BEFF", ProcessXR_bankingEfficiency);
-            m_VehicleXmlProcessors.Add("BMIX", ProcessXR_bankingMix);
-            m_VehicleXmlProcessors.Add("BTIME", ProcessXR_bankingTimescale);
+                //Hover and Buoyancy properties
+                { "HHEI", ProcessXR_VhoverHeight },
+                { "HEFF", ProcessXR_VhoverEfficiency },
+                { "HTIME", ProcessXR_VhoverTimescale },
+                { "VBUO", ProcessXR_VehicleBuoyancy },
 
-            //Hover and Buoyancy properties
-            m_VehicleXmlProcessors.Add("HHEI", ProcessXR_VhoverHeight);
-            m_VehicleXmlProcessors.Add("HEFF", ProcessXR_VhoverEfficiency);
-            m_VehicleXmlProcessors.Add("HTIME", ProcessXR_VhoverTimescale);
-
-            m_VehicleXmlProcessors.Add("VBUO", ProcessXR_VehicleBuoyancy);
-
-            //Attractor properties
-            m_VehicleXmlProcessors.Add("VAEFF", ProcessXR_verticalAttractionEfficiency);
-            m_VehicleXmlProcessors.Add("VATIME", ProcessXR_verticalAttractionTimescale);
-
-            m_VehicleXmlProcessors.Add("REF_FRAME", ProcessXR_referenceFrame);
+                //Attractor properties
+                { "VAEFF", ProcessXR_verticalAttractionEfficiency },
+                { "VATIME", ProcessXR_verticalAttractionTimescale },
+                { "REF_FRAME", ProcessXR_referenceFrame }
+            };
 
             vd = new VehicleData();
 
-            reader.ReadStartElement("Vehicle", String.Empty);
+            reader.ReadStartElement("Vehicle", string.Empty);
 
             errors = EReadProcessors(
                 m_VehicleXmlProcessors,

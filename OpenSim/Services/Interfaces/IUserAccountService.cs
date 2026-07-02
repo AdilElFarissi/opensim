@@ -69,7 +69,7 @@ namespace OpenSim.Services.Interfaces
             FirstName = firstName;
             LastName = lastName;
             Email = email;
-            ServiceURLs = new Dictionary<string, object>();
+            ServiceURLs = [];
             Created = Util.UnixTimeSinceEpoch();
         }
 
@@ -80,7 +80,7 @@ namespace OpenSim.Services.Interfaces
             FirstName = firstName;
             LastName = lastName;
             Email = email;
-            ServiceURLs = new Dictionary<string, object>();
+            ServiceURLs = [];
             Created = Util.UnixTimeSinceEpoch();
         }
 
@@ -132,7 +132,7 @@ namespace OpenSim.Services.Interfaces
                 Created = Convert.ToInt32(otmp.ToString());
             if (kvp.TryGetValue("ServiceURLs", out otmp) && otmp is string str)
             {
-                ServiceURLs = new Dictionary<string, object>();
+                ServiceURLs = [];
                 if (str.Length > 0)
                 {
                     string[] parts = str.Split(';');

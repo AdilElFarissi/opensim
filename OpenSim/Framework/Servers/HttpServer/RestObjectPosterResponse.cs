@@ -60,14 +60,16 @@ namespace OpenSim.Framework.Servers.HttpServer
             request.ContentType = "text/xml";
             request.Timeout = 10000;
 
-            using (MemoryStream buffer = new MemoryStream())
+            using (MemoryStream buffer = new())
             {
-                XmlWriterSettings settings = new XmlWriterSettings();
-                settings.Encoding = Encoding.UTF8;
+                XmlWriterSettings settings = new()
+                {
+                    Encoding = Encoding.UTF8
+                };
 
                 using (XmlWriter writer = XmlWriter.Create(buffer, settings))
                 {
-                    XmlSerializer serializer = new XmlSerializer(type);
+                    XmlSerializer serializer = new(type);
                     serializer.Serialize(writer, obj);
                     writer.Flush();
                 }
@@ -89,7 +91,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             using (WebResponse resp = request.EndGetResponse(result))
             {
                 TResponse deserial;
-                XmlSerializer deserializer = new XmlSerializer(typeof (TResponse));
+                XmlSerializer deserializer = new(typeof (TResponse));
                 Stream stream = resp.GetResponseStream();
 
                 // This is currently a bad debug stanza since it gobbles us the response...

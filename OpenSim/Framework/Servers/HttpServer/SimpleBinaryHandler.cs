@@ -116,7 +116,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 else
                 {
                     request.Seek(0, SeekOrigin.Begin);
-                    using (MemoryStream ms = new MemoryStream((int)request.Length))
+                    using (MemoryStream ms = new((int)request.Length))
                     {
                         request.CopyTo(ms);
                         data = ms.ToArray();

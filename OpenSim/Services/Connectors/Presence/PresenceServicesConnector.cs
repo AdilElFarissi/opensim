@@ -41,7 +41,7 @@ namespace OpenSim.Services.Connectors
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private string m_ServerURI = String.Empty;
+        private string m_ServerURI = string.Empty;
 
         public PresenceServicesConnector()
         {
@@ -67,7 +67,7 @@ namespace OpenSim.Services.Connectors
             }
 
             string serviceURI = gridConfig.GetString("PresenceServerURI",
-                    String.Empty);
+                    string.Empty);
 
             if (serviceURI.Length == 0)
             {
@@ -84,15 +84,17 @@ namespace OpenSim.Services.Connectors
 
         public bool LoginAgent(string userID, UUID sessionID, UUID secureSessionID)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            //sendData["SCOPEID"] = scopeID.ToString();
-            sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
-            sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
-            sendData["METHOD"] = "login";
+            Dictionary<string, object> sendData = new()
+            {
+                //sendData["SCOPEID"] = scopeID.ToString();
+                ["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString(),
+                ["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString(),
+                ["METHOD"] = "login",
 
-            sendData["UserID"] = userID;
-            sendData["SessionID"] = sessionID.ToString();
-            sendData["SecureSessionID"] = secureSessionID.ToString();
+                ["UserID"] = userID,
+                ["SessionID"] = sessionID.ToString(),
+                ["SecureSessionID"] = secureSessionID.ToString()
+            };
 
             string reqString = ServerUtils.BuildQueryString(sendData);
             string uri = m_ServerURI + "/presence";
@@ -124,13 +126,15 @@ namespace OpenSim.Services.Connectors
 
         public bool LogoutAgent(UUID sessionID)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            //sendData["SCOPEID"] = scopeID.ToString();
-            sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
-            sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
-            sendData["METHOD"] = "logout";
+            Dictionary<string, object> sendData = new()
+            {
+                //sendData["SCOPEID"] = scopeID.ToString();
+                ["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString(),
+                ["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString(),
+                ["METHOD"] = "logout",
 
-            sendData["SessionID"] = sessionID.ToString();
+                ["SessionID"] = sessionID.ToString()
+            };
 
             string reqString = ServerUtils.BuildQueryString(sendData);
             string uri = m_ServerURI + "/presence";
@@ -162,13 +166,15 @@ namespace OpenSim.Services.Connectors
 
         public bool LogoutRegionAgents(UUID regionID)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            //sendData["SCOPEID"] = scopeID.ToString();
-            sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
-            sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
-            sendData["METHOD"] = "logoutregion";
+            Dictionary<string, object> sendData = new()
+            {
+                //sendData["SCOPEID"] = scopeID.ToString();
+                ["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString(),
+                ["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString(),
+                ["METHOD"] = "logoutregion",
 
-            sendData["RegionID"] = regionID.ToString();
+                ["RegionID"] = regionID.ToString()
+            };
 
             string reqString = ServerUtils.BuildQueryString(sendData);
             string uri = m_ServerURI + "/presence";
@@ -199,14 +205,16 @@ namespace OpenSim.Services.Connectors
 
         public bool ReportAgent(UUID sessionID, UUID regionID)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            //sendData["SCOPEID"] = scopeID.ToString();
-            sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
-            sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
-            sendData["METHOD"] = "report";
+            Dictionary<string, object> sendData = new()
+            {
+                //sendData["SCOPEID"] = scopeID.ToString();
+                ["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString(),
+                ["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString(),
+                ["METHOD"] = "report",
 
-            sendData["SessionID"] = sessionID.ToString();
-            sendData["RegionID"] = regionID.ToString();
+                ["SessionID"] = sessionID.ToString(),
+                ["RegionID"] = regionID.ToString()
+            };
 
             string reqString = ServerUtils.BuildQueryString(sendData);
             string uri = m_ServerURI + "/presence";
@@ -245,13 +253,15 @@ namespace OpenSim.Services.Connectors
 
         public PresenceInfo GetAgent(UUID sessionID)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            //sendData["SCOPEID"] = scopeID.ToString();
-            sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
-            sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
-            sendData["METHOD"] = "getagent";
+            Dictionary<string, object> sendData = new()
+            {
+                //sendData["SCOPEID"] = scopeID.ToString();
+                ["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString(),
+                ["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString(),
+                ["METHOD"] = "getagent",
 
-            sendData["SessionID"] = sessionID.ToString();
+                ["SessionID"] = sessionID.ToString()
+            };
 
             string reply = string.Empty;
             string reqString = ServerUtils.BuildQueryString(sendData);
@@ -302,13 +312,15 @@ namespace OpenSim.Services.Connectors
 
         public PresenceInfo[] GetAgents(string[] userIDs)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            //sendData["SCOPEID"] = scopeID.ToString();
-            sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
-            sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
-            sendData["METHOD"] = "getagents";
+            Dictionary<string, object> sendData = new()
+            {
+                //sendData["SCOPEID"] = scopeID.ToString();
+                ["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString(),
+                ["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString(),
+                ["METHOD"] = "getagents",
 
-            sendData["uuids"] = new List<string>(userIDs);
+                ["uuids"] = new List<string>(userIDs)
+            };
 
             string reply = string.Empty;
             string reqString = ServerUtils.BuildQueryString(sendData);
@@ -331,7 +343,7 @@ namespace OpenSim.Services.Connectors
                 m_log.DebugFormat("[PRESENCE CONNECTOR]: Exception when contacting presence server at {0}: {1}", uri, e.Message);
             }
 
-            List<PresenceInfo> rinfos = new List<PresenceInfo>();
+            List<PresenceInfo> rinfos = [];
 
             Dictionary<string, object> replyData = ServerUtils.ParseXmlResponse(reply);
 
@@ -349,7 +361,7 @@ namespace OpenSim.Services.Connectors
                 {
                     if (presence is Dictionary<string, object>)
                     {
-                        PresenceInfo pinfo = new PresenceInfo((Dictionary<string, object>)presence);
+                        PresenceInfo pinfo = new((Dictionary<string, object>)presence);
                         rinfos.Add(pinfo);
                     }
                     else

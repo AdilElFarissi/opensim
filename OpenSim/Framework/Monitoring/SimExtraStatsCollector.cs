@@ -47,7 +47,7 @@ namespace OpenSim.Framework.Monitoring
         /// Retain a dictionary of all packet queues stats reporters
         /// </summary>
         private readonly Dictionary<UUID, PacketQueueStatsCollector> packetQueueStatsCollectors
-            = new Dictionary<UUID, PacketQueueStatsCollector>();
+            = [];
 
         /// <summary>
         /// Register as a packet queue stats provider
@@ -77,8 +77,8 @@ namespace OpenSim.Framework.Monitoring
         }
 
         private UUID firstReceivedRegion;
-        private readonly ConcurrentDictionary<UUID, SimStats> ReceivedStats = new ConcurrentDictionary<UUID, SimStats>();
-        private readonly ConcurrentDictionary<string, SimStats> ReceivedStatsByName = new ConcurrentDictionary<string, SimStats>();
+        private readonly ConcurrentDictionary<UUID, SimStats> ReceivedStats = new();
+        private readonly ConcurrentDictionary<string, SimStats> ReceivedStatsByName = new();
         /// <summary>
         /// This is the method on which the classic sim stats reporter (which collects stats for
         /// client purposes) sends information to listeners.
@@ -111,7 +111,7 @@ namespace OpenSim.Framework.Monitoring
                     ReceivedStats.TryGetValue(scene.RegionInfo.RegionID, out sdata);
             }
 
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
 
             sb.AppendLine("CONNECTION STATISTICS");
             List<Stat> stats = StatsManager.GetStatsFromEachContainer("clientstack", "ClientLogoutsDueToNoReceives");
@@ -201,48 +201,48 @@ namespace OpenSim.Framework.Monitoring
                 }
             }
 
-            OSDMap args = new OSDMap(33);
+            OSDMap args = new(33);
             if(sdata != null && sdata.StatsValues != null)
             {
                 float[] data = sdata.StatsValues;
-                args["Dilatn"] = OSD.FromString (String.Format ("{0:0.##}", data[(int)StatsIndex.TimeDilation]));
-                args["SimFPS"] = OSD.FromString (String.Format ("{0:0.##}", data[(int)StatsIndex.SimFPS]));
-                args["PhyFPS"] = OSD.FromString (String.Format ("{0:0.##}", data[(int)StatsIndex.PhysicsFPS]));
-                args["AgntUp"] = OSD.FromString (String.Format ("{0:0.##}", data[(int)StatsIndex.AgentUpdates]));
-                args["RootAg"] = OSD.FromString (String.Format ("{0}", (int)data[(int)StatsIndex.Agents]));
-                args["ChldAg"] = OSD.FromString(String.Format("{0}", (int)data[(int)StatsIndex.ChildAgents]));
-                args["NPCAg"] = OSD.FromString(String.Format("{0}", (int)data[(int)StatsIndex.NPCs]));
-                args["Prims"] = OSD.FromString (String.Format ("{0}", (int)data[(int)StatsIndex.TotalPrim]));
-                args["AtvPrm"] = OSD.FromString (String.Format ("{0}", (int)data[(int)StatsIndex.ActivePrim]));
-                args["AtvScr"] = OSD.FromString (String.Format ("{0}", (int)data[(int)StatsIndex.ActiveScripts]));
-                args["ScrLPS"] = OSD.FromString(String.Format("{0:0.##}", data[(int)StatsIndex.LSLScriptLinesPerSecond]));
-                args["ScrEPS"] = OSD.FromString(String.Format("{0:0.##}", data[(int)StatsIndex.ScriptEps]));
-                args["PktsIn"] = OSD.FromString (String.Format ("{0:0.##}", data[(int)StatsIndex.InPacketsPerSecond]));
-                args["PktOut"] = OSD.FromString (String.Format ("{0:0.##}", data[(int)StatsIndex.OutPacketsPerSecond]));
-                args["PendDl"] = OSD.FromString (String.Format ("{0:0.##}", data[(int)StatsIndex.PendingDownloads]));
-                args["PendUl"] = OSD.FromString (String.Format ("{0:0.##}", data[(int)StatsIndex.PendingUploads]));
-                args["UnackB"] = OSD.FromString (String.Format ("{0:0.##}", data[(int)StatsIndex.UnAckedBytes]));
-                args["TotlFt"] = OSD.FromString (String.Format ("{0:0.##}", data[(int)StatsIndex.FrameMS]));
-                args["NetFt"] = OSD.FromString (String.Format ("{0:0.##}", data[(int)StatsIndex.NetMS]));
-                args["PhysFt"] = OSD.FromString (String.Format ("{0:0.##}", data[(int)StatsIndex.PhysicsMS]));
-                args["OthrFt"] = OSD.FromString (String.Format ("{0:0.##}", data[(int)StatsIndex.OtherMS]));
-                args["AgntFt"] = OSD.FromString (String.Format ("{0:0.##}", data[(int)StatsIndex.AgentMS]));
-                args["ImgsFt"] = OSD.FromString (String.Format ("{0:0.##}", data[(int)StatsIndex.ImageMS]));
+                args["Dilatn"] = OSD.FromString (string.Format ("{0:0.##}", data[(int)StatsIndex.TimeDilation]));
+                args["SimFPS"] = OSD.FromString (string.Format ("{0:0.##}", data[(int)StatsIndex.SimFPS]));
+                args["PhyFPS"] = OSD.FromString (string.Format ("{0:0.##}", data[(int)StatsIndex.PhysicsFPS]));
+                args["AgntUp"] = OSD.FromString (string.Format ("{0:0.##}", data[(int)StatsIndex.AgentUpdates]));
+                args["RootAg"] = OSD.FromString (string.Format ("{0}", (int)data[(int)StatsIndex.Agents]));
+                args["ChldAg"] = OSD.FromString(string.Format("{0}", (int)data[(int)StatsIndex.ChildAgents]));
+                args["NPCAg"] = OSD.FromString(string.Format("{0}", (int)data[(int)StatsIndex.NPCs]));
+                args["Prims"] = OSD.FromString (string.Format ("{0}", (int)data[(int)StatsIndex.TotalPrim]));
+                args["AtvPrm"] = OSD.FromString (string.Format ("{0}", (int)data[(int)StatsIndex.ActivePrim]));
+                args["AtvScr"] = OSD.FromString (string.Format ("{0}", (int)data[(int)StatsIndex.ActiveScripts]));
+                args["ScrLPS"] = OSD.FromString(string.Format("{0:0.##}", data[(int)StatsIndex.LSLScriptLinesPerSecond]));
+                args["ScrEPS"] = OSD.FromString(string.Format("{0:0.##}", data[(int)StatsIndex.ScriptEps]));
+                args["PktsIn"] = OSD.FromString (string.Format ("{0:0.##}", data[(int)StatsIndex.InPacketsPerSecond]));
+                args["PktOut"] = OSD.FromString (string.Format ("{0:0.##}", data[(int)StatsIndex.OutPacketsPerSecond]));
+                args["PendDl"] = OSD.FromString (string.Format ("{0:0.##}", data[(int)StatsIndex.PendingDownloads]));
+                args["PendUl"] = OSD.FromString (string.Format ("{0:0.##}", data[(int)StatsIndex.PendingUploads]));
+                args["UnackB"] = OSD.FromString (string.Format ("{0:0.##}", data[(int)StatsIndex.UnAckedBytes]));
+                args["TotlFt"] = OSD.FromString (string.Format ("{0:0.##}", data[(int)StatsIndex.FrameMS]));
+                args["NetFt"] = OSD.FromString (string.Format ("{0:0.##}", data[(int)StatsIndex.NetMS]));
+                args["PhysFt"] = OSD.FromString (string.Format ("{0:0.##}", data[(int)StatsIndex.PhysicsMS]));
+                args["OthrFt"] = OSD.FromString (string.Format ("{0:0.##}", data[(int)StatsIndex.OtherMS]));
+                args["AgntFt"] = OSD.FromString (string.Format ("{0:0.##}", data[(int)StatsIndex.AgentMS]));
+                args["ImgsFt"] = OSD.FromString (string.Format ("{0:0.##}", data[(int)StatsIndex.ImageMS]));
 
-                args["FrameDilatn"] = OSD.FromString(String.Format("{0:0.#}", data[(int)StatsIndex.FrameDilation2]));
-                args["Logging in Users"] = OSD.FromString(String.Format("{0:0.#}", data[(int)StatsIndex.UsersLoggingIn]));
-                args["GeoPrims"] = OSD.FromString(String.Format("{0:0.#}", data[(int)StatsIndex.TotalGeoPrim]));
-                args["Mesh Objects"] = OSD.FromString(String.Format("{0:0.##}", data[(int)StatsIndex.TotalMesh]));
-                args["Script Engine Thread Count"] = OSD.FromString(String.Format("{0:0.#}", data[(int)StatsIndex.ScriptEngineThreadCount]));
+                args["FrameDilatn"] = OSD.FromString(string.Format("{0:0.#}", data[(int)StatsIndex.FrameDilation2]));
+                args["Logging in Users"] = OSD.FromString(string.Format("{0:0.#}", data[(int)StatsIndex.UsersLoggingIn]));
+                args["GeoPrims"] = OSD.FromString(string.Format("{0:0.#}", data[(int)StatsIndex.TotalGeoPrim]));
+                args["Mesh Objects"] = OSD.FromString(string.Format("{0:0.##}", data[(int)StatsIndex.TotalMesh]));
+                args["Script Engine Thread Count"] = OSD.FromString(string.Format("{0:0.#}", data[(int)StatsIndex.ScriptEngineThreadCount]));
                 args["RegionName"] = sdata.RegionName;
             }
             else
                 args["Error"] = "No Region data";
 
-            args["Util Thread Count"] = OSD.FromString(String.Format("{0:0.##}", Util.GetSmartThreadPoolInfo().InUseThreads));
-            args["System Thread Count"] = OSD.FromString(String.Format("{0:0.##}", numberThreads));
-            args["System Thread Active"] = OSD.FromString(String.Format("{0:0.##}", numberThreadsRunning));
-            args["ProcMem"] = OSD.FromString(String.Format("{0:0.##}", memUsage));
+            args["Util Thread Count"] = OSD.FromString(string.Format("{0:0.##}", Util.GetSmartThreadPoolInfo().InUseThreads));
+            args["System Thread Count"] = OSD.FromString(string.Format("{0:0.##}", numberThreads));
+            args["System Thread Active"] = OSD.FromString(string.Format("{0:0.##}", numberThreadsRunning));
+            args["ProcMem"] = OSD.FromString(string.Format("{0:0.##}", memUsage));
 
             args["Memory"] = OSD.FromString(base.XReport(uptime, version));
             args["Uptime"] = OSD.FromString(uptime);
@@ -281,7 +281,7 @@ namespace OpenSim.Framework.Monitoring
 
         public OSDMap OReport(string uptime, string version)
         {
-            OSDMap ret = new OSDMap();
+            OSDMap ret = [];
             return ret;
         }
     }

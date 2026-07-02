@@ -62,8 +62,8 @@ namespace OpenSim.Services.HypergridService
         private static string m_DeniedMacs = string.Empty;
         private static string m_DeniedID0s = string.Empty;
         private static bool m_ForeignAgentsAllowed = true;
-        private static readonly List<string> m_ForeignsAllowedExceptions = new();
-        private static readonly List<string> m_ForeignsDisallowedExceptions = new();
+        private static readonly List<string> m_ForeignsAllowedExceptions = [];
+        private static readonly List<string> m_ForeignsDisallowedExceptions = [];
 
         private static UUID m_ScopeID;
         private static bool m_AllowTeleportsToAnyRegion;
@@ -84,7 +84,7 @@ namespace OpenSim.Services.HypergridService
 
                 IConfig serverConfig = config.Configs["GatekeeperService"];
                 if (serverConfig is null)
-                    throw new Exception(String.Format("No section GatekeeperService in config file"));
+                    throw new Exception(string.Format("No section GatekeeperService in config file"));
 
                 string accountService = serverConfig.GetString("UserAccountService", string.Empty);
                 string homeUsersService = serverConfig.GetString("UserAgentService", string.Empty);
@@ -125,7 +125,7 @@ namespace OpenSim.Services.HypergridService
                         OSHHTPHost tmp = new(alias[i].Trim(), false);
                         if (tmp.IsValidHost)
                         {
-                            m_gateKeeperAlias ??= new HashSet<OSHHTPHost>();
+                            m_gateKeeperAlias ??= [];
                             m_gateKeeperAlias.Add(tmp);
                         }
                     }
@@ -197,7 +197,7 @@ namespace OpenSim.Services.HypergridService
 
                 IConfig messagingConfig = config.Configs["Messaging"];
                 if (messagingConfig is not null)
-                    m_messageKey = messagingConfig.GetString("MessageKey", String.Empty);
+                    m_messageKey = messagingConfig.GetString("MessageKey", string.Empty);
                 m_log.Debug("[GATEKEEPER SERVICE]: Starting...");
             }
         }
@@ -561,7 +561,7 @@ namespace OpenSim.Services.HypergridService
 
             if (!m_SimulationService.QueryAccess(
                 destination, aCircuit.AgentID, aCircuit.ServiceURLs["HomeURI"].ToString(),
-                true, aCircuit.startpos, new List<UUID>(), ctx, out reason))
+                true, aCircuit.startpos, [], ctx, out reason))
                 return false;
 
             bool didit = m_SimulationService.CreateAgent(source, destination, aCircuit, (uint)loginFlag, ctx, out reason);
@@ -696,20 +696,22 @@ namespace OpenSim.Services.HypergridService
             if(string.IsNullOrEmpty(regURL))
                 return false;
 
-            GridInstantMessage msg = new GridInstantMessage();
-            msg.imSessionID = UUID.Zero.Guid;
-            msg.fromAgentID = Constants.servicesGodAgentID.Guid;
-            msg.toAgentID = agentID.Guid;
-            msg.timestamp = (uint)Util.UnixTimeSinceEpoch();
-            msg.fromAgentName = "GRID";
-            msg.message = string.Format("New login detected");
-            msg.dialog = 250; // God kick
-            msg.fromGroup = false;
-            msg.offline = (byte)0;
-            msg.ParentEstateID = 0;
-            msg.Position = Vector3.Zero;
-            msg.RegionID = scopeID.Guid;
-            msg.binaryBucket = new byte[1] {0};
+            GridInstantMessage msg = new()
+            {
+                imSessionID = UUID.Zero.Guid,
+                fromAgentID = Constants.servicesGodAgentID.Guid,
+                toAgentID = agentID.Guid,
+                timestamp = (uint)Util.UnixTimeSinceEpoch(),
+                fromAgentName = "GRID",
+                message = string.Format("New login detected"),
+                dialog = 250, // God kick
+                fromGroup = false,
+                offline = (byte)0,
+                ParentEstateID = 0,
+                Position = Vector3.Zero,
+                RegionID = scopeID.Guid,
+                binaryBucket = new byte[1] { 0 }
+            };
             InstantMessageServiceConnector.SendInstantMessage(regURL,msg, m_messageKey);
 
             m_GridUserService.LoggedOut(uui,

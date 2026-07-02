@@ -48,8 +48,8 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 
         public ConvexResult()
         {
-            HullVertices = new List<float3>();
-            HullIndices = new List<int>();
+            HullVertices = [];
+            HullIndices = [];
         }
 
         public ConvexResult(List<float3> hvertices, List<int> hindices)
@@ -60,8 +60,8 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 
         public ConvexResult(ConvexResult r)
         {
-            HullVertices = new List<float3>(r.HullVertices);
-            HullIndices = new List<int>(r.HullIndices);
+            HullVertices = [.. r.HullVertices];
+            HullIndices = [.. r.HullIndices];
         }
 
         public void Dispose()

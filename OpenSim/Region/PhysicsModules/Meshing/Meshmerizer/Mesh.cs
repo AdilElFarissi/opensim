@@ -69,17 +69,17 @@ namespace OpenSim.Region.PhysicsModule.Meshing
 
         public Mesh()
         {
-            vertexcomp vcomp = new vertexcomp();
+            vertexcomp vcomp = new();
 
             m_vertices = new Dictionary<Vertex, int>(vcomp);
-            m_triangles = new List<Triangle>();
+            m_triangles = [];
             _centroid = Vector3.Zero;
             _centroidDiv = 0;
         }
 
         public Mesh Clone()
         {
-            Mesh result = new Mesh();
+            Mesh result = new();
 
             foreach (Triangle t in m_triangles)
             {
@@ -217,7 +217,7 @@ namespace OpenSim.Region.PhysicsModule.Meshing
 
         public List<Vector3> getVertexList()
         {
-            List<Vector3> result = new List<Vector3>();
+            List<Vector3> result = [];
             foreach (Vertex v in m_vertices.Keys)
             {
                 result.Add(new Vector3(v.X, v.Y, v.Z));
@@ -384,16 +384,16 @@ namespace OpenSim.Region.PhysicsModule.Meshing
             }
         }
 
-        public void DumpRaw(String path, String name, String title)
+        public void DumpRaw(string path, string name, string title)
         {
             if (path == null)
                 return;
-            String fileName = name + "_" + title + ".raw";
-            String completePath = System.IO.Path.Combine(path, fileName);
-            StreamWriter sw = new StreamWriter(completePath);
+            string fileName = name + "_" + title + ".raw";
+            string completePath = System.IO.Path.Combine(path, fileName);
+            StreamWriter sw = new(completePath);
             foreach (Triangle t in m_triangles)
             {
-                String s = t.ToStringRaw();
+                string s = t.ToStringRaw();
                 sw.WriteLine(s);
             }
             sw.Close();

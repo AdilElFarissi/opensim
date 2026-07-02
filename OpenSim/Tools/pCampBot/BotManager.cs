@@ -67,7 +67,7 @@ namespace pCampBot
         /// <summary>
         /// Used to control locking as we can't lock an enum.
         /// </summary>
-        private object BotConnectingStateChangeObject = new object();
+        private object BotConnectingStateChangeObject = new();
 
         /// <summary>
         /// Delay between logins of multiple bots.
@@ -148,7 +148,7 @@ namespace pCampBot
         /// <summary>
         /// Behaviour switches for bots.
         /// </summary>
-        private HashSet<string> m_defaultBehaviourSwitches = new HashSet<string>();
+        private HashSet<string> m_defaultBehaviourSwitches = [];
 
         /// <summary>
         /// Collects general information on this server (which reveals this to be a misnamed class).
@@ -176,8 +176,8 @@ namespace pCampBot
             LoginDelay = DefaultLoginDelay;
 
             Rng = new Random(Environment.TickCount);
-            AssetsReceived = new Dictionary<UUID, bool>();
-            RegionsKnown = new Dictionary<ulong, GridRegion>();
+            AssetsReceived = [];
+            RegionsKnown = [];
 
             m_console = CreateConsole();
             MainConsole.Instance = m_console;
@@ -265,7 +265,7 @@ namespace pCampBot
             m_console.Commands.AddCommand(
                 "Bots", false, "show status", "show status", "Shows pCampbot status.", HandleShowStatus);
 
-            m_bots = new List<Bot>();
+            m_bots = [];
 
             Watchdog.Enabled = true;
             StatsManager.RegisterConsoleCommands(m_console);
@@ -327,7 +327,7 @@ namespace pCampBot
         private List<IBehaviour> CreateBehavioursFromAbbreviatedNames(HashSet<string> abbreviatedNames)
         {
             // We must give each bot its own list of instantiated behaviours since they store state.
-            List<IBehaviour> behaviours = new List<IBehaviour>();
+            List<IBehaviour> behaviours = [];
 
             // Hard-coded for now
             foreach (string abName in abbreviatedNames)
@@ -385,9 +385,10 @@ namespace pCampBot
                 BotConnectingState = BotManagerBotConnectingState.Connecting;
             }
 
-            Thread connectBotThread = new Thread(o => ConnectBotsInternal(botcount));
-
-            connectBotThread.Name = "Bots connection thread";
+            Thread connectBotThread = new(o => ConnectBotsInternal(botcount))
+            {
+                Name = "Bots connection thread"
+            };
             connectBotThread.Start();
         }
 
@@ -405,7 +406,7 @@ namespace pCampBot
             m_log.DebugFormat("[BOT MANAGER]: BotsSendAgentUpdates is {0}", InitBotSendAgentUpdates);
             m_log.DebugFormat("[BOT MANAGER]: InitBotRequestObjectTextures is {0}", InitBotRequestObjectTextures);
 
-            List<Bot> botsToConnect = new List<Bot>();
+            List<Bot> botsToConnect = [];
 
             lock (m_bots)
             {
@@ -461,7 +462,7 @@ namespace pCampBot
             string regionName;
 
             // Just a region name or only one (!) extra component.  Like a viewer, we will stick 128/128/0 on the end
-            Vector3 startPos = new Vector3(128, 128, 0);
+            Vector3 startPos = new(128, 128, 0);
 
             string[] startLocationComponents = startLocation.Split('/');
 
@@ -503,8 +504,10 @@ namespace pCampBot
                 null,
                 firstName, lastName, string.Join(",", behaviours.ConvertAll<string>(b => b.Name).ToArray()));
 
-            Bot pb = new Bot(bm, behaviours, firstName, lastName, password, startLocation, loginUri);
-            pb.wear = wearSetting;
+            Bot pb = new(bm, behaviours, firstName, lastName, password, startLocation, loginUri)
+            {
+                wear = wearSetting
+            };
             pb.Client.Settings.SEND_AGENT_UPDATES = InitBotSendAgentUpdates;
             pb.RequestObjectTextures = InitBotRequestObjectTextures;
 
@@ -581,7 +584,7 @@ namespace pCampBot
 
             string rawBehaviours = cmd[2];
 
-            List<Bot> botsToEffect = new List<Bot>();
+            List<Bot> botsToEffect = [];
 
             if (cmd.Length == 3)
             {
@@ -606,12 +609,12 @@ namespace pCampBot
             }
 
 
-            HashSet<string> rawAbbreviatedSwitchesToAdd = new HashSet<string>();
+            HashSet<string> rawAbbreviatedSwitchesToAdd = [];
             Array.ForEach<string>(rawBehaviours.Split(new char[] { ',' }), b => rawAbbreviatedSwitchesToAdd.Add(b));
 
             foreach (Bot bot in botsToEffect)
             {
-                List<IBehaviour> behavioursAdded = new List<IBehaviour>();
+                List<IBehaviour> behavioursAdded = [];
 
                 foreach (IBehaviour behaviour in CreateBehavioursFromAbbreviatedNames(rawAbbreviatedSwitchesToAdd))
                 {
@@ -636,7 +639,7 @@ namespace pCampBot
 
             string rawBehaviours = cmd[2];
 
-            List<Bot> botsToEffect = new List<Bot>();
+            List<Bot> botsToEffect = [];
 
             if (cmd.Length == 3)
             {
@@ -660,12 +663,12 @@ namespace pCampBot
                 botsToEffect.Add(bot);
             }
 
-            HashSet<string> abbreviatedBehavioursToRemove = new HashSet<string>();
+            HashSet<string> abbreviatedBehavioursToRemove = [];
             Array.ForEach<string>(rawBehaviours.Split(new char[] { ',' }), b => abbreviatedBehavioursToRemove.Add(b));
 
             foreach (Bot bot in botsToEffect)
             {
-                List<IBehaviour> behavioursRemoved = new List<IBehaviour>();
+                List<IBehaviour> behavioursRemoved = [];
 
                 foreach (string b in abbreviatedBehavioursToRemove)
                 {
@@ -708,9 +711,10 @@ namespace pCampBot
             lock (BotConnectingStateChangeObject)
                 BotConnectingState = BotManagerBotConnectingState.Disconnecting;
 
-            Thread disconnectBotThread = new Thread(o => DisconnectBotsInternal(connectedBots, botsToDisconnectCount));
-
-            disconnectBotThread.Name = "Bots disconnection thread";
+            Thread disconnectBotThread = new(o => DisconnectBotsInternal(connectedBots, botsToDisconnectCount))
+            {
+                Name = "Bots disconnection thread"
+            };
             disconnectBotThread.Start();
         }
 
@@ -861,7 +865,7 @@ namespace pCampBot
 
         private void HandleShowStatus(string module, string[] cmd)
         {
-            ConsoleDisplayList cdl = new ConsoleDisplayList();
+            ConsoleDisplayList cdl = new();
             cdl.AddRow("Bot connecting state", BotConnectingState);
 
             MainConsole.Instance.Output(cdl.ToString());
@@ -869,14 +873,14 @@ namespace pCampBot
 
         private void HandleShowBotsStatus(string module, string[] cmd)
         {
-            ConsoleDisplayTable cdt = new ConsoleDisplayTable();
+            ConsoleDisplayTable cdt = new();
             cdt.AddColumn("Name", 24);
             cdt.AddColumn("Region", 24);
             cdt.AddColumn("Status", 13);
             cdt.AddColumn("Conns", 5);
             cdt.AddColumn("Behaviours", 20);
 
-            Dictionary<ConnectionState, int> totals = new Dictionary<ConnectionState, int>();
+            Dictionary<ConnectionState, int> totals = [];
             foreach (object o in Enum.GetValues(typeof(ConnectionState)))
                 totals[(ConnectionState)o] = 0;
 
@@ -898,7 +902,7 @@ namespace pCampBot
 
             MainConsole.Instance.Output(cdt.ToString());
 
-            ConsoleDisplayList cdl = new ConsoleDisplayList();
+            ConsoleDisplayList cdl = new();
 
             foreach (KeyValuePair<ConnectionState, int> kvp in totals)
                 cdl.AddRow(kvp.Key, kvp.Value);
@@ -927,7 +931,7 @@ namespace pCampBot
                 return;
             }
 
-            ConsoleDisplayList cdl = new ConsoleDisplayList();
+            ConsoleDisplayList cdl = new();
             cdl.AddRow("Name", bot.Name);
             cdl.AddRow("Status", bot.ConnectionState);
 
@@ -942,7 +946,7 @@ namespace pCampBot
 
             MainConsole.Instance.Output("Settings");
 
-            ConsoleDisplayList statusCdl = new ConsoleDisplayList();
+            ConsoleDisplayList statusCdl = new();
 
             statusCdl.AddRow(
                 "Behaviours",

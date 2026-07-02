@@ -431,9 +431,9 @@ namespace OpenSim.Region.Framework.Scenes
         protected SceneObjectPart m_rootPart;
         // private Dictionary<UUID, scriptEvents> m_scriptEvents = new Dictionary<UUID, scriptEvents>();
 
-        private Dictionary<int, scriptPosTarget> m_targets = new();
-        private Dictionary<int, scriptRotTarget> m_rotTargets = new();
-        private Dictionary<UUID, List<int>> m_targetsByScript = new();
+        private Dictionary<int, scriptPosTarget> m_targets = [];
+        private Dictionary<int, scriptRotTarget> m_rotTargets = [];
+        private Dictionary<UUID, List<int>> m_targetsByScript = [];
 
         public Dictionary<int, scriptPosTarget> AtTargets
         {
@@ -748,7 +748,7 @@ namespace OpenSim.Region.Framework.Scenes
                     // We remove the object here
                     try
                     {
-                        List<uint> localIDs = new(){root.LocalId};
+                        List<uint> localIDs = [root.LocalId];
                         sogScene.AddReturn(sog.OwnerID, sog.Name, sog.AbsolutePosition,
                             "Returned at region cross");
                         sogScene.DeRezObjects(null, localIDs, UUID.Zero, DeRezAction.Return, UUID.Zero, false);
@@ -816,8 +816,8 @@ namespace OpenSim.Region.Framework.Scenes
             // We unparent the SP quietly so that it won't
             // be made to stand up
 
-            List<avtocrossInfo> avsToCross = new();
-            List<ScenePresence> avsToCrossFar = new();
+            List<avtocrossInfo> avsToCross = [];
+            List<ScenePresence> avsToCrossFar = [];
             ulong destHandle = destination.RegionHandle;
             List<ScenePresence> sittingAvatars = GetSittingAvatars();
             foreach (ScenePresence av in sittingAvatars)
@@ -1399,7 +1399,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// No avatar should appear more than once in this list.
         /// Do not manipulate this list directly - use the Add/Remove sitting avatar methods on SceneObjectPart.
         /// </remarks>
-        protected internal List<ScenePresence> m_sittingAvatars = new();
+        protected internal List<ScenePresence> m_sittingAvatars = [];
 
         #endregion
 
@@ -1470,7 +1470,7 @@ namespace OpenSim.Region.Framework.Scenes
             XmlNodeList nodes = doc.GetElementsByTagName("SavedScriptState");
             if (nodes.Count > 0)
             {
-                m_savedScriptState ??= new Dictionary<UUID, string>();
+                m_savedScriptState ??= [];
                 foreach (XmlNode node in nodes)
                 {
                     if (node.Attributes["UUID"] is not null)
@@ -1492,7 +1492,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (reader.Name.Equals("SavedScriptState") && reader.NodeType == XmlNodeType.Element)
                 {
                     //m_log.DebugFormat("[SCENE OBJECT GROUP]: Loading script state for {0}", Name);
-                    m_savedScriptState ??= new Dictionary<UUID, string>();
+                    m_savedScriptState ??= [];
 
                     string uuid = reader.GetAttribute("UUID");
 
@@ -1942,7 +1942,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void SaveScriptedState(XmlTextWriter writer, bool oldIDs)
         {
             XmlDocument doc = new();
-            Dictionary<UUID,string> states = new();
+            Dictionary<UUID,string> states = [];
 
             SceneObjectPart[] parts = m_parts.GetArray();
             for (int i = 0; i < parts.Length; i++)
@@ -1955,12 +1955,12 @@ namespace OpenSim.Region.Framework.Scenes
             if (states.Count > 0)
             {
                 // Now generate the necessary XML wrappings
-                writer.WriteStartElement(String.Empty, "GroupScriptStates", String.Empty);
+                writer.WriteStartElement(string.Empty, "GroupScriptStates", string.Empty);
                 foreach (UUID itemid in states.Keys)
                 {
                     doc.LoadXml(states[itemid]);
-                    writer.WriteStartElement(String.Empty, "SavedScriptState", String.Empty);
-                    writer.WriteAttributeString(String.Empty, "UUID", String.Empty, itemid.ToString());
+                    writer.WriteStartElement(string.Empty, "SavedScriptState", string.Empty);
+                    writer.WriteAttributeString(string.Empty, "UUID", string.Empty, itemid.ToString());
                     writer.WriteRaw(doc.DocumentElement.OuterXml); // Writes ScriptState element
                     writer.WriteEndElement(); // End of SavedScriptState
                 }
@@ -2202,7 +2202,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 || !HasPrivateAttachmentPoint)
                             {
                                 // Send a kill object immediately
-                                avatar.ControllingClient.SendKillObject(new List<uint> { part.LocalId });
+                                avatar.ControllingClient.SendKillObject([part.LocalId]);
                                 //direct enqueue another delayed kill
                                 avatar.ControllingClient.SendEntityUpdate(part,PrimUpdateFlags.Kill);
                             }
@@ -2420,7 +2420,7 @@ namespace OpenSim.Region.Framework.Scenes
                                 m_log.Debug(
                                     $"[SCENE OBJECT GROUP]: Returning object {RootPart.UUID} due to parcel autoreturn");
                                 m_scene.AddReturn(OwnerID.Equals(GroupID) ? LastOwnerID : OwnerID, Name, AbsolutePosition, "parcel autoreturn");
-                                m_scene.DeRezObjects(null, new List<uint>() { RootPart.LocalId }, UUID.Zero,
+                                m_scene.DeRezObjects(null, [RootPart.LocalId], UUID.Zero,
                                         DeRezAction.Return, UUID.Zero, false);
 
                                 return;
@@ -2544,9 +2544,9 @@ namespace OpenSim.Region.Framework.Scenes
 
             dupe.m_parts = new MapAndArray<UUID, SceneObjectPart>();
 
-            dupe.m_targets = new Dictionary<int, scriptPosTarget>();
-            dupe.m_rotTargets = new Dictionary<int, scriptRotTarget>();
-            dupe.m_targetsByScript = new Dictionary<UUID, List<int>>();
+            dupe.m_targets = [];
+            dupe.m_rotTargets = [];
+            dupe.m_targetsByScript = [];
 
             // a copy isnt backedup
             dupe.Backup = false;
@@ -2556,7 +2556,7 @@ namespace OpenSim.Region.Framework.Scenes
             dupe.inTransit = false;
 
             // new group as no sitting avatars
-            dupe.m_sittingAvatars = new List<ScenePresence>();
+            dupe.m_sittingAvatars = [];
 
             if(LinksetData is not null)
                 dupe.LinksetData = LinksetData.Copy();
@@ -2567,7 +2567,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (userExposed)
                 dupe.m_rootPart.TrimPermissions();
 
-            List<SceneObjectPart> partList = new(m_parts.GetArray());
+            List<SceneObjectPart> partList = [.. m_parts.GetArray()];
 
             partList.Sort(delegate(SceneObjectPart p1, SceneObjectPart p2)
                     {
@@ -4831,7 +4831,7 @@ namespace OpenSim.Region.Framework.Scenes
                     handles.Add(handle);
                 }
                 else
-                    m_targetsByScript[scriptID] = new List<int>(){handle};
+                    m_targetsByScript[scriptID] = [handle];
 
                 m_rotTargets.Add(handle, waypoint);
                 m_scene.AddGroupTarget(this);
@@ -4883,7 +4883,7 @@ namespace OpenSim.Region.Framework.Scenes
                     handles.Add(handle);
                 }
                 else
-                    m_targetsByScript[scriptID] = new List<int>() { handle };
+                    m_targetsByScript[scriptID] = [handle];
 
                 m_targets.Add(handle, waypoint);
                 m_scene.AddGroupTarget(this);
@@ -4936,8 +4936,8 @@ namespace OpenSim.Region.Framework.Scenes
             int targetsCount = m_targets.Count;
             if (targetsCount > 0 && (m_scriptListens_atTarget || m_scriptListens_notAtTarget))
             {
-                List<scriptPosTarget> atTargets = new();
-                HashSet<UUID> notatTargets = new();
+                List<scriptPosTarget> atTargets = [];
+                HashSet<UUID> notatTargets = [];
                 Vector3 pos = m_rootPart.GroupPosition;
                 lock (m_targets)
                 {
@@ -4979,7 +4979,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (targetsCount > 0 && (m_scriptListens_atRotTarget || m_scriptListens_notAtRotTarget))
             {
                 List<scriptRotTarget> atRotTargets = new(targetsCount);
-                HashSet<UUID> notatRotTargets = new();
+                HashSet<UUID> notatRotTargets = [];
                 Quaternion rot = m_rootPart.RotationOffset;
                 lock (m_targets)
                 {
@@ -5191,7 +5191,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // get all the scripts in all parts
                 SceneObjectPart[] parts = m_parts.GetArray();
-                List<TaskInventoryItem> scripts = new();
+                List<TaskInventoryItem> scripts = [];
                 for (int i = 0; i < parts.Length; i++)
                 {
                     IEntityInventory inv = parts[i].Inventory;
@@ -5200,7 +5200,7 @@ namespace OpenSim.Region.Framework.Scenes
                 }
 
                 // extract the UUIDs
-                HashSet<UUID> unique = new();
+                HashSet<UUID> unique = [];
                 foreach (TaskInventoryItem script in scripts)
                     unique.Add(script.ItemID);
 
@@ -5233,7 +5233,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 // get all the scripts in all parts
                 SceneObjectPart[] parts = m_parts.GetArray();
-                List<TaskInventoryItem> scripts = new();
+                List<TaskInventoryItem> scripts = [];
                 for (int i = 0; i < parts.Length; i++)
                 {
                     IEntityInventory inv = parts[i].Inventory;
@@ -5245,7 +5245,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return false;
 
                 // extract the UUIDs
-                HashSet<UUID> unique = new();
+                HashSet<UUID> unique = [];
                 foreach (TaskInventoryItem script in scripts)
                     unique.Add(script.ItemID);
 
@@ -5291,7 +5291,7 @@ namespace OpenSim.Region.Framework.Scenes
         public List<ScenePresence> GetSittingAvatars()
         {
             lock (m_sittingAvatars)
-                return new List<ScenePresence>(m_sittingAvatars);
+                return [.. m_sittingAvatars];
         }
 
         public bool HasSittingAvatar(UUID avatarID)
@@ -5409,7 +5409,7 @@ namespace OpenSim.Region.Framework.Scenes
             InvalidateEffectivePerms();
         }
 
-        private readonly Dictionary<string,int> m_partsNameToLinkMap = new();
+        private readonly Dictionary<string,int> m_partsNameToLinkMap = [];
         private string GetLinkNumber_lastname;
         private int GetLinkNumber_lastnumber;
 

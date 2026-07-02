@@ -115,8 +115,8 @@ namespace OpenSim.Data.PGSQL
         override public AssetBase GetAsset(UUID assetID)
         {
             string sql = "SELECT * FROM assets WHERE id = :id";
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_connectionString))
+            using (NpgsqlCommand cmd = new(sql, conn))
             {
                 cmd.Parameters.Add(m_database.CreateParameter("id", assetID));
                 conn.Open();
@@ -124,18 +124,20 @@ namespace OpenSim.Data.PGSQL
                 {
                     if (reader.Read())
                     {
-                        AssetBase asset = new AssetBase(
+                        AssetBase asset = new(
                             DBGuid.FromDB(reader["id"]),
                             (string)reader["name"],
                             Convert.ToSByte(reader["assetType"]),
                             reader["creatorid"].ToString()
-                        );
-                        // Region Main
-                        asset.Description = (string)reader["description"];
-                        asset.Local = Convert.ToBoolean(reader["local"]);
-                        asset.Temporary = Convert.ToBoolean(reader["temporary"]);
-                        asset.Flags = (AssetFlags)(Convert.ToInt32(reader["asset_flags"]));
-                        asset.Data = (byte[])reader["data"];
+                        )
+                        {
+                            // Region Main
+                            Description = (string)reader["description"],
+                            Local = Convert.ToBoolean(reader["local"]),
+                            Temporary = Convert.ToBoolean(reader["temporary"]),
+                            Flags = (AssetFlags)(Convert.ToInt32(reader["asset_flags"])),
+                            Data = (byte[])reader["data"]
+                        };
                         return asset;
                     }
                     return null; // throw new Exception("No rows to return");
@@ -181,8 +183,8 @@ namespace OpenSim.Data.PGSQL
                     asset.Description, asset.ID, asset.Description.Length, assetDescription.Length);
             }
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand command = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_connectionString))
+            using (NpgsqlCommand command = new(sql, conn))
             {
                 int now = (int)((System.DateTime.Now.Ticks - m_ticksToEpoch) / 10000000);
                 command.Parameters.Add(m_database.CreateParameter("id", asset.FullID));
@@ -239,13 +241,13 @@ namespace OpenSim.Data.PGSQL
             if (uuids.Length == 0)
                 return [];
 
-            HashSet<UUID> exist = new HashSet<UUID>();
+            HashSet<UUID> exist = [];
 
             string ids = "'" + string.Join("','", uuids) + "'";
             string sql = string.Format("SELECT id FROM assets WHERE id IN ({0})", ids);
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_connectionString))
+            using (NpgsqlCommand cmd = new(sql, conn))
             {
                 conn.Open();
                 using (NpgsqlDataReader reader = cmd.ExecuteReader())
@@ -274,15 +276,15 @@ namespace OpenSim.Data.PGSQL
         /// <returns>A list of AssetMetadata objects.</returns>
         public override List<AssetMetadata> FetchAssetMetadataSet(int start, int count)
         {
-            List<AssetMetadata> retList = new List<AssetMetadata>(count);
+            List<AssetMetadata> retList = new(count);
             string sql = @" SELECT id, name, description, " + "\"assetType\"" + @", temporary, creatorid
                               FROM assets
                              order by id
                              limit :stop
                             offset :start;";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_connectionString))
+            using (NpgsqlCommand cmd = new(sql, conn))
             {
                 cmd.Parameters.Add(m_database.CreateParameter("start", start));
                 cmd.Parameters.Add(m_database.CreateParameter("stop", start + count - 1));
@@ -291,13 +293,15 @@ namespace OpenSim.Data.PGSQL
                 {
                     while (reader.Read())
                     {
-                        AssetMetadata metadata = new AssetMetadata();
-                        metadata.FullID = DBGuid.FromDB(reader["id"]);
-                        metadata.Name = (string)reader["name"];
-                        metadata.Description = (string)reader["description"];
-                        metadata.Type = Convert.ToSByte(reader["assetType"]);
-                        metadata.Temporary = Convert.ToBoolean(reader["temporary"]);
-                        metadata.CreatorID = (string)reader["creatorid"];
+                        AssetMetadata metadata = new()
+                        {
+                            FullID = DBGuid.FromDB(reader["id"]),
+                            Name = (string)reader["name"],
+                            Description = (string)reader["description"],
+                            Type = Convert.ToSByte(reader["assetType"]),
+                            Temporary = Convert.ToBoolean(reader["temporary"]),
+                            CreatorID = (string)reader["creatorid"]
+                        };
                         retList.Add(metadata);
                     }
                 }

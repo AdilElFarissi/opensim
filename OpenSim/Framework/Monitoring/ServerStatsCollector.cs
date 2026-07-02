@@ -44,7 +44,7 @@ namespace OpenSim.Framework.Monitoring
         private readonly string LogHeader = "[SERVER STATS]";
 
         public bool Enabled = false;
-        private static Dictionary<string, Stat> RegisteredStats = new Dictionary<string, Stat>();
+        private static Dictionary<string, Stat> RegisteredStats = [];
 
         public readonly string CategoryServer = "server";
 
@@ -131,7 +131,7 @@ namespace OpenSim.Framework.Monitoring
             string desc = pDesc;
             if (desc == null)
                 desc = pName;
-            Stat stat = new Stat(pName, pName, desc, pUnit, CategoryServer, pContainer, StatType.Pull, moi, act, StatVerbosity.Debug);
+            Stat stat = new(pName, pName, desc, pUnit, CategoryServer, pContainer, StatType.Pull, moi, act, StatVerbosity.Debug);
             StatsManager.RegisterStat(stat);
             RegisteredStats.Add(pName, stat);
         }
@@ -208,7 +208,7 @@ namespace OpenSim.Framework.Monitoring
 
             try
             {
-                List<string> okInterfaceTypes = new List<string>(NetworkInterfaceTypes.Split(','));
+                List<string> okInterfaceTypes = [.. NetworkInterfaceTypes.Split(',')];
 
                 IEnumerable<NetworkInterface> nics = NetworkInterface.GetAllNetworkInterfaces();
                 foreach (NetworkInterface nic in nics)
@@ -382,14 +382,14 @@ namespace OpenSim.Framework.Monitoring
         }
         public override string ToConsoleString()
         {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
 
             return sb.ToString();
         }
 
         public override OSDMap ToOSDMap()
         {
-            OSDMap ret = new OSDMap();
+            OSDMap ret = [];
 
             return ret;
         }

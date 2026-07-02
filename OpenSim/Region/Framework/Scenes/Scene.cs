@@ -267,8 +267,8 @@ namespace OpenSim.Region.Framework.Scenes
             get { return m_minRegionViewDistance; }
         }
 
-        private readonly List<string> m_AllowedViewers = new();
-        private readonly List<string> m_BannedViewers = new();
+        private readonly List<string> m_AllowedViewers = [];
+        private readonly List<string> m_BannedViewers = [];
 
         // TODO: need to figure out how allow client agents but deny
         // root agents when ACL denies access to root agent
@@ -293,8 +293,8 @@ namespace OpenSim.Region.Framework.Scenes
         protected int m_splitRegionID;
         protected Timer m_restartWaitTimer = new();
         protected Timer m_timerWatchdog = new();
-        protected List<RegionInfo> m_regionRestartNotifyList = new();
-        protected List<RegionInfo> m_neighbours = new();
+        protected List<RegionInfo> m_regionRestartNotifyList = [];
+        protected List<RegionInfo> m_neighbours = [];
         protected string m_simulatorVersion = "OpenSimulator Server";
         protected AgentCircuitManager m_authenticateHandler;
         protected SceneCommunicationService m_sceneGridService;
@@ -390,8 +390,8 @@ namespace OpenSim.Region.Framework.Scenes
         private readonly SceneGraph m_sceneGraph;
         private readonly Timer m_restartTimer = new(15000); // Wait before firing
         private volatile bool m_backingup;
-        private readonly Dictionary<UUID, ReturnInfo> m_returns = new();
-        private readonly HashSet<UUID> m_groupsWithTargets = new();
+        private readonly Dictionary<UUID, ReturnInfo> m_returns = [];
+        private readonly HashSet<UUID> m_groupsWithTargets = [];
 
         private readonly string m_defaultScriptEngine;
 
@@ -1144,7 +1144,7 @@ namespace OpenSim.Region.Framework.Scenes
                         string pidstring = Environment.ProcessId.ToString();
                         FileStream fs = File.Create(path);
                         System.Text.ASCIIEncoding enc = new();
-                        Byte[] buf = enc.GetBytes(pidstring);
+                        byte[] buf = enc.GetBytes(pidstring);
                         fs.Write(buf, 0, buf.Length);
                         fs.Close();
                     }
@@ -1336,7 +1336,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         try
                         {
-                            List<ulong> old = new() { otherRegion.RegionHandle };
+                            List<ulong> old = [otherRegion.RegionHandle];
                             ForEachRootScenePresence(delegate(ScenePresence agent)
                             {
                                 if(agent.IsNPC)
@@ -1830,7 +1830,7 @@ namespace OpenSim.Region.Framework.Scenes
                                         string pidstring = Environment.ProcessId.ToString();
                                         FileStream fs = File.Create(path);
                                         System.Text.ASCIIEncoding enc = new();
-                                        Byte[] buf = enc.GetBytes(pidstring);
+                                        byte[] buf = enc.GetBytes(pidstring);
                                         fs.Write(buf, 0, buf.Length);
                                         fs.Close();
                                     }
@@ -1966,7 +1966,7 @@ namespace OpenSim.Region.Framework.Scenes
             lock (m_groupsWithTargets)
             {
                 if (m_groupsWithTargets.Count != 0)
-                    objs = new List<UUID>(m_groupsWithTargets);
+                    objs = [.. m_groupsWithTargets];
             }
 
             if (objs is not null)
@@ -2081,7 +2081,7 @@ namespace OpenSim.Region.Framework.Scenes
                             Position = Vector3.Zero,
                             RegionID = regionguid,
                             // We must fill in a null-terminated 'empty' string here since bytes[0] will crash viewer 3.
-                            binaryBucket = new Byte[1] {0}
+                            binaryBucket = new byte[1] {0}
                         };
 
                         if (ret.Value.count > 1)
@@ -2215,7 +2215,7 @@ namespace OpenSim.Region.Framework.Scenes
                         // This should be in the Terrain module, but it isn't because
                         // the heightmap is needed _way_ before the modules are initialized...
                         IConfig terrainConfig = m_config.Configs["Terrain"];
-                        String m_InitialTerrain = "pinhead-island";
+                        string m_InitialTerrain = "pinhead-island";
                         if (terrainConfig is not null)
                             m_InitialTerrain = terrainConfig.GetString("InitialTerrain", m_InitialTerrain);
 
@@ -2280,7 +2280,7 @@ namespace OpenSim.Region.Framework.Scenes
             //                    RegionInfo.RegionLocX, RegionInfo.RegionLocY,
             //                    RegionInfo.RegionSizeX, RegionInfo.RegionSizeY);
 
-            if (error != String.Empty)
+            if (error != string.Empty)
                 throw new Exception(error);
         }
 
@@ -2743,7 +2743,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void DeleteAllSceneObjects(bool exceptNoCopy)
         {
-            List<SceneObjectGroup> toReturn = new();
+            List<SceneObjectGroup> toReturn = [];
             lock (Entities)
             {
                 EntityBase[] entities = Entities.GetEntities();
@@ -3810,7 +3810,7 @@ namespace OpenSim.Region.Framework.Scenes
                             delegate(IClientAPI client)
                             {
                                 //We can safely ignore null reference exceptions.  It means the avatar is dead and cleaned up anyway
-                                try { client.SendKillObject(new List<uint> { avatar.LocalId }); }
+                                try { client.SendKillObject([avatar.LocalId]); }
                                 catch (NullReferenceException) { }
                             });
                     }
@@ -3881,7 +3881,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void SendKillObject(List<uint> localIDs)
         {
-            List<uint> deleteIDs = new();
+            List<uint> deleteIDs = [];
 
             foreach (uint localID in localIDs)
             {
@@ -3944,7 +3944,7 @@ namespace OpenSim.Region.Framework.Scenes
             bool viahome = (teleportFlags & (uint)TPFlags.ViaHome) != 0;
             //bool godlike = ((teleportFlags & (uint)TPFlags.Godlike) != 0);
 
-            reason = String.Empty;
+            reason = string.Empty;
 
             //Teleport flags:
             //
@@ -4285,7 +4285,7 @@ namespace OpenSim.Region.Framework.Scenes
             else if (posY >= RegionInfo.RegionSizeY)
                 posY = RegionInfo.RegionSizeY - 0.5f;
 
-            reason = String.Empty;
+            reason = string.Empty;
             if (Permissions.IsGod(agentID))
                 return true;
 
@@ -4314,7 +4314,7 @@ namespace OpenSim.Region.Framework.Scenes
                     }
                     else
                     {
-                        reason = String.Format("Denied access to private region {0}: You are not on the access list for that region.",
+                        reason = string.Format("Denied access to private region {0}: You are not on the access list for that region.",
                             RegionInfo.RegionName);
                     }
                     return false;
@@ -4341,7 +4341,7 @@ namespace OpenSim.Region.Framework.Scenes
             IPresenceService presencesvc = RequestModuleInterface<IPresenceService>();
             if (presencesvc is null)
             {
-                reason = String.Format("Failed to verify user presence in the grid for {0} {1} in region {2}. Presence service does not exist.", agent.firstname, agent.lastname, RegionInfo.RegionName);
+                reason = string.Format("Failed to verify user presence in the grid for {0} {1} in region {2}. Presence service does not exist.", agent.firstname, agent.lastname, RegionInfo.RegionName);
                 return false;
             }
 
@@ -4349,13 +4349,13 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (pinfo is null)
             {
-                reason = String.Format("Failed to verify user presence in the grid for {0} {1}, access denied to region {2}.", agent.firstname, agent.lastname, RegionInfo.RegionName);
+                reason = string.Format("Failed to verify user presence in the grid for {0} {1}, access denied to region {2}.", agent.firstname, agent.lastname, RegionInfo.RegionName);
                 return false;
             }
 
             if(pinfo.UserID != agent.AgentID.ToString())
             {
-                reason = String.Format("Failed to verify user presence in the grid for {0} {1}, access denied to region {2}.", agent.firstname, agent.lastname, RegionInfo.RegionName);
+                reason = string.Format("Failed to verify user presence in the grid for {0} {1}, access denied to region {2}.", agent.firstname, agent.lastname, RegionInfo.RegionName);
                 return false;
             }
 
@@ -4443,7 +4443,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if(estateGroups.Length == 0)
                     goto Label_GroupsDone;
 
-                List<UUID> agentGroups = new();
+                List<UUID> agentGroups = [];
                 GroupMembershipData[] GroupMembership = m_groupsModule.GetMembershipData(agent.AgentID);
 
                 if(GroupMembership is null)
@@ -4472,7 +4472,7 @@ Label_GroupsDone:
                 {
                     m_log.WarnFormat("[CONNECTION BEGIN]: Denied access to: {0} ({1} {2}) at {3} because the user does not have access to the estate",
                                      agent.AgentID, agent.firstname, agent.lastname, RegionInfo.RegionName);
-                    reason = String.Format("Denied access to private region {0}: You do not have access to that region.",
+                    reason = string.Format("Denied access to private region {0}: You do not have access to that region.",
                                      RegionInfo.RegionName);
                     return false;
                 }
@@ -5546,7 +5546,7 @@ Label_GroupsDone:
             int health = 1; // Start at 1, means we're up
 
             flags = 0;
-            message = String.Empty;
+            message = string.Empty;
 
             CheckHeartbeat();
 
@@ -5800,7 +5800,7 @@ Environment.Exit(1);
         {
             IEstateDataService estateDataService = EstateDataService;
             if (estateDataService is null)
-                return new List<UUID>(0);
+                return [];
 
             return estateDataService.GetRegions(estateID);
         }
@@ -5861,7 +5861,7 @@ Environment.Exit(1);
             minZ = float.MaxValue;
             maxZ = float.MinValue;
 
-            List<Vector3> offsets = new();
+            List<Vector3> offsets = [];
 
             foreach (SceneObjectGroup g in objects)
             {
@@ -6247,7 +6247,7 @@ Environment.Exit(1);
             AssetService.Get(assetID.ToString(), callback, PhysicsAssetReceived);
         }
 
-        private void PhysicsAssetReceived(string id, Object sender, AssetBase asset)
+        private void PhysicsAssetReceived(string id, object sender, AssetBase asset)
         {
             AssetReceivedDelegate callback = (AssetReceivedDelegate)sender;
 
@@ -6259,7 +6259,7 @@ Environment.Exit(1);
             if (m_extraSettings is not null && m_extraSettings.TryGetValue(name, out string val))
                 return val;
 
-            return String.Empty;
+            return string.Empty;
         }
 
         public void StoreExtraSetting(string name, string val)
@@ -6292,7 +6292,7 @@ Environment.Exit(1);
 
             m_SimulationDataService.RemoveExtra(RegionInfo.RegionID, name);
 
-            m_eventManager.TriggerExtraSettingChanged(this, name, String.Empty);
+            m_eventManager.TriggerExtraSettingChanged(this, name, string.Empty);
         }
 
         public bool InTeleportTargetsCoolDown(UUID sourceID, UUID targetID, int timeout)

@@ -128,10 +128,10 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
 
         // some hardcoded terrain UUIDs that work with SL 1.20 (the four default textures and "Blank").
         // The color-values were choosen because they "look right" (at least to me) ;-)
-        private static readonly UUID defaultTerrainTexture1 = new UUID("0bc58228-74a0-7e83-89bc-5c23464bcec5");
-        private static readonly UUID defaultTerrainTexture2 = new UUID("63338ede-0037-c4fd-855b-015d77112fc8");
-        private static readonly UUID defaultTerrainTexture3 = new UUID("303cd381-8560-7579-23f1-f0a880799740");
-        private static readonly UUID defaultTerrainTexture4 = new UUID("53a2f406-4895-1d13-d541-d2e3b86bc19c");
+        private static readonly UUID defaultTerrainTexture1 = new("0bc58228-74a0-7e83-89bc-5c23464bcec5");
+        private static readonly UUID defaultTerrainTexture2 = new("63338ede-0037-c4fd-855b-015d77112fc8");
+        private static readonly UUID defaultTerrainTexture3 = new("303cd381-8560-7579-23f1-f0a880799740");
+        private static readonly UUID defaultTerrainTexture4 = new("53a2f406-4895-1d13-d541-d2e3b86bc19c");
 
         #endregion
 
@@ -163,12 +163,14 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
             m_color_3 = System.Drawing.ColorTranslator.FromHtml(Util.GetConfigVarFromSections<string>(m_config, "MapColor3", configSections, "#A29A8D"));
             m_color_4 = System.Drawing.ColorTranslator.FromHtml(Util.GetConfigVarFromSections<string>(m_config, "MapColor4", configSections, "#C8C8C8"));
 
-            m_mapping = new Dictionary<UUID,Color>();
-            m_mapping.Add(defaultTerrainTexture1, m_color_1);
-            m_mapping.Add(defaultTerrainTexture2, m_color_2);
-            m_mapping.Add(defaultTerrainTexture3, m_color_3);
-            m_mapping.Add(defaultTerrainTexture4, m_color_4);
-            m_mapping.Add(Util.BLANK_TEXTURE_UUID, Color.White);
+            m_mapping = new Dictionary<UUID, Color>
+            {
+                { defaultTerrainTexture1, m_color_1 },
+                { defaultTerrainTexture2, m_color_2 },
+                { defaultTerrainTexture3, m_color_3 },
+                { defaultTerrainTexture4, m_color_4 },
+                { Util.BLANK_TEXTURE_UUID, Color.White }
+            };
         }
 
         #region Helpers
@@ -304,10 +306,10 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
             RegionSettings settings = m_scene.RegionInfo.RegionSettings;
 
             // the four terrain colors as HSVs for interpolation
-            HSV hsv1 = new HSV(computeAverageColor(settings.TerrainTexture1, m_color_1));
-            HSV hsv2 = new HSV(computeAverageColor(settings.TerrainTexture2, m_color_2));
-            HSV hsv3 = new HSV(computeAverageColor(settings.TerrainTexture3, m_color_3));
-            HSV hsv4 = new HSV(computeAverageColor(settings.TerrainTexture4, m_color_4));
+            HSV hsv1 = new(computeAverageColor(settings.TerrainTexture1, m_color_1));
+            HSV hsv2 = new(computeAverageColor(settings.TerrainTexture2, m_color_2));
+            HSV hsv3 = new(computeAverageColor(settings.TerrainTexture3, m_color_3));
+            HSV hsv4 = new(computeAverageColor(settings.TerrainTexture4, m_color_4));
 
             float levelNElow = (float)settings.Elevation1NE;
             float levelNEhigh = (float)settings.Elevation2NE;
@@ -334,7 +336,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                     int yr = (hm.Height - 1) - y;
 
                     float heightvalue = getHeight(m_scene.Heightmap, x, y);
-                    if (Single.IsInfinity(heightvalue) || Single.IsNaN(heightvalue))
+                    if (float.IsInfinity(heightvalue) || float.IsNaN(heightvalue))
                         heightvalue = 0;
 
                     if (heightvalue > waterHeight)
@@ -386,7 +388,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                         if (x < (hm.Width - 1) && y < (hm.Height - 1))
                         {
                             float hfvaluecompare = getHeight(m_scene.Heightmap, x + 1, y + 1); // light from north-east => look at land height there
-                            if (Single.IsInfinity(hfvaluecompare) || Single.IsNaN(hfvaluecompare))
+                            if (float.IsInfinity(hfvaluecompare) || float.IsNaN(hfvaluecompare))
                                 hfvaluecompare = 0f;
 
                             float hfdiff = heightvalue - hfvaluecompare;  // => positive if NE is lower, negative if here is lower
@@ -414,7 +416,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                         // We're under the water level with the terrain, so paint water instead of land
 
                         heightvalue = waterHeight - heightvalue;
-                        if (Single.IsInfinity(heightvalue) || Single.IsNaN(heightvalue))
+                        if (float.IsInfinity(heightvalue) || float.IsNaN(heightvalue))
                             heightvalue = 0f;
                         else if (heightvalue > 19f)
                             heightvalue = 19f;

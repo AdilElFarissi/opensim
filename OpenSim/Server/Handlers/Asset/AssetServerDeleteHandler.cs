@@ -102,7 +102,7 @@ namespace OpenSim.Server.Handlers.Asset
                 }
             }
 
-            XmlSerializer xs = new XmlSerializer(typeof(bool));
+            XmlSerializer xs = new(typeof(bool));
             return ServerUtils.SerializeResult(xs, result);
         }
     }

@@ -46,7 +46,7 @@ namespace OpenSim.OfflineIM
 
         private string m_ServerURI = string.Empty;
         private IServiceAuth m_Auth;
-        private object m_Lock = new object();
+        private object m_Lock = new();
 
         public OfflineIMServiceRemoteConnector(string url)
         {
@@ -82,10 +82,12 @@ namespace OpenSim.OfflineIM
         #region IOfflineIMService
         public List<GridInstantMessage> GetMessages(UUID principalID)
         {
-            List<GridInstantMessage> ims = new List<GridInstantMessage>();
+            List<GridInstantMessage> ims = [];
 
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            sendData["PrincipalID"] = principalID;
+            Dictionary<string, object> sendData = new()
+            {
+                ["PrincipalID"] = principalID
+            };
 
             Dictionary<string, object> ret = MakeRequest("GET", sendData);
             if (ret == null)
@@ -149,8 +151,10 @@ namespace OpenSim.OfflineIM
 
         public void DeleteMessages(UUID userID)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            sendData["UserID"] = userID;
+            Dictionary<string, object> sendData = new()
+            {
+                ["UserID"] = userID
+            };
 
             MakeRequest("DELETE", sendData);
         }

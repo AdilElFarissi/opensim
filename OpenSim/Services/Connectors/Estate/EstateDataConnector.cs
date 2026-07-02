@@ -46,7 +46,7 @@ namespace OpenSim.Services.Connectors
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private string m_ServerURI = string.Empty;
-        private ExpiringCache<string, List<EstateSettings>> m_EstateCache = new ExpiringCache<string, List<EstateSettings>>();
+        private ExpiringCache<string, List<EstateSettings>> m_EstateCache = new();
         private const int EXPIRATION = 5 * 60; // 5 minutes in secs
 
         public EstateDataRemoteConnector(IConfigSource source)
@@ -93,7 +93,7 @@ namespace OpenSim.Services.Connectors
                 {
                     if (r is Dictionary<string, object> dr )
                     {
-                        EstateSettings es = new EstateSettings(dr);
+                        EstateSettings es = new(dr);
                         estates.Add(es);
                     }
                 }
@@ -187,7 +187,7 @@ namespace OpenSim.Services.Connectors
             if (replyData != null && replyData.Count > 0)
             {
                 m_log.DebugFormat("[ESTATE CONNECTOR]: LoadEstateSettings({0}) returned {1} elements", regionID, replyData.Count);
-                EstateSettings es = new EstateSettings(replyData);
+                EstateSettings es = new(replyData);
                 return es;
             }
             else
@@ -210,7 +210,7 @@ namespace OpenSim.Services.Connectors
             if (replyData != null && replyData.Count > 0)
             {
                 m_log.Debug($"[ESTATE CONNECTOR]: LoadEstateSettings({estateID}) returned {replyData.Count} elements");
-                EstateSettings es = new EstateSettings(replyData);
+                EstateSettings es = new(replyData);
                 return es;
             }
             else

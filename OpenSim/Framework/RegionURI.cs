@@ -110,7 +110,7 @@ namespace OpenSim.Framework
             if (string.IsNullOrWhiteSpace(inputURI))
                 return;
 
-            osUTF8Slice input = new osUTF8Slice(inputURI);
+            osUTF8Slice input = new(inputURI);
             input.SelfTrimStart((byte)' ');
             input.SelfTrimStart((byte)'+');
 

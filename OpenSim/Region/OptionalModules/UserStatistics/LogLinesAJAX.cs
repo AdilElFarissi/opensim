@@ -34,11 +34,11 @@ namespace OpenSim.Region.UserStatistics
 {
     public class LogLinesAJAX : IStatsController
     {
-        private Regex normalizeEndLines = new Regex(@"\r\n", RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.Multiline);
+        private Regex normalizeEndLines = new(@"\r\n", RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.Multiline);
 
-        private Regex webFormat = new Regex(@"[^\s]*\s([^,]*),[^\s]*\s([A-Z]*)[^\s-][^\[]*\[([^\]]*)\]([^\n]*)",
+        private Regex webFormat = new(@"[^\s]*\s([^,]*),[^\s]*\s([A-Z]*)[^\s-][^\[]*\[([^\]]*)\]([^\n]*)",
                                             RegexOptions.Singleline | RegexOptions.Compiled);
-        private Regex TitleColor = new Regex(@"[^\s]*\s(?:[^,]*),[^\s]*\s(?:[A-Z]*)[^\s-][^\[]*\[([^\]]*)\](?:[^\n]*)",
+        private Regex TitleColor = new(@"[^\s]*\s(?:[^,]*),[^\s]*\s(?:[A-Z]*)[^\s-][^\[]*\[([^\]]*)\](?:[^\n]*)",
                                     RegexOptions.Singleline | RegexOptions.Compiled);
 
 
@@ -51,14 +51,16 @@ namespace OpenSim.Region.UserStatistics
 
         public Hashtable ProcessModel(Hashtable pParams)
         {
-            Hashtable nh = new Hashtable();
-            nh.Add("loglines", pParams["LogLines"]);
+            Hashtable nh = new()
+            {
+                { "loglines", pParams["LogLines"] }
+            };
             return nh;
         }
 
         public string RenderView(Hashtable pModelResult)
         {
-            StringBuilder output = new StringBuilder();
+            StringBuilder output = new();
 
             HTMLUtil.HR(ref output, "");
             output.Append("<H3>ActiveLog</H3>\n");
@@ -94,7 +96,7 @@ namespace OpenSim.Region.UserStatistics
 
                     }
                 }
-                StringBuilder replaceStr = new StringBuilder();
+                StringBuilder replaceStr = new();
                 //string titlecolorresults =
 
                 string formatresult = Regex.Replace(TitleColor.Replace(result[i], "$1"), "[^ABCDEFabcdef0-9]", "");
@@ -134,9 +136,9 @@ namespace OpenSim.Region.UserStatistics
         /// <returns></returns>
         public string RenderJson(Hashtable pModelResult)
         {
-            OSDMap logInfo = new OpenMetaverse.StructuredData.OSDMap();
+            OSDMap logInfo = [];
 
-            OSDArray logLines = new OpenMetaverse.StructuredData.OSDArray();
+            OSDArray logLines = [];
             string tmp = normalizeEndLines.Replace(pModelResult["loglines"].ToString(), "\n");
             string[] result = Regex.Split(tmp, "\n");
             for (int i = 0; i < result.Length; i++)

@@ -66,7 +66,7 @@ namespace OpenSim.Region.Framework.Scenes
             get
             {
                 lock (m_memberObjects)
-                    return new List<SceneObjectGroup>(m_memberObjects);
+                    return [.. m_memberObjects];
             }
         }
 
@@ -88,7 +88,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// At this point, we need to preserve the order of objects added to the coalescence, since the first
         /// one will end up matching the item name when rerezzed.
         /// </summary>
-        protected List<SceneObjectGroup> m_memberObjects = new List<SceneObjectGroup>();
+        protected List<SceneObjectGroup> m_memberObjects = [];
 
         public CoalescedSceneObjects(UUID creatorId)
         {

@@ -60,7 +60,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return true;
             }
 
-            public override bool Equals(Object that)
+            public override bool Equals(object that)
             {
                 if(that == null)
                     return false;
@@ -106,7 +106,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         private bool isFrozen = false;
         private bool locals;
-        private Dictionary<string, Dictionary<ArgTypes, TDVEntry>> master = new();
+        private Dictionary<string, Dictionary<ArgTypes, TDVEntry>> master = [];
         private int count = 0;
         private VarDict frozenLocals = null;
 
@@ -133,7 +133,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // Make sure we have a sub-dictionary based on the bare name (ie, no signature)
             if(!master.TryGetValue(var.name.val, out Dictionary<ArgTypes, TDVEntry> typedic))
             {
-                typedic = new Dictionary<ArgTypes, TDVEntry>();
+                typedic = [];
                 master.Add(var.name.val, typedic);
             }
 
@@ -179,16 +179,17 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // will not be seen by lookups done in the frozen dictionary.
             if((frozenLocals == null) || (frozenLocals.count != this.count))
             {
-                 // Make a copy of the current var dictionary frame.
-                 // We copy a reference to the dictionary, and though it may
-                 // contain additions made after this point, those additions
-                 // will have a count .gt. frozen count and will be ignored.
-                frozenLocals = new VarDict(true);
-
-                frozenLocals.outerVarDict = this.outerVarDict;
-                frozenLocals.thisClass = this.thisClass;
-                frozenLocals.master = this.master;
-                frozenLocals.count = this.count;
+                // Make a copy of the current var dictionary frame.
+                // We copy a reference to the dictionary, and though it may
+                // contain additions made after this point, those additions
+                // will have a count .gt. frozen count and will be ignored.
+                frozenLocals = new VarDict(true)
+                {
+                    outerVarDict = this.outerVarDict,
+                    thisClass = this.thisClass,
+                    master = this.master,
+                    count = this.count
+                };
                 frozenLocals.frozenLocals = frozenLocals;
 
                  // Mark it as being frozen.
@@ -208,7 +209,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          *          else: list of matching functions/variables
          *                for variables, always of length 1
          */
-        private List<TokenDeclVar> found = new List<TokenDeclVar>();
+        private List<TokenDeclVar> found = [];
         public TokenDeclVar[] FindCallables(string name, TokenType[] argTypes)
         {
             argTypes = KeyTypesToStringTypes(argTypes);

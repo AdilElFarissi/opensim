@@ -53,7 +53,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private Timer m_regionChangeTimer = new Timer();
+        private Timer m_regionChangeTimer = new();
         public Scene Scene { get; private set; }
         public IUserManagement UserManager { get; private set; }
 
@@ -196,7 +196,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             if (avatarID == Scene.RegionInfo.EstateSettings.EstateOwner)
                 return true;
 
-            List<UUID> ems = new List<UUID>(Scene.RegionInfo.EstateSettings.EstateManagers);
+            List<UUID> ems = [.. Scene.RegionInfo.EstateSettings.EstateManagers];
             if (ems.Contains(avatarID))
                 return true;
 
@@ -352,17 +352,17 @@ namespace OpenSim.Region.CoreModules.World.Estate
             EstateSettings dbSettings = Scene.EstateDataService.LoadEstateSettings(estateID);
             if (dbSettings.EstateID == 0)
             {
-                response = String.Format("No estate found with ID {0}", estateID);
+                response = string.Format("No estate found with ID {0}", estateID);
             }
             else if (account.PrincipalID == dbSettings.EstateOwner)
             {
-                response = String.Format("Estate already belongs to {0} ({1} {2})", account.PrincipalID, account.FirstName, account.LastName);
+                response = string.Format("Estate already belongs to {0} ({1} {2})", account.PrincipalID, account.FirstName, account.LastName);
             }
             else
             {
                 dbSettings.EstateOwner = account.PrincipalID;
                 Scene.EstateDataService.StoreEstateSettings(dbSettings);
-                response = String.Empty;
+                response = string.Empty;
 
                 // make sure there's a log entry to document the change
                 m_log.InfoFormat("[ESTATE]: Estate Owner for {0} changed to {1} ({2} {3})", dbSettings.EstateName,
@@ -389,25 +389,25 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
             if (dbSettings.EstateID == 0)
             {
-                response = String.Format("No estate found with ID {0}", estateID);
+                response = string.Format("No estate found with ID {0}", estateID);
             }
             else if (newName == dbSettings.EstateName)
             {
-                response = String.Format("Estate {0} is already named \"{1}\"", estateID, newName);
+                response = string.Format("Estate {0} is already named \"{1}\"", estateID, newName);
             }
             else
             {
                 List<int> estates = Scene.EstateDataService.GetEstates(newName);
                 if (estates.Count() > 0)
                 {
-                    response = String.Format("An estate named \"{0}\" already exists.", newName);
+                    response = string.Format("An estate named \"{0}\" already exists.", newName);
                 }
                 else
                 {
                     string oldName = dbSettings.EstateName;
                     dbSettings.EstateName = newName;
                     Scene.EstateDataService.StoreEstateSettings(dbSettings);
-                    response = String.Empty;
+                    response = string.Empty;
 
                     // make sure there's a log entry to document the change
                     m_log.InfoFormat("[ESTATE]: Estate {0} renamed from \"{1}\" to \"{2}\"", estateID, oldName, newName);
@@ -430,7 +430,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
             if (regionInfo.EstateSettings.EstateID == estateID)
             {
-                response = String.Format("\"{0}\" is already part of estate {1}", regionInfo.RegionName, estateID);
+                response = string.Format("\"{0}\" is already part of estate {1}", regionInfo.RegionName, estateID);
             }
             else
             {
@@ -438,7 +438,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 EstateSettings dbSettings = Scene.EstateDataService.LoadEstateSettings(estateID);
                 if (dbSettings.EstateID == 0)
                 {
-                    response = String.Format("No estate found with ID {0}", estateID);
+                    response = string.Format("No estate found with ID {0}", estateID);
                 }
                 else if (Scene.EstateDataService.LinkRegion(regionInfo.RegionID, estateID))
                 {
@@ -448,11 +448,11 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     // propagate the change
                     OnEstateInfoChange?.Invoke(regionInfo.RegionID);
 
-                    response = String.Empty;
+                    response = string.Empty;
                 }
                 else
                 {
-                    response = String.Format("Could not move \"{0}\" to estate {1}", regionInfo.RegionName, estateID);
+                    response = string.Format("Could not move \"{0}\" to estate {1}", regionInfo.RegionName, estateID);
                 }
             }
             return response;
@@ -470,19 +470,19 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 List<int> estates = Scene.EstateDataService.GetEstates(estateName);
                 if (estates.Count() > 0)
                 {
-                    response = String.Format("An estate named \"{0}\" already exists.", estateName);
+                    response = string.Format("An estate named \"{0}\" already exists.", estateName);
                 }
                 else
                 {
                     EstateSettings settings = Scene.EstateDataService.CreateNewEstate();
                     if (settings == null)
-                        response = String.Format("Unable to create estate \"{0}\" at this simulator", estateName);
+                        response = string.Format("Unable to create estate \"{0}\" at this simulator", estateName);
                     else
                     {
                         settings.EstateOwner = ownerID;
                         settings.EstateName = estateName;
                         Scene.EstateDataService.StoreEstateSettings(settings);
-                        response = String.Empty;
+                        response = string.Empty;
                     }
                 }
             }
@@ -768,7 +768,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     return;
                 }
 
-                List<int> times = new List<int>();
+                List<int> times = [];
                 while (timeInSeconds > 0)
                 {
                     times.Add(timeInSeconds);
@@ -800,7 +800,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             TriggerRegionInfoChange();
         }
 
-        private readonly object deltareqLock = new object();
+        private readonly object deltareqLock = new();
         private bool runnigDeltaExec = false;
 
         private class EstateAccessDeltaRequest
@@ -811,7 +811,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             public UUID user;
         }
 
-        private BlockingCollection<EstateAccessDeltaRequest> deltaRequests = new BlockingCollection<EstateAccessDeltaRequest>();
+        private BlockingCollection<EstateAccessDeltaRequest> deltaRequests = [];
 
         private void HandleEstateAccessDeltaRequest(IClientAPI _remote_client, UUID _invoice, int _estateAccessType, UUID _user)
         {
@@ -820,7 +820,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             if (_user == Scene.RegionInfo.EstateSettings.EstateOwner)
                 return; // never process EO
 
-            EstateAccessDeltaRequest newreq = new EstateAccessDeltaRequest()
+            EstateAccessDeltaRequest newreq = new()
             {
                 remote_client = _remote_client,
                 invoice = _invoice,
@@ -846,12 +846,12 @@ namespace OpenSim.Region.CoreModules.World.Estate
             UUID invoice;
             int estateAccessType;
             UUID user;
-            Dictionary<int,EstateSettings> changed = new Dictionary<int,EstateSettings>();
-            Dictionary<IClientAPI,UUID> sendAllowedOrBanList = new Dictionary<IClientAPI,UUID>();
-            Dictionary<IClientAPI,UUID> sendManagers  = new Dictionary<IClientAPI,UUID>();
-            Dictionary<IClientAPI,UUID> sendGroups  = new Dictionary<IClientAPI,UUID>();
+            Dictionary<int,EstateSettings> changed = [];
+            Dictionary<IClientAPI,UUID> sendAllowedOrBanList = [];
+            Dictionary<IClientAPI,UUID> sendManagers  = [];
+            Dictionary<IClientAPI,UUID> sendGroups  = [];
 
-            List<EstateSettings> otherEstates = new List<EstateSettings>();
+            List<EstateSettings> otherEstates = [];
 
             bool sentAllowedFull = false;
             bool sentBansFull = false;
@@ -1108,7 +1108,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                                     if(estateSettings.EstateBansCount() >= (int)Constants.EstateAccessLimits.EstateBans)
                                         continue;
 
-                                    EstateBan bitem = new EstateBan()
+                                    EstateBan bitem = new()
                                     {
                                         BannedUserID = user,
                                         EstateID = estateSettings.EstateID,
@@ -1124,7 +1124,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                                 }
                             }
 
-                            EstateBan item = new EstateBan()
+                            EstateBan item = new()
                             {
                                 BannedUserID = user,
                                 EstateID = Scene.RegionInfo.EstateSettings.EstateID,
@@ -1447,10 +1447,10 @@ namespace OpenSim.Region.CoreModules.World.Estate
             {
                 try
                 {
-                    using (MemoryStream terrainStream = new MemoryStream(terrainData))
+                    using (MemoryStream terrainStream = new(terrainData))
                         terr.LoadFromStream(filename, terrainStream);
 
-                    FileInfo x = new FileInfo(filename);
+                    FileInfo x = new(filename);
                     remoteClient.SendAlertMessage("Your terrain was loaded as a " + x.Extension + " file. It may take a few moments to appear.");
                 }
                 catch (IOException e)
@@ -1524,7 +1524,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                 terr.SaveToFile(Util.dataDir() + "/terrain.raw");
 
                 byte[] bdata;
-                using(FileStream input = new FileStream(Util.dataDir() + "/terrain.raw",FileMode.Open))
+                using(FileStream input = new(Util.dataDir() + "/terrain.raw",FileMode.Open))
                 {
                     bdata = new byte[input.Length];
                     input.Read(bdata, 0, (int)input.Length);
@@ -1546,7 +1546,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         public void HandleRegionInfoRequest(IClientAPI remote_client)
         {
-            RegionInfoForEstateMenuArgs args = new RegionInfoForEstateMenuArgs()
+            RegionInfoForEstateMenuArgs args = new()
             {
                 billableFactor = Scene.RegionInfo.EstateSettings.BillableFactor,
                 estateID = Scene.RegionInfo.EstateSettings.EstateID,
@@ -1625,7 +1625,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             var sortedSceneData = sceneData.OrderByDescending(e => e.time);
 
             int items = 0;
-            List<LandStatReportItem> SceneReport = new List<LandStatReportItem>();
+            List<LandStatReportItem> SceneReport = [];
             foreach (var entry in sortedSceneData)
             {
                 // The object may have been deleted since we received the data.
@@ -1678,7 +1678,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                     }
                 }
 
-                LandStatReportItem lsri = new LandStatReportItem()
+                LandStatReportItem lsri = new()
                 {
                     LocationX = so.AbsolutePosition.X,
                     LocationY = so.AbsolutePosition.Y,
@@ -1712,7 +1712,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
             Dictionary<uint, float> sceneData = Scene.PhysicsScene.GetTopColliders();
 
-            List<LandStatReportItem> SceneReport = new List<LandStatReportItem>();
+            List<LandStatReportItem> SceneReport = [];
             if (sceneData != null)
             {
                 //reformat the name so we don't have to do it on every item
@@ -1783,7 +1783,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
                         }
                     }
 
-                    LandStatReportItem lsri = new LandStatReportItem()
+                    LandStatReportItem lsri = new()
                     {
                         LocationX = so.AbsolutePosition.X,
                         LocationY = so.AbsolutePosition.Y,
@@ -1827,7 +1827,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             remoteClient.SendRegionHandshake();
         }
 
-        public void HandleEstateChangeInfo(IClientAPI remoteClient, UUID invoice, UUID senderID, UInt32 parms1, UInt32 parms2)
+        public void HandleEstateChangeInfo(IClientAPI remoteClient, UUID invoice, UUID senderID, uint parms1, uint parms2)
         {
             bool lastallowEnvOvr = Scene.RegionInfo.EstateSettings.AllowEnvironmentOverride;
 
@@ -2032,7 +2032,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             if (!settings.TelehubObject.IsZero() &&
                 (telehub = Scene.GetSceneObjectGroup(settings.TelehubObject)) != null)
             {
-                List<Vector3> spawnPoints = new List<Vector3>();
+                List<Vector3> spawnPoints = [];
 
                 foreach (SpawnPoint sp in settings.SpawnPoints())
                 {
@@ -2048,10 +2048,10 @@ namespace OpenSim.Region.CoreModules.World.Estate
             else
             {
                 client.SendTelehubInfo(UUID.Zero,
-                                       String.Empty,
+                                       string.Empty,
                                        Vector3.Zero,
                                        Quaternion.Identity,
-                                       new List<Vector3>());
+                                       []);
             }
         }
     }

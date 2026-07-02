@@ -62,17 +62,17 @@ namespace OpenSim.Data.MySQL
             if (words.Length > 2)
                 return new UserAccountData[0];
 
-            using (MySqlCommand cmd = new MySqlCommand())
+            using (MySqlCommand cmd = new())
             {
                 if (words.Length == 1)
                 {
-                    cmd.CommandText = String.Format("select * from {0} where (ScopeID=?ScopeID or ScopeID='00000000-0000-0000-0000-000000000000') and (FirstName like ?search or LastName like ?search) and active=1", m_Realm);
+                    cmd.CommandText = string.Format("select * from {0} where (ScopeID=?ScopeID or ScopeID='00000000-0000-0000-0000-000000000000') and (FirstName like ?search or LastName like ?search) and active=1", m_Realm);
                     cmd.Parameters.AddWithValue("?search", "%" + words[0] + "%");
                     cmd.Parameters.AddWithValue("?ScopeID", scopeID.ToString());
                 }
                 else
                 {
-                    cmd.CommandText = String.Format("select * from {0} where (ScopeID=?ScopeID or ScopeID='00000000-0000-0000-0000-000000000000') and (FirstName like ?searchFirst and LastName like ?searchLast) and active=1", m_Realm);
+                    cmd.CommandText = string.Format("select * from {0} where (ScopeID=?ScopeID or ScopeID='00000000-0000-0000-0000-000000000000') and (FirstName like ?searchFirst and LastName like ?searchLast) and active=1", m_Realm);
                     cmd.Parameters.AddWithValue("?searchFirst", "%" + words[0] + "%");
                     cmd.Parameters.AddWithValue("?searchLast", "%" + words[1] + "%");
                     cmd.Parameters.AddWithValue("?ScopeID", scopeID.ToString());
@@ -84,7 +84,7 @@ namespace OpenSim.Data.MySQL
 
         public UserAccountData[] GetUsersWhere(UUID scopeID, string where)
         {
-            using (MySqlCommand cmd = new MySqlCommand())
+            using (MySqlCommand cmd = new())
             {
                 if (!scopeID.IsZero())
                 {
@@ -92,7 +92,7 @@ namespace OpenSim.Data.MySQL
                     cmd.Parameters.AddWithValue("?ScopeID", scopeID.ToString());
                 }
 
-                cmd.CommandText = String.Format("select * from {0} where " + where, m_Realm);
+                cmd.CommandText = string.Format("select * from {0} where " + where, m_Realm);
 
                 return DoQuery(cmd);
             }

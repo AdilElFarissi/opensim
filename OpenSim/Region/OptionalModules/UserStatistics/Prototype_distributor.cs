@@ -52,15 +52,17 @@ namespace OpenSim.Region.UserStatistics
         }
         public Hashtable ProcessModel(Hashtable pParams)
         {
-            Hashtable pResult = new Hashtable();
-            pResult["js"] = jsFileName;
+            Hashtable pResult = new()
+            {
+                ["js"] = jsFileName
+            };
             return pResult;
         }
 
         public string RenderView(Hashtable pModelResult)
         {
             string fileName = (string)pModelResult["js"];
-            using (StreamReader fs = new StreamReader(new FileStream(Util.dataDir() + "/data/" + fileName, FileMode.Open)))
+            using (StreamReader fs = new(new FileStream(Util.dataDir() + "/data/" + fileName, FileMode.Open)))
             {
                 prototypejs = fs.ReadToEnd();
                 fs.Close();

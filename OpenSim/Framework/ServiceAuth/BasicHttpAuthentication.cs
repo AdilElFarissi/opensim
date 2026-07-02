@@ -76,7 +76,7 @@ namespace OpenSim.Framework.ServiceAuth
         public bool Authenticate(string data)
         {
             string recovered = Util.Base64ToString(data);
-            if (!String.IsNullOrEmpty(recovered))
+            if (!string.IsNullOrEmpty(recovered))
             {
                 string[] parts = recovered.Split(Util.SplitColonArray);
                 if (parts.Length >= 2)

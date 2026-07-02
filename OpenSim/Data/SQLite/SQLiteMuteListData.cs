@@ -46,7 +46,7 @@ namespace OpenSim.Data.SQLite
 
         public bool Delete(UUID agentID, UUID muteID, string muteName)
         {
-            using (SQLiteCommand cmd = new SQLiteCommand())
+            using (SQLiteCommand cmd = new())
             {
                 cmd.CommandText = "delete from MuteList where `AgentID` = :AgentID and `MuteID` = :MuteID and `MuteName` = :MuteName";
 

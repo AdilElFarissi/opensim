@@ -48,7 +48,7 @@ namespace OpenSim.Groups
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private List<Scene> m_sceneList = new List<Scene>();
+        private List<Scene> m_sceneList = [];
         private IPresenceService m_presenceService;
 
         private IMessageTransferModule m_msgTransferModule = null;
@@ -80,8 +80,8 @@ namespace OpenSim.Groups
 
         private int m_usersOnlineCacheExpirySeconds = 20;
 
-        private Dictionary<UUID, List<string>> m_groupsAgentsDroppedFromChatSession = new Dictionary<UUID, List<string>>();
-        private Dictionary<UUID, List<string>> m_groupsAgentsInvitedToChatSession = new Dictionary<UUID, List<string>>();
+        private Dictionary<UUID, List<string>> m_groupsAgentsDroppedFromChatSession = [];
+        private Dictionary<UUID, List<string>> m_groupsAgentsInvitedToChatSession = [];
 
         #region Region Module interfaceBase Members
 
@@ -285,7 +285,7 @@ namespace OpenSim.Groups
         {
             int requestStartTick = Environment.TickCount;
 
-            UUID fromAgentID = new UUID(im.fromAgentID);
+            UUID fromAgentID = new(im.fromAgentID);
 
             // Unlike current XmlRpcGroups, Groups V2 can accept UUID.Zero when a perms check for the requesting agent
             // is not necessary.
@@ -307,7 +307,7 @@ namespace OpenSim.Groups
                 m_usersOnlineCache.Add(groupID, onlineAgents, m_usersOnlineCacheExpirySeconds);
             }
 
-            HashSet<string> onlineAgentsUuidSet = new HashSet<string>();
+            HashSet<string> onlineAgentsUuidSet = [];
             Array.ForEach<PresenceInfo>(onlineAgents, pi => onlineAgentsUuidSet.Add(pi.UserID));
 
             groupMembers = groupMembers.Where(gmd => onlineAgentsUuidSet.Contains(gmd.AgentID.ToString())).ToList();
@@ -337,8 +337,8 @@ namespace OpenSim.Groups
             im.fromGroup = true;
             ProcessMessageFromGroupSession(im);
 
-            List<UUID> regions = new List<UUID>();
-            List<UUID> clientsAlreadySent = new List<UUID>();
+            List<UUID> regions = [];
+            List<UUID> clientsAlreadySent = [];
 
             // Then send to everybody else
             foreach (GroupMembersData member in groupMembers)
@@ -395,7 +395,7 @@ namespace OpenSim.Groups
                     {
                         // We have to create a new IM structure because the transfer module
                         // uses async send
-                        GridInstantMessage msg = new GridInstantMessage(im, true);
+                        GridInstantMessage msg = new(im, true);
                         m_msgTransferModule.SendInstantMessage(msg, delegate(bool success) { });
                     }
                 }
@@ -448,7 +448,7 @@ namespace OpenSim.Groups
             // Any other message type will not be delivered to a client by the
             // Instant Message Module
 
-            UUID regionID = new UUID(msg.RegionID);
+            UUID regionID = new(msg.RegionID);
             if (m_debugEnabled)
             {
                 m_log.DebugFormat("[Groups.Messaging]: {0} called, IM from region {1}",
@@ -463,7 +463,7 @@ namespace OpenSim.Groups
                 // We have to redistribute the message across all members of the group who are here
                 // on this sim
 
-                UUID GroupID = new UUID(msg.imSessionID);
+                UUID GroupID = new(msg.imSessionID);
 
                 Scene aScene = m_sceneList[0];
                 GridRegion regionOfOrigin = aScene.GridService.GetRegionByUUID(aScene.RegionInfo.ScopeID, regionID);
@@ -540,9 +540,9 @@ namespace OpenSim.Groups
         {
             if (m_debugEnabled) m_log.DebugFormat("[Groups.Messaging]: Session message from {0} going to agent {1}", msg.fromAgentName, msg.toAgentID);
 
-            UUID AgentID = new UUID(msg.fromAgentID);
-            UUID GroupID = new UUID(msg.imSessionID);
-            UUID toAgentID = new UUID(msg.toAgentID);
+            UUID AgentID = new(msg.fromAgentID);
+            UUID GroupID = new(msg.imSessionID);
+            UUID toAgentID = new(msg.toAgentID);
 
             switch (msg.dialog)
             {
@@ -599,7 +599,7 @@ namespace OpenSim.Groups
                 {
                     if (m_debugEnabled) m_log.DebugFormat("[Groups.Messaging]: Sending chatterbox invite instant message");
 
-                    UUID fromAgent = new UUID(msg.fromAgentID);
+                    UUID fromAgent = new(msg.fromAgentID);
                     // Force? open the group session dialog???
                     // and simultanously deliver the message, so we don't need to do a seperate client.SendInstantMessage(msg);
                     IEventQueue eq = activeClient.Scene.RequestModuleInterface<IEventQueue>();
@@ -648,8 +648,8 @@ namespace OpenSim.Groups
             {
                 if (m_debugEnabled) m_log.InfoFormat("[Groups.Messaging]: imSessionID({0}) toAgentID({1})", im.imSessionID, im.toAgentID);
 
-                UUID GroupID = new UUID(im.imSessionID);
-                UUID AgentID = new UUID(im.fromAgentID);
+                UUID GroupID = new(im.imSessionID);
+                UUID AgentID = new(im.fromAgentID);
 
                 GroupRecord groupInfo = m_groupData.GetGroupRecord(UUID.Zero.ToString(), GroupID, null);
 
@@ -690,20 +690,26 @@ namespace OpenSim.Groups
         {
             if (m_debugEnabled) m_log.DebugFormat("[Groups.Messaging]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
-            OSDMap moderatedMap = new OSDMap(4);
-            moderatedMap.Add("voice", OSD.FromBoolean(false));
+            OSDMap moderatedMap = new(4)
+            {
+                { "voice", OSD.FromBoolean(false) }
+            };
 
-            OSDMap sessionMap = new OSDMap(4);
-            sessionMap.Add("moderated_mode", moderatedMap);
-            sessionMap.Add("session_name", OSD.FromString(groupName));
-            sessionMap.Add("type", OSD.FromInteger(0));
-            sessionMap.Add("voice_enabled", OSD.FromBoolean(false));
+            OSDMap sessionMap = new(4)
+            {
+                { "moderated_mode", moderatedMap },
+                { "session_name", OSD.FromString(groupName) },
+                { "type", OSD.FromInteger(0) },
+                { "voice_enabled", OSD.FromBoolean(false) }
+            };
 
-            OSDMap bodyMap = new OSDMap(4);
-            bodyMap.Add("session_id", OSD.FromUUID(groupID));
-            bodyMap.Add("temp_session_id", OSD.FromUUID(groupID));
-            bodyMap.Add("success", OSD.FromBoolean(true));
-            bodyMap.Add("session_info", sessionMap);
+            OSDMap bodyMap = new(4)
+            {
+                { "session_id", OSD.FromUUID(groupID) },
+                { "temp_session_id", OSD.FromUUID(groupID) },
+                { "success", OSD.FromBoolean(true) },
+                { "session_info", sessionMap }
+            };
 
             IEventQueue queue = remoteClient.Scene.RequestModuleInterface<IEventQueue>();
             queue?.Enqueue(queue.BuildEvent("ChatterBoxSessionStartReply", bodyMap), remoteClient.AgentId);
@@ -828,8 +834,8 @@ namespace OpenSim.Groups
         {
             if (!m_groupsAgentsDroppedFromChatSession.ContainsKey(groupID))
             {
-                m_groupsAgentsDroppedFromChatSession.Add(groupID, new List<string>());
-                m_groupsAgentsInvitedToChatSession.Add(groupID, new List<string>());
+                m_groupsAgentsDroppedFromChatSession.Add(groupID, []);
+                m_groupsAgentsInvitedToChatSession.Add(groupID, []);
             }
 
         }

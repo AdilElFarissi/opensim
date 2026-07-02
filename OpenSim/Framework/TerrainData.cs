@@ -328,8 +328,10 @@ namespace OpenSim.Framework
 
         public TerrainData Clone()
         {
-            TerrainData ret = new TerrainData(SizeX, SizeY, SizeZ);
-            ret.m_heightmap = (float[,])this.m_heightmap.Clone();
+            TerrainData ret = new(SizeX, SizeY, SizeZ)
+            {
+                m_heightmap = (float[,])this.m_heightmap.Clone()
+            };
 
             return ret;
         }
@@ -538,9 +540,9 @@ namespace OpenSim.Framework
         {
             Array ret = null;
 
-            using (MemoryStream str = new MemoryStream((int)Constants.RegionSize * (int)Constants.RegionSize * sizeof(double)))
+            using (MemoryStream str = new((int)Constants.RegionSize * (int)Constants.RegionSize * sizeof(double)))
             {
-                using (BinaryWriter bw = new BinaryWriter(str))
+                using (BinaryWriter bw = new(str))
                 {
                     for (int xx = 0; xx < Constants.RegionSize; xx++)
                     {
@@ -566,9 +568,9 @@ namespace OpenSim.Framework
 
             try
             {
-                using (MemoryStream mstr = new MemoryStream(pBlob))
+                using (MemoryStream mstr = new(pBlob))
                 {
-                    using (BinaryReader br = new BinaryReader(mstr))
+                    using (BinaryReader br = new(mstr))
                     {
                         for (int xx = 0; xx < (int)Constants.RegionSize; xx++)
                         {
@@ -601,12 +603,12 @@ namespace OpenSim.Framework
             Array ret = null;
             try
             {
-                using (MemoryStream str = new MemoryStream((2 * sizeof(Int32)) + (SizeX * SizeY * sizeof(float))))
+                using (MemoryStream str = new((2 * sizeof(int)) + (SizeX * SizeY * sizeof(float))))
                 {
-                    using (BinaryWriter bw = new BinaryWriter(str))
+                    using (BinaryWriter bw = new(str))
                     {
-                        bw.Write((Int32)SizeX);
-                        bw.Write((Int32)SizeY);
+                        bw.Write((int)SizeX);
+                        bw.Write((int)SizeY);
                         for (int yy = 0; yy < SizeY; yy++)
                             for (int xx = 0; xx < SizeX; xx++)
                             {
@@ -631,9 +633,9 @@ namespace OpenSim.Framework
             Array ret = null;
             try
             {
-                using (MemoryStream inp = new MemoryStream((2 * sizeof(int)) + (SizeX * SizeY * sizeof(float))))
+                using (MemoryStream inp = new((2 * sizeof(int)) + (SizeX * SizeY * sizeof(float))))
                 {
-                    using (BinaryWriter bw = new BinaryWriter(inp))
+                    using (BinaryWriter bw = new(inp))
                     {
                         bw.Write(SizeX);
                         bw.Write(SizeY);
@@ -646,7 +648,7 @@ namespace OpenSim.Framework
                         bw.Flush();
                         inp.Seek(0, SeekOrigin.Begin);
 
-                        using MemoryStream outputStream = new MemoryStream();
+                        using MemoryStream outputStream = new();
                         using GZipStream compressionStream = new(outputStream, CompressionMode.Compress);
                         inp.CopyTo(compressionStream);
                         compressionStream.Flush();
@@ -670,11 +672,11 @@ namespace OpenSim.Framework
         //    creation and any heights not initialized by theis blob are set to the default height.
         public void FromCompressedTerrainSerialization2D(byte[] pBlob)
         {
-            Int32 hmFormatCode, hmSizeX, hmSizeY, hmCompressionFactor;
+            int hmFormatCode, hmSizeX, hmSizeY, hmCompressionFactor;
 
-            using (MemoryStream mstr = new MemoryStream(pBlob))
+            using (MemoryStream mstr = new(pBlob))
             {
-                using (BinaryReader br = new BinaryReader(mstr))
+                using (BinaryReader br = new(mstr))
                 {
                     hmFormatCode = br.ReadInt32();
                     hmSizeX = br.ReadInt32();
@@ -721,12 +723,12 @@ namespace OpenSim.Framework
         //    creation and any heights not initialized by theis blob are set to the default height.
         public void FromCompressedTerrainSerializationV2D(byte[] pBlob)
         {
-            Int32 hmSizeX, hmSizeY;
+            int hmSizeX, hmSizeY;
             try
             {
-                using (MemoryStream mstr = new MemoryStream(pBlob))
+                using (MemoryStream mstr = new(pBlob))
                 {
-                    using (BinaryReader br = new BinaryReader(mstr))
+                    using (BinaryReader br = new(mstr))
                     {
                         hmSizeX = br.ReadInt32();
                         hmSizeY = br.ReadInt32();
@@ -779,11 +781,11 @@ namespace OpenSim.Framework
 
             try
             {
-                using (MemoryStream outputStream = new MemoryStream())
+                using (MemoryStream outputStream = new())
                 {
-                    using (MemoryStream inputStream = new MemoryStream(pBlob))
+                    using (MemoryStream inputStream = new(pBlob))
                     {
-                        using (GZipStream decompressionStream = new GZipStream(inputStream, CompressionMode.Decompress))
+                        using (GZipStream decompressionStream = new(inputStream, CompressionMode.Decompress))
                         {
                             decompressionStream.CopyTo(outputStream);
                         }
@@ -791,7 +793,7 @@ namespace OpenSim.Framework
 
                     outputStream.Seek(0, SeekOrigin.Begin);
 
-                    using (BinaryReader br = new BinaryReader(outputStream))
+                    using (BinaryReader br = new(outputStream))
                     {
                         hmSizeX = br.ReadInt32();
                         hmSizeY = br.ReadInt32();

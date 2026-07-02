@@ -68,7 +68,7 @@ namespace OpenSim.Framework.Capabilities
         /// <returns></returns>
         public static object LLSDDeserialize(byte[] b)
         {
-            using (MemoryStream ms = new MemoryStream(b, false))
+            using (MemoryStream ms = new(b, false))
             {
                 return LLSDDeserialize(ms);
             }
@@ -81,7 +81,7 @@ namespace OpenSim.Framework.Capabilities
         /// <returns></returns>
         public static object LLSDDeserialize(Stream st)
         {
-            using (XmlTextReader reader = new XmlTextReader(st))
+            using (XmlTextReader reader = new(st))
             {
                 reader.DtdProcessing = DtdProcessing.Ignore;
 
@@ -109,8 +109,8 @@ namespace OpenSim.Framework.Capabilities
         /// <returns></returns>
         public static byte[] LLSDSerialize(object obj)
         {
-            using(StringWriter sw = new StringWriter())
-            using(XmlTextWriter writer = new XmlTextWriter(sw))
+            using(StringWriter sw = new())
+            using(XmlTextWriter writer = new(sw))
             {
                 writer.Formatting = Formatting.None;
 
@@ -216,7 +216,7 @@ namespace OpenSim.Framework.Capabilities
             {
                  writer.WriteStartElement(string.Empty, "binary", string.Empty);
 
-                writer.WriteStartAttribute(String.Empty, "encoding", String.Empty);
+                writer.WriteStartAttribute(string.Empty, "encoding", string.Empty);
                 writer.WriteString("base64");
                 writer.WriteEndAttribute();
 
@@ -269,7 +269,7 @@ namespace OpenSim.Framework.Capabilities
                         reader.Read();
                         string s = reader.ReadString().Trim();
 
-                        if (s == String.Empty || s == "false" || s == "0")
+                        if (s == string.Empty || s == "false" || s == "0")
                             ret = false;
                         else if (s == "true" || s == "1")
                             ret = true;
@@ -319,7 +319,7 @@ namespace OpenSim.Framework.Capabilities
                         if (reader.IsEmptyElement)
                         {
                             reader.Read();
-                            return String.Empty;
+                            return string.Empty;
                         }
 
                         reader.Read();
@@ -341,7 +341,7 @@ namespace OpenSim.Framework.Capabilities
                         }
 
                         reader.Read();
-                        FromBase64Transform b64 = new FromBase64Transform(FromBase64TransformMode.IgnoreWhiteSpaces);
+                        FromBase64Transform b64 = new(FromBase64TransformMode.IgnoreWhiteSpaces);
                         byte[] inp = Util.UTF8.GetBytes(reader.ReadString());
                         ret = b64.TransformFinalBlock(inp, 0, inp.Length);
                         break;
@@ -379,7 +379,7 @@ namespace OpenSim.Framework.Capabilities
         /// <returns></returns>
         public static Hashtable LLSDParseMap(XmlTextReader reader)
         {
-            Hashtable ret = new Hashtable();
+            Hashtable ret = [];
 
             if (reader.NodeType != XmlNodeType.Element || reader.LocalName != "map")
                 throw new LLSDParseException("Expected <map>");
@@ -424,7 +424,7 @@ namespace OpenSim.Framework.Capabilities
         /// <returns></returns>
         public static ArrayList LLSDParseArray(XmlTextReader reader)
         {
-            ArrayList ret = new ArrayList();
+            ArrayList ret = [];
 
             if (reader.NodeType != XmlNodeType.Element || reader.LocalName != "array")
                 throw new LLSDParseException("Expected <array>");
@@ -460,7 +460,7 @@ namespace OpenSim.Framework.Capabilities
         /// <returns></returns>
         private static string GetSpaces(int count)
         {
-            StringBuilder b = new StringBuilder();
+            StringBuilder b = new();
             for (int i = 0; i < count; i++) b.Append(' ');
             return b.ToString();
         }

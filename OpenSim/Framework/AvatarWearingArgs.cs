@@ -33,7 +33,7 @@ namespace OpenSim.Framework
 {
     public class AvatarWearingArgs : EventArgs
     {
-        private List<Wearable> m_nowWearing = new List<Wearable>();
+        private List<Wearable> m_nowWearing = [];
 
         /// <summary>
         ///
@@ -48,7 +48,7 @@ namespace OpenSim.Framework
 
         public class Wearable
         {
-            public UUID ItemID = new UUID("00000000-0000-0000-0000-000000000000");
+            public UUID ItemID = new("00000000-0000-0000-0000-000000000000");
             public byte Type = 0;
 
             public Wearable(UUID itemId, byte type)

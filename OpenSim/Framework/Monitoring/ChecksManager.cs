@@ -43,7 +43,7 @@ namespace OpenSim.Framework.Monitoring
         public const string ListSubCommand = "list";
 
         // All subcommands
-        public static HashSet<string> SubCommands = new HashSet<string> { ListSubCommand };
+        public static HashSet<string> SubCommands = [ListSubCommand];
 
         /// <summary>
         /// Checks categorized by category/container/shortname
@@ -52,7 +52,7 @@ namespace OpenSim.Framework.Monitoring
         /// Do not add or remove directly from this dictionary.
         /// </remarks>
         public static SortedDictionary<string, SortedDictionary<string, SortedDictionary<string, Check>>> RegisteredChecks
-            = new SortedDictionary<string, SortedDictionary<string, SortedDictionary<string, Check>>>();
+            = [];
 
         public static void RegisterConsoleCommands(ICommandConsole console)
         {
@@ -145,10 +145,10 @@ namespace OpenSim.Framework.Monitoring
                 // This means that we don't need to lock or copy them on iteration, which will be a much more
                 // common operation after startup.
                 if (container == null)
-                    container = new SortedDictionary<string, Check>();
+                    container = [];
 
                 if (category == null)
-                    category = new SortedDictionary<string, SortedDictionary<string, Check>>();
+                    category = [];
 
                 container[check.ShortName] = check;
                 category[check.Container] = container;

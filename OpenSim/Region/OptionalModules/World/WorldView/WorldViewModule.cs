@@ -57,7 +57,7 @@ namespace OpenSim.Region.OptionalModules.World.WorldView
             if (moduleConfig == null)
                 return;
 
-            if (moduleConfig.GetString("WorldViewModule", String.Empty) != Name)
+            if (moduleConfig.GetString("WorldViewModule", string.Empty) != Name)
                 return;
 
             m_Enabled = true;
@@ -112,7 +112,7 @@ namespace OpenSim.Region.OptionalModules.World.WorldView
 
             using (Bitmap bmp = m_Generator.CreateViewImage(pos, rot, fov, width, height, usetex))
             {
-                using (MemoryStream str = new MemoryStream())
+                using (MemoryStream str = new())
                 {
                     bmp.Save(str, ImageFormat.Jpeg);
 

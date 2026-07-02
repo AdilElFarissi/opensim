@@ -668,7 +668,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     if(line.StartsWith("at (wrapper"))
                         continue;  // at (wrapper ...
                     int k = line.LastIndexOf(".cs:");  // ... .cs:linenumber
-                    if(Int32.TryParse(line.AsSpan(k + 4), out _))
+                    if(int.TryParse(line.AsSpan(k + 4), out _))
                         continue;
                 }
                 this.llOwnerSay(line);

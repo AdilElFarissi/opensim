@@ -73,7 +73,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private int lastErrorAtLine = 0;
         private int lastErrorAtPosn = 0;
 
-        private readonly Dictionary<Type, string> sdTypesRev = new ();
+        private readonly Dictionary<Type, string> sdTypesRev = [];
         public int labelNumber = 0;
         public int localNumber = 0;
 
@@ -372,13 +372,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public static void CreateObjCode(Dictionary<string, TokenDeclSDType> sdTypes, BinaryReader objReader,
                 ScriptObjCode scriptObjCode, ObjectTokens objectTokens)
         {
-            Dictionary<string, DynamicMethod> methods = new ();
+            Dictionary<string, DynamicMethod> methods = [];
             DynamicMethod method = null;
             ILGenerator ilGen = null;
-            Dictionary<int, Label> labels = new ();
-            Dictionary<int, LocalBuilder> locals = new ();
-            Dictionary<int, string> labelNames = new ();
-            Dictionary<int, string> localNames = new ();
+            Dictionary<int, Label> labels = [];
+            Dictionary<int, LocalBuilder> locals = [];
+            Dictionary<int, string> labelNames = [];
+            Dictionary<int, string> localNames = [];
             object[] ilGenArg = new object[1];
             int offset;
             Dictionary<int, ScriptSrcLoc> srcLocs = null;
@@ -415,7 +415,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         labelNames.Clear();
                         localNames.Clear();
 
-                        srcLocs = new Dictionary<int, ScriptSrcLoc>();
+                        srcLocs = [];
                         objectTokens?.BegMethod(method);
                         break;
                     }
@@ -751,7 +751,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private static Dictionary<short, OpCode> PopulateOpCodes()
         {
-            Dictionary<short, OpCode> opCodeDict = new ();
+            Dictionary<short, OpCode> opCodeDict = [];
             FieldInfo[] fields = typeof(OpCodes).GetFields();
             for(int i = 0; i < fields.Length; i++)
             {
@@ -874,7 +874,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private static Dictionary<Type, string> PopulateT2S()
         {
             Dictionary<string, Type> s2t = PopulateS2T();
-            Dictionary<Type, string> t2s = new ();
+            Dictionary<Type, string> t2s = [];
             foreach(KeyValuePair<string, Type> kvp in s2t)
             {
                 t2s.Add(kvp.Value, kvp.Key);

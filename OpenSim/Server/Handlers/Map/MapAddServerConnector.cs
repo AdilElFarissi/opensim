@@ -112,14 +112,14 @@ namespace OpenSim.Server.Handlers.MapImage
             try
             {
                 string body;
-                using (StreamReader sr = new StreamReader(httpRequest.InputStream))
+                using (StreamReader sr = new(httpRequest.InputStream))
                     body = sr.ReadToEnd();
                 body = body.Trim();
 
                 Dictionary<string, object> request = ServerUtils.ParseQueryString(body);
 
-                x = Int32.Parse(request["X"].ToString());
-                y = Int32.Parse(request["Y"].ToString());
+                x = int.Parse(request["X"].ToString());
+                y = int.Parse(request["Y"].ToString());
                 if (request.TryGetValue("SCOPE", out object o))
                     UUID.TryParse(o.ToString(), out scopeID);
                 if(request.TryGetValue("DATA", out object od))

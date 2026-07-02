@@ -201,7 +201,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 for (int i = 0; i < numberMeshs; i++)
                 {
-                    ameshCostParam curCost = new ameshCostParam();
+                    ameshCostParam curCost = new();
                     byte[] data = (byte[])resources.mesh_list.Array[i];
 
                     if (!MeshCost(data, curCost, out curskeleton, out curAvatarPhys, out error))
@@ -385,7 +385,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
             error = "Invalid model data";
 
-            using (MemoryStream ms = new MemoryStream(data))
+            using (MemoryStream ms = new(data))
             {
                 try
                 {
@@ -581,14 +581,14 @@ namespace OpenSim.Region.ClientStack.Linden
             ntriangles = 0;
             nsides = 0;
 
-            OSD decodedMeshOsd = new OSD();
+            OSD decodedMeshOsd = new();
             try
             {
-                using (MemoryStream outMs = new MemoryStream())
+                using (MemoryStream outMs = new())
                 {
-                    using (MemoryStream inMs = new MemoryStream(data, offset + 2, size - 2))
+                    using (MemoryStream inMs = new(data, offset + 2, size - 2))
                     {
-                        using DeflateStream decompressionStream = new DeflateStream(inMs, CompressionMode.Decompress);
+                        using DeflateStream decompressionStream = new(inMs, CompressionMode.Decompress);
                         decompressionStream.CopyTo(outMs);
                     }
                     outMs.Seek(0, SeekOrigin.Begin);
@@ -636,14 +636,14 @@ namespace OpenSim.Region.ClientStack.Linden
             nvertices = 0;
             nhulls = 1;
 
-            OSD decodedMeshOsd = new OSD();
+            OSD decodedMeshOsd = new();
             try
             {
-                using (MemoryStream outMs = new MemoryStream(4 * size))
+                using (MemoryStream outMs = new(4 * size))
                 {
-                    using (MemoryStream inMs = new MemoryStream(data, offset, size))
+                    using (MemoryStream inMs = new(data, offset, size))
                     {
-                        using (DeflateStream decompressionStream = new DeflateStream(inMs, CompressionMode.Decompress))
+                        using (DeflateStream decompressionStream = new(inMs, CompressionMode.Decompress))
                         {
                             byte[] readBuffer = new byte[8192];
                             inMs.Read(readBuffer, 0, 2); // skip first 2 bytes in header

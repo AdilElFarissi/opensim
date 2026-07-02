@@ -174,7 +174,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             if (UserManager != null)
             {
                 // Protect ourselves against the caller subsequently modifying the items list
-                List<InventoryItemBase> items = new List<InventoryItemBase>(invCol.Items);
+                List<InventoryItemBase> items = [.. invCol.Items];
 
                 WorkManager.RunInThreadPool(delegate
                 {

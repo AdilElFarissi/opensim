@@ -34,7 +34,7 @@ namespace OpenSim.Tools.Configger
     {
         public static int Main(string[] args)
         {
-            ArgvConfigSource argvConfig = new ArgvConfigSource(args);
+            ArgvConfigSource argvConfig = new(args);
 
             argvConfig.AddSwitch("Startup", "format", "f");
             argvConfig.AddSwitch("Startup", "inifile");
@@ -43,7 +43,7 @@ namespace OpenSim.Tools.Configger
 
             string format = startupConfig.GetString("format", "ini");
 
-            ConfigurationLoader loader = new ConfigurationLoader();
+            ConfigurationLoader loader = new();
             IConfigSource s = loader.LoadConfigSettings(startupConfig);
 
             if (format == "mysql")

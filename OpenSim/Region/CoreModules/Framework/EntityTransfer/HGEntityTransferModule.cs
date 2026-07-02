@@ -68,8 +68,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 if (m_ExportedAppearances != null)
                     return m_ExportedAppearances;
 
-                m_ExportedAppearances = new List<AvatarAppearance>();
-                m_Attachs = new List<AvatarAttachment>();
+                m_ExportedAppearances = [];
+                m_Attachs = [];
 
                 string[] names = m_AccountName.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
@@ -281,7 +281,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     else
                         connector = new UserAgentServiceConnector(userAgentDriver);
 
-                    GridRegion source = new GridRegion(m_sceneRegionInfo)
+                    GridRegion source = new(m_sceneRegionInfo)
                     {
                         RawServerURI = m_thisGridInfo.GateKeeperURL
                     };
@@ -551,7 +551,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (sp == null || sp.IsDeleted || sp.IsInTransit || sp.IsChildAgent || sp.IsNPC)
                 return;
 
-            OSHHTPHost gatekeeperHost = new OSHHTPHost(lm.Gatekeeper);
+            OSHHTPHost gatekeeperHost = new(lm.Gatekeeper);
             if (m_thisGridInfo.IsLocalGrid(gatekeeperHost) != 0)
             {
                 // Local region?
@@ -581,7 +581,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             }
 
             // Foreign region
-            GridRegion gatekeeper = new GridRegion()
+            GridRegion gatekeeper = new()
                 {
                     ExternalHostName = gatekeeperHost.Host,
                     HttpPort = (uint)gatekeeperHost.Port,
@@ -593,7 +593,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             string homeURI = m_scene.GetAgentHomeURI(remoteClient.AgentId);
 
-            GatekeeperServiceConnector gConn = new GatekeeperServiceConnector();
+            GatekeeperServiceConnector gConn = new();
             GridRegion finalDestination = gConn.GetHyperlinkRegion(gatekeeper, lm.RegionID, remoteClient.AgentId, homeURI, out string message);
             if(finalDestination == null)
             {
@@ -620,7 +620,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         private void RemoveIncomingSceneObjectJobs(string commonIdToRemove)
         {
-            List<JobEngine.Job> jobsToReinsert = new List<JobEngine.Job>();
+            List<JobEngine.Job> jobsToReinsert = [];
             int jobsRemoved = 0;
 
             JobEngine.Job job;
@@ -711,7 +711,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                                 //    so.Name, so.AttachedAvatar, url);
 
                                 IDictionary<UUID, sbyte> ids = new Dictionary<UUID, sbyte>();
-                                HGUuidGatherer uuidGatherer = new HGUuidGatherer(m_scene.AssetService, url, ids);
+                                HGUuidGatherer uuidGatherer = new(m_scene.AssetService, url, ids);
                                 uuidGatherer.AddForInspection(defso);
 
                                 while (!uuidGatherer.Complete)
@@ -805,13 +805,13 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     {
                         ScenePresence defsp = sp;
                         List<SceneObjectGroup> deftatt = attachments;
-                        List<SceneObjectGroup> toadd = new List<SceneObjectGroup>(deftatt.Count);
+                        List<SceneObjectGroup> toadd = new(deftatt.Count);
                         m_incomingSceneObjectEngine.QueueJob(
                             string.Format("HG UUID Gather attachments {0}", defsp.Name), () =>
                             {
                                 string url = aCircuit.ServiceURLs["AssetServerURI"].ToString();
                                 IDictionary<UUID, sbyte> ids = new Dictionary<UUID, sbyte>();
-                                HGUuidGatherer uuidGatherer = new HGUuidGatherer(m_scene.AssetService, url, ids);
+                                HGUuidGatherer uuidGatherer = new(m_scene.AssetService, url, ids);
 
                                 foreach (SceneObjectGroup defso in deftatt)
                                 {

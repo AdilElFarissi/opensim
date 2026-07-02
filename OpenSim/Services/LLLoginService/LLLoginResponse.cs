@@ -97,20 +97,23 @@ namespace OpenSim.Services.LLLoginService
 
         public override Hashtable ToHashtable()
         {
-            Hashtable loginError = new Hashtable();
-            loginError["reason"] = m_key;
-            loginError["message"] = m_value;
-            loginError["login"] = m_login;
+            Hashtable loginError = new()
+            {
+                ["reason"] = m_key,
+                ["message"] = m_value,
+                ["login"] = m_login
+            };
             return loginError;
         }
 
         public override OSD ToOSDMap()
         {
-            OSDMap map = new OSDMap();
-
-            map["reason"] = OSD.FromString(m_key);
-            map["message"] = OSD.FromString(m_value);
-            map["login"] = OSD.FromString(m_login);
+            OSDMap map = new()
+            {
+                ["reason"] = OSD.FromString(m_key),
+                ["message"] = OSD.FromString(m_value),
+                ["login"] = OSD.FromString(m_login)
+            };
 
             return map;
         }
@@ -162,7 +165,7 @@ namespace OpenSim.Services.LLLoginService
         private string simAddress;
         private string agentAccess;
         private string agentAccessMax;
-        private Int32 circuitCode;
+        private int circuitCode;
         private uint regionX;
         private uint regionY;
 
@@ -202,30 +205,32 @@ namespace OpenSim.Services.LLLoginService
         {
             // This is being set, but it's not used
             // not sure why.
-            globalTexturesHash = new Hashtable();
-            globalTexturesHash["sun_texture_id"] = sunTexture;
-            globalTexturesHash["cloud_texture_id"] = cloudTexture;
-            globalTexturesHash["moon_texture_id"] = moonTexture;
+            globalTexturesHash = new Hashtable
+            {
+                ["sun_texture_id"] = sunTexture,
+                ["cloud_texture_id"] = cloudTexture,
+                ["moon_texture_id"] = moonTexture
+            };
         }
 
         public LLLoginResponse()
         {
-            loginFlags = new ArrayList();
-            globalTextures = new ArrayList();
-            eventCategories = new ArrayList();
-            uiConfig = new ArrayList();
-            classifiedCategories = new ArrayList();
+            loginFlags = [];
+            globalTextures = [];
+            eventCategories = [];
+            uiConfig = [];
+            classifiedCategories = [];
 
-            uiConfigHash = new Hashtable();
+            uiConfigHash = [];
 
             // defaultXmlRpcResponse = new XmlRpcResponse();
             userProfile = new UserInfo();
-            inventoryRoot = new ArrayList();
-            initialOutfit = new ArrayList();
-            agentInventory = new ArrayList();
-            inventoryLibrary = new ArrayList();
-            inventoryLibraryOwner = new ArrayList();
-            activeGestures = new ArrayList();
+            inventoryRoot = [];
+            initialOutfit = [];
+            agentInventory = [];
+            inventoryLibrary = [];
+            inventoryLibraryOwner = [];
+            activeGestures = [];
 
             SetDefaultValues();
         }
@@ -264,7 +269,7 @@ namespace OpenSim.Services.LLLoginService
             MaxAgentGroups = maxAgentGroups;
 
             FillOutHomeData(pinfo, home);
-            LookAt = String.Format("[r{0},r{1},r{2}]", lookAt.X, lookAt.Y, lookAt.Z);
+            LookAt = string.Format("[r{0},r{1},r{2}]", lookAt.X, lookAt.Y, lookAt.Z);
 
             FillOutRegionData(destination);
             m_log.DebugFormat("[LOGIN RESPONSE] LLLoginResponse create. sizeX={0}, sizeY={1}", RegionSizeX, RegionSizeY);
@@ -330,20 +335,22 @@ namespace OpenSim.Services.LLLoginService
             {
                 ArrayList AgentInventoryArray = inventData.InventoryArray;
 
-                Hashtable InventoryRootHash = new Hashtable();
-                InventoryRootHash["folder_id"] = inventData.RootFolderID.ToString();
-                InventoryRoot = new ArrayList();
-                InventoryRoot.Add(InventoryRootHash);
+                Hashtable InventoryRootHash = new()
+                {
+                    ["folder_id"] = inventData.RootFolderID.ToString()
+                };
+                InventoryRoot = [InventoryRootHash];
                 InventorySkeleton = AgentInventoryArray;
             }
 
             // Inventory Library Section
             if (libService != null && libService.LibraryRootFolder != null)
             {
-                Hashtable InventoryLibRootHash = new Hashtable();
-                InventoryLibRootHash["folder_id"] = "00000112-000f-0000-0000-000100bba000";
-                InventoryLibRoot = new ArrayList();
-                InventoryLibRoot.Add(InventoryLibRootHash);
+                Hashtable InventoryLibRootHash = new()
+                {
+                    ["folder_id"] = "00000112-000f-0000-0000-000100bba000"
+                };
+                InventoryLibRoot = [InventoryLibRootHash];
 
                 InventoryLibraryOwner = GetLibraryOwner(libService.LibraryRootFolder);
                 InventoryLibrary = GetInventoryLibrary(libService);
@@ -352,14 +359,16 @@ namespace OpenSim.Services.LLLoginService
 
         private void FillOutActiveGestures(List<InventoryItemBase> gestures)
         {
-            ArrayList list = new ArrayList();
+            ArrayList list = [];
             if (gestures != null)
             {
                 foreach (InventoryItemBase gesture in gestures)
                 {
-                    Hashtable item = new Hashtable();
-                    item["item_id"] = gesture.ID.ToString();
-                    item["asset_id"] = gesture.AssetID.ToString();
+                    Hashtable item = new()
+                    {
+                        ["item_id"] = gesture.ID.ToString(),
+                        ["asset_id"] = gesture.AssetID.ToString()
+                    };
                     list.Add(item);
                 }
             }
@@ -419,7 +428,7 @@ namespace OpenSim.Services.LLLoginService
             ErrorMessage = "You have entered an invalid name/password combination.  Check Caps/lock.";
             ErrorReason = "key";
             welcomeMessage = "Welcome to OpenSim!";
-            seedCapability = String.Empty;
+            seedCapability = string.Empty;
             home = "{'region_handle':["
                     + "r" + Util.RegionToWorldLoc(1000).ToString()
                     + ","
@@ -442,31 +451,33 @@ namespace OpenSim.Services.LLLoginService
             RegionY = (uint) 254976;
 
             // Classifieds;
-            AddClassifiedCategory((Int32) 1, "Shopping");
-            AddClassifiedCategory((Int32) 2, "Land Rental");
-            AddClassifiedCategory((Int32) 3, "Property Rental");
-            AddClassifiedCategory((Int32) 4, "Special Attraction");
-            AddClassifiedCategory((Int32) 5, "New Products");
-            AddClassifiedCategory((Int32) 6, "Employment");
-            AddClassifiedCategory((Int32) 7, "Wanted");
-            AddClassifiedCategory((Int32) 8, "Service");
-            AddClassifiedCategory((Int32) 9, "Personal");
+            AddClassifiedCategory((int) 1, "Shopping");
+            AddClassifiedCategory((int) 2, "Land Rental");
+            AddClassifiedCategory((int) 3, "Property Rental");
+            AddClassifiedCategory((int) 4, "Special Attraction");
+            AddClassifiedCategory((int) 5, "New Products");
+            AddClassifiedCategory((int) 6, "Employment");
+            AddClassifiedCategory((int) 7, "Wanted");
+            AddClassifiedCategory((int) 8, "Service");
+            AddClassifiedCategory((int) 9, "Personal");
 
             SessionID = UUID.Random();
             SecureSessionID = UUID.Random();
             AgentID = UUID.Random();
             RealID = UUID.Zero;
 
-            Hashtable InitialOutfitHash = new Hashtable();
-            InitialOutfitHash["folder_name"] = "Nightclub Female";
-            InitialOutfitHash["gender"] = "female";
+            Hashtable InitialOutfitHash = new()
+            {
+                ["folder_name"] = "Nightclub Female",
+                ["gender"] = "female"
+            };
             initialOutfit.Add(InitialOutfitHash);
-            mapTileURL = String.Empty;
-            profileURL = String.Empty;
-            openIDURL = String.Empty;
-            searchURL = String.Empty;
+            mapTileURL = string.Empty;
+            profileURL = string.Empty;
+            openIDURL = string.Empty;
+            searchURL = string.Empty;
 
-            currency = String.Empty;
+            currency = string.Empty;
             ClassifiedFee = "0";
             MaxAgentGroups = Constants.MaxAgentGroups;
         }
@@ -476,13 +487,15 @@ namespace OpenSim.Services.LLLoginService
         {
             try
             {
-                Hashtable responseData = new Hashtable();
+                Hashtable responseData = [];
 
-                loginFlagsHash = new Hashtable();
-                loginFlagsHash["daylight_savings"] = DST;
-                loginFlagsHash["stipend_since_login"] = StipendSinceLogin;
-                loginFlagsHash["gendered"] = Gendered;
-                loginFlagsHash["ever_logged_in"] = EverLoggedIn;
+                loginFlagsHash = new Hashtable
+                {
+                    ["daylight_savings"] = DST,
+                    ["stipend_since_login"] = StipendSinceLogin,
+                    ["gendered"] = Gendered,
+                    ["ever_logged_in"] = EverLoggedIn
+                };
                 loginFlags.Add(loginFlagsHash);
 
                 responseData["first_name"] = Firstname;
@@ -496,16 +509,16 @@ namespace OpenSim.Services.LLLoginService
                 AddToUIConfig("allow_first_life", allowFirstLife);
                 uiConfig.Add(uiConfigHash);
 
-                responseData["sim_port"] = (Int32) SimPort;
+                responseData["sim_port"] = (int) SimPort;
                 responseData["sim_ip"] = SimAddress;
-                responseData["http_port"] = (Int32)SimHttpPort;
+                responseData["http_port"] = (int)SimHttpPort;
 
                 responseData["agent_id"] = AgentID.ToString();
                 responseData["real_id"] = RealID.ToString();
                 responseData["session_id"] = SessionID.ToString();
                 responseData["secure_session_id"] = SecureSessionID.ToString();
                 responseData["circuit_code"] = CircuitCode;
-                responseData["seconds_since_epoch"] = (Int32) (DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
+                responseData["seconds_since_epoch"] = (int) (DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds;
                 responseData["login-flags"] = loginFlags;
                 responseData["global-textures"] = globalTextures;
                 responseData["seed_capability"] = seedCapability;
@@ -531,29 +544,29 @@ namespace OpenSim.Services.LLLoginService
                 responseData["look_at"] = lookAt;
                 responseData["max-agent-groups"] = MaxAgentGroups;
                 responseData["message"] = welcomeMessage;
-                responseData["region_x"] = (Int32)(RegionX);
-                responseData["region_y"] = (Int32)(RegionY);
-                responseData["region_size_x"] = (Int32)RegionSizeX;
-                responseData["region_size_y"] = (Int32)RegionSizeY;
+                responseData["region_x"] = (int)(RegionX);
+                responseData["region_y"] = (int)(RegionY);
+                responseData["region_size_x"] = (int)RegionSizeX;
+                responseData["region_size_y"] = (int)RegionSizeY;
                 m_log.DebugFormat("[LOGIN RESPONSE] returning sizeX={0}, sizeY={1}", RegionSizeX, RegionSizeY);
 
-                if (searchURL != String.Empty)
+                if (searchURL != string.Empty)
                     responseData["search"] = searchURL;
 
-                if (mapTileURL != String.Empty)
+                if (mapTileURL != string.Empty)
                     responseData["map-server-url"] = mapTileURL;
 
-                if (profileURL != String.Empty)
+                if (profileURL != string.Empty)
                     responseData["profile-server-url"] = profileURL;
 
-                if (DestinationsURL != String.Empty)
+                if (DestinationsURL != string.Empty)
                     responseData["destination_guide_url"] = DestinationsURL;
 
-                if (AvatarsURL != String.Empty)
+                if (AvatarsURL != string.Empty)
                     responseData["avatar_picker_url"] = AvatarsURL;
 
                 // We need to send an openid_token back in the response too
-                if (openIDURL != String.Empty)
+                if (openIDURL != string.Empty)
                 {
                     responseData["openid_url"] = openIDURL;
                     responseData["openid_token"] = AgentID.ToString() + ":" + Util.Md5Hash(SecureSessionID.ToString());
@@ -564,13 +577,13 @@ namespace OpenSim.Services.LLLoginService
                     responseData["buddy-list"] = m_buddyList.ToArray();
                 }
 
-                if (currency != String.Empty)
+                if (currency != string.Empty)
                 {
                     // responseData["real_currency"] = currency;
                     responseData["currency"] = currency;
                 }
 
-                if (ClassifiedFee != String.Empty)
+                if (ClassifiedFee != string.Empty)
                     responseData["classified_fee"] = ClassifiedFee;
 
                 responseData["login"] = "true";
@@ -589,40 +602,45 @@ namespace OpenSim.Services.LLLoginService
         {
             try
             {
-                OSDMap map = new OSDMap();
+                OSDMap map = new()
+                {
+                    ["first_name"] = OSD.FromString(Firstname),
+                    ["last_name"] = OSD.FromString(Lastname),
+                    ["agent_access"] = OSD.FromString(agentAccess),
+                    ["agent_access_max"] = OSD.FromString(agentAccessMax),
 
-                map["first_name"] = OSD.FromString(Firstname);
-                map["last_name"] = OSD.FromString(Lastname);
-                map["agent_access"] = OSD.FromString(agentAccess);
-                map["agent_access_max"] = OSD.FromString(agentAccessMax);
+                    ["sim_port"] = OSD.FromInteger(SimPort),
+                    ["sim_ip"] = OSD.FromString(SimAddress),
 
-                map["sim_port"] = OSD.FromInteger(SimPort);
-                map["sim_ip"] = OSD.FromString(SimAddress);
-
-                map["agent_id"] = OSD.FromUUID(AgentID);
-                map["real_id"] = OSD.FromUUID(RealID);
-                map["session_id"] = OSD.FromUUID(SessionID);
-                map["secure_session_id"] = OSD.FromUUID(SecureSessionID);
-                map["circuit_code"] = OSD.FromInteger(CircuitCode);
-                map["seconds_since_epoch"] = OSD.FromInteger((int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds);
+                    ["agent_id"] = OSD.FromUUID(AgentID),
+                    ["real_id"] = OSD.FromUUID(RealID),
+                    ["session_id"] = OSD.FromUUID(SessionID),
+                    ["secure_session_id"] = OSD.FromUUID(SecureSessionID),
+                    ["circuit_code"] = OSD.FromInteger(CircuitCode),
+                    ["seconds_since_epoch"] = OSD.FromInteger((int)(DateTime.UtcNow - new DateTime(1970, 1, 1)).TotalSeconds)
+                };
 
                 #region Login Flags
 
-                OSDMap loginFlagsLLSD = new OSDMap();
-                loginFlagsLLSD["daylight_savings"] = OSD.FromString(DST);
-                loginFlagsLLSD["stipend_since_login"] = OSD.FromString(StipendSinceLogin);
-                loginFlagsLLSD["gendered"] = OSD.FromString(Gendered);
-                loginFlagsLLSD["ever_logged_in"] = OSD.FromString(EverLoggedIn);
+                OSDMap loginFlagsLLSD = new()
+                {
+                    ["daylight_savings"] = OSD.FromString(DST),
+                    ["stipend_since_login"] = OSD.FromString(StipendSinceLogin),
+                    ["gendered"] = OSD.FromString(Gendered),
+                    ["ever_logged_in"] = OSD.FromString(EverLoggedIn)
+                };
                 map["login-flags"] = WrapOSDMap(loginFlagsLLSD);
 
                 #endregion Login Flags
 
                 #region Global Textures
 
-                OSDMap globalTexturesLLSD = new OSDMap();
-                globalTexturesLLSD["sun_texture_id"] = OSD.FromString(SunTexture);
-                globalTexturesLLSD["cloud_texture_id"] = OSD.FromString(CloudTexture);
-                globalTexturesLLSD["moon_texture_id"] = OSD.FromString(MoonTexture);
+                OSDMap globalTexturesLLSD = new()
+                {
+                    ["sun_texture_id"] = OSD.FromString(SunTexture),
+                    ["cloud_texture_id"] = OSD.FromString(CloudTexture),
+                    ["moon_texture_id"] = OSD.FromString(MoonTexture)
+                };
 
                 map["global-textures"] = WrapOSDMap(globalTexturesLLSD);
 
@@ -636,8 +654,10 @@ namespace OpenSim.Services.LLLoginService
 
                 #region UI Config
 
-                OSDMap uiConfigLLSD = new OSDMap();
-                uiConfigLLSD["allow_first_life"] = OSD.FromString(allowFirstLife);
+                OSDMap uiConfigLLSD = new()
+                {
+                    ["allow_first_life"] = OSD.FromString(allowFirstLife)
+                };
                 map["ui-config"] = WrapOSDMap(uiConfigLLSD);
 
                 #endregion UI Config
@@ -666,22 +686,22 @@ namespace OpenSim.Services.LLLoginService
                 map["region_x"] = OSD.FromInteger(RegionX);
                 map["region_y"] = OSD.FromInteger(RegionY);
 
-                if (mapTileURL != String.Empty)
+                if (mapTileURL != string.Empty)
                     map["map-server-url"] = OSD.FromString(mapTileURL);
 
-                if (profileURL != String.Empty)
+                if (profileURL != string.Empty)
                     map["profile-server-url"] = OSD.FromString(profileURL);
 
-                if (openIDURL != String.Empty)
+                if (openIDURL != string.Empty)
                 {
                     map["openid_url"] = OSD.FromString(openIDURL);
                     map["openid_token"] = OSD.FromString(AgentID.ToString() + ":" + Util.Md5Hash(SecureSessionID.ToString()));
                 }
 
-                if (searchURL != String.Empty)
+                if (searchURL != string.Empty)
                     map["search"] = OSD.FromString(searchURL);
 
-                if (ClassifiedFee != String.Empty)
+                if (ClassifiedFee != string.Empty)
                     map["classified_fee"] = OSD.FromString(ClassifiedFee);
 
                 if (m_buddyList != null)
@@ -703,10 +723,10 @@ namespace OpenSim.Services.LLLoginService
 
         public OSDArray ArrayListToOSDArray(ArrayList arrlst)
         {
-            OSDArray llsdBack = new OSDArray();
+            OSDArray llsdBack = [];
             foreach (Hashtable ht in arrlst)
             {
-                OSDMap mp = new OSDMap();
+                OSDMap mp = [];
                 foreach (DictionaryEntry deHt in ht)
                 {
                     mp.Add((string)deHt.Key, OSDString.FromObject(deHt.Value));
@@ -718,8 +738,7 @@ namespace OpenSim.Services.LLLoginService
 
         private static OSDArray WrapOSDMap(OSDMap wrapMe)
         {
-            OSDArray array = new OSDArray();
-            array.Add(wrapMe);
+            OSDArray array = [wrapMe];
             return array;
         }
 
@@ -734,11 +753,13 @@ namespace OpenSim.Services.LLLoginService
             uiConfigHash[itemName] = item;
         }
 
-        public void AddClassifiedCategory(Int32 ID, string categoryName)
+        public void AddClassifiedCategory(int ID, string categoryName)
         {
-            Hashtable hash = new Hashtable();
-            hash["category_name"] = categoryName;
-            hash["category_id"] = ID;
+            Hashtable hash = new()
+            {
+                ["category_name"] = categoryName,
+                ["category_id"] = ID
+            };
             classifiedCategories.Add(hash);
             // this.classifiedCategoriesHash.Clear();
         }
@@ -746,12 +767,12 @@ namespace OpenSim.Services.LLLoginService
 
         private static LLLoginResponse.BuddyList ConvertFriendListItem(FriendInfo[] friendsList)
         {
-            LLLoginResponse.BuddyList buddylistreturn = new LLLoginResponse.BuddyList();
+            LLLoginResponse.BuddyList buddylistreturn = new();
             foreach (FriendInfo finfo in friendsList)
             {
                 if (finfo.TheirFlags == -1)
                     continue;
-                LLLoginResponse.BuddyList.BuddyInfo buddyitem = new LLLoginResponse.BuddyList.BuddyInfo(finfo.Friend);
+                LLLoginResponse.BuddyList.BuddyInfo buddyitem = new(finfo.Friend);
                  if (!Util.ParseUniversalUserIdentifier(finfo.Friend, out UUID friendID))
                     continue; // junk entry
 
@@ -766,7 +787,7 @@ namespace OpenSim.Services.LLLoginService
         private InventoryData GetInventorySkeleton(List<InventoryFolderBase> folders)
         {
             UUID rootID = UUID.Zero;
-            ArrayList AgentInventoryArray = new ArrayList();
+            ArrayList AgentInventoryArray = [];
             Hashtable TempHash;
             foreach (InventoryFolderBase InvFolder in folders)
             {
@@ -774,12 +795,14 @@ namespace OpenSim.Services.LLLoginService
                 {
                     rootID = InvFolder.ID;
                 }
-                TempHash = new Hashtable();
-                TempHash["name"] = InvFolder.Name;
-                TempHash["parent_id"] = InvFolder.ParentID.ToString();
-                TempHash["version"] = (Int32)InvFolder.Version;
-                TempHash["type_default"] = (Int32)InvFolder.Type;
-                TempHash["folder_id"] = InvFolder.ID.ToString();
+                TempHash = new Hashtable
+                {
+                    ["name"] = InvFolder.Name,
+                    ["parent_id"] = InvFolder.ParentID.ToString(),
+                    ["version"] = (int)InvFolder.Version,
+                    ["type_default"] = (int)InvFolder.Type,
+                    ["folder_id"] = InvFolder.ID.ToString()
+                };
                 AgentInventoryArray.Add(TempHash);
             }
 
@@ -796,16 +819,18 @@ namespace OpenSim.Services.LLLoginService
             Dictionary<UUID, InventoryFolderImpl> rootFolders = library.GetAllFolders();
 //            m_log.DebugFormat("[LLOGIN]: Library has {0} folders", rootFolders.Count);
             //Dictionary<UUID, InventoryFolderImpl> rootFolders = new Dictionary<UUID,InventoryFolderImpl>();
-            ArrayList folderHashes = new ArrayList();
+            ArrayList folderHashes = [];
 
             foreach (InventoryFolderBase folder in rootFolders.Values)
             {
-                Hashtable TempHash = new Hashtable();
-                TempHash["name"] = folder.Name;
-                TempHash["parent_id"] = folder.ParentID.ToString();
-                TempHash["version"] = (Int32)folder.Version;
-                TempHash["type_default"] = (Int32)folder.Type;
-                TempHash["folder_id"] = folder.ID.ToString();
+                Hashtable TempHash = new()
+                {
+                    ["name"] = folder.Name,
+                    ["parent_id"] = folder.ParentID.ToString(),
+                    ["version"] = (int)folder.Version,
+                    ["type_default"] = (int)folder.Type,
+                    ["folder_id"] = folder.ID.ToString()
+                };
                 folderHashes.Add(TempHash);
             }
 
@@ -819,10 +844,11 @@ namespace OpenSim.Services.LLLoginService
         protected virtual ArrayList GetLibraryOwner(InventoryFolderImpl libFolder)
         {
             //for now create random inventory library owner
-            Hashtable TempHash = new Hashtable();
-            TempHash["agent_id"] = Constants.m_MrOpenSimID.ToString(); // libFolder.Owner
-            ArrayList inventoryLibOwner = new ArrayList();
-            inventoryLibOwner.Add(TempHash);
+            Hashtable TempHash = new()
+            {
+                ["agent_id"] = Constants.m_MrOpenSimID.ToString() // libFolder.Owner
+            };
+            ArrayList inventoryLibOwner = [TempHash];
             return inventoryLibOwner;
         }
 
@@ -912,7 +938,7 @@ namespace OpenSim.Services.LLLoginService
             set { realID = value; }
         }
 
-        public Int32 CircuitCode
+        public int CircuitCode
         {
             get { return circuitCode; }
             set { circuitCode = value; }
@@ -1124,7 +1150,7 @@ namespace OpenSim.Services.LLLoginService
 
         public class BuddyList
         {
-            public List<BuddyInfo> Buddies = new List<BuddyInfo>();
+            public List<BuddyInfo> Buddies = [];
 
             public void AddNewBuddy(BuddyInfo buddy)
             {
@@ -1136,7 +1162,7 @@ namespace OpenSim.Services.LLLoginService
 
             public ArrayList ToArray()
             {
-                ArrayList buddyArray = new ArrayList();
+                ArrayList buddyArray = [];
                 foreach (BuddyInfo buddy in Buddies)
                 {
                     buddyArray.Add(buddy.ToHashTable());
@@ -1162,10 +1188,12 @@ namespace OpenSim.Services.LLLoginService
 
                 public Hashtable ToHashTable()
                 {
-                    Hashtable hTable = new Hashtable();
-                    hTable["buddy_rights_has"] = BuddyRightsHave;
-                    hTable["buddy_rights_given"] = BuddyRightsGiven;
-                    hTable["buddy_id"] = BuddyID;
+                    Hashtable hTable = new()
+                    {
+                        ["buddy_rights_has"] = BuddyRightsHave,
+                        ["buddy_rights_given"] = BuddyRightsGiven,
+                        ["buddy_id"] = BuddyID
+                    };
                     return hTable;
                 }
             }

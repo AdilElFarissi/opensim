@@ -46,8 +46,8 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
 
         // Configuration
         private static bool m_enabled = false;
-        private static List<String> m_lastNames = new List<String>();
-        private static List<String> m_fullNames = new List<String>();
+        private static List<string> m_lastNames = [];
+        private static List<string> m_fullNames = [];
 
         public void Initialise(IConfigSource config)
         {
@@ -64,8 +64,8 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
 
             m_log.Info("[GODNAMES]: Enabled");
             m_enabled = true;
-            string conf_str = moduleConfig.GetString("FullNames", String.Empty);
-            if (conf_str != String.Empty)
+            string conf_str = moduleConfig.GetString("FullNames", string.Empty);
+            if (conf_str != string.Empty)
             {
                 foreach (string strl in conf_str.Split(',')) {
                     string strlan = strl.Trim(" \t".ToCharArray());
@@ -74,8 +74,8 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
                 }
             }
 
-            conf_str = moduleConfig.GetString("Surnames", String.Empty);
-            if (conf_str != String.Empty)
+            conf_str = moduleConfig.GetString("Surnames", string.Empty);
+            if (conf_str != string.Empty)
             {
                 foreach (string strl in conf_str.Split(',')) {
                     string strlan = strl.Trim(" \t".ToCharArray());
@@ -133,16 +133,10 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
             else
                 features["god_names"] = namesmap;
 
-            OSDArray fnames = new OSDArray();
-            foreach (string name in m_fullNames) {
-                fnames.Add(name);
-            }
+            OSDArray fnames = [.. m_fullNames];
             ((OSDMap)namesmap)["full_names"] = fnames;
 
-            OSDArray lnames = new OSDArray();
-            foreach (string name in m_lastNames) {
-                lnames.Add(name);
-            }
+            OSDArray lnames = [.. m_lastNames];
             ((OSDMap)namesmap)["last_names"] = lnames;
         }
     }

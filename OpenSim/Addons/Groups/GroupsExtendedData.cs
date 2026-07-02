@@ -82,13 +82,15 @@ namespace OpenSim.Groups
 
         public GroupNoticeData ToGroupNoticeData()
         {
-            GroupNoticeData n = new GroupNoticeData();
-            n.FromName = this.FromName;
-            n.AssetType = this.AttachmentType;
-            n.HasAttachment = this.HasAttachment;
-            n.NoticeID = this.NoticeID;
-            n.Subject = this.Subject;
-            n.Timestamp = this.Timestamp;
+            GroupNoticeData n = new()
+            {
+                FromName = this.FromName,
+                AssetType = this.AttachmentType,
+                HasAttachment = this.HasAttachment,
+                NoticeID = this.NoticeID,
+                Subject = this.Subject,
+                Timestamp = this.Timestamp
+            };
 
             return n;
         }
@@ -132,7 +134,7 @@ namespace OpenSim.Groups
             if (dict == null)
                 return null;
 
-            ExtendedGroupRecord grec = new ExtendedGroupRecord();
+            ExtendedGroupRecord grec = new();
             object otmp;
             if (dict.TryGetValue("AllowPublish", out otmp) && otmp != null)
                 grec.AllowPublish = bool.Parse(otmp.ToString());
@@ -223,7 +225,7 @@ namespace OpenSim.Groups
             if (dict == null)
                 return null;
 
-            ExtendedGroupMembershipData membership = new ExtendedGroupMembershipData();
+            ExtendedGroupMembershipData membership = new();
             object otmp;
             if (dict.TryGetValue("AcceptNotices", out otmp) && otmp != null)
                 membership.AcceptNotices = bool.Parse(otmp.ToString());
@@ -292,24 +294,25 @@ namespace OpenSim.Groups
 
         public static Dictionary<string, object> GroupMembersData(ExtendedGroupMembersData member)
         {
-            Dictionary<string, object> dict = new Dictionary<string, object>();
-
-            dict["AcceptNotices"] = member.AcceptNotices.ToString();
-            dict["AccessToken"] = Sanitize(member.AccessToken);
-            dict["AgentID"] = Sanitize(member.AgentID);
-            dict["AgentPowers"] = member.AgentPowers.ToString();
-            dict["Contribution"] = member.Contribution.ToString();
-            dict["IsOwner"] = member.IsOwner.ToString();
-            dict["ListInProfile"] = member.ListInProfile.ToString();
-            dict["OnlineStatus"] = Sanitize(member.OnlineStatus);
-            dict["Title"] = Sanitize(member.Title);
+            Dictionary<string, object> dict = new()
+            {
+                ["AcceptNotices"] = member.AcceptNotices.ToString(),
+                ["AccessToken"] = Sanitize(member.AccessToken),
+                ["AgentID"] = Sanitize(member.AgentID),
+                ["AgentPowers"] = member.AgentPowers.ToString(),
+                ["Contribution"] = member.Contribution.ToString(),
+                ["IsOwner"] = member.IsOwner.ToString(),
+                ["ListInProfile"] = member.ListInProfile.ToString(),
+                ["OnlineStatus"] = Sanitize(member.OnlineStatus),
+                ["Title"] = Sanitize(member.Title)
+            };
 
             return dict;
         }
 
         public static ExtendedGroupMembersData GroupMembersData(Dictionary<string, object> dict)
         {
-            ExtendedGroupMembersData member = new ExtendedGroupMembersData();
+            ExtendedGroupMembersData member = new();
 
             if (dict == null)
                 return member;
@@ -355,21 +358,22 @@ namespace OpenSim.Groups
 
         public static Dictionary<string, object> GroupRolesData(GroupRolesData role)
         {
-            Dictionary<string, object> dict = new Dictionary<string, object>();
-
-            dict["Description"] = Sanitize(role.Description);
-            dict["Members"] = role.Members.ToString();
-            dict["Name"] = Sanitize(role.Name);
-            dict["Powers"] = role.Powers.ToString();
-            dict["RoleID"] = role.RoleID.ToString();
-            dict["Title"] = Sanitize(role.Title);
+            Dictionary<string, object> dict = new()
+            {
+                ["Description"] = Sanitize(role.Description),
+                ["Members"] = role.Members.ToString(),
+                ["Name"] = Sanitize(role.Name),
+                ["Powers"] = role.Powers.ToString(),
+                ["RoleID"] = role.RoleID.ToString(),
+                ["Title"] = Sanitize(role.Title)
+            };
 
             return dict;
         }
 
         public static GroupRolesData GroupRolesData(Dictionary<string, object> dict)
         {
-            GroupRolesData role = new GroupRolesData();
+            GroupRolesData role = new();
 
             if (dict == null)
                 return role;
@@ -413,7 +417,7 @@ namespace OpenSim.Groups
 
         public static ExtendedGroupRoleMembersData GroupRoleMembersData(Dictionary<string, object> dict)
         {
-            ExtendedGroupRoleMembersData rmember = new ExtendedGroupRoleMembersData();
+            ExtendedGroupRoleMembersData rmember = new();
 
             object value;
             if (dict.TryGetValue("RoleID", out value) && value != null)

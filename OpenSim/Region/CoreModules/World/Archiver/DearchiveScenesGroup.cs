@@ -84,17 +84,17 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <summary>
         /// Whether this archive uses the multi-region format.
         /// </summary>
-        public Boolean MultiRegionFormat { get; set; }
+        public bool MultiRegionFormat { get; set; }
 
         /// <summary>
         /// Maps (Region directory -> region)
         /// </summary>
-        protected Dictionary<string, RegionInfo> m_directory2region = new Dictionary<string, RegionInfo>();
+        protected Dictionary<string, RegionInfo> m_directory2region = [];
 
         /// <summary>
         /// Maps (UUID of the scene in the simulator where the region will be loaded -> region)
         /// </summary>
-        protected Dictionary<UUID, RegionInfo> m_newId2region = new Dictionary<UUID, RegionInfo>();
+        protected Dictionary<UUID, RegionInfo> m_newId2region = [];
 
         public int LoadedCreationDateTime { get; set; }
         public string DefaultOriginalID { get; set; }
@@ -165,7 +165,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         {
             foreach (RegionInfo archivedRegion in m_directory2region.Values)
             {
-                Point location = new Point((int)rootScene.RegionInfo.RegionLocX,
+                Point location = new((int)rootScene.RegionInfo.RegionLocX,
                             (int)rootScene.RegionInfo.RegionLocY);
 
                 location.Offset(archivedRegion.Location);
@@ -208,7 +208,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             if (!fullPath.StartsWith(ArchiveConstants.REGIONS_PATH))
                 return true;    // this file doesn't belong to a region
 
-            string[] parts = fullPath.Split(new Char[] { '/' }, 3);
+            string[] parts = fullPath.Split(new char[] { '/' }, 3);
             if (parts.Length != 3)
                 return false;
             string regionDirectory = parts[1];

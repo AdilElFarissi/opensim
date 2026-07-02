@@ -59,15 +59,17 @@ namespace OpenSim.Region.UserStatistics
         public string RenderJson(Hashtable pModelResult) {
             stats_default_page_values values = (stats_default_page_values) pModelResult["hdata"];
 
-            OSDMap summaryInfo = new OpenMetaverse.StructuredData.OSDMap();
-            summaryInfo.Add("totalUsers", new OSDString(values.total_num_users.ToString()));
-            summaryInfo.Add("totalSessions", new OSDString(values.total_num_sessions.ToString()));
-            summaryInfo.Add("averageClientFPS", new OSDString(values.avg_client_fps.ToString()));
-            summaryInfo.Add("averageClientMem", new OSDString(values.avg_client_mem_use.ToString()));
-            summaryInfo.Add("averageSimFPS", new OSDString(values.avg_sim_fps.ToString()));
-            summaryInfo.Add("averagePingTime", new OSDString(values.avg_ping.ToString()));
-            summaryInfo.Add("totalKBOut", new OSDString(values.total_kb_out.ToString()));
-            summaryInfo.Add("totalKBIn", new OSDString(values.total_kb_in.ToString()));
+            OSDMap summaryInfo = new()
+            {
+                { "totalUsers", new OSDString(values.total_num_users.ToString()) },
+                { "totalSessions", new OSDString(values.total_num_sessions.ToString()) },
+                { "averageClientFPS", new OSDString(values.avg_client_fps.ToString()) },
+                { "averageClientMem", new OSDString(values.avg_client_mem_use.ToString()) },
+                { "averageSimFPS", new OSDString(values.avg_sim_fps.ToString()) },
+                { "averagePingTime", new OSDString(values.avg_ping.ToString()) },
+                { "totalKBOut", new OSDString(values.total_kb_out.ToString()) },
+                { "totalKBIn", new OSDString(values.total_kb_in.ToString()) }
+            };
             return summaryInfo.ToString();
         }
 
@@ -76,13 +78,15 @@ namespace OpenSim.Region.UserStatistics
             SQLiteConnection dbConn = (SQLiteConnection)pParams["DatabaseConnection"];
 
 
-            List<ClientVersionData> clidata = new List<ClientVersionData>();
-            List<ClientVersionData> cliRegData = new List<ClientVersionData>();
-            Hashtable regionTotals = new Hashtable();
+            List<ClientVersionData> clidata = [];
+            List<ClientVersionData> cliRegData = [];
+            Hashtable regionTotals = [];
 
-            Hashtable modeldata = new Hashtable();
-            modeldata.Add("Scenes", pParams["Scenes"]);
-            modeldata.Add("Reports", pParams["Reports"]);
+            Hashtable modeldata = new()
+            {
+                { "Scenes", pParams["Scenes"] },
+                { "Reports", pParams["Reports"] }
+            };
             int totalclients = 0;
             int totalregions = 0;
 
@@ -90,7 +94,7 @@ namespace OpenSim.Region.UserStatistics
             {
                 string sql = "select count(distinct region_id) as regcnt from stats_session_data";
 
-                SQLiteCommand cmd = new SQLiteCommand(sql, dbConn);
+                SQLiteCommand cmd = new(sql, dbConn);
                 SQLiteDataReader sdr = cmd.ExecuteReader();
                 if (sdr.HasRows)
                 {
@@ -109,10 +113,12 @@ namespace OpenSim.Region.UserStatistics
                 {
                     while (sdr.Read())
                     {
-                        ClientVersionData udata = new ClientVersionData();
-                        udata.version = sdr["client_version"].ToString();
-                        udata.count = Convert.ToInt32(sdr["cnt"]);
-                        udata.fps = Convert.ToSingle(sdr["simfps"]);
+                        ClientVersionData udata = new()
+                        {
+                            version = sdr["client_version"].ToString(),
+                            count = Convert.ToInt32(sdr["cnt"]),
+                            fps = Convert.ToSingle(sdr["simfps"])
+                        };
                         clidata.Add(udata);
                         totalclients += udata.count;
 
@@ -133,11 +139,13 @@ namespace OpenSim.Region.UserStatistics
                     {
                         while (sdr.Read())
                         {
-                            ClientVersionData udata = new ClientVersionData();
-                            udata.version = sdr["client_version"].ToString();
-                            udata.count = Convert.ToInt32(sdr["cnt"]);
-                            udata.fps = Convert.ToSingle(sdr["simfps"]);
-                            udata.region_id = UUID.Parse(sdr["region_id"].ToString());
+                            ClientVersionData udata = new()
+                            {
+                                version = sdr["client_version"].ToString(),
+                                count = Convert.ToInt32(sdr["cnt"]),
+                                fps = Convert.ToSingle(sdr["simfps"]),
+                                region_id = UUID.Parse(sdr["region_id"].ToString())
+                            };
                             cliRegData.Add(udata);
                         }
                     }
@@ -195,7 +203,7 @@ TD.align_top { vertical-align: top; }
 </STYLE>
 ";
 
-            StringBuilder output = new StringBuilder();
+            StringBuilder output = new();
             HTMLUtil.HtmlHeaders_O(ref output);
             output.Append(STYLESHEET);
             HTMLUtil.HtmlHeaders_C(ref output);

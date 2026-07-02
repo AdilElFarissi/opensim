@@ -70,15 +70,15 @@ namespace OpenSim.Framework
     {
         private const int max_loadable_plugins = 10000;
 
-        private List<T> loaded = new List<T>();
-        private List<string> extpoints = new List<string>();
+        private List<T> loaded = [];
+        private List<string> extpoints = [];
         private PluginInitialiserBase initialiser;
 
         private Dictionary<string,IPluginConstraint> constraints
-            = new Dictionary<string,IPluginConstraint>();
+            = [];
 
         private Dictionary<string,IPluginFilter> filters
-            = new Dictionary<string,IPluginFilter>();
+            = [];
 
         private static readonly ILog log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -167,7 +167,7 @@ namespace OpenSim.Framework
 
                 filters.TryGetValue(ext, out IPluginFilter filter);
 
-                List<T> loadedPlugins = new List<T>();
+                List<T> loadedPlugins = [];
                 foreach (PluginExtensionNode node in AddinManager.GetExtensionNodes(ext))
                 {
                     log.Info("[PLUGINS]: Trying plugin " + node.Path);

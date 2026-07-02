@@ -131,7 +131,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
 
         public CollisionEventUpdate()
         {
-            m_objCollisionList = new Dictionary<uint, ContactPoint>();
+            m_objCollisionList = [];
         }
 
         public void AddCollider(uint localID, ContactPoint contact)

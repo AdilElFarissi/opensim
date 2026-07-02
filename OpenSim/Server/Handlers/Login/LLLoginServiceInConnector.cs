@@ -46,7 +46,7 @@ namespace OpenSim.Server.Handlers.Login
         private BasicDosProtectorOptions m_DosProtectionOptions;
 
         public LLLoginServiceInConnector(IConfigSource config, IHttpServer server, IScene scene) :
-                base(config, server, String.Empty)
+                base(config, server, string.Empty)
         {
             m_log.Debug("[LLLOGIN IN CONNECTOR]: Starting...");
             string loginService = ReadLocalServiceFromConfig(config);
@@ -54,7 +54,7 @@ namespace OpenSim.Server.Handlers.Login
             ISimulationService simService = scene.RequestModuleInterface<ISimulationService>();
             ILibraryService libService = scene.RequestModuleInterface<ILibraryService>();
 
-            Object[] args = new Object[] { config, simService, libService };
+            object[] args = new object[] { config, simService, libService };
             m_LoginService = ServerUtils.LoadPlugin<ILoginService>(loginService, args);
 
             InitializeHandlers(server);
@@ -65,7 +65,7 @@ namespace OpenSim.Server.Handlers.Login
         {
             string loginService = ReadLocalServiceFromConfig(config);
 
-            Object[] args = new Object[] { config };
+            object[] args = new object[] { config };
 
             m_LoginService = ServerUtils.LoadPlugin<ILoginService>(loginService, args);
 
@@ -73,7 +73,7 @@ namespace OpenSim.Server.Handlers.Login
         }
 
         public LLLoginServiceInConnector(IConfigSource config, IHttpServer server) :
-            this(config, server, String.Empty)
+            this(config, server, string.Empty)
         {
         }
 
@@ -81,22 +81,24 @@ namespace OpenSim.Server.Handlers.Login
         {
             IConfig serverConfig = config.Configs["LoginService"];
             if (serverConfig == null)
-                throw new Exception(String.Format("No section LoginService in config file"));
+                throw new Exception(string.Format("No section LoginService in config file"));
 
-            string loginService = serverConfig.GetString("LocalServiceModule", String.Empty);
+            string loginService = serverConfig.GetString("LocalServiceModule", string.Empty);
             if (loginService.Length == 0)
-                throw new Exception(String.Format("No LocalServiceModule for LoginService in config file"));
+                throw new Exception(string.Format("No LocalServiceModule for LoginService in config file"));
 
             m_Proxy = serverConfig.GetBoolean("HasProxy", false);
-            m_DosProtectionOptions = new BasicDosProtectorOptions();
-            // Dos Protection Options
-            m_DosProtectionOptions.AllowXForwardedFor = serverConfig.GetBoolean("DOSAllowXForwardedForHeader", false);
-            m_DosProtectionOptions.RequestTimeSpan =
-                TimeSpan.FromMilliseconds(serverConfig.GetInt("DOSRequestTimeFrameMS", 10000));
-            m_DosProtectionOptions.MaxRequestsInTimeframe = serverConfig.GetInt("DOSMaxRequestsInTimeFrame", 5);
-            m_DosProtectionOptions.ForgetTimeSpan =
-                TimeSpan.FromMilliseconds(serverConfig.GetInt("DOSForgiveClientAfterMS", 120000));
-            m_DosProtectionOptions.ReportingName = "LOGINDOSPROTECTION";
+            m_DosProtectionOptions = new BasicDosProtectorOptions
+            {
+                // Dos Protection Options
+                AllowXForwardedFor = serverConfig.GetBoolean("DOSAllowXForwardedForHeader", false),
+                RequestTimeSpan =
+                    TimeSpan.FromMilliseconds(serverConfig.GetInt("DOSRequestTimeFrameMS", 10000)),
+                MaxRequestsInTimeframe = serverConfig.GetInt("DOSMaxRequestsInTimeFrame", 5),
+                ForgetTimeSpan =
+                    TimeSpan.FromMilliseconds(serverConfig.GetInt("DOSForgiveClientAfterMS", 120000)),
+                ReportingName = "LOGINDOSPROTECTION"
+            };
 
 
             return loginService;
@@ -104,7 +106,7 @@ namespace OpenSim.Server.Handlers.Login
 
         private void InitializeHandlers(IHttpServer server)
         {
-            LLLoginHandlers loginHandlers = new LLLoginHandlers(m_LoginService, m_Proxy);
+            LLLoginHandlers loginHandlers = new(m_LoginService, m_Proxy);
 //            server.AddXmlRPCHandler("login_to_simulator",
 //                new XmlRpcBasicDOSProtector(loginHandlers.HandleXMLRPCLogin, loginHandlers.HandleXMLRPCLoginBlocked,
 //                    m_DosProtectionOptions).Process, false);

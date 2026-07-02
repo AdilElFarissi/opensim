@@ -32,9 +32,9 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 {
     public class float3x3
     {
-        public float3 x = new float3();
-        public float3 y = new float3();
-        public float3 z = new float3();
+        public float3 x = new();
+        public float3 y = new();
+        public float3 z = new();
 
         public float3x3()
         {
@@ -172,7 +172,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 
         public static float3x3 Inverse(float3x3 a)
         {
-            float3x3 b = new float3x3();
+            float3x3 b = new();
             float d = Determinant(a);
             Debug.Assert(d != 0);
             for (int i = 0; i < 3; i++)

@@ -79,7 +79,7 @@ namespace OpenSim.Server.Handlers.Authentication
                 {
                 case "plain":
                     string body;
-                    using(StreamReader sr = new StreamReader(request))
+                    using(StreamReader sr = new(request))
                         body = sr.ReadToEnd();
                     return DoPlainMethods(body);
 
@@ -131,7 +131,7 @@ namespace OpenSim.Server.Handlers.Authentication
 
                     token = m_AuthenticationService.Authenticate(principalID, request["PASSWORD"].ToString(), lifetime);
 
-                    if (token != String.Empty)
+                    if (token != string.Empty)
                         return SuccessResult(token);
                     return FailureResult();
 
@@ -188,7 +188,7 @@ namespace OpenSim.Server.Handlers.Authentication
 
         private byte[] SuccessResult()
         {
-            XmlDocument doc = new XmlDocument();
+            XmlDocument doc = new();
 
             XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
                     "", "");
@@ -214,8 +214,10 @@ namespace OpenSim.Server.Handlers.Authentication
 
             if (info != null)
             {
-                Dictionary<string, object> result = new Dictionary<string, object>();
-                result["result"] = info.ToKeyValuePairs();
+                Dictionary<string, object> result = new()
+                {
+                    ["result"] = info.ToKeyValuePairs()
+                };
 
                 return ResultToBytes(result);
             }
@@ -258,7 +260,7 @@ namespace OpenSim.Server.Handlers.Authentication
 
         private byte[] FailureResult()
         {
-            XmlDocument doc = new XmlDocument();
+            XmlDocument doc = new();
 
             XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
                     "", "");
@@ -280,7 +282,7 @@ namespace OpenSim.Server.Handlers.Authentication
 
         private byte[] SuccessResult(string token)
         {
-            XmlDocument doc = new XmlDocument();
+            XmlDocument doc = new();
 
             XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
                     "", "");

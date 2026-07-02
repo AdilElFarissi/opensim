@@ -47,8 +47,8 @@ namespace OpenSim.Region.PhysicsModule.BasicPhysics
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "BasicPhysicsScene")]
     public class BasicScene : PhysicsScene, INonSharedRegionModule
     {
-        private List<BasicActor> _actors = new List<BasicActor>();
-        private List<BasicPhysicsPrim> _prims = new List<BasicPhysicsPrim>();
+        private List<BasicActor> _actors = [];
+        private List<BasicPhysicsPrim> _prims = [];
         private float[] _heightMap;
         private Vector3 m_regionExtent;
 
@@ -123,8 +123,10 @@ namespace OpenSim.Region.PhysicsModule.BasicPhysics
         public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
                                                   Vector3 size, Quaternion rotation, bool isPhysical, uint localid)
         {
-            BasicPhysicsPrim prim = new BasicPhysicsPrim(primName, localid, position, size, rotation, pbs);
-            prim.IsPhysical = isPhysical;
+            BasicPhysicsPrim prim = new(primName, localid, position, size, rotation, pbs)
+            {
+                IsPhysical = isPhysical
+            };
 
             _prims.Add(prim);
 
@@ -133,10 +135,12 @@ namespace OpenSim.Region.PhysicsModule.BasicPhysics
 
         public override PhysicsActor AddAvatar(string avName, Vector3 position, Vector3 velocity, Vector3 size, bool isFlying)
         {
-            BasicActor act = new BasicActor(size);
-            act.Position = position;
-            act.Velocity = velocity;
-            act.Flying = isFlying;
+            BasicActor act = new(size)
+            {
+                Position = position,
+                Velocity = velocity,
+                Flying = isFlying
+            };
             _actors.Add(act);
             return act;
         }
@@ -240,7 +244,7 @@ namespace OpenSim.Region.PhysicsModule.BasicPhysics
 
         public override Dictionary<uint, float> GetTopColliders()
         {
-            Dictionary<uint, float> returncolliders = new Dictionary<uint, float>();
+            Dictionary<uint, float> returncolliders = [];
             return returncolliders;
         }
 

@@ -64,20 +64,20 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         public BSShapeCollection Shapes;
 
         // Keeping track of the objects with collisions so we can report begin and end of a collision
-        public HashSet<BSPhysObject> ObjectsWithCollisions = new HashSet<BSPhysObject>();
-        public HashSet<BSPhysObject> ObjectsWithNoMoreCollisions = new HashSet<BSPhysObject>();
+        public HashSet<BSPhysObject> ObjectsWithCollisions = [];
+        public HashSet<BSPhysObject> ObjectsWithNoMoreCollisions = [];
 
         // All the collision processing is protected with this lock object
-        public Object CollisionLock = new Object();
+        public object CollisionLock = new();
 
         // Properties are updated here
-        public Object UpdateLock = new Object();
-        public HashSet<BSPhysObject> ObjectsWithUpdates = new HashSet<BSPhysObject>();
+        public object UpdateLock = new();
+        public HashSet<BSPhysObject> ObjectsWithUpdates = [];
 
         // Keep track of all the avatars so we can send them a collision event
         //    every tick so OpenSim will update its animation.
-        private HashSet<BSPhysObject> AvatarsInScene = new HashSet<BSPhysObject>();
-        private Object AvatarsInSceneLock = new Object();
+        private HashSet<BSPhysObject> AvatarsInScene = [];
+        private object AvatarsInSceneLock = new();
 
         // let my minuions use my logger
         public ILog Logger { get { return m_log; } }
@@ -121,7 +121,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         private bool m_initialized = false;
 
         // Object locked whenever execution is inside the physics engine
-        public Object PhysicsEngineLock = new object();
+        public object PhysicsEngineLock = new();
         // Flag that is true when the simulator is active and shouldn't be touched
         public bool InSimulationTime { get; private set; }
 
@@ -165,8 +165,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         public delegate void TaintCallback();
         private struct TaintCallbackEntry
         {
-            public String originator;
-            public String ident;
+            public string originator;
+            public string ident;
             public TaintCallback callback;
             public TaintCallbackEntry(string pIdent, TaintCallback pCallBack)
             {
@@ -181,7 +181,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 callback = pCallBack;
             }
         }
-        private Object _taintLock = new Object();   // lock for using the next object
+        private object _taintLock = new();   // lock for using the next object
         private List<TaintCallbackEntry> _taintOperations;
         private Dictionary<string, TaintCallbackEntry> _postTaintOperations;
         private List<TaintCallbackEntry> _postStepOperations;
@@ -250,7 +250,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             PhysicsSceneName = Name + "/" + RegionName;
 
             scene.RegisterModuleInterface<PhysicsScene>(this);
-            Vector3 extent = new Vector3(scene.RegionInfo.RegionSizeX, scene.RegionInfo.RegionSizeY, scene.RegionInfo.RegionSizeZ);
+            Vector3 extent = new(scene.RegionInfo.RegionSizeX, scene.RegionInfo.RegionSizeY, scene.RegionInfo.RegionSizeZ);
             Initialise(m_Config, extent);
 
             base.Initialise(scene.PhysicsRequestAsset,
@@ -291,10 +291,10 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
         private void Initialise(IConfigSource config, Vector3 regionExtent)
         {
-            _taintOperations = new List<TaintCallbackEntry>();
-            _postTaintOperations = new Dictionary<string, TaintCallbackEntry>();
-            _postStepOperations = new List<TaintCallbackEntry>();
-            PhysObjects = new Dictionary<uint, BSPhysObject>();
+            _taintOperations = [];
+            _postTaintOperations = [];
+            _postStepOperations = [];
+            PhysObjects = [];
             Shapes = new BSShapeCollection(this);
 
             m_simulatedTime = 0f;
@@ -322,8 +322,10 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             //     can be left in and every call doesn't have to check for null.
             if (m_physicsLoggingEnabled)
             {
-                PhysicsLogging = new LogWriter(m_physicsLoggingDir, m_physicsLoggingPrefix, m_physicsLoggingFileMinutes, m_physicsLoggingDoFlush);
-                PhysicsLogging.ErrorLogger = m_log; // for DEBUG. Let's the logger output its own error messages.
+                PhysicsLogging = new LogWriter(m_physicsLoggingDir, m_physicsLoggingPrefix, m_physicsLoggingFileMinutes, m_physicsLoggingDoFlush)
+                {
+                    ErrorLogger = m_log // for DEBUG. Let's the logger output its own error messages.
+                };
             }
             else
             {
@@ -367,7 +369,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         // variable definitions.
         private void GetInitialParameterValues(IConfigSource config)
         {
-            ConfigurationParameters parms = new ConfigurationParameters();
+            ConfigurationParameters parms = new();
             UnmanagedParams[0] = parms;
 
             BSParam.SetParameterDefaultValues(this);
@@ -537,7 +539,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
             if (!m_initialized) return null;
 
-            BSCharacter actor = new BSCharacter(localID, avName, this, position, Vector3.Zero, size, footOffset, isFlying);
+            BSCharacter actor = new(localID, avName, this, position, Vector3.Zero, size, footOffset, isFlying);
             lock (PhysObjects)
                 PhysObjects.Add(localID, actor);
 
@@ -817,7 +819,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 HashSet<BSPhysObject> tempAvatarsInScene;
                 lock (AvatarsInSceneLock)
                 {
-                    tempAvatarsInScene = new HashSet<BSPhysObject>(AvatarsInScene);
+                    tempAvatarsInScene = [.. AvatarsInScene];
                 }
                 foreach (BSPhysObject actor in tempAvatarsInScene)
                 {
@@ -846,7 +848,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 if (ObjectsWithUpdates.Count > 0)
                 {
                     updatedObjects = ObjectsWithUpdates;
-                    ObjectsWithUpdates = new HashSet<BSPhysObject>();
+                    ObjectsWithUpdates = [];
                 }
             }
             if (updatedObjects != null)
@@ -1025,7 +1027,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 }
                 else
                 {
-                    retMethod(new List<ContactResult>());
+                    retMethod([]);
                 }
             }
         }
@@ -1037,7 +1039,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
         public override object RaycastWorld(Vector3 position, Vector3 direction, float length, int count, RayFilterFlags filter)
         {
-            List<ContactResult> ret = new List<ContactResult>();
+            List<ContactResult> ret = [];
             if (BSParam.UseBulletRaycast)
             {
                 uint collisionFilter = 0;
@@ -1086,11 +1088,13 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                     RaycastHit hitInfo = PE.RayTest2(World, posFrom, posTo, collisionFilter, collisionMask);
                     if (hitInfo.hasHit())
                     {
-                        ContactResult result = new ContactResult();
-                        result.Pos = hitInfo.Point;
-                        result.Normal = hitInfo.Normal;
-                        result.ConsumerID = hitInfo.ID;
-                        result.Depth = hitInfo.Fraction;
+                        ContactResult result = new()
+                        {
+                            Pos = hitInfo.Point,
+                            Normal = hitInfo.Normal,
+                            ConsumerID = hitInfo.ID,
+                            Depth = hitInfo.Fraction
+                        };
                         ret.Add(result);
                         DetailLog("{0},RaycastWorld,hit,pos={1},norm={2},depth={3},id={4}",
                             DetailLogZero, result.Pos, result.Normal, result.Depth, result.ConsumerID);
@@ -1114,7 +1118,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                     kvp.Value.ComputeCollisionScore();
                 }
 
-                List<BSPhysObject> orderedPrims = new List<BSPhysObject>(PhysObjects.Values);
+                List<BSPhysObject> orderedPrims = [.. PhysObjects.Values];
                 orderedPrims.OrderByDescending(p => p.CollisionScore);
                 topColliders = orderedPrims.Take(25).ToDictionary(p => p.LocalID, p => p.CollisionScore);
             }
@@ -1147,7 +1151,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             if (profileHollow > 0.95f)
                 profileHollow = 0.95f;
 
-            StringBuilder buff = new StringBuilder();
+            StringBuilder buff = new();
             buff.Append("shape=");
             buff.Append(((ProfileShape)pbs.ProfileShape).ToString());
             buff.Append(",");
@@ -1219,11 +1223,11 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         //     TaintedObject(BSScene.DetailLogZero, pIdent, pCallback);
         // }
         // NOTE: 'inTaintTime' is no longer used. This entry exists so all the calls don't have to be changed.
-        public void TaintedObject(bool inTaintTime, uint pOriginator, String pIdent, TaintCallback pCallback)
+        public void TaintedObject(bool inTaintTime, uint pOriginator, string pIdent, TaintCallback pCallback)
         {
             TaintedObject(m_physicsLoggingEnabled ? pOriginator.ToString() : BSScene.DetailLogZero, pIdent, pCallback);
         }
-        public void TaintedObject(uint pOriginator, String pIdent, TaintCallback pCallback)
+        public void TaintedObject(uint pOriginator, string pIdent, TaintCallback pCallback)
         {
             TaintedObject(m_physicsLoggingEnabled ? pOriginator.ToString() : BSScene.DetailLogZero, pIdent, pCallback);
         }
@@ -1293,7 +1297,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 lock (_taintLock)
                 {
                     oldList = _taintOperations;
-                    _taintOperations = new List<TaintCallbackEntry>();
+                    _taintOperations = [];
                 }
 
                 foreach (TaintCallbackEntry tcbe in oldList)
@@ -1317,7 +1321,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         // Schedule an update to happen after all the regular taints are processed.
         // Note that new requests for the same operation ("ident") for the same object ("ID")
         //     will replace any previous operation by the same object.
-        public void PostTaintObject(String ident, uint ID, TaintCallback callback)
+        public void PostTaintObject(string ident, uint ID, TaintCallback callback)
         {
             string IDAsString = ID.ToString();
             string uniqueIdent = ident + "-" + IDAsString;
@@ -1341,7 +1345,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 lock (_taintLock)
                 {
                     oldList = _postTaintOperations;
-                    _postTaintOperations = new Dictionary<string, TaintCallbackEntry>();
+                    _postTaintOperations = [];
                 }
 
                 foreach (KeyValuePair<string,TaintCallbackEntry> kvp in oldList)
@@ -1394,7 +1398,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                     // If the local ID is APPLY_TO_NONE, just change the default value
                     // If the localID is APPLY_TO_ALL change the default value and apply the new value to all the lIDs
                     // If the localID is a specific object, apply the parameter change to only that object
-                    List<uint> objectIDs = new List<uint>();
+                    List<uint> objectIDs = [];
                     switch (localID)
                     {
                         case PhysParameterEntry.APPLY_TO_NONE:
@@ -1403,7 +1407,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                             TaintedUpdateParameter(parm, objectIDs, val);
                             break;
                         case PhysParameterEntry.APPLY_TO_ALL:
-                            lock (PhysObjects) objectIDs = new List<uint>(PhysObjects.Keys);
+                            lock (PhysObjects) objectIDs = [.. PhysObjects.Keys];
                             TaintedUpdateParameter(parm, objectIDs, val);
                             break;
                         default:
@@ -1446,7 +1450,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         // Return 'false' if not able to get the parameter.
         public bool GetPhysicsParameter(string parm, out string value)
         {
-            string val = String.Empty;
+            string val = string.Empty;
             bool ret = false;
             BSParam.ParameterDefnBase theParam;
             if (BSParam.TryGetParameter(parm, out theParam))
@@ -1461,7 +1465,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         #endregion IPhysicsParameters
 
         // Invoke the detailed logger and output something if it's enabled.
-        public void DetailLog(string msg, params Object[] args)
+        public void DetailLog(string msg, params object[] args)
         {
             PhysicsLogging.Write(msg, args);
         }

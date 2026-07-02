@@ -54,7 +54,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "Warp3DImageModule")]
     public class Warp3DImageModule : IMapImageGenerator, INonSharedRegionModule
     {
-        private static readonly Color4 WATER_COLOR = new Color4(29, 72, 96, 216);
+        private static readonly Color4 WATER_COLOR = new(29, 72, 96, 216);
 //        private static readonly Color4 WATER_COLOR = new Color4(29, 72, 96, 128);
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -234,10 +234,10 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
         private Bitmap GenImage()
         {
-            m_colors= new Dictionary<UUID, int>();
-            m_warpTextures= new Dictionary<UUID, warp_Texture>();
+            m_colors= [];
+            m_warpTextures= [];
 
-            WarpRenderer renderer = new WarpRenderer();
+            WarpRenderer renderer = new();
 
             if (!renderer.CreateScene(viewWidth, viewHeight))
                 return new Bitmap(viewWidth, viewHeight);
@@ -313,7 +313,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                                                        waterHeight,
                                                        m_scene.RegionInfo.RegionSizeY * 0.5f);
 
-            warp_Material waterMaterial = new warp_Material(ConvertColor(WATER_COLOR));
+            warp_Material waterMaterial = new(ConvertColor(WATER_COLOR));
             renderer.Scene.addMaterial("WaterMat", waterMaterial);
             renderer.SetObjectMaterial("Water", "WaterMat");
         }
@@ -352,7 +352,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             npointsy++;
 
             // Create all the vertices for the terrain
-            warp_Object obj = new warp_Object();
+            warp_Object obj = new();
             float x, y;
             float tv;
             for (y = 0; y < regionsy; y += diff)
@@ -417,7 +417,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                         twidth, twidth))
                     texture = new warp_Texture(image);
 
-            warp_Material material = new warp_Material(texture);
+            warp_Material material = new(texture);
             obj.setMaterial(material);
             renderer.Scene.addMaterial("TerrainMat", material);
         }
@@ -470,7 +470,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             tv *= 2f;
         }
 
-        private static readonly UUID InvPrimMagicTexture = new UUID("e97cf410-8e61-7005-ec06-629eba4cd1fb");
+        private static readonly UUID InvPrimMagicTexture = new("e97cf410-8e61-7005-ec06-629eba4cd1fb");
         private void CreatePrim(WarpRenderer renderer, SceneObjectPart prim)
         {
             if ((PCode)prim.Shape.PCode != PCode.Prim)
@@ -573,7 +573,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                 else
                     faceMaterial = GetOrCreateMaterial(renderer, faceColor);
 
-                warp_Object faceObj = new warp_Object();
+                warp_Object faceObj = new();
                 faceObj.setMaterial(faceMaterial);
 
                 Face face = renderMesh.Faces[i];
@@ -583,7 +583,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                     for (int j = 0; j < face.Vertices.Count; j++)
                     {
                         warp_Vector pos = ConvertVector(face.Vertices[j].Position);
-                        warp_Vertex vert = new warp_Vertex(pos, face.Vertices[j].TexCoord.X, face.Vertices[j].TexCoord.Y);
+                        warp_Vertex vert = new(pos, face.Vertices[j].TexCoord.X, face.Vertices[j].TexCoord.Y);
                         faceObj.addVertex(vert);
                     }
                 }
@@ -682,7 +682,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                         int width, height;
                         ctmp = GetAverageColor(textureAsset.FullID, textureAsset.Data, out width, out height);
 
-                        OSDMap data = new OSDMap { { "X-RGBA", OSD.FromColor4(ctmp) } };
+                        OSDMap data = new() { { "X-RGBA", OSD.FromColor4(ctmp) } };
                         metadata = new AssetBase
                         {
                             Data = System.Text.Encoding.UTF8.GetBytes(OSDParser.SerializeJsonString(data)),
@@ -692,7 +692,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                             ID = cacheName,
                             Local = true,
                             Temporary = true,
-                            Name = String.Empty,
+                            Name = string.Empty,
                             Type = (sbyte)AssetType.Unknown
                         };
                         m_scene.AssetService.Store(metadata);

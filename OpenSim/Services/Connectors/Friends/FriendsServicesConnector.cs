@@ -45,7 +45,7 @@ namespace OpenSim.Services.Connectors.Friends
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
-        private string m_ServerURI = String.Empty;
+        private string m_ServerURI = string.Empty;
 
         public FriendsServicesConnector()
         {
@@ -71,7 +71,7 @@ namespace OpenSim.Services.Connectors.Friends
             }
 
             string serviceURI = gridConfig.GetString("FriendsServerURI",
-                    String.Empty);
+                    string.Empty);
 
             if (serviceURI.Length == 0)
             {
@@ -87,20 +87,22 @@ namespace OpenSim.Services.Connectors.Friends
 
         public FriendInfo[] GetFriends(UUID PrincipalID)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-
-            sendData["PRINCIPALID"] = PrincipalID.ToString();
-            sendData["METHOD"] = "getfriends";
+            Dictionary<string, object> sendData = new()
+            {
+                ["PRINCIPALID"] = PrincipalID.ToString(),
+                ["METHOD"] = "getfriends"
+            };
 
             return GetFriends(sendData, PrincipalID.ToString());
         }
 
         public FriendInfo[] GetFriends(string PrincipalID)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-
-            sendData["PRINCIPALID"] = PrincipalID;
-            sendData["METHOD"] = "getfriends_string";
+            Dictionary<string, object> sendData = new()
+            {
+                ["PRINCIPALID"] = PrincipalID,
+                ["METHOD"] = "getfriends_string"
+            };
 
             return GetFriends(sendData, PrincipalID);
         }
@@ -124,14 +126,14 @@ namespace OpenSim.Services.Connectors.Friends
                         return new FriendInfo[0];
                         }
 
-                        List<FriendInfo> finfos = new List<FriendInfo>();
+                        List<FriendInfo> finfos = [];
                         Dictionary<string, object>.ValueCollection finfosList = replyData.Values;
                         //m_log.DebugFormat("[FRIENDS SERVICE CONNECTOR]: get neighbours returned {0} elements", rinfosList.Count);
                         foreach (object f in finfosList)
                         {
                             if (f is Dictionary<string, object>)
                             {
-                                FriendInfo finfo = new FriendInfo((Dictionary<string, object>)f);
+                                FriendInfo finfo = new((Dictionary<string, object>)f);
                                 finfos.Add(finfo);
                             }
                             else
@@ -183,7 +185,7 @@ namespace OpenSim.Services.Connectors.Friends
                 if ((replyData != null) && replyData.ContainsKey("Result") && (replyData["Result"] != null))
                 {
                     bool success = false;
-                    Boolean.TryParse(replyData["Result"].ToString(), out success);
+                    bool.TryParse(replyData["Result"].ToString(), out success);
                     return success;
                 }
                 else
@@ -199,20 +201,24 @@ namespace OpenSim.Services.Connectors.Friends
 
         public bool Delete(string PrincipalID, string Friend)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            sendData["PRINCIPALID"] = PrincipalID.ToString();
-            sendData["FRIEND"] = Friend;
-            sendData["METHOD"] = "deletefriend_string";
+            Dictionary<string, object> sendData = new()
+            {
+                ["PRINCIPALID"] = PrincipalID.ToString(),
+                ["FRIEND"] = Friend,
+                ["METHOD"] = "deletefriend_string"
+            };
 
             return Delete(sendData, PrincipalID, Friend);
         }
 
         public bool Delete(UUID PrincipalID, string Friend)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            sendData["PRINCIPALID"] = PrincipalID.ToString();
-            sendData["FRIEND"] = Friend;
-            sendData["METHOD"] = "deletefriend";
+            Dictionary<string, object> sendData = new()
+            {
+                ["PRINCIPALID"] = PrincipalID.ToString(),
+                ["FRIEND"] = Friend,
+                ["METHOD"] = "deletefriend"
+            };
 
             return Delete(sendData, PrincipalID.ToString(), Friend);
         }
@@ -238,7 +244,7 @@ namespace OpenSim.Services.Connectors.Friends
                 if ((replyData != null) && replyData.ContainsKey("Result") && (replyData["Result"] != null))
                 {
                     bool success = false;
-                    Boolean.TryParse(replyData["Result"].ToString(), out success);
+                    bool.TryParse(replyData["Result"].ToString(), out success);
                     return success;
                 }
                 else
@@ -255,10 +261,12 @@ namespace OpenSim.Services.Connectors.Friends
 
         public Dictionary<string, object> ToKeyValuePairs(string principalID, string friend, int flags)
         {
-            Dictionary<string, object> result = new Dictionary<string, object>();
-            result["PrincipalID"] = principalID;
-            result["Friend"] = friend;
-            result["MyFlags"] = flags;
+            Dictionary<string, object> result = new()
+            {
+                ["PrincipalID"] = principalID,
+                ["Friend"] = friend,
+                ["MyFlags"] = flags
+            };
 
             return result;
         }

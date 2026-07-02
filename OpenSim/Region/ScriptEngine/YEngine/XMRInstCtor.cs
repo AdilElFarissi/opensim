@@ -90,7 +90,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             // This also gets the API modules ready to accept setup data, such as
             // active listeners being restored.
             IScriptApi scriptApi;
-            ApiManager am = new ApiManager();
+            ApiManager am = new();
             foreach(string api in am.GetApis())
             {
                 // Instantiate the API for this script instance.
@@ -142,7 +142,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             // Allow lines of // comments at the beginning (for such as engine selection).
             int i, j, len;
             if(m_SourceCode == null)
-                m_SourceCode = String.Empty;
+                m_SourceCode = string.Empty;
             for(len = m_SourceCode.Length; len > 0; --len)
             {
                 if(m_SourceCode[len - 1] > ' ')
@@ -177,7 +177,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 // regardless of asset ID, so we don't care if they
                 // copy scripts or not.
                 byte[] scbytes = System.Text.Encoding.UTF8.GetBytes(m_SourceCode);
-                StringBuilder sb = new StringBuilder((256 + 5) / 6);
+                StringBuilder sb = new((256 + 5) / 6);
                 using (System.Security.Cryptography.SHA256 sha = System.Security.Cryptography.SHA256.Create())
                     ByteArrayToSixbitStr(sb, sha.ComputeHash(scbytes));
                 m_ScriptObjCodeKey = sb.ToString();
@@ -368,11 +368,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                                           FileMode.Open,
                                           FileAccess.Read))
                     {
-                        using(StreamReader ss = new StreamReader(fs))
+                        using(StreamReader ss = new(fs))
                             xml = ss.ReadToEnd();
                     }
 
-                    XmlDocument doc = new XmlDocument();
+                    XmlDocument doc = new();
                     doc.LoadXml(xml);
                     LoadScriptState(doc);
                 }
@@ -424,10 +424,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
         }
 
-        private static EventParams changedEvent_CR = new EventParams("changed", new object[] { CHANGED_REGION }, zeroDetectParams);
-        private static EventParams changedEvent_CT = new EventParams("changed", new object[] { CHANGED_TELEPORT }, zeroDetectParams);
-        private static EventParams changedEvent_CRT = new EventParams("changed", new object[] { CHANGED_REGION | CHANGED_TELEPORT }, zeroDetectParams);
-        private static EventParams changedEvent_CRS = new EventParams("changed", new object[] { CHANGED_REGION_START }, zeroDetectParams);
+        private static EventParams changedEvent_CR = new("changed", new object[] { CHANGED_REGION }, zeroDetectParams);
+        private static EventParams changedEvent_CT = new("changed", new object[] { CHANGED_TELEPORT }, zeroDetectParams);
+        private static EventParams changedEvent_CRT = new("changed", new object[] { CHANGED_REGION | CHANGED_TELEPORT }, zeroDetectParams);
+        private static EventParams changedEvent_CRS = new("changed", new object[] { CHANGED_REGION_START }, zeroDetectParams);
 
         /**
          * @brief Save compilation error messages for later retrieval
@@ -505,7 +505,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             if (m_XMRLSLApi != null)
             {
                 XmlElement scpttimeN = (XmlElement)scriptStateN.SelectSingleNode("scrpTime");
-                if (scpttimeN != null && Double.TryParse(scpttimeN.InnerText, out double t))
+                if (scpttimeN != null && double.TryParse(scpttimeN.InnerText, out double t))
                 {
                     m_XMRLSLApi.SetLSLTimerMS(Util.GetTimeStampMS() - t);
                 }
@@ -514,7 +514,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             double minEventDelay = 0.0;
             XmlElement minEventDelayN = (XmlElement)scriptStateN.SelectSingleNode("mEvtDly");
             if (minEventDelayN != null)
-                minEventDelay = Double.Parse(minEventDelayN.InnerText);
+                minEventDelay = double.Parse(minEventDelayN.InnerText);
 
             // get values used by stuff like llDetectedGrab, etc.
             DetectParams[] detParams = RestoreDetectParams(scriptStateN.SelectSingleNode("DetectArray"));
@@ -524,13 +524,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             // Restore timers and listeners
             XmlElement pluginN = (XmlElement)scriptStateN.SelectSingleNode("Plugins");
-            Object[] pluginData = ExtractXMLObjectArray(pluginN, "plugin");
+            object[] pluginData = ExtractXMLObjectArray(pluginN, "plugin");
 
             // Script's global variables and stack contents
             XmlElement snapshotN = (XmlElement)scriptStateN.SelectSingleNode("Snapshot");
 
-            Byte[] data = Convert.FromBase64String(snapshotN.InnerText);
-            using(MemoryStream ms = new MemoryStream())
+            byte[] data = Convert.FromBase64String(snapshotN.InnerText);
+            using(MemoryStream ms = new())
             {
                 ms.Write(data, 0, data.Length);
                 ms.Seek(0, SeekOrigin.Begin);
@@ -592,16 +592,16 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             UUID permsGranter = UUID.Zero;
             int permsMask = 0;
             double minEventDelay = 0.0;
-            Object[] pluginData = new Object[0];
+            object[] pluginData = new object[0];
 
-            LinkedList<EventParams> eventQueue = new LinkedList<EventParams>();
+            LinkedList<EventParams> eventQueue = new();
 
-            Dictionary<string, int> intNames = new Dictionary<string, int>();
-            Dictionary<string, int> doubleNames = new Dictionary<string, int>();
-            Dictionary<string, int> stringNames = new Dictionary<string, int>();
-            Dictionary<string, int> vectorNames = new Dictionary<string, int>();
-            Dictionary<string, int> rotationNames = new Dictionary<string, int>();
-            Dictionary<string, int> listNames = new Dictionary<string, int>();
+            Dictionary<string, int> intNames = [];
+            Dictionary<string, int> doubleNames = [];
+            Dictionary<string, int> stringNames = [];
+            Dictionary<string, int> vectorNames = [];
+            Dictionary<string, int> rotationNames = [];
+            Dictionary<string, int> listNames = [];
 
             int[] ints = null;
             double[] doubles = null;
@@ -734,8 +734,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                             XmlNodeList itemL = part.ChildNodes;
                             foreach (XmlNode item in itemL)
                             {
-                                List<Object> parms = new List<Object>();
-                                List<DetectParams> detected = new List<DetectParams>();
+                                List<object> parms = [];
+                                List<DetectParams> detected = [];
 
                                 string eventName = item.Attributes.GetNamedItem("event").Value;
                                 XmlNodeList eventL = item.ChildNodes;
@@ -754,16 +754,16 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                                             foreach (XmlNode det in detL)
                                             {
                                                 string vect = det.Attributes.GetNamedItem("pos").Value;
-                                                LSL_Vector v = new LSL_Vector(vect);
+                                                LSL_Vector v = new(vect);
 
                                                 int d_linkNum = 0;
                                                 UUID d_group = UUID.Zero;
-                                                string d_name = String.Empty;
+                                                string d_name = string.Empty;
                                                 UUID d_owner = UUID.Zero;
-                                                LSL_Vector d_position = new LSL_Vector();
-                                                LSL_Rotation d_rotation = new LSL_Rotation();
+                                                LSL_Vector d_position = new();
+                                                LSL_Rotation d_rotation = new();
                                                 int d_type = 0;
-                                                LSL_Vector d_velocity = new LSL_Vector();
+                                                LSL_Vector d_velocity = new();
 
                                                 try
                                                 {
@@ -796,34 +796,36 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                                                 {
                                                 }
 
-                                                UUID uuid = new UUID();
+                                                UUID uuid = new();
                                                 UUID.TryParse(det.InnerText, out uuid);
 
-                                                DetectParams d = new DetectParams();
-                                                d.Key = uuid;
-                                                d.OffsetPos = v;
-                                                d.LinkNum = d_linkNum;
-                                                d.Group = d_group;
-                                                d.Name = d_name;
-                                                d.Owner = d_owner;
-                                                d.Position = d_position;
-                                                d.Rotation = d_rotation;
-                                                d.Type = d_type;
-                                                d.Velocity = d_velocity;
+                                                DetectParams d = new()
+                                                {
+                                                    Key = uuid,
+                                                    OffsetPos = v,
+                                                    LinkNum = d_linkNum,
+                                                    Group = d_group,
+                                                    Name = d_name,
+                                                    Owner = d_owner,
+                                                    Position = d_position,
+                                                    Rotation = d_rotation,
+                                                    Type = d_type,
+                                                    Velocity = d_velocity
+                                                };
 
                                                 detected.Add(d);
                                             }
                                             break;
                                     }
                                 }
-                                EventParams ep = new EventParams(
+                                EventParams ep = new(
                                         eventName, parms.ToArray(),
                                         detected.ToArray());
                                 eventQueue.AddLast(ep);
                             }
                             break;
                         case "Plugins":
-                            List<Object> olist = new List<Object>();
+                            List<object> olist = [];
                             XmlNodeList itemLP = part.ChildNodes;
                             foreach (XmlNode item in itemLP)
                                 olist.Add(ReadXTypedValue(item));
@@ -841,7 +843,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                                     tmpPerm = part.Attributes.GetNamedItem("granter").Value;
                                     if (tmpPerm != null)
                                     {
-                                        UUID granter = new UUID();
+                                        UUID granter = new();
                                         UUID.TryParse(tmpPerm, out granter);
                                         if (!granter.IsZero())
                                         {
@@ -927,7 +929,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         private static LSL_Types.list ReadXList(XmlNode parent)
         {
-            List<Object> olist = new List<Object>();
+            List<object> olist = [];
 
             XmlNodeList itemL = parent.ChildNodes;
             foreach (XmlNode item in itemL)
@@ -945,7 +947,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         private static object ReadXTypedValue(XmlNode tag)
         {
-            Object varValue;
+            object varValue;
             string assembly;
 
             string itemType = tag.Attributes.GetNamedItem("type").Value;
@@ -962,8 +964,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             Type itemT = Type.GetType(itemType);
             if (itemT == null)
             {
-                Object[] args =
-                    new Object[] { tag.InnerText };
+                object[] args =
+                    new object[] { tag.InnerText };
 
                 assembly = itemType + ", OpenSim.Region.ScriptEngine.Shared";
                 itemT = Type.GetType(assembly);
@@ -993,7 +995,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
      */
     private LinkedList<EventParams> RestoreEventQueue(XmlNode eventsN)
         {
-            LinkedList<EventParams> eventQueue = new LinkedList<EventParams>();
+            LinkedList<EventParams> eventQueue = new();
             if(eventsN != null)
             {
                 XmlNodeList eventL = eventsN.SelectNodes("Event");
@@ -1008,7 +1010,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     if(detects == null)
                         detects = zeroDetectParams;
 
-                    EventParams evt = new EventParams(name, parms, detects);
+                    EventParams evt = new(name, parms, detects);
                     eventQueue.AddLast(evt);
                 }
             }
@@ -1029,10 +1031,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             if(detectedN == null)
                 return null;
 
-            List<DetectParams> detected = new List<DetectParams>();
+            List<DetectParams> detected = [];
             XmlNodeList detectL = detectedN.SelectNodes("DetectParams");
 
-            DetectParams detprm = new DetectParams();
+            DetectParams detprm = new();
             foreach(XmlNode detxml in detectL)
             {
                 try
@@ -1041,8 +1043,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     detprm.Key = new UUID(detxml.Attributes.GetNamedItem("key").Value);
                     detprm.Owner = new UUID(detxml.Attributes.GetNamedItem("owner").Value);
 
-                    detprm.LinkNum = Int32.Parse(detxml.Attributes.GetNamedItem("linkNum").Value);
-                    detprm.Type = Int32.Parse(detxml.Attributes.GetNamedItem("type").Value);
+                    detprm.LinkNum = int.Parse(detxml.Attributes.GetNamedItem("linkNum").Value);
+                    detprm.Type = int.Parse(detxml.Attributes.GetNamedItem("type").Value);
 
                     detprm.Name = detxml.Attributes.GetNamedItem("name").Value;
 
@@ -1074,7 +1076,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private static object[] ExtractXMLObjectArray(XmlNode parent, string tag)
         {
-            List<Object> olist = new List<Object>();
+            List<object> olist = [];
 
             XmlNodeList itemL = parent.SelectNodes(tag);
             foreach(XmlNode item in itemL)
@@ -1096,7 +1098,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             if(itemType == "OpenMetaverse.UUID")
             {
-                UUID val = new UUID();
+                UUID val = new();
                 UUID.TryParse(item.InnerText, out val);
                 return val;
             }
@@ -1104,7 +1106,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             Type itemT = Type.GetType(itemType);
             if(itemT == null)
             {
-                Object[] args = new Object[] { item.InnerText };
+                object[] args = new object[] { item.InnerText };
 
                 string assembly = itemType + ", OpenSim.Region.ScriptEngine.Shared";
                 itemT = Type.GetType(assembly);
@@ -1140,7 +1142,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              */
             lock(m_RunLock)
             {
-                BinaryReader br = new BinaryReader(stream);
+                BinaryReader br = new(stream);
                 this.MigrateIn(br);
 
                 //m_RunOnePhase = "MigrateInEventHandler finished";

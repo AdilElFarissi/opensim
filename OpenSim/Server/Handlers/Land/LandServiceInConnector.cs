@@ -44,7 +44,7 @@ namespace OpenSim.Server.Handlers.Land
         // TODO : private IAuthenticationService m_AuthenticationService;
 
         public LandServiceInConnector(IConfigSource source, IHttpServer server, ILandService service, IScene scene) :
-                base(source, server, String.Empty)
+                base(source, server, string.Empty)
         {
             m_LandService = service;
             if (m_LandService == null)
@@ -57,7 +57,7 @@ namespace OpenSim.Server.Handlers.Land
             //if (authentication)
             //    m_AuthenticationService = scene.RequestModuleInterface<IAuthenticationService>();
 
-            LandHandlers landHandlers = new LandHandlers(m_LandService);
+            LandHandlers landHandlers = new(m_LandService);
             server.AddXmlRPCHandler("land_data", landHandlers.GetLandData, false);
         }
     }

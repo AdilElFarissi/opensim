@@ -71,7 +71,7 @@ namespace osWebRtcVoice
 
         private int _disconnectStarted;
         public string DisconnectReason { get; private set; }
-        private readonly SemaphoreSlim _provisionLock = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim _provisionLock = new(1, 1);
         public SemaphoreSlim ProvisionLock => _provisionLock;
 
         public JanusViewerSession(IWebRtcVoiceService pVoiceService)

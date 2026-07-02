@@ -113,10 +113,10 @@ namespace OpenSim.Services.Interfaces
 
         public AvatarData(Dictionary<string, object> kvp)
         {
-            Data = new Dictionary<string, string>();
+            Data = [];
 
             if (kvp.ContainsKey("AvatarType"))
-                Int32.TryParse(kvp["AvatarType"].ToString(), out AvatarType);
+                int.TryParse(kvp["AvatarType"].ToString(), out AvatarType);
 
             foreach (KeyValuePair<string, object> _kvp in kvp)
             {
@@ -130,9 +130,10 @@ namespace OpenSim.Services.Interfaces
         /// <returns></returns>
         public Dictionary<string, object> ToKeyValuePairs()
         {
-            Dictionary<string, object> result = new Dictionary<string, object>();
-
-            result["AvatarType"] = AvatarType.ToString();
+            Dictionary<string, object> result = new()
+            {
+                ["AvatarType"] = AvatarType.ToString()
+            };
             foreach (KeyValuePair<string, string> _kvp in Data)
             {
                 if (_kvp.Value != null)
@@ -144,18 +145,19 @@ namespace OpenSim.Services.Interfaces
         public AvatarData(AvatarAppearance appearance)
         {
             AvatarType = 1; // SL avatars
-            Data = new Dictionary<string, string>();
-
-            Data["Serial"] = appearance.Serial.ToString();
-            // Wearables
-            Data["AvatarHeight"] = appearance.AvatarHeight.ToString();
+            Data = new Dictionary<string, string>
+            {
+                ["Serial"] = appearance.Serial.ToString(),
+                // Wearables
+                ["AvatarHeight"] = appearance.AvatarHeight.ToString()
+            };
 
             for (int i = 0 ; i < AvatarWearable.LEGACY_VERSION_MAX_WEARABLES ; i++)
             {
                 for (int j = 0 ; j < appearance.Wearables[i].Count ; j++)
                 {
-                    string fieldName = String.Format("Wearable {0}:{1}", i, j);
-                    Data[fieldName] = String.Format("{0}:{1}",
+                    string fieldName = string.Format("Wearable {0}:{1}", i, j);
+                    Data[fieldName] = string.Format("{0}:{1}",
                             appearance.Wearables[i][j].ItemID.ToString(),
                             appearance.Wearables[i][j].AssetID.ToString());
                 }
@@ -165,7 +167,7 @@ namespace OpenSim.Services.Interfaces
             int len = binary.Length;
             int last = len - 1;
 
-            StringBuilder sb = new StringBuilder(5 * len);
+            StringBuilder sb = new(5 * len);
             for (int i = 0; i < len; i++)
             {
                 sb.Append(binary[i].ToString());
@@ -176,13 +178,13 @@ namespace OpenSim.Services.Interfaces
 
             // Attachments
             List<AvatarAttachment> attachments = appearance.GetAttachments();
-            Dictionary<int, List<string>> atts = new Dictionary<int, List<string>>();
+            Dictionary<int, List<string>> atts = [];
             foreach (AvatarAttachment attach in attachments)
             {
                 if (!attach.ItemID.IsZero())
                 {
                     if (!atts.ContainsKey(attach.AttachPoint))
-                        atts[attach.AttachPoint] = new List<string>();
+                        atts[attach.AttachPoint] = [];
                     atts[attach.AttachPoint].Add(attach.ItemID.ToString());
                 }
             }
@@ -192,7 +194,7 @@ namespace OpenSim.Services.Interfaces
 
         public AvatarAppearance ToAvatarAppearance()
         {
-            AvatarAppearance appearance = new AvatarAppearance();
+            AvatarAppearance appearance = new();
 
             if (Data.Count == 0)
                 return appearance;
@@ -201,7 +203,7 @@ namespace OpenSim.Services.Interfaces
             try
             {
                 if (Data.ContainsKey("Serial"))
-                    appearance.Serial = Int32.Parse(Data["Serial"]);
+                    appearance.Serial = int.Parse(Data["Serial"]);
 
                 if (Data.ContainsKey("AvatarHeight"))
                 {
@@ -300,8 +302,8 @@ namespace OpenSim.Services.Interfaces
                         int index = Convert.ToInt32(wearIndices[0]);
 
                         string[] ids = _kvp.Value.Split(new char[] {':'});
-                        UUID itemID = new UUID(ids[0]);
-                        UUID assetID = new UUID(ids[1]);
+                        UUID itemID = new(ids[0]);
+                        UUID assetID = new(ids[1]);
                         if (index >= currentLength)
                         {
                             Array.Resize(ref wearables, index + 1);
@@ -317,9 +319,9 @@ namespace OpenSim.Services.Interfaces
                     {
                         string pointStr = _kvp.Key.Substring(4);
                         int point = 0;
-                        if (Int32.TryParse(pointStr, out point))
+                        if (int.TryParse(pointStr, out point))
                         {
-                            List<string> idList = new List<string>(_kvp.Value.Split(new char[] {','}));
+                            List<string> idList = [.. _kvp.Value.Split(new char[] {','})];
 
                             appearance.SetAttachment(point, UUID.Zero, UUID.Zero);
                             foreach (string id in idList)

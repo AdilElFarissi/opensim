@@ -195,7 +195,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
              // Decode command line options.
             int i, j;
-            List<string> selargs = new List<string>(args.Length);
+            List<string> selargs = new(args.Length);
             MethodInfo[] eventmethods = typeof(IEventHandlers).GetMethods();
             MethodInfo eventmethod;
             for(i = indx; i < args.Length; i++)
@@ -228,7 +228,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             return;
             gotevent:
             string eventname = eventmethod.Name;
-            StringBuilder sourcesb = new StringBuilder();
+            StringBuilder sourcesb = new();
             while(++i < args.Length)
             {
                 sourcesb.Append(' ');
@@ -255,7 +255,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     return;
                 i++;
             }
-            SharedEventParams eps = new SharedEventParams(eventname, paramvalues, zeroDetectParams);
+            SharedEventParams eps = new(eventname, paramvalues, zeroDetectParams);
 
              // Scan instance list to find those that match selection criteria.
             if(!Monitor.TryEnter(m_InstancesDict, 100))
@@ -305,7 +305,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
             if(token is TokenKwCmpLT)
             {
-                List<double> valuelist = new List<double>();
+                List<double> valuelist = [];
                 while(!((token = token.nextToken) is TokenKwCmpGT))
                 {
                     if(!(token is TokenKwComma))
@@ -348,7 +348,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
             if(token is TokenKwBrkOpen)
             {
-                List<object> valuelist = new List<object>();
+                List<object> valuelist = [];
                 while(!((token = token.nextToken) is TokenKwBrkClose))
                 {
                     if(!(token is TokenKwComma))
@@ -516,7 +516,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
      */
     public class LogInfoTextWriter: TextWriter
     {
-        private StringBuilder sb = new StringBuilder();
+        private StringBuilder sb = new();
         private ILog m_log;
         public LogInfoTextWriter(ILog m_log)
         {

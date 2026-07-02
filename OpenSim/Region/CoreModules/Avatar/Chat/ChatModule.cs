@@ -56,10 +56,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
         protected float m_shoutdistanceSQ;
         protected float m_whisperdistanceSQ;
 
-        protected List<Scene> m_scenes = new List<Scene>();
-        protected List<string> FreezeCache = new List<string>();
+        protected List<Scene> m_scenes = [];
+        protected List<string> FreezeCache = [];
         protected string m_adminPrefix = "";
-        protected object m_syncy = new object();
+        protected object m_syncy = new();
         protected IConfig m_config;
         #region ISharedRegionModule Members
         public virtual void Initialise(IConfigSource config)
@@ -162,7 +162,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             client.OnChatFromClient += OnChatFromClient;
         }
 
-        public virtual void OnChatFromClient(Object sender, OSChatMessage c)
+        public virtual void OnChatFromClient(object sender, OSChatMessage c)
         {
             // redistribute to interested subscribers
             Scene scene = (Scene)c.Scene;
@@ -189,7 +189,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             }
         }
 
-        public virtual void OnChatFromWorld(Object sender, OSChatMessage c)
+        public virtual void OnChatFromWorld(object sender, OSChatMessage c)
         {
             // early return if not on public or debug channel
             if (c.Channel != 0 && c.Channel != DEBUG_CHANNEL) return;
@@ -281,7 +281,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                 }
             }
 
-            Vector3 regionPos = new Vector3(scene.RegionInfo.WorldLocX, scene.RegionInfo.WorldLocY, 0);
+            Vector3 regionPos = new(scene.RegionInfo.WorldLocX, scene.RegionInfo.WorldLocY, 0);
             scene.ForEachScenePresence(
                 delegate(ScenePresence presence)
                 {
@@ -317,9 +317,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                 });
         }
 
-        static protected Vector3 CenterOfRegion = new Vector3(128, 128, 30);
+        static protected Vector3 CenterOfRegion = new(128, 128, 30);
 
-        public virtual void OnChatBroadcast(Object sender, OSChatMessage c)
+        public virtual void OnChatBroadcast(object sender, OSChatMessage c)
         {
             if (c.Channel != 0 && c.Channel != DEBUG_CHANNEL) return;
 
@@ -448,14 +448,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             return true;
         }
 
-        Dictionary<UUID, System.Threading.Timer> Timers = new Dictionary<UUID, System.Threading.Timer>();
+        Dictionary<UUID, System.Threading.Timer> Timers = [];
         public virtual void ParcelFreezeUser(IClientAPI client, UUID parcelowner, uint flags, UUID target)
         {
             System.Threading.Timer Timer;
             if (flags == 0)
             {
                 FreezeCache.Add(target.ToString());
-                System.Threading.TimerCallback timeCB = new System.Threading.TimerCallback(OnEndParcelFrozen);
+                System.Threading.TimerCallback timeCB = new(OnEndParcelFrozen);
                 Timer = new System.Threading.Timer(timeCB, target, 30000, 0);
                 Timers.Add(target, Timer);
             }

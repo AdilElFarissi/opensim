@@ -56,7 +56,7 @@ namespace OpenSim.Server.Handlers.GridUser
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             string body;
-            using(StreamReader sr = new StreamReader(requestData))
+            using(StreamReader sr = new(requestData))
                 body = sr.ReadToEnd();
             body = body.Trim();
 
@@ -102,13 +102,15 @@ namespace OpenSim.Server.Handlers.GridUser
                 return FailureResult();
 
             uint mutecrc;
-            if(!UInt32.TryParse(request["mutecrc"].ToString(), out mutecrc))
+            if(!uint.TryParse(request["mutecrc"].ToString(), out mutecrc))
                     return FailureResult();
 
             byte[] data = m_service.MuteListRequest(agentID, mutecrc);
 
-            Dictionary<string, object> result = new Dictionary<string, object>();
-            result["result"] = Convert.ToBase64String(data);
+            Dictionary<string, object> result = new()
+            {
+                ["result"] = Convert.ToBase64String(data)
+            };
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
 
@@ -121,7 +123,7 @@ namespace OpenSim.Server.Handlers.GridUser
             if(!request.ContainsKey("agentid") || !request.ContainsKey("muteid"))
                 return FailureResult();
 
-            MuteData mute = new MuteData();
+            MuteData mute = new();
 
             if( !UUID.TryParse(request["agentid"].ToString(), out mute.AgentID))
                 return FailureResult();
@@ -134,11 +136,11 @@ namespace OpenSim.Server.Handlers.GridUser
                 mute.MuteName = request["mutename"].ToString();
             }
             else
-               mute.MuteName = String.Empty;
+               mute.MuteName = string.Empty;
 
             if(request.ContainsKey("mutetype"))
             {
-                if(!Int32.TryParse(request["mutetype"].ToString(), out mute.MuteType))
+                if(!int.TryParse(request["mutetype"].ToString(), out mute.MuteType))
                     return FailureResult();
             }
             else
@@ -146,7 +148,7 @@ namespace OpenSim.Server.Handlers.GridUser
 
             if(request.ContainsKey("muteflags"))
             {
-                if(!Int32.TryParse(request["muteflags"].ToString(), out mute.MuteFlags))
+                if(!int.TryParse(request["muteflags"].ToString(), out mute.MuteFlags))
                     return FailureResult();
             }
             else
@@ -154,7 +156,7 @@ namespace OpenSim.Server.Handlers.GridUser
 
             if(request.ContainsKey("mutestamp"))
             {
-                if(!Int32.TryParse(request["mutestamp"].ToString(), out mute.Stamp))
+                if(!int.TryParse(request["mutestamp"].ToString(), out mute.Stamp))
                     return FailureResult();
             }
             else
@@ -183,14 +185,14 @@ namespace OpenSim.Server.Handlers.GridUser
 
             }
             else
-               muteName = String.Empty;
+               muteName = string.Empty;
 
             return m_service.RemoveMute(agentID, muteID, muteName) ? SuccessResult() : FailureResult();
         }
 
         private byte[] SuccessResult()
         {
-            XmlDocument doc = new XmlDocument();
+            XmlDocument doc = new();
 
             XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
                     "", "");
@@ -212,7 +214,7 @@ namespace OpenSim.Server.Handlers.GridUser
 
         private byte[] FailureResult()
         {
-            XmlDocument doc = new XmlDocument();
+            XmlDocument doc = new();
 
             XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
                     "", "");

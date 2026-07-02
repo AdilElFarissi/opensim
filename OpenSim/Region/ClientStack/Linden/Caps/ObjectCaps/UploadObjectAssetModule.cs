@@ -117,7 +117,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 return;
             }
 
-            UploadObjectAssetMessage message = new UploadObjectAssetMessage();
+            UploadObjectAssetMessage message = new();
             try
             {
                 message.Deserialize(map);
@@ -157,7 +157,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         switch ((ushort)extraParam.Type)
                         {
                             case (ushort)ExtraParamType.Sculpt:
-                                Primitive.SculptData sculpt = new Primitive.SculptData(extraParam.ExtraParamData, 0);
+                                Primitive.SculptData sculpt = new(extraParam.ExtraParamData, 0);
 
                                 pbs.SculptEntry = true;
 
@@ -166,7 +166,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
                                 break;
                             case (ushort)ExtraParamType.Flexible:
-                                Primitive.FlexibleData flex = new Primitive.FlexibleData(extraParam.ExtraParamData, 0);
+                                Primitive.FlexibleData flex = new(extraParam.ExtraParamData, 0);
                                 pbs.FlexiEntry = true;
                                 pbs.FlexiDrag = flex.Drag;
                                 pbs.FlexiForceX = flex.Force.X;
@@ -178,7 +178,7 @@ namespace OpenSim.Region.ClientStack.Linden
                                 pbs.FlexiWind = flex.Wind;
                                 break;
                             case (ushort)ExtraParamType.Light:
-                                Primitive.LightData light = new Primitive.LightData(extraParam.ExtraParamData, 0);
+                                Primitive.LightData light = new(extraParam.ExtraParamData, 0);
                                 pbs.LightColorA = light.Color.A;
                                 pbs.LightColorB = light.Color.B;
                                 pbs.LightColorG = light.Color.G;
@@ -217,11 +217,13 @@ namespace OpenSim.Region.ClientStack.Linden
                     pbs.Scale = obj.Scale;
                     pbs.State = (byte) 0;
                     pbs.LastAttachPoint = (byte) 0;
-                    SceneObjectPart prim = new SceneObjectPart();
-                    prim.UUID = UUID.Random();
-                    prim.CreatorID = agentID;
-                    prim.OwnerID = agentID;
-                    prim.GroupID = obj.GroupID;
+                    SceneObjectPart prim = new()
+                    {
+                        UUID = UUID.Random(),
+                        CreatorID = agentID,
+                        OwnerID = agentID,
+                        GroupID = obj.GroupID
+                    };
                     prim.LastOwnerID = prim.OwnerID;
                     prim.RezzerID = agentID;
                     prim.CreationDate = Util.UnixTimeSinceEpoch();
@@ -234,7 +236,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     prim.PayPrice[3] = -2;
                     prim.PayPrice[4] = -2;
                     Primitive.TextureEntry tmp =
-                        new Primitive.TextureEntry(UUID.Parse("89556747-24cb-43ed-920b-47caed15465f"));
+                        new(UUID.Parse("89556747-24cb-43ed-920b-47caed15465f"));
 
                     for (int j = 0; j < obj.Faces.Length; j++)
                     {
@@ -260,7 +262,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     prim.Shape = pbs;
                     prim.Scale = obj.Scale;
 
-                    SceneObjectGroup grp = new SceneObjectGroup();
+                    SceneObjectGroup grp = new();
 
                     grp.SetRootPart(prim);
                     prim.ParentID = 0;
@@ -295,7 +297,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 rootGroup.ScheduleGroupForUpdate(PrimUpdateFlags.FullUpdatewithAnimMatOvr);
 
                 httpResponse.StatusCode = (int)HttpStatusCode.OK;
-                httpResponse.RawBuffer = Util.UTF8NBGetbytes(String.Format("<llsd><map><key>local_id</key>{0}</map></llsd>", ConvertUintToBytes(allparts[0].LocalId)));
+                httpResponse.RawBuffer = Util.UTF8NBGetbytes(string.Format("<llsd><map><key>local_id</key>{0}</map></llsd>", ConvertUintToBytes(allparts[0].LocalId)));
             }
             catch{ }
 
@@ -307,7 +309,7 @@ namespace OpenSim.Region.ClientStack.Linden
             byte[] resultbytes = Utils.UIntToBytes(val);
             if (BitConverter.IsLittleEndian)
                 Array.Reverse(resultbytes);
-            return String.Format("<binary encoding=\"base64\">{0}</binary>", Convert.ToBase64String(resultbytes));
+            return string.Format("<binary encoding=\"base64\">{0}</binary>", Convert.ToBase64String(resultbytes));
         }
     }
 }

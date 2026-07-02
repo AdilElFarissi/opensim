@@ -48,20 +48,22 @@ namespace OpenSim.Services.Connectors.Friends
 
         public bool FriendshipOffered(GridRegion region, UUID userID, UUID friendID, string message)
         {
-            return FriendshipOffered(region, userID, friendID, message, String.Empty);
+            return FriendshipOffered(region, userID, friendID, message, string.Empty);
         }
 
         public virtual bool FriendshipOffered(GridRegion region, UUID userID, UUID friendID, string message, string userName)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            //sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
-            //sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
-            sendData["METHOD"] = "friendship_offered";
+            Dictionary<string, object> sendData = new()
+            {
+                //sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
+                //sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
+                ["METHOD"] = "friendship_offered",
 
-            sendData["FromID"] = userID.ToString();
-            sendData["ToID"] = friendID.ToString();
-            sendData["Message"] = message;
-            if (userName != String.Empty)
+                ["FromID"] = userID.ToString(),
+                ["ToID"] = friendID.ToString(),
+                ["Message"] = message
+            };
+            if (userName != string.Empty)
                 sendData["FromName"] = userName;
 
             return Call(region, sendData);
@@ -69,14 +71,16 @@ namespace OpenSim.Services.Connectors.Friends
 
         public bool FriendshipApproved(GridRegion region, UUID userID, string userName, UUID friendID)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            //sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
-            //sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
-            sendData["METHOD"] = "friendship_approved";
+            Dictionary<string, object> sendData = new()
+            {
+                //sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
+                //sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
+                ["METHOD"] = "friendship_approved",
 
-            sendData["FromID"] = userID.ToString();
-            sendData["FromName"] = userName;
-            sendData["ToID"] = friendID.ToString();
+                ["FromID"] = userID.ToString(),
+                ["FromName"] = userName,
+                ["ToID"] = friendID.ToString()
+            };
 
             return Call(region, sendData);
         }
@@ -86,56 +90,64 @@ namespace OpenSim.Services.Connectors.Friends
             if (region == null)
                 return false;
 
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            //sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
-            //sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
-            sendData["METHOD"] = "friendship_denied";
+            Dictionary<string, object> sendData = new()
+            {
+                //sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
+                //sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
+                ["METHOD"] = "friendship_denied",
 
-            sendData["FromID"] = userID.ToString();
-            sendData["FromName"] = userName;
-            sendData["ToID"] = friendID.ToString();
+                ["FromID"] = userID.ToString(),
+                ["FromName"] = userName,
+                ["ToID"] = friendID.ToString()
+            };
 
             return Call(region, sendData);
         }
 
         public bool FriendshipTerminated(GridRegion region, UUID userID, UUID friendID)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            //sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
-            //sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
-            sendData["METHOD"] = "friendship_terminated";
+            Dictionary<string, object> sendData = new()
+            {
+                //sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
+                //sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
+                ["METHOD"] = "friendship_terminated",
 
-            sendData["FromID"] = userID.ToString();
-            sendData["ToID"] = friendID.ToString();
+                ["FromID"] = userID.ToString(),
+                ["ToID"] = friendID.ToString()
+            };
 
             return Call(region, sendData);
         }
 
         public bool GrantRights(GridRegion region, UUID userID, UUID friendID, int userFlags, int rights)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            //sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
-            //sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
-            sendData["METHOD"] = "grant_rights";
+            Dictionary<string, object> sendData = new()
+            {
+                //sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
+                //sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
+                ["METHOD"] = "grant_rights",
 
-            sendData["FromID"] = userID.ToString();
-            sendData["ToID"] = friendID.ToString();
-            sendData["UserFlags"] = userFlags.ToString();
-            sendData["Rights"] = rights.ToString();
+                ["FromID"] = userID.ToString(),
+                ["ToID"] = friendID.ToString(),
+                ["UserFlags"] = userFlags.ToString(),
+                ["Rights"] = rights.ToString()
+            };
 
             return Call(region, sendData);
         }
 
         public bool StatusNotify(GridRegion region, UUID userID, string friendID, bool online)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            //sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
-            //sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
-            sendData["METHOD"] = "status";
+            Dictionary<string, object> sendData = new()
+            {
+                //sendData["VERSIONMIN"] = ProtocolVersions.ClientProtocolVersionMin.ToString();
+                //sendData["VERSIONMAX"] = ProtocolVersions.ClientProtocolVersionMax.ToString();
+                ["METHOD"] = "status",
 
-            sendData["FromID"] = userID.ToString();
-            sendData["ToID"] = friendID;
-            sendData["Online"] = online.ToString();
+                ["FromID"] = userID.ToString(),
+                ["ToID"] = friendID,
+                ["Online"] = online.ToString()
+            };
 
             return Call(region, sendData);
         }

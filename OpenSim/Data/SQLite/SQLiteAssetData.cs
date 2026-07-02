@@ -86,7 +86,7 @@ namespace OpenSim.Data.SQLite
             m_conn = new SQLiteConnection(dbconnect);
             m_conn.Open();
 
-            Migration m = new Migration(m_conn, Assembly, "AssetStore");
+            Migration m = new(m_conn, Assembly, "AssetStore");
             m.Update();
 
             return;
@@ -101,7 +101,7 @@ namespace OpenSim.Data.SQLite
         {
             lock (this)
             {
-                using (SQLiteCommand cmd = new SQLiteCommand(SelectAssetSQL, m_conn))
+                using (SQLiteCommand cmd = new(SelectAssetSQL, m_conn))
                 {
                     cmd.Parameters.Add(new SQLiteParameter(":UUID", uuid.ToString()));
                     using (IDataReader reader = cmd.ExecuteReader())
@@ -154,7 +154,7 @@ namespace OpenSim.Data.SQLite
 
                 lock (this)
                 {
-                    using (SQLiteCommand cmd = new SQLiteCommand(UpdateAssetSQL, m_conn))
+                    using (SQLiteCommand cmd = new(UpdateAssetSQL, m_conn))
                     {
                         cmd.Parameters.Add(new SQLiteParameter(":UUID", asset.FullID.ToString()));
                         cmd.Parameters.Add(new SQLiteParameter(":Name", assetName));
@@ -175,7 +175,7 @@ namespace OpenSim.Data.SQLite
             {
                 lock (this)
                 {
-                    using (SQLiteCommand cmd = new SQLiteCommand(InsertAssetSQL, m_conn))
+                    using (SQLiteCommand cmd = new(InsertAssetSQL, m_conn))
                     {
                         cmd.Parameters.Add(new SQLiteParameter(":UUID", asset.FullID.ToString()));
                         cmd.Parameters.Add(new SQLiteParameter(":Name", assetName));
@@ -221,20 +221,20 @@ namespace OpenSim.Data.SQLite
             if (uuids.Length == 0)
                 return [];
 
-            HashSet<UUID> exist = new HashSet<UUID>();
+            HashSet<UUID> exist = [];
 
             string ids = "'" + string.Join("','", uuids) + "'";
             string sql = string.Format("select UUID from assets where UUID in ({0})", ids);
 
             lock (this)
             {
-                using (SQLiteCommand cmd = new SQLiteCommand(sql, m_conn))
+                using (SQLiteCommand cmd = new(sql, m_conn))
                 {
                     using (IDataReader reader = cmd.ExecuteReader())
                     {
                         while (reader.Read())
                         {
-                            UUID id = new UUID((string)reader["UUID"]);
+                            UUID id = new((string)reader["UUID"]);
                             exist.Add(id);
                         }
                     }
@@ -257,35 +257,37 @@ namespace OpenSim.Data.SQLite
             // TODO: this doesn't work yet because something more
             // interesting has to be done to actually get these values
             // back out.  Not enough time to figure it out yet.
-            AssetBase asset = new AssetBase(
-                new UUID((String)row["UUID"]),
-                (String)row["Name"],
+            AssetBase asset = new(
+                new UUID((string)row["UUID"]),
+                (string)row["Name"],
                 Convert.ToSByte(row["Type"]),
-                (String)row["CreatorID"]
-            );
-
-            asset.Description = (String) row["Description"];
-            asset.Local = Convert.ToBoolean(row["Local"]);
-            asset.Temporary = Convert.ToBoolean(row["Temporary"]);
-            asset.Flags = (AssetFlags)Convert.ToInt32(row["asset_flags"]);
-            asset.Data = (byte[])row["Data"];
+                (string)row["CreatorID"]
+            )
+            {
+                Description = (string)row["Description"],
+                Local = Convert.ToBoolean(row["Local"]),
+                Temporary = Convert.ToBoolean(row["Temporary"]),
+                Flags = (AssetFlags)Convert.ToInt32(row["asset_flags"]),
+                Data = (byte[])row["Data"]
+            };
             return asset;
         }
 
         private static AssetMetadata buildAssetMetadata(IDataReader row)
         {
-            AssetMetadata metadata = new AssetMetadata();
+            AssetMetadata metadata = new()
+            {
+                FullID = new UUID((string)row["UUID"]),
+                Name = (string)row["Name"],
+                Description = (string)row["Description"],
+                Type = Convert.ToSByte(row["Type"]),
+                Temporary = Convert.ToBoolean(row["Temporary"]), // Not sure if this is correct.
+                Flags = (AssetFlags)Convert.ToInt32(row["asset_flags"]),
+                CreatorID = row["CreatorID"].ToString(),
 
-            metadata.FullID = new UUID((string) row["UUID"]);
-            metadata.Name = (string) row["Name"];
-            metadata.Description = (string) row["Description"];
-            metadata.Type = Convert.ToSByte(row["Type"]);
-            metadata.Temporary = Convert.ToBoolean(row["Temporary"]); // Not sure if this is correct.
-            metadata.Flags = (AssetFlags)Convert.ToInt32(row["asset_flags"]);
-            metadata.CreatorID = row["CreatorID"].ToString();
-
-            // Current SHA1s are not stored/computed.
-            metadata.SHA1 = Array.Empty<byte>();
+                // Current SHA1s are not stored/computed.
+                SHA1 = Array.Empty<byte>()
+            };
 
             return metadata;
         }
@@ -300,11 +302,11 @@ namespace OpenSim.Data.SQLite
         /// <returns>A list of AssetMetadata objects.</returns>
         public override List<AssetMetadata> FetchAssetMetadataSet(int start, int count)
         {
-            List<AssetMetadata> retList = new List<AssetMetadata>(count);
+            List<AssetMetadata> retList = new(count);
 
             lock (this)
             {
-                using (SQLiteCommand cmd = new SQLiteCommand(SelectAssetMetadataSQL, m_conn))
+                using (SQLiteCommand cmd = new(SelectAssetMetadataSQL, m_conn))
                 {
                     cmd.Parameters.Add(new SQLiteParameter(":start", start));
                     cmd.Parameters.Add(new SQLiteParameter(":count", count));
@@ -377,7 +379,7 @@ namespace OpenSim.Data.SQLite
         {
             lock (this)
             {
-                using (SQLiteCommand cmd = new SQLiteCommand(DeleteAssetSQL, m_conn))
+                using (SQLiteCommand cmd = new(DeleteAssetSQL, m_conn))
                 {
                     cmd.Parameters.Add(new SQLiteParameter(":UUID", uuid.ToString()));
                     cmd.ExecuteNonQuery();

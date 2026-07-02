@@ -40,18 +40,20 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         public BSTerrainHeightmap(BSScene physicsScene, Vector3 regionBase, uint id, Vector3 regionSize)
             : base(physicsScene, regionBase, id)
         {
-            Vector3 minTerrainCoords = new Vector3(0f, 0f, BSTerrainManager.HEIGHT_INITIALIZATION - BSTerrainManager.HEIGHT_EQUAL_FUDGE);
-            Vector3 maxTerrainCoords = new Vector3(regionSize.X, regionSize.Y, BSTerrainManager.HEIGHT_INITIALIZATION);
+            Vector3 minTerrainCoords = new(0f, 0f, BSTerrainManager.HEIGHT_INITIALIZATION - BSTerrainManager.HEIGHT_EQUAL_FUDGE);
+            Vector3 maxTerrainCoords = new(regionSize.X, regionSize.Y, BSTerrainManager.HEIGHT_INITIALIZATION);
             int totalHeights = (int)maxTerrainCoords.X * (int)maxTerrainCoords.Y;
             float[] initialMap = new float[totalHeights];
             for (int ii = 0; ii < totalHeights; ii++)
             {
                 initialMap[ii] = BSTerrainManager.HEIGHT_INITIALIZATION;
             }
-            m_mapInfo = new BulletHMapInfo(id, initialMap, regionSize.X, regionSize.Y);
-            m_mapInfo.minCoords = minTerrainCoords;
-            m_mapInfo.maxCoords = maxTerrainCoords;
-            m_mapInfo.terrainRegionBase = TerrainBase;
+            m_mapInfo = new BulletHMapInfo(id, initialMap, regionSize.X, regionSize.Y)
+            {
+                minCoords = minTerrainCoords,
+                maxCoords = maxTerrainCoords,
+                terrainRegionBase = TerrainBase
+            };
             // Don't have to free any previous since we just got here.
             BuildHeightmapTerrain();
         }
@@ -62,12 +64,14 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                                                         Vector3 minCoords, Vector3 maxCoords)
             : base(physicsScene, regionBase, id)
         {
-            m_mapInfo = new BulletHMapInfo(id, initialMap, maxCoords.X - minCoords.X, maxCoords.Y - minCoords.Y);
-            m_mapInfo.minCoords = minCoords;
-            m_mapInfo.maxCoords = maxCoords;
-            m_mapInfo.minZ = minCoords.Z;
-            m_mapInfo.maxZ = maxCoords.Z;
-            m_mapInfo.terrainRegionBase = TerrainBase;
+            m_mapInfo = new BulletHMapInfo(id, initialMap, maxCoords.X - minCoords.X, maxCoords.Y - minCoords.Y)
+            {
+                minCoords = minCoords,
+                maxCoords = maxCoords,
+                minZ = minCoords.Z,
+                maxZ = maxCoords.Z,
+                terrainRegionBase = TerrainBase
+            };
 
             // Don't have to free any previous since we just got here.
             BuildHeightmapTerrain();

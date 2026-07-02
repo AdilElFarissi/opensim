@@ -61,7 +61,7 @@ namespace OpenSim.Server.Handlers.Grid
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             string body;
-            using(StreamReader sr = new StreamReader(requestData))
+            using(StreamReader sr = new(requestData))
                 body = sr.ReadToEnd();
             body = body.Trim();
 
@@ -150,12 +150,12 @@ namespace OpenSim.Server.Handlers.Grid
 
             int versionNumberMin = 0, versionNumberMax = 0;
             if (request.ContainsKey("VERSIONMIN"))
-                Int32.TryParse(request["VERSIONMIN"].ToString(), out versionNumberMin);
+                int.TryParse(request["VERSIONMIN"].ToString(), out versionNumberMin);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no minimum protocol version in request to register region");
 
             if (request.ContainsKey("VERSIONMAX"))
-                Int32.TryParse(request["VERSIONMAX"].ToString(), out versionNumberMax);
+                int.TryParse(request["VERSIONMAX"].ToString(), out versionNumberMax);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no maximum protocol version in request to register region");
 
@@ -183,7 +183,7 @@ namespace OpenSim.Server.Handlers.Grid
                 return FailureResult();
             }
 
-            Dictionary<string, object> rinfoData = new Dictionary<string, object>();
+            Dictionary<string, object> rinfoData = [];
             GridRegion rinfo = null;
             try
             {
@@ -240,7 +240,7 @@ namespace OpenSim.Server.Handlers.Grid
             List<GridRegion> rinfos = m_GridService.GetNeighbours(scopeID, regionID);
             //m_log.DebugFormat("[GRID HANDLER]: neighbours for region {0}: {1}", regionID, rinfos.Count);
 
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
             if ((rinfos == null) || ((rinfos != null) && (rinfos.Count == 0)))
                 result["result"] = "null";
             else
@@ -277,7 +277,7 @@ namespace OpenSim.Server.Handlers.Grid
             GridRegion rinfo = m_GridService.GetRegionByUUID(scopeID, regionID);
             //m_log.DebugFormat("[GRID HANDLER]: neighbours for region {0}: {1}", regionID, rinfos.Count);
 
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
             if (rinfo == null)
                 result["result"] = "null";
             else
@@ -299,18 +299,18 @@ namespace OpenSim.Server.Handlers.Grid
 
             int x = 0, y = 0;
             if (request.ContainsKey("X"))
-                Int32.TryParse(request["X"].ToString(), out x);
+                int.TryParse(request["X"].ToString(), out x);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no X in request to get region by position");
             if (request.ContainsKey("Y"))
-                Int32.TryParse(request["Y"].ToString(), out y);
+                int.TryParse(request["Y"].ToString(), out y);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no Y in request to get region by position");
 
             // m_log.DebugFormat("{0} GetRegionByPosition: loc=<{1},{2}>", LogHeader, x, y);
             GridRegion rinfo = m_GridService.GetRegionByPosition(scopeID, x, y);
 
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
             if (rinfo == null)
                 result["result"] = "null";
             else
@@ -386,14 +386,14 @@ namespace OpenSim.Server.Handlers.Grid
 
             int max = 0;
             if (request.ContainsKey("MAX"))
-                Int32.TryParse(request["MAX"].ToString(), out max);
+                int.TryParse(request["MAX"].ToString(), out max);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no MAX in request to get regions by name");
 
             List<GridRegion> rinfos = m_GridService.GetRegionsByName(scopeID, regionName, max);
             //m_log.DebugFormat("[GRID HANDLER]: neighbours for region {0}: {1}", regionID, rinfos.Count);
 
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
             if ((rinfos == null) || ((rinfos != null) && (rinfos.Count == 0)))
                 result["result"] = "null";
             else
@@ -424,26 +424,26 @@ namespace OpenSim.Server.Handlers.Grid
 
             int xmin = 0, xmax = 0, ymin = 0, ymax = 0;
             if (request.ContainsKey("XMIN"))
-                Int32.TryParse(request["XMIN"].ToString(), out xmin);
+                int.TryParse(request["XMIN"].ToString(), out xmin);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no XMIN in request to get region range");
             if (request.ContainsKey("XMAX"))
-                Int32.TryParse(request["XMAX"].ToString(), out xmax);
+                int.TryParse(request["XMAX"].ToString(), out xmax);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no XMAX in request to get region range");
             if (request.ContainsKey("YMIN"))
-                Int32.TryParse(request["YMIN"].ToString(), out ymin);
+                int.TryParse(request["YMIN"].ToString(), out ymin);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no YMIN in request to get region range");
             if (request.ContainsKey("YMAX"))
-                Int32.TryParse(request["YMAX"].ToString(), out ymax);
+                int.TryParse(request["YMAX"].ToString(), out ymax);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no YMAX in request to get region range");
 
 
             List<GridRegion> rinfos = m_GridService.GetRegionRange(scopeID, xmin, xmax, ymin, ymax);
 
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
             if ((rinfos == null) || ((rinfos != null) && (rinfos.Count == 0)))
                 result["result"] = "null";
             else
@@ -473,7 +473,7 @@ namespace OpenSim.Server.Handlers.Grid
 
             List<GridRegion> rinfos = m_GridService.GetDefaultRegions(scopeID);
 
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
             if ((rinfos == null) || ((rinfos != null) && (rinfos.Count == 0)))
                 result["result"] = "null";
             else
@@ -503,7 +503,7 @@ namespace OpenSim.Server.Handlers.Grid
 
             List<GridRegion> rinfos = m_GridService.GetDefaultHypergridRegions(scopeID);
 
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
             if ((rinfos == null) || ((rinfos != null) && (rinfos.Count == 0)))
                 result["result"] = "null";
             else
@@ -533,18 +533,18 @@ namespace OpenSim.Server.Handlers.Grid
 
             int x = 0, y = 0;
             if (request.ContainsKey("X"))
-                Int32.TryParse(request["X"].ToString(), out x);
+                int.TryParse(request["X"].ToString(), out x);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no X in request to get fallback regions");
             if (request.ContainsKey("Y"))
-                Int32.TryParse(request["Y"].ToString(), out y);
+                int.TryParse(request["Y"].ToString(), out y);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no Y in request to get fallback regions");
 
 
             List<GridRegion> rinfos = m_GridService.GetFallbackRegions(scopeID, x, y);
 
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
             if ((rinfos == null) || ((rinfos != null) && (rinfos.Count == 0)))
                 result["result"] = "null";
             else
@@ -575,15 +575,15 @@ namespace OpenSim.Server.Handlers.Grid
 
             int x = 0, y = 0, max = 0;
             if (request.TryGetValue("X", out o))
-                Int32.TryParse(o.ToString(), out x);
+                int.TryParse(o.ToString(), out x);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no X in request to get online regions");
             if (request.TryGetValue("Y", out o))
-                Int32.TryParse(o.ToString(), out y);
+                int.TryParse(o.ToString(), out y);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no Y in request to get online regions");
             if (request.TryGetValue("MC", out o))
-                Int32.TryParse(o.ToString(), out max);
+                int.TryParse(o.ToString(), out max);
             else
                 m_log.WarnFormat("[GRID HANDLER]: no Max Count in request to get online regions");
 
@@ -591,7 +591,7 @@ namespace OpenSim.Server.Handlers.Grid
             if (max > 0)
                 rinfos = m_GridService.GetOnlineRegions(scopeID, x, y, max);
 
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
             if ((rinfos == null) || ((rinfos != null) && (rinfos.Count == 0)))
                 result["result"] = "null";
             else
@@ -621,7 +621,7 @@ namespace OpenSim.Server.Handlers.Grid
 
             List<GridRegion> rinfos = m_GridService.GetHyperlinks(scopeID);
 
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
             if ((rinfos == null) || ((rinfos != null) && (rinfos.Count == 0)))
                 result["result"] = "null";
             else
@@ -657,8 +657,10 @@ namespace OpenSim.Server.Handlers.Grid
             int flags = m_GridService.GetRegionFlags(scopeID, regionID);
            // m_log.DebugFormat("[GRID HANDLER]: flags for region {0}: {1}", regionID, flags);
 
-            Dictionary<string, object> result = new Dictionary<string, object>();
-            result["result"] = flags.ToString();
+            Dictionary<string, object> result = new()
+            {
+                ["result"] = flags.ToString()
+            };
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
 
@@ -669,7 +671,7 @@ namespace OpenSim.Server.Handlers.Grid
         byte[] GetGridExtraFeatures(Dictionary<string, object> request)
         {
 
-            Dictionary<string, object> result = new Dictionary<string, object> ();
+            Dictionary<string, object> result = [];
             Dictionary<string, object> extraFeatures = m_GridService.GetExtraFeatures ();
 
             foreach (string key in extraFeatures.Keys)
@@ -688,7 +690,7 @@ namespace OpenSim.Server.Handlers.Grid
 
         private byte[] SuccessResult()
         {
-            XmlDocument doc = new XmlDocument();
+            XmlDocument doc = new();
 
             XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
                     "", "");
@@ -710,12 +712,12 @@ namespace OpenSim.Server.Handlers.Grid
 
         private byte[] FailureResult()
         {
-            return FailureResult(String.Empty);
+            return FailureResult(string.Empty);
         }
 
         private byte[] FailureResult(string msg)
         {
-            XmlDocument doc = new XmlDocument();
+            XmlDocument doc = new();
 
             XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
                     "", "");

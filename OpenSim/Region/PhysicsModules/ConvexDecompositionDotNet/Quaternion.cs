@@ -62,7 +62,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 
         public float3 axis()
         {
-            float3 a = new float3(x, y, z);
+            float3 a = new(x, y, z);
             if (Math.Abs(angle()) < 0.0000001f)
                 return new float3(1f, 0f, 0f);
             return a * (1 / (float)Math.Sin(angle() / 2.0f));
@@ -95,11 +95,13 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 
         public static Quaternion operator *(Quaternion a, Quaternion b)
         {
-            Quaternion c = new Quaternion();
-            c.w = a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z;
-            c.x = a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y;
-            c.y = a.w * b.y - a.x * b.z + a.y * b.w + a.z * b.x;
-            c.z = a.w * b.z + a.x * b.y - a.y * b.x + a.z * b.w;
+            Quaternion c = new()
+            {
+                w = a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z,
+                x = a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y,
+                y = a.w * b.y - a.x * b.z + a.y * b.w + a.z * b.x,
+                z = a.w * b.z + a.x * b.y - a.y * b.x + a.z * b.w
+            };
             return c;
         }
 

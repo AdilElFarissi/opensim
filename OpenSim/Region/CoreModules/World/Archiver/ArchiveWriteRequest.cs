@@ -146,12 +146,12 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 SaveAssets = false;
 
 
-            if (options.TryGetValue("checkPermissions", out Object temp))
+            if (options.TryGetValue("checkPermissions", out object temp))
                 FilterContent = (string)temp;
 
 
             // Find the regions to archive
-            ArchiveScenesGroup scenesGroup = new ArchiveScenesGroup();
+            ArchiveScenesGroup scenesGroup = new();
             if (MultiRegionFormat)
             {
                 m_log.InfoFormat("[ARCHIVER]: Saving {0} regions", SceneManager.Instance.Scenes.Count);
@@ -176,9 +176,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
                 // Archive the regions
 
-                Dictionary<UUID, sbyte> assetUuids = new Dictionary<UUID, sbyte>();
-                HashSet<UUID> failedIDs = new HashSet<UUID>();
-                HashSet<UUID> uncertainAssetsUUIDs = new HashSet<UUID>();
+                Dictionary<UUID, sbyte> assetUuids = [];
+                HashSet<UUID> failedIDs = [];
+                HashSet<UUID> uncertainAssetsUUIDs = [];
 
                 scenesGroup.ForEachScene(delegate(Scene scene)
                 {
@@ -192,7 +192,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 {
                     m_log.DebugFormat("[ARCHIVER]: Saving {0} assets", assetUuids.Count);
                     
-                    AssetsRequest ar = new AssetsRequest(
+                    AssetsRequest ar = new(
                             new AssetsArchiver(m_archiveWriter), assetUuids,
                             failedIDs.Count,
                             m_rootScene.AssetService, m_rootScene.UserAccountService,
@@ -226,7 +226,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_log.InfoFormat("[ARCHIVER]: Writing region {0}", scene.Name);
 
             EntityBase[] entities = scene.GetEntities();
-            List<SceneObjectGroup> sceneObjects = new List<SceneObjectGroup>();
+            List<SceneObjectGroup> sceneObjects = [];
 
             int numObjectsSkippedPermissions = 0;
 
@@ -255,7 +255,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 }
             }
 
-            UuidGatherer assetGatherer = new UuidGatherer(scene.AssetService, assetUuids, failedIDs, uncertainAssetsUUIDs);
+            UuidGatherer assetGatherer = new(scene.AssetService, assetUuids, failedIDs, uncertainAssetsUUIDs);
             int prevAssets = assetUuids.Count;
 
             if (SaveAssets)
@@ -483,11 +483,11 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 m_log.WarnFormat("[ARCHIVER]: Please be aware that version 1.0 OARs are not compatible with OpenSim versions prior to 0.7.4. Do not use the --all option if you want to produce a compatible OAR");
             }
 
-            String s;
+            string s;
 
-            using (StringWriter sw = new StringWriter())
+            using (StringWriter sw = new())
             {
-                using (XmlTextWriter xtw = new XmlTextWriter(sw))
+                using (XmlTextWriter xtw = new(sw))
                 {
                     xtw.Formatting = Formatting.Indented;
                     xtw.WriteStartDocument();
@@ -589,7 +589,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             m_log.InfoFormat("[ARCHIVER]: Adding region settings to archive.");
 
             // Write out region settings
-            string settingsPath = String.Format("{0}{1}{2}.xml",
+            string settingsPath = string.Format("{0}{1}{2}.xml",
                 regionDir, ArchiveConstants.SETTINGS_PATH, scene.RegionInfo.RegionName);
             m_archiveWriter.WriteFile(settingsPath, RegionSettingsSerializer.Serialize(scene.RegionInfo.RegionSettings, scene.RegionEnvironment, scene.RegionInfo.EstateSettings));
 
@@ -601,17 +601,17 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             {
                 LandData landData = lo.LandData;
                 string landDataPath
-                    = String.Format("{0}{1}", regionDir, ArchiveConstants.CreateOarLandDataPath(landData));
+                    = string.Format("{0}{1}", regionDir, ArchiveConstants.CreateOarLandDataPath(landData));
                 m_archiveWriter.WriteFile(landDataPath, LandDataSerializer.Serialize(landData, m_options));
             }
 
             m_log.InfoFormat("[ARCHIVER]: Adding terrain information to archive.");
 
             // Write out terrain
-            string terrainPath = String.Format("{0}{1}{2}.r32",
+            string terrainPath = string.Format("{0}{1}{2}.r32",
                 regionDir, ArchiveConstants.TERRAINS_PATH, scene.RegionInfo.RegionName);
 
-            using (MemoryStream ms = new MemoryStream())
+            using (MemoryStream ms = new())
             {
                 scene.RequestModuleInterface<ITerrainModule>().SaveToStream(terrainPath, ms);
                 m_archiveWriter.WriteFile(terrainPath, ms.ToArray());
@@ -651,7 +651,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 //                "[ARCHIVER]: Received {0} of {1} assets requested",
                 //                assetsFoundUuids.Count, assetsFoundUuids.Count + assetsNotFoundUuids.Count);
 
-                errorMessage = String.Empty;
+                errorMessage = string.Empty;
             }
 
             CloseArchive(errorMessage);

@@ -48,7 +48,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Animations
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private List<Scene> m_scenes = new List<Scene>();
+        private List<Scene> m_scenes = [];
 
         public string Name { get { return "Animations Command Module"; } }
 
@@ -118,7 +118,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Animations
                 optionalTargetLastName = cmd[3];
             }
 
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
 
             lock (m_scenes)
             {
@@ -144,7 +144,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Animations
         {
             sb.AppendFormat("Animations for {0}\n", sp.Name);
 
-            ConsoleDisplayList cdl = new ConsoleDisplayList() { Indent = 2 };
+            ConsoleDisplayList cdl = new() { Indent = 2 };
             ScenePresenceAnimator spa = sp.Animator;
             AnimationSet anims = sp.Animator.Animations;
 
@@ -166,7 +166,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Animations
 
             cdl.AddToStringBuilder(sb);
 
-            ConsoleDisplayTable cdt = new ConsoleDisplayTable() { Indent = 2 };
+            ConsoleDisplayTable cdt = new() { Indent = 2 };
             cdt.AddColumn("Animation ID", 36);
             cdt.AddColumn("Name", 20);
             cdt.AddColumn("Seq", 3);

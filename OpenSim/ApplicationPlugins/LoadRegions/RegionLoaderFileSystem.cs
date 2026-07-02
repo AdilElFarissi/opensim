@@ -79,7 +79,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
 
             m_log.InfoFormat("[REGION LOADER FILE SYSTEM]: Loading config files from {0}", regionConfigPath);
 
-            List<RegionInfo> regionInfos = new List<RegionInfo>();
+            List<RegionInfo> regionInfos = [];
 
             int i = 0;
             foreach (string file in iniFiles)
@@ -90,7 +90,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
 
                 foreach (IConfig config in source.Configs)
                 {
-                    RegionInfo regionInfo = new RegionInfo("REGION CONFIG #" + (i + 1), file, false, m_configSource, config.Name);
+                    RegionInfo regionInfo = new("REGION CONFIG #" + (i + 1), file, false, m_configSource, config.Name);
                     regionInfos.Add(regionInfo);
 
                     m_log.InfoFormat("[REGION LOADER FILE SYSTEM]: Loaded config for region {0}", regionInfo.RegionName);
@@ -103,7 +103,7 @@ namespace OpenSim.ApplicationPlugins.LoadRegions
             {
                 m_log.InfoFormat("[REGION LOADER FILE SYSTEM]: Loading config file {0}", file);
 
-                RegionInfo regionInfo = new RegionInfo("REGION CONFIG #" + (i + 1), file, false, m_configSource);
+                RegionInfo regionInfo = new("REGION CONFIG #" + (i + 1), file, false, m_configSource);
                 regionInfos.Add(regionInfo);
 
                 m_log.InfoFormat("[REGION LOADER FILE SYSTEM]: Loaded config for region {0}", regionInfo.RegionName);

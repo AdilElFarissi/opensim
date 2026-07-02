@@ -71,7 +71,7 @@ namespace OpenSim.Region.CoreModules.Framework.Library
                     m_log.Debug("[LIBRARY MODULE]: Library service dll is " + dllName);
                     if (dllName != string.Empty)
                     {
-                        Object[] args = new Object[] { config };
+                        object[] args = new object[] { config };
                         m_Library = ServerUtils.LoadPlugin<ILibraryService>(dllName, args);
                     }
                 }
@@ -156,16 +156,18 @@ namespace OpenSim.Region.CoreModules.Framework.Library
                 return;
             }
 
-            RegionInfo regInfo = new RegionInfo();
-            Scene m_MockScene = new Scene(regInfo);
-            LocalInventoryService invService = new LocalInventoryService(lib);
+            RegionInfo regInfo = new();
+            Scene m_MockScene = new(regInfo);
+            LocalInventoryService invService = new(lib);
             m_MockScene.RegisterModuleInterface<IInventoryService>(invService);
             m_MockScene.RegisterModuleInterface<IAssetService>(m_Scene.AssetService);
 
-            UserAccount uinfo = new UserAccount(lib.Owner);
-            uinfo.FirstName = "OpenSim";
-            uinfo.LastName = "Library";
-            uinfo.ServiceURLs = new Dictionary<string, object>();
+            UserAccount uinfo = new(lib.Owner)
+            {
+                FirstName = "OpenSim",
+                LastName = "Library",
+                ServiceURLs = []
+            };
 
             foreach (string iarFileName in Directory.GetFiles(pathToLibraries, "*.iar"))
             {
@@ -174,7 +176,7 @@ namespace OpenSim.Region.CoreModules.Framework.Library
                 m_log.InfoFormat("[LIBRARY MODULE]: Loading library archive {0} ({1})...", iarFileName, simpleName);
                 simpleName = GetInventoryPathFromName(simpleName);
 
-                InventoryArchiveReadRequest archread = new InventoryArchiveReadRequest(m_MockScene.InventoryService, m_MockScene.AssetService, m_MockScene.UserAccountService, uinfo, simpleName, iarFileName, false);
+                InventoryArchiveReadRequest archread = new(m_MockScene.InventoryService, m_MockScene.AssetService, m_MockScene.UserAccountService, uinfo, simpleName, iarFileName, false);
                 try
                 {
                     Dictionary<UUID, InventoryNodeBase> nodes = archread.Execute();

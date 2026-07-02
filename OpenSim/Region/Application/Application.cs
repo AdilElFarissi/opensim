@@ -121,7 +121,7 @@ namespace OpenSim
             ServicePointManager.UseNagleAlgorithm = false;
 
             // Add the arguments supplied when running the application to the configuration
-            ArgvConfigSource configSource = new ArgvConfigSource(args);
+            ArgvConfigSource configSource = new(args);
 
             // Configure Log4Net
             configSource.AddSwitch("Startup", "logconfig");
@@ -406,7 +406,7 @@ namespace OpenSim
                         Directory.CreateDirectory(m_crashDir);
                     }
                     string log = Util.GetUniqueFilename(ex.GetType() + ".txt");
-                    using (StreamWriter m_crashLog = new StreamWriter(Path.Combine(m_crashDir, log)))
+                    using (StreamWriter m_crashLog = new(Path.Combine(m_crashDir, log)))
                     {
                         m_crashLog.WriteLine(msg);
                     }

@@ -91,7 +91,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
     [StructLayout(LayoutKind.Sequential)]
     public struct ShapeData
     {
-        public UInt32 ID;
+        public uint ID;
         public BSPhysicsShapeType Type;
         public Vector3 Position;
         public Quaternion Rotation;
@@ -99,8 +99,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         public Vector3 Scale;
         public float Mass;
         public float Buoyancy;
-        public System.UInt64 HullKey;
-        public System.UInt64 MeshKey;
+        public ulong HullKey;
+        public ulong MeshKey;
         public float Friction;
         public float Restitution;
         public float Collidable;    // true of things bump into this
@@ -115,7 +115,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
     [StructLayout(LayoutKind.Sequential)]
     public struct SweepHit
     {
-        public UInt32 ID;
+        public uint ID;
         public float Fraction;
         public Vector3 Normal;
         public Vector3 Point;
@@ -131,7 +131,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
     [StructLayout(LayoutKind.Sequential)]
     public struct RaycastHit
     {
-        public UInt32 ID;
+        public uint ID;
         public float Fraction;
         public Vector3 Normal;
         public Vector3 Point;
@@ -145,8 +145,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
     [StructLayout(LayoutKind.Sequential)]
     public struct CollisionDesc
     {
-        public UInt32 aID;
-        public UInt32 bID;
+        public uint aID;
+        public uint bID;
         public Vector3 point;
         public Vector3 normal;
         public float penetration;
@@ -154,7 +154,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
     [StructLayout(LayoutKind.Sequential)]
     public struct EntityProperties
     {
-        public UInt32 ID;
+        public uint ID;
         public Vector3 Position;
         public Quaternion Rotation;
         public Vector3 Velocity;
@@ -163,7 +163,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
     
         public override string ToString()
         {
-            StringBuilder buff = new StringBuilder();
+            StringBuilder buff = new();
             buff.Append("<i=");
             buff.Append(ID.ToString());
             buff.Append(",p=");
@@ -342,7 +342,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         public abstract int PhysicsStep(BulletWorld world, float timeStep, int maxSubSteps, float fixedTimeStep,
                                 out int updatedEntityCount, out int collidersCount);
         
-        public abstract bool UpdateParameter(BulletWorld world, UInt32 localID, String parm, float value);
+        public abstract bool UpdateParameter(BulletWorld world, uint localID, string parm, float value);
         
         public abstract void Shutdown(BulletWorld sim);
         
@@ -393,24 +393,24 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         
         public abstract void RecalculateCompoundShapeLocalAabb(BulletShape cShape);
         
-        public abstract BulletShape DuplicateCollisionShape(BulletWorld sim, BulletShape srcShape, UInt32 id);
+        public abstract BulletShape DuplicateCollisionShape(BulletWorld sim, BulletShape srcShape, uint id);
         
         public abstract bool DeleteCollisionShape(BulletWorld world, BulletShape shape);
         
         public abstract CollisionObjectTypes GetBodyType(BulletBody obj);
         
-        public abstract BulletBody CreateBodyFromShape(BulletWorld sim, BulletShape shape, UInt32 id, Vector3 pos, Quaternion rot);
+        public abstract BulletBody CreateBodyFromShape(BulletWorld sim, BulletShape shape, uint id, Vector3 pos, Quaternion rot);
         
-        public abstract BulletBody CreateBodyWithDefaultMotionState(BulletShape shape, UInt32 id, Vector3 pos, Quaternion rot);
+        public abstract BulletBody CreateBodyWithDefaultMotionState(BulletShape shape, uint id, Vector3 pos, Quaternion rot);
         
-        public abstract BulletBody CreateGhostFromShape(BulletWorld sim, BulletShape shape, UInt32 id, Vector3 pos, Quaternion rot);
+        public abstract BulletBody CreateGhostFromShape(BulletWorld sim, BulletShape shape, uint id, Vector3 pos, Quaternion rot);
         
         public abstract void DestroyObject(BulletWorld sim, BulletBody obj);
         
         // =====================================================================================
-        public abstract BulletShape CreateGroundPlaneShape(UInt32 id, float height, float collisionMargin);
+        public abstract BulletShape CreateGroundPlaneShape(uint id, float height, float collisionMargin);
         
-        public abstract BulletShape CreateTerrainShape(UInt32 id, Vector3 size, float minHeight, float maxHeight, float[] heightMap,
+        public abstract BulletShape CreateTerrainShape(uint id, Vector3 size, float minHeight, float maxHeight, float[] heightMap,
                                         float scaleFactor, float collisionMargin);
         
         // =====================================================================================
@@ -717,7 +717,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         
         public abstract int GetNumConstraintRefs(BulletBody obj);
         
-        public abstract bool SetCollisionGroupMask(BulletBody body, UInt32 filter, UInt32 mask);
+        public abstract bool SetCollisionGroupMask(BulletBody body, uint filter, uint mask);
         
         // =====================================================================================
         // btCollisionShape entries

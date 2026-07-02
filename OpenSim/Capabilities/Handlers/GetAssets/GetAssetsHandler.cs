@@ -116,7 +116,7 @@ namespace OpenSim.Capabilities.Handlers
             if(!UUID.TryParse(assetStr, out UUID assetID))
                 return;
 
-            ManualResetEventSlim done = new ManualResetEventSlim(false);
+            ManualResetEventSlim done = new(false);
             AssetBase asset = null;
             m_assetService.Get(assetID.ToString(), serviceURL, false, (AssetBase a) =>
                 {

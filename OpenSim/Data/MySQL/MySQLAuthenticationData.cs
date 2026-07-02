@@ -52,10 +52,10 @@ namespace OpenSim.Data.MySQL
             m_Realm = realm;
             m_connectionString = connectionString;
 
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            using (MySqlConnection dbcon = new(m_connectionString))
             {
                 dbcon.Open();
-                Migration m = new Migration(dbcon, Assembly, "AuthStore");
+                Migration m = new(dbcon, Assembly, "AuthStore");
                 m.Update();
                 dbcon.Close();
             }
@@ -63,15 +63,17 @@ namespace OpenSim.Data.MySQL
 
         public AuthenticationData Get(UUID principalID)
         {
-            AuthenticationData ret = new AuthenticationData();
-            ret.Data = new Dictionary<string, object>();
+            AuthenticationData ret = new()
+            {
+                Data = []
+            };
 
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            using (MySqlConnection dbcon = new(m_connectionString))
             {
                 dbcon.Open();
 
                 using (MySqlCommand cmd
-                    = new MySqlCommand("select * from `" + m_Realm + "` where UUID = ?principalID", dbcon))
+                    = new("select * from `" + m_Realm + "` where UUID = ?principalID", dbcon))
                 {
                     cmd.Parameters.AddWithValue("?principalID", principalID.ToString());
 
@@ -109,7 +111,7 @@ namespace OpenSim.Data.MySQL
             if (m_ColumnNames != null)
                 return;
 
-            List<string> columnNames = new List<string>();
+            List<string> columnNames = [];
 
             DataTable schemaTable = result.GetSchemaTable();
             foreach (DataRow row in schemaTable.Rows)
@@ -124,7 +126,7 @@ namespace OpenSim.Data.MySQL
 
             string[] fields = new List<string>(data.Data.Keys).ToArray();
 
-            using (MySqlCommand cmd = new MySqlCommand())
+            using (MySqlCommand cmd = new())
             {
                 string update = "update `"+m_Realm+"` set ";
                 bool first = true;
@@ -147,8 +149,8 @@ namespace OpenSim.Data.MySQL
                 if (ExecuteNonQuery(cmd) < 1)
                 {
                     string insert = "insert into `" + m_Realm + "` (`UUID`, `" +
-                            String.Join("`, `", fields) +
-                            "`) values (?principalID, ?" + String.Join(", ?", fields) + ")";
+                            string.Join("`, `", fields) +
+                            "`) values (?principalID, ?" + string.Join(", ?", fields) + ")";
 
                     cmd.CommandText = insert;
 
@@ -163,7 +165,7 @@ namespace OpenSim.Data.MySQL
         public bool SetDataItem(UUID principalID, string item, string value)
         {
             using (MySqlCommand cmd
-                = new MySqlCommand("update `" + m_Realm + "` set `" + item + "` = ?" + item + " where UUID = ?UUID"))
+                = new("update `" + m_Realm + "` set `" + item + "` = ?" + item + " where UUID = ?UUID"))
             {
                 cmd.Parameters.AddWithValue("?"+item, value);
                 cmd.Parameters.AddWithValue("?UUID", principalID.ToString());
@@ -181,7 +183,7 @@ namespace OpenSim.Data.MySQL
                 DoExpire();
 
             using (MySqlCommand cmd
-                = new MySqlCommand(
+                = new(
                     "insert into tokens (UUID, token, validity) values (?principalID, ?token, date_add(now(), interval ?lifetime minute))"))
             {
                 cmd.Parameters.AddWithValue("?principalID", principalID.ToString());
@@ -201,7 +203,7 @@ namespace OpenSim.Data.MySQL
                 DoExpire();
 
             using (MySqlCommand cmd
-                = new MySqlCommand(
+                = new(
                     "update tokens set validity = date_add(now(), interval ?lifetime minute) where UUID = ?principalID and token = ?token and validity > now()"))
             {
                 cmd.Parameters.AddWithValue("?principalID", principalID.ToString());
@@ -217,7 +219,7 @@ namespace OpenSim.Data.MySQL
 
         private void DoExpire()
         {
-            using (MySqlCommand cmd = new MySqlCommand("delete from tokens where validity < now()"))
+            using (MySqlCommand cmd = new("delete from tokens where validity < now()"))
             {
                 ExecuteNonQuery(cmd);
             }

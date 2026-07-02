@@ -116,7 +116,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             // HGAssetService dispatches it to the remote grid.
             // It's not pretty, but the best that can be done while
             // not having a global naming infrastructure
-            AssetBase asset1 = new AssetBase(asset.FullID, asset.Name, asset.Type, asset.Metadata.CreatorID);
+            AssetBase asset1 = new(asset.FullID, asset.Name, asset.Type, asset.Metadata.CreatorID);
             Copy(asset, asset1);
             asset1.ID = url + asset.ID;
 
@@ -233,7 +233,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             m_log.DebugFormat("[HG ASSET MAPPER  POST]: Starting to send asset {0} to asset server {1}", assetID, userAssetURL);
 
             // Find all the embedded assets
-            HGUuidGatherer uuidGatherer = new HGUuidGatherer(m_scene.AssetService, string.Empty);
+            HGUuidGatherer uuidGatherer = new(m_scene.AssetService, string.Empty);
             uuidGatherer.AddForInspection(asset.FullID);
             uuidGatherer.GatherAll(true);
 

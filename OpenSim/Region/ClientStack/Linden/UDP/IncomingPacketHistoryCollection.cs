@@ -45,7 +45,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         {
             this.m_capacity = capacity;
             m_items = new uint[capacity];
-            m_hashSet = new HashSet<uint>();
+            m_hashSet = [];
         }
 
         public bool TryEnqueue(uint ack)

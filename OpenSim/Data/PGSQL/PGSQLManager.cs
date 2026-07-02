@@ -94,7 +94,7 @@ namespace OpenSim.Data.PGSQL
             {
                 return NpgsqlDbType.Integer;
             }
-            if (type == typeof(Byte[]))
+            if (type == typeof(byte[]))
             {
                 return NpgsqlDbType.Bytea;
             }
@@ -266,7 +266,7 @@ namespace OpenSim.Data.PGSQL
             //HACK if object is null, it is turned into a string, there are no nullable type till now
             if (parameterObject == null) parameterObject = "";
 
-            NpgsqlParameter parameter = new NpgsqlParameter(parameterName, DbtypeFromType(parameterObject.GetType()));
+            NpgsqlParameter parameter = new(parameterName, DbtypeFromType(parameterObject.GetType()));
 
             if (parameterOut)
             {
@@ -287,9 +287,11 @@ namespace OpenSim.Data.PGSQL
             if (parameterName.StartsWith(":")) parameterName = parameterName.Replace(":", "");
 
             //HACK if object is null, it is turned into a string, there are no nullable type till now
-            NpgsqlParameter parameter = new NpgsqlParameter(parameterName, NpgsqlDbType.Bytea);
-            parameter.Direction = ParameterDirection.Input;
-            parameter.Value = DBNull.Value;
+            NpgsqlParameter parameter = new(parameterName, NpgsqlDbType.Bytea)
+            {
+                Direction = ParameterDirection.Input,
+                Value = DBNull.Value
+            };
             return parameter;
         }
 
@@ -308,10 +310,11 @@ namespace OpenSim.Data.PGSQL
             //HACK if object is null, it is turned into a string, there are no nullable type till now
             if (parameterObject == null) parameterObject = "";
 
-            NpgsqlParameter parameter = new NpgsqlParameter(parameterName, DbtypeFromString(parameterObject.GetType(), PGFieldType));
-
-            parameter.Direction = ParameterDirection.Input;
-            parameter.Value = CreateParameterValue(parameterObject, PGFieldType);
+            NpgsqlParameter parameter = new(parameterName, DbtypeFromString(parameterObject.GetType(), PGFieldType))
+            {
+                Direction = ParameterDirection.Input,
+                Value = CreateParameterValue(parameterObject, PGFieldType)
+            };
 
             return parameter;
         }
@@ -322,11 +325,11 @@ namespace OpenSim.Data.PGSQL
         /// <param name="migrationStore">migrationStore.</param>
         public void CheckMigration(string migrationStore)
         {
-            using (NpgsqlConnection connection = new NpgsqlConnection(connectionString))
+            using (NpgsqlConnection connection = new(connectionString))
             {
                 connection.Open();
                 Assembly assem = GetType().Assembly;
-                PGSQLMigration migration = new PGSQLMigration(connection, assem, migrationStore);
+                PGSQLMigration migration = new(connection, assem, migrationStore);
 
                 migration.Update();
             }

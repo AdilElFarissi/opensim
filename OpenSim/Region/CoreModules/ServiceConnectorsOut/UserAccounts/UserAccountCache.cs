@@ -40,9 +40,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         //5min expire checks
-        private ExpiringCacheOS<UUID, UserAccount> m_UUIDCache = new ExpiringCacheOS<UUID, UserAccount>(300000);
-        private ExpiringCacheOS<string, UserAccount> m_NameCache = new ExpiringCacheOS<string, UserAccount>(300000);
-        private readonly object accessLock = new object();
+        private ExpiringCacheOS<UUID, UserAccount> m_UUIDCache = new(300000);
+        private ExpiringCacheOS<string, UserAccount> m_NameCache = new(300000);
+        private readonly object accessLock = new();
 
         public UserAccountCache()
         {

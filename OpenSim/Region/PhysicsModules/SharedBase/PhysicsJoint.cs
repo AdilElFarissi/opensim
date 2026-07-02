@@ -41,7 +41,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
         public virtual bool IsInPhysicsEngine { get { return false; } } // set internally to indicate if this joint has already been passed to the physics engine or is still pending
         public PhysicsJointType Type;
         public string RawParams;
-        public List<string> BodyNames = new List<string>();
+        public List<string> BodyNames = [];
         public Vector3 Position; // global coords
         public Quaternion Rotation; // global coords
         public string ObjectNameInScene; // proxy object in scene that represents the joint position/orientation

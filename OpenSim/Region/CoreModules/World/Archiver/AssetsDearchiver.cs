@@ -48,7 +48,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <summary>
         /// Store for asset data we received before we get the metadata
         /// </summary>
-        protected Dictionary<string, byte[]> m_assetDataAwaitingMetadata = new();
+        protected Dictionary<string, byte[]> m_assetDataAwaitingMetadata = [];
 
         /// <summary>
         /// Asset metadata.  Is null if asset metadata isn't yet available.
@@ -88,7 +88,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <param name="xml"></param>
         public void AddAssetMetadata(string xml)
         {
-            m_metadata = new Dictionary<string, AssetMetadata>();
+            m_metadata = [];
 
             StringReader sr = new(xml);
             XmlTextReader reader = new(sr)

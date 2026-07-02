@@ -307,7 +307,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             prefix = string.Empty;
             suffix = string.Empty;
             Vector3 pos = presence.AbsolutePosition;
-            return String.Format(CultureInfo.InvariantCulture.NumberFormat, "Landmark version 2\nregion_id {0}\nlocal_pos {1} {2} {3}\nregion_handle {4}\n",
+            return string.Format(CultureInfo.InvariantCulture.NumberFormat, "Landmark version 2\nregion_id {0}\nlocal_pos {1} {2} {3}\nregion_handle {4}\n",
                                 presence.Scene.RegionInfo.RegionID,
                                 pos.X, pos.Y, pos.Z,
                                 presence.RegionHandle);
@@ -476,7 +476,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             DeRezAction action, UUID folderID,
             List<SceneObjectGroup> objectGroups, IClientAPI remoteClient, bool asAttachment)
         {
-            Dictionary<UUID, List<SceneObjectGroup>> bundlesToCopy = new();
+            Dictionary<UUID, List<SceneObjectGroup>> bundlesToCopy = [];
 
             if (CoalesceMultipleObjectsToInventory)
             {
@@ -487,7 +487,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 {
                     if (!bundlesToCopy.TryGetValue(g.OwnerID, out List<SceneObjectGroup> lst))
                     {
-                        lst = new();
+                        lst = [];
                         bundlesToCopy[g.OwnerID] = lst;
                     }
                     lst.Add(g);
@@ -498,7 +498,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 // If we don't want to coalesce then put every object in its own bundle.
                 foreach (SceneObjectGroup g in objectGroups)
                 {
-                    bundlesToCopy[g.UUID] = new List<SceneObjectGroup>(){ g };
+                    bundlesToCopy[g.UUID] = [g];
                 }
             }
 
@@ -508,7 +508,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
 
             // Each iteration is really a separate asset being created,
             // with distinct destinations as well.
-            List<InventoryItemBase> copiedItems = new();
+            List<InventoryItemBase> copiedItems = [];
             foreach (List<SceneObjectGroup> bundle in bundlesToCopy.Values)
                 copiedItems.Add(CopyBundleToInventory(action, folderID, bundle, remoteClient, asAttachment));
 
@@ -531,8 +531,8 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
             bool asAttachment)
         {
             CoalescedSceneObjects coa = new(UUID.Zero);
-            Dictionary<UUID, Vector3> originalPositions = new();
-            Dictionary<UUID, Quaternion> originalRotations = new();
+            Dictionary<UUID, Vector3> originalPositions = [];
+            Dictionary<UUID, Quaternion> originalRotations = [];
             // this possible is not needed if keyframes are saved
             //Dictionary<UUID, KeyframeMotion> originalKeyframes = new Dictionary<UUID, KeyframeMotion>();
 
@@ -1353,7 +1353,7 @@ namespace OpenSim.Region.CoreModules.Framework.InventoryAccess
                 {
                     // If this is done on attachments, no
                     // copy ones will be lost, so avoid it
-                    m_Scene.InventoryService.DeleteItems(item.Owner, new List<UUID>(){ item.ID });
+                    m_Scene.InventoryService.DeleteItems(item.Owner, [item.ID]);
                 }
             }
         }

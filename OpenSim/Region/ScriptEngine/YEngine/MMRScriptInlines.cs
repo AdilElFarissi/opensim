@@ -62,7 +62,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              * note to self: a change here implies change on magic numbers to invalidate older code and 
              * script state
              */
-            noCheckRuns = new HashSet<string>() {
+            noCheckRuns = [
                 "llBase64ToString",
                 "llCSV2List",
                 "llDeleteSubList",
@@ -108,7 +108,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 "osMax",
                 "osMin",
                 "osIsUUID"
-            };
+            ];
 
             /*
              * These functions really return a 'key' even though we see them as
@@ -144,7 +144,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 "llTransferLindenDollars"
             };
 
-            VarDict ifd = new VarDict(false);
+            VarDict ifd = new(false);
             Type[] oneDoub = new Type[] { typeof(double) };
             Type[] twoDoubs = new Type[] { typeof(double), typeof(double) };
  
@@ -175,7 +175,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         // this one accepts only names beginning with a lower-case letter
         public static void AddInterfaceMethods(VarDict ifd, MethodInfo[] ifaceMethods, FieldInfo acf)
         {
-            List<MethodInfo> lcms = new List<MethodInfo>(ifaceMethods.Length);
+            List<MethodInfo> lcms = new(ifaceMethods.Length);
             foreach(MethodInfo meth in ifaceMethods)
             {
                 string name = meth.Name;
@@ -284,11 +284,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         private static TokenArgDecl GetArgDecl(ParameterInfo[] parameters)
         {
-            TokenArgDecl argDecl = new TokenArgDecl(null);
+            TokenArgDecl argDecl = new(null);
             foreach(ParameterInfo pi in parameters)
             {
                 TokenType type = TokenType.FromSysType(null, pi.ParameterType);
-                TokenName name = new TokenName(null, pi.Name);
+                TokenName name = new(null, pi.Name);
                 argDecl.AddArg(type, name);
             }
             return argDecl;
@@ -361,7 +361,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public static void PrintBuiltins(bool inclNoisyTag, WriteLine writeLine)
         {
             writeLine("\nBuilt-in functions:\n");
-            SortedDictionary<string, TokenDeclInline> bifs = new SortedDictionary<string, TokenDeclInline>();
+            SortedDictionary<string, TokenDeclInline> bifs = [];
             foreach(TokenDeclVar bif in TokenDeclInline.inlineFunctions)
             {
                 bifs.Add(bif.fullName, (TokenDeclInline)bif);
@@ -380,7 +380,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
 
             writeLine("\nBuilt-in constants:\n");
-            SortedDictionary<string, ScriptConst> scs = new SortedDictionary<string, ScriptConst>();
+            SortedDictionary<string, ScriptConst> scs = [];
             int widest = 0;
             foreach(ScriptConst sc in ScriptConst.scriptConstants.Values)
             {
@@ -410,14 +410,14 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 return ((CompValuFloat)rVal).x.ToString();
             if(rVal is CompValuString)
             {
-                StringBuilder sb = new StringBuilder();
+                StringBuilder sb = new();
                 PrintParam(sb, ((CompValuString)rVal).x);
                 return sb.ToString();
             }
             if(rVal is CompValuSField)
             {
                 FieldInfo fi = ((CompValuSField)rVal).field;
-                StringBuilder sb = new StringBuilder();
+                StringBuilder sb = new();
                 PrintParam(sb, fi.GetValue(null));
                 return sb.ToString();
             }

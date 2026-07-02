@@ -58,8 +58,8 @@ namespace OpenSim.Services.HypergridService
 
 //        private UserAccountCache m_Cache;
 
-        private ExpiringCache<UUID, List<XInventoryFolder>> m_SuitcaseTrees = new ExpiringCache<UUID, List<XInventoryFolder>>();
-        private ExpiringCache<UUID, AvatarAppearance> m_Appearances = new ExpiringCache<UUID, AvatarAppearance>();
+        private ExpiringCache<UUID, List<XInventoryFolder>> m_SuitcaseTrees = new();
+        private ExpiringCache<UUID, AvatarAppearance> m_Appearances = new();
 
         public HGSuitcaseInventoryService(IConfigSource config, string configName)
             : base(config, configName)
@@ -81,10 +81,10 @@ namespace OpenSim.Services.HypergridService
                 if (userAccountsDll.Length == 0)
                     throw new Exception("Please specify UserAccountsService in HGInventoryService configuration");
 
-                Object[] args = new Object[] { config };
+                object[] args = new object[] { config };
                 m_UserAccountService = ServerUtils.LoadPlugin<IUserAccountService>(userAccountsDll, args);
                 if (m_UserAccountService == null)
-                    throw new Exception(String.Format("Unable to create UserAccountService from {0}", userAccountsDll));
+                    throw new Exception(string.Format("Unable to create UserAccountService from {0}", userAccountsDll));
 
                 string avatarDll = invConfig.GetString("AvatarService", string.Empty);
                 if (avatarDll.Length == 0)
@@ -92,7 +92,7 @@ namespace OpenSim.Services.HypergridService
 
                 m_AvatarService = ServerUtils.LoadPlugin<IAvatarService>(avatarDll, args);
                 if (m_AvatarService == null)
-                    throw new Exception(String.Format("Unable to create m_AvatarService from {0}", avatarDll));
+                    throw new Exception(string.Format("Unable to create m_AvatarService from {0}", avatarDll));
 
 //                m_HomeURL = Util.GetConfigVarFromSections<string>(config, "HomeURI",
 //                    new string[] { "Startup", "Hypergrid", m_ConfigName }, String.Empty);
@@ -123,7 +123,7 @@ namespace OpenSim.Services.HypergridService
             if (tree.Count == 0)
                 return null;
 
-            List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
+            List<InventoryFolderBase> folders = [];
             foreach (XInventoryFolder x in tree)
             {
                 folders.Add(ConvertToOpenSim(x));
@@ -267,7 +267,7 @@ namespace OpenSim.Services.HypergridService
             if (!IsWithinSuitcaseTree(principalID, folderID))
             {
                 m_log.DebugFormat("[HG SUITCASE INVENTORY SERVICE]: GetFolderItems: folder {0} (user {1}) is not within Suitcase tree", folderID, principalID);
-                return new List<InventoryItemBase>();
+                return [];
             }
 
             return base.GetFolderItems(principalID, folderID);
@@ -546,7 +546,7 @@ namespace OpenSim.Services.HypergridService
 
         private List<XInventoryFolder> GetFolderTreeRecursive(UUID root)
         {
-            List<XInventoryFolder> tree = new List<XInventoryFolder>();
+            List<XInventoryFolder> tree = [];
             XInventoryFolder[] folders = m_Database.GetFolders(
                     new string[] { "parentFolderID" },
                     new string[] { root.ToString() });
@@ -584,9 +584,11 @@ namespace OpenSim.Services.HypergridService
                 return false;
             }
 
-            List<XInventoryFolder> tree = new List<XInventoryFolder>();
-            tree.Add(suitcase); // Warp! the tree is the real root folder plus the children of the suitcase folder
-            tree.AddRange(GetFolderTree(principalID, suitcase.folderID));
+            List<XInventoryFolder> tree =
+            [
+                suitcase, // Warp! the tree is the real root folder plus the children of the suitcase folder
+                .. GetFolderTree(principalID, suitcase.folderID),
+            ];
 
             // Also add the Current Outfit folder to the list of available folders
             XInventoryFolder folder = GetCurrentOutfitXFolder(principalID);

@@ -54,18 +54,18 @@ namespace OpenSim.Framework
         }
 
         public bool IsStaticDayCycle = false;
-        public List<TrackEntry> waterTrack = new List<TrackEntry>();
-        public List<TrackEntry> skyTrack0 = new List<TrackEntry>();
+        public List<TrackEntry> waterTrack = [];
+        public List<TrackEntry> skyTrack0 = [];
         public List<TrackEntry>[] skyTracks = new List<TrackEntry>[3];
 
-        public Dictionary<string, SkyData> skyframes = new Dictionary<string, SkyData>();
-        public Dictionary<string, WaterData> waterframes = new Dictionary<string, WaterData>();
+        public Dictionary<string, SkyData> skyframes = [];
+        public Dictionary<string, WaterData> waterframes = [];
 
         public string Name;
 
         public void FromWLOSD(OSDArray array)
         {
-            CompareTrackEntries cte = new CompareTrackEntries();
+            CompareTrackEntries cte = new();
             TrackEntry track;
 
             OSDArray skytracksArray = null;
@@ -92,13 +92,13 @@ namespace OpenSim.Framework
             {
                 foreach (KeyValuePair<string, OSD> kvp in skyFramesArray)
                 {
-                    SkyData sky = new SkyData();
+                    SkyData sky = new();
                     sky.FromWLOSD(kvp.Key, kvp.Value);
                     skyframes[kvp.Key] = sky;
                 }
             }
 
-            WaterData water = new WaterData();
+            WaterData water = new();
             OSDMap watermap = null;
             if(array.Count > 3)
                 watermap = array[3] as OSDMap;
@@ -117,12 +117,12 @@ namespace OpenSim.Framework
 
         public void ToWLOSD(ref OSDArray array)
         {
-            OSDArray track = new OSDArray();
+            OSDArray track = [];
             foreach (TrackEntry te in skyTrack0)
                 track.Add(new OSDArray { te.time, te.frameName });
             array[1] = track;
 
-            OSDMap frames = new OSDMap();
+            OSDMap frames = [];
             foreach (KeyValuePair<string, SkyData> kvp in skyframes)
                 frames[kvp.Key] = kvp.Value.ToWLOSD();
             array[2] = frames;
@@ -139,7 +139,7 @@ namespace OpenSim.Framework
 
         public bool replaceWaterFromOSD(string name, OSDMap map)
         {
-            WaterData water = new WaterData();
+            WaterData water = new();
             if(string.IsNullOrWhiteSpace(name))
                 name = "Water";
             try
@@ -153,7 +153,7 @@ namespace OpenSim.Framework
             waterframes.Clear();
             waterframes[name] = water;
             waterTrack.Clear();
-            TrackEntry t = new TrackEntry()
+            TrackEntry t = new()
             {
                 time = -1,
                 frameName = name
@@ -164,7 +164,7 @@ namespace OpenSim.Framework
 
         public bool replaceSkyFromOSD(string name, OSDMap map)
         {
-            SkyData sky = new SkyData();
+            SkyData sky = new();
             if (string.IsNullOrWhiteSpace(name))
                 name = "Sky";
             try
@@ -178,7 +178,7 @@ namespace OpenSim.Framework
             skyframes.Clear();
             skyframes[name] = sky;
 
-            TrackEntry t = new TrackEntry()
+            TrackEntry t = new()
             {
                 time = -1,
                 frameName = name
@@ -192,7 +192,7 @@ namespace OpenSim.Framework
 
         public void FromOSD(OSDMap map)
         {
-            CompareTrackEntries cte = new CompareTrackEntries();
+            CompareTrackEntries cte = new();
             OSD otmp;
 
             if(map.TryGetValue("frames", out otmp) && otmp is OSDMap)
@@ -206,13 +206,13 @@ namespace OpenSim.Framework
                         string type = otmp;
                         if (type.Equals("water"))
                         {
-                            WaterData water = new WaterData();
+                            WaterData water = new();
                             water.FromOSD(kvp.Key, v);
                             waterframes[kvp.Key] = water;
                         }
                         else if (type.Equals("sky"))
                         {
-                            SkyData sky = new SkyData();
+                            SkyData sky = new();
                             sky.FromOSD(kvp.Key, v);
                             skyframes[kvp.Key] = sky;
                         }
@@ -241,7 +241,7 @@ namespace OpenSim.Framework
                             {
                                 if (d.TryGetValue("key_name", out OSD dname))
                                 {
-                                    TrackEntry t = new TrackEntry()
+                                    TrackEntry t = new()
                                     {
                                         time = dtime,
                                         frameName = dname
@@ -265,9 +265,11 @@ namespace OpenSim.Framework
                             {
                                 if (d.TryGetValue("key_name", out OSD dname))
                                 {
-                                    TrackEntry t = new TrackEntry();
-                                    t.time = dtime;
-                                    t.frameName = dname;
+                                    TrackEntry t = new()
+                                    {
+                                        time = dtime,
+                                        frameName = dname
+                                    };
                                     skyTrack0.Add(t);
                                 }
                             }
@@ -282,7 +284,7 @@ namespace OpenSim.Framework
                         track = tracks[st] as OSDArray;
                         if(track != null && track.Count > 0)
                         {
-                            skyTracks[dt] = new List<TrackEntry>();
+                            skyTracks[dt] = [];
                             for (int i = 0; i < track.Count; ++i)
                             {
                                 OSDMap d = track[i] as OSDMap;
@@ -290,9 +292,11 @@ namespace OpenSim.Framework
                                 {
                                     if (d.TryGetValue("key_name", out OSD dname))
                                     {
-                                        TrackEntry t = new TrackEntry();
-                                        t.time = dtime;
-                                        t.frameName = dname;
+                                        TrackEntry t = new()
+                                        {
+                                            time = dtime,
+                                            frameName = dname
+                                        };
                                         skyTracks[dt].Add(t);
                                     }
                                 }
@@ -306,9 +310,9 @@ namespace OpenSim.Framework
 
         public OSDMap ToOSD()
         {
-            OSDMap cycle = new OSDMap();
+            OSDMap cycle = [];
 
-            OSDMap frames = new OSDMap();
+            OSDMap frames = [];
             foreach (KeyValuePair<string, WaterData> kvp in waterframes)
             {
                 frames[kvp.Key] = kvp.Value.ToOSD();
@@ -321,13 +325,13 @@ namespace OpenSim.Framework
 
             cycle["name"] = Name;
 
-            OSDArray tracks = new OSDArray();
+            OSDArray tracks = [];
 
-            OSDArray track = new OSDArray();
+            OSDArray track = [];
             OSDMap tmp;
             foreach (TrackEntry te in waterTrack)
             {
-                tmp = new OSDMap();
+                tmp = [];
                 if (te.time < 0)
                     tmp["key_keyframe"] = 0f;
                 else
@@ -337,10 +341,10 @@ namespace OpenSim.Framework
             }
             tracks.Add(track);
 
-            track = new OSDArray();
+            track = [];
             foreach (TrackEntry te in skyTrack0)
             {
-                tmp = new OSDMap();
+                tmp = [];
                 if (te.time < 0)
                     tmp["key_keyframe"] = 0f;
                 else
@@ -352,12 +356,12 @@ namespace OpenSim.Framework
 
             for(int st = 0; st < 3; ++st)
             {
-                track = new OSDArray();
+                track = [];
                 if(skyTracks[st] != null)
                 {
                     foreach (TrackEntry te in skyTracks[st])
                     {
-                        tmp = new OSDMap();
+                        tmp = [];
                         if (te.time < 0)
                             tmp["key_keyframe"] = 0f;
                         else

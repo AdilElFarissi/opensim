@@ -94,7 +94,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         private Dictionary<int, string> labelNames;
         private Dictionary<int, string> localNames;
-        private StringBuilder lbuf = new StringBuilder();
+        private StringBuilder lbuf = new();
         private TextWriter twout;
 
         public OTDisassemble(ScriptObjCode scriptObjCode, TextWriter twout) : base(scriptObjCode)
@@ -112,8 +112,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public override void BegMethod(DynamicMethod method)
         {
-            labelNames = new Dictionary<int, string>();
-            localNames = new Dictionary<int, string>();
+            labelNames = [];
+            localNames = [];
 
             twout.WriteLine("");
 
@@ -422,25 +422,27 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private static Dictionary<string, string> typeTranslator = InitTypeTranslator();
         private static Dictionary<string, string> InitTypeTranslator()
         {
-            Dictionary<string, string> d = new Dictionary<string, string>();
-            d["Boolean"] = "integer";
-            d["bool"] = "integer";
-            d["Double"] = "float";
-            d["double"] = "float";
-            d["Int32"] = "integer";
-            d["int"] = "integer";
-            d["htlist"] = "list";
-            d["htobject"] = "object";
-            d["htstring"] = "string";
-            d["lslfloat"] = "float";
-            d["lslint"] = "integer";
-            d["lsllist"] = "list";
-            d["lslrot"] = "rotation";
-            d["lslstr"] = "string";
-            d["lslvec"] = "vector";
-            d["Quaternion"] = "rotation";
-            d["String"] = "string";
-            d["Vector3"] = "vector";
+            Dictionary<string, string> d = new()
+            {
+                ["Boolean"] = "integer",
+                ["bool"] = "integer",
+                ["Double"] = "float",
+                ["double"] = "float",
+                ["Int32"] = "integer",
+                ["int"] = "integer",
+                ["htlist"] = "list",
+                ["htobject"] = "object",
+                ["htstring"] = "string",
+                ["lslfloat"] = "float",
+                ["lslint"] = "integer",
+                ["lsllist"] = "list",
+                ["lslrot"] = "rotation",
+                ["lslstr"] = "string",
+                ["lslvec"] = "vector",
+                ["Quaternion"] = "rotation",
+                ["String"] = "string",
+                ["Vector3"] = "vector"
+            };
             return d;
         }
 
@@ -463,7 +465,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             this.twout = twout;
             twout.Write("xmroption dollarsigns;");
-            methargnames = new Dictionary<string, string[]>();
+            methargnames = [];
         }
 
         public override void Close()
@@ -483,9 +485,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             this.method = method;
 
-            eharglist = new Dictionary<int, OTLocal>();
-            labels = new Dictionary<int, OTLabel>();
-            locals = new Dictionary<int, OTLocal>();
+            eharglist = [];
+            labels = [];
+            locals = [];
             cilinstrs = new LinkedList<OTCilInstr>();
             opstack = new Stack<OTOpnd>();
             trystack = new Stack<OTStmtBegExcBlk>();
@@ -554,7 +556,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
              // Strip the $n off of local vars that are not ambiguous.
              // Make sure they don't mask globals and arguments as well.
-            Dictionary<string, int> namecounts = new Dictionary<string, int>();
+            Dictionary<string, int> namecounts = [];
             foreach(Dictionary<int, string> varnames in scriptObjCode.globalVarNames.Values)
             {
                 foreach(string varname in varnames.Values)
@@ -712,7 +714,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // Scan $globalvarinit().  It should only have global var assignments in it.
              // Also gather up list of variables it initializes.
             bool badinit = false;
-            Dictionary<string, string> inittypes = new Dictionary<string, string>();
+            Dictionary<string, string> inittypes = [];
             foreach(OTStmt stmt in topBlock.blkstmts)
             {
                 if(!(stmt is OTStmtStore))
@@ -1088,7 +1090,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private class OTCilBegExcBlk: OTCilInstr
         {
-            public LinkedList<OTCilBegCatBlk> catches = new LinkedList<OTCilBegCatBlk>();
+            public LinkedList<OTCilBegCatBlk> catches = new();
 
             public OTCilBegExcBlk(int offset) : base(offset)
             {
@@ -1104,7 +1106,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 CheckEmptyStack(decompile, "try");
 
                 // link the try itself onto outer block
-                OTStmtBegExcBlk trystmt = new OTStmtBegExcBlk();
+                OTStmtBegExcBlk trystmt = new();
                 decompile.AddLastStmt(trystmt);
 
                 // subsequent statements go to the try block
@@ -1137,7 +1139,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
                 // link the catch itself onto the try statement
                 OTStmtBegExcBlk trystmt = decompile.trystack.Peek();
-                OTStmtBegCatBlk catstmt = new OTStmtBegCatBlk(excType);
+                OTStmtBegCatBlk catstmt = new(excType);
                 trystmt.catches.AddLast(catstmt);
 
                 // start capturing statements into the catch block
@@ -1147,7 +1149,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 decompile.blockstack.Push(catstmt.catchblock);
 
                 // fill the stack slot with something for the exception argument
-                OTOpndDup dup = new OTOpndDup(++decompile.dupNo);
+                OTOpndDup dup = new(++decompile.dupNo);
                 decompile.opstack.Push(dup);
             }
         }
@@ -1172,7 +1174,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
                 // link the finally itself to the try statement
                 OTStmtBegExcBlk trystmt = decompile.trystack.Peek();
-                OTStmtBegFinBlk finstmt = new OTStmtBegFinBlk();
+                OTStmtBegFinBlk finstmt = new();
                 trystmt.finblock = finstmt;
 
                 // start capturing statements into the finally block
@@ -1251,7 +1253,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                             OTOpnd value = decompile.opstack.Pop();
                             if(!(value is OTOpndDup))
                             {
-                                OTOpndDup dup = new OTOpndDup(++decompile.dupNo);
+                                OTOpndDup dup = new(++decompile.dupNo);
                                 OTStmtStore.AddLast(decompile, dup, value);
                                 value = dup;
                             }
@@ -1695,7 +1697,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             public override string DumpString()
             {
-                StringBuilder sb = new StringBuilder();
+                StringBuilder sb = new();
                 sb.Append(opCode.ToString());
                 foreach(OTLabel label in labels)
                 {
@@ -1912,7 +1914,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             public override string DumpString()
             {
-                StringBuilder sb = new StringBuilder();
+                StringBuilder sb = new();
                 sb.Append(opCode.ToString());
                 sb.Append(' ');
                 TokenDeclInline.PrintParamString(sb, value);
@@ -2082,11 +2084,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     }
                 }
 
-                 // Other array reference.
-                OTOpndArrayElem it = new OTOpndArrayElem();
-                it.array = array;
-                it.index = index;
-                it.byref = byref;
+                // Other array reference.
+                OTOpndArrayElem it = new()
+                {
+                    array = array,
+                    index = index,
+                    byref = byref
+                };
                 return it;
             }
 
@@ -2112,9 +2116,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
                 if(!byref)
                     return this;
-                OTOpndArrayElem it = new OTOpndArrayElem();
-                it.array = array;
-                it.index = index;
+                OTOpndArrayElem it = new()
+                {
+                    array = array,
+                    index = index
+                };
                 return it;
             }
 
@@ -2178,13 +2184,15 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             private static Dictionary<string, string> InitXor1Ops()
             {
-                Dictionary<string, string> d = new Dictionary<string, string>();
-                d["ceq"] = "cne";
-                d["cge"] = "clt";
-                d["cgt"] = "cle";
-                d["cle"] = "cgt";
-                d["clt"] = "cge";
-                d["cne"] = "ceq";
+                Dictionary<string, string> d = new()
+                {
+                    ["ceq"] = "cne",
+                    ["cge"] = "clt",
+                    ["cgt"] = "cle",
+                    ["cle"] = "cgt",
+                    ["clt"] = "cge",
+                    ["cne"] = "ceq"
+                };
                 return d;
             }
 
@@ -2208,10 +2216,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
 
                 // nothing special, make as is
-                OTOpndBinOp it = new OTOpndBinOp();
-                it.left = left;
-                it.opCode = opCode;
-                it.rite = rite;
+                OTOpndBinOp it = new()
+                {
+                    left = left,
+                    opCode = opCode,
+                    rite = rite
+                };
                 return it;
             }
 
@@ -2257,7 +2267,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
                 get
                 {
-                    StringBuilder sb = new StringBuilder();
+                    StringBuilder sb = new();
 
                     bool leftneedsparen = ItNeedsParentheses(left, true);
                     if(leftneedsparen)
@@ -2327,17 +2337,19 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             private static Dictionary<string, int> precedence = InitPrecedence();
             private static Dictionary<string, int> InitPrecedence()
             {
-                Dictionary<string, int> d = new Dictionary<string, int>();
-                d["|"] = 140;
-                d["^"] = 160;
-                d["&"] = 180;
-                d["<<"] = -260;
-                d[">>"] = -260;
-                d["+"] = 280;
-                d["-"] = -280;
-                d["*"] = 320;
-                d["/"] = -320;
-                d["%"] = -320;
+                Dictionary<string, int> d = new()
+                {
+                    ["|"] = 140,
+                    ["^"] = 160,
+                    ["&"] = 180,
+                    ["<<"] = -260,
+                    [">>"] = -260,
+                    ["+"] = 280,
+                    ["-"] = -280,
+                    ["*"] = 320,
+                    ["/"] = -320,
+                    ["%"] = -320
+                };
                 return d;
             }
         }
@@ -2350,18 +2362,20 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             private static Dictionary<string, MethodInfo> mathmeths = InitMathMeths();
             private static Dictionary<string, MethodInfo> InitMathMeths()
             {
-                Dictionary<string, MethodInfo> d = new Dictionary<string, MethodInfo>();
-                d["Acos"] = typeof(ScriptBaseClass).GetMethod("llAcos");
-                d["Asin"] = typeof(ScriptBaseClass).GetMethod("llAsin");
-                d["Atan"] = typeof(ScriptBaseClass).GetMethod("llAtan");
-                d["Cos"] = typeof(ScriptBaseClass).GetMethod("llCos");
-                d["Abs"] = typeof(ScriptBaseClass).GetMethod("llFabs");
-                d["Log"] = typeof(ScriptBaseClass).GetMethod("llLog");
-                d["Log10"] = typeof(ScriptBaseClass).GetMethod("llLog10");
-                d["Round"] = typeof(ScriptBaseClass).GetMethod("llRound");
-                d["Sin"] = typeof(ScriptBaseClass).GetMethod("llSin");
-                d["Sqrt"] = typeof(ScriptBaseClass).GetMethod("llSqrt");
-                d["Tan"] = typeof(ScriptBaseClass).GetMethod("llTan");
+                Dictionary<string, MethodInfo> d = new()
+                {
+                    ["Acos"] = typeof(ScriptBaseClass).GetMethod("llAcos"),
+                    ["Asin"] = typeof(ScriptBaseClass).GetMethod("llAsin"),
+                    ["Atan"] = typeof(ScriptBaseClass).GetMethod("llAtan"),
+                    ["Cos"] = typeof(ScriptBaseClass).GetMethod("llCos"),
+                    ["Abs"] = typeof(ScriptBaseClass).GetMethod("llFabs"),
+                    ["Log"] = typeof(ScriptBaseClass).GetMethod("llLog"),
+                    ["Log10"] = typeof(ScriptBaseClass).GetMethod("llLog10"),
+                    ["Round"] = typeof(ScriptBaseClass).GetMethod("llRound"),
+                    ["Sin"] = typeof(ScriptBaseClass).GetMethod("llSin"),
+                    ["Sqrt"] = typeof(ScriptBaseClass).GetMethod("llSqrt"),
+                    ["Tan"] = typeof(ScriptBaseClass).GetMethod("llTan")
+                };
                 return d;
             }
 
@@ -2504,10 +2518,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
 
                 // otherwise process it as a call
-                OTOpndCall call = new OTOpndCall();
-                call.method = method;
-                call.args = args;
-                if(method.ReturnType == typeof(void))
+                OTOpndCall call = new()
+                {
+                    method = method,
+                    args = args
+                };
+                if (method.ReturnType == typeof(void))
                 {
                     OTStmtVoid.AddLast(decompile, call);
                 }
@@ -2668,7 +2684,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
                 get
                 {
-                    StringBuilder sb = new StringBuilder();
+                    StringBuilder sb = new();
 
                     // GetByKey(a,i) => a[i]
                     if((method.DeclaringType == typeof(XMR_Array)) && (method.Name == "GetByKey") && (args.Length == 2))
@@ -2799,7 +2815,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
                 get
                 {
-                    StringBuilder sb = new StringBuilder();
+                    StringBuilder sb = new();
                     sb.Append('(');
                     sb.Append(AbbrType(type));
                     sb.Append(") ");
@@ -2887,9 +2903,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
                 // some other field, output code to access it
                 // sometimes the object comes as by reference (value types), so we might need to deref it first
-                OTOpndField it = new OTOpndField();
-                it.obj = obj.GetNonByRefOpnd();
-                it.field = field;
+                OTOpndField it = new()
+                {
+                    obj = obj.GetNonByRefOpnd(),
+                    field = field
+                };
                 return it;
             }
 
@@ -2934,7 +2952,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
                 get
                 {
-                    StringBuilder sb = new StringBuilder();
+                    StringBuilder sb = new();
                     if(obj is OTOpndBinOp)
                         sb.Append('(');
                     sb.Append(obj.PrintableString);
@@ -3033,13 +3051,15 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     return false;
                 int listsize = ((OTOpndInt)storeval.index).value;
 
-                 // Good chance of having list initializer, malloc an object to hold it.
-                OTOpndListIni it = new OTOpndListIni();
-                it.values = new OTOpnd[listsize];
+                // Good chance of having list initializer, malloc an object to hold it.
+                OTOpndListIni it = new()
+                {
+                    values = new OTOpnd[listsize]
+                };
 
-                 // There should be exactly listsize statements following that of the form:
-                 //    dup$<n>[<i>] = bla
-                 // If so, save the bla values in the values[] array.
+                // There should be exactly listsize statements following that of the form:
+                //    dup$<n>[<i>] = bla
+                // If so, save the bla values in the values[] array.
                 LinkedListNode<OTStmt> vallink = link;
                 for(int i = 0; i < listsize; i++)
                 {
@@ -3138,7 +3158,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
                 get
                 {
-                    StringBuilder sb = new StringBuilder();
+                    StringBuilder sb = new();
                     sb.Append('[');
                     for(int i = 0; i < values.Length; i++)
                     {
@@ -3362,16 +3382,20 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     OTOpndNewarr arg0 = (OTOpndNewarr)args[0];
                     if((arg0.type == typeof(object)) && (arg0.index is OTOpndInt) && (((OTOpndInt)arg0.index).value == 0))
                     {
-                        OTOpndListIni listini = new OTOpndListIni();
-                        listini.values = new OTOpnd[0];
+                        OTOpndListIni listini = new()
+                        {
+                            values = new OTOpnd[0]
+                        };
                         return listini;
                     }
                 }
 
                 // something else, output as is
-                OTOpndNewobj it = new OTOpndNewobj();
-                it.ctor = ctor;
-                it.args = args;
+                OTOpndNewobj it = new()
+                {
+                    ctor = ctor,
+                    args = args
+                };
                 return it;
             }
 
@@ -3435,7 +3459,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
                 get
                 {
-                    StringBuilder sb = new StringBuilder();
+                    StringBuilder sb = new();
                     sb.Append("newobj ");
                     sb.Append(ctor.DeclaringType.Name);
                     sb.Append(" (");
@@ -3596,23 +3620,25 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             private static Dictionary<string, string> binops = InitBinops();
             private static Dictionary<string, string> InitBinops()
             {
-                Dictionary<string, string> d = new Dictionary<string, string>();
-                d["ceq 0"] = "ceq";
-                d["cne 0"] = "cne";
-                d["clt 0"] = "clt";
-                d["clt 1"] = "cle";
-                d["cgt 0"] = "cgt";
-                d["cgt -1"] = "cge";
-                d["beq 0"] = "ceq";
-                d["bne.un 0"] = "cne";
-                d["bgt 0"] = "cgt";
-                d["ble 0"] = "cle";
-                d["bgt -1"] = "cge";
-                d["ble -1"] = "clt";
-                d["blt 0"] = "clt";
-                d["bge 0"] = "cge";
-                d["blt 1"] = "cle";
-                d["bge 1"] = "cgt";
+                Dictionary<string, string> d = new()
+                {
+                    ["ceq 0"] = "ceq",
+                    ["cne 0"] = "cne",
+                    ["clt 0"] = "clt",
+                    ["clt 1"] = "cle",
+                    ["cgt 0"] = "cgt",
+                    ["cgt -1"] = "cge",
+                    ["beq 0"] = "ceq",
+                    ["bne.un 0"] = "cne",
+                    ["bgt 0"] = "cgt",
+                    ["ble 0"] = "cle",
+                    ["bgt -1"] = "cge",
+                    ["ble -1"] = "clt",
+                    ["blt 0"] = "clt",
+                    ["bge 0"] = "cge",
+                    ["blt 1"] = "cle",
+                    ["bge 1"] = "cgt"
+                };
                 return d;
             }
 
@@ -3705,19 +3731,21 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             private static Dictionary<string, string> brfops = InitBrfOps();
             private static Dictionary<string, string> InitBrfOps()
             {
-                Dictionary<string, string> d = new Dictionary<string, string>();
-                d["beq"] = "cne";
-                d["bge"] = "clt";
-                d["bgt"] = "cle";
-                d["ble"] = "cgt";
-                d["blt"] = "cge";
-                d["bne.un"] = "ceq";
-                d["ceq"] = "cne";
-                d["cge"] = "clt";
-                d["cgt"] = "cle";
-                d["cle"] = "cgt";
-                d["clt"] = "cge";
-                d["cne"] = "ceq";
+                Dictionary<string, string> d = new()
+                {
+                    ["beq"] = "cne",
+                    ["bge"] = "clt",
+                    ["bgt"] = "cle",
+                    ["ble"] = "cgt",
+                    ["blt"] = "cge",
+                    ["bne.un"] = "ceq",
+                    ["ceq"] = "cne",
+                    ["cge"] = "clt",
+                    ["cgt"] = "cle",
+                    ["cle"] = "cgt",
+                    ["clt"] = "cge",
+                    ["cne"] = "ceq"
+                };
                 return d;
             }
 
@@ -3772,9 +3800,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 }
 
                 // nothing special, save opcode and value
-                OTOpndUnOp it = new OTOpndUnOp();
-                it.opCode = opCode;
-                it.value = value;
+                OTOpndUnOp it = new()
+                {
+                    opCode = opCode,
+                    value = value
+                };
                 return it;
             }
 
@@ -3818,7 +3848,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
                 get
                 {
-                    StringBuilder sb = new StringBuilder();
+                    StringBuilder sb = new();
                     sb.Append(opCode.source);
                     sb.Append(' ');
                     if(value is OTOpndBinOp)
@@ -4034,7 +4064,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
                 get
                 {
-                    StringBuilder sb = new StringBuilder();
+                    StringBuilder sb = new();
                     TokenDeclInline.PrintParamString(sb, value);
                     return sb.ToString();
                 }
@@ -4178,7 +4208,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             public OTStmtBlock tryblock;
 
             // list of all catch { } blocks associated with this try { }
-            public LinkedList<OTStmtBegCatBlk> catches = new LinkedList<OTStmtBegCatBlk>();
+            public LinkedList<OTStmtBegCatBlk> catches = new();
 
             // possible single finally { } associated with this try
             public OTStmtBegFinBlk finblock;  // might be null
@@ -4538,8 +4568,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     return new OTStmtRet(null);
 
                 // other jumps are really jumps
-                OTStmtJump it = new OTStmtJump();
-                it.label = label;
+                OTStmtJump it = new()
+                {
+                    label = label
+                };
                 return it;
             }
 
@@ -4610,9 +4642,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             public static void AddLast(OTDecompile decompile, OTLabel label)
             {
-                OTStmtLabel it = new OTStmtLabel();
-                it.label = label;
-                it.decompile = decompile;
+                OTStmtLabel it = new()
+                {
+                    label = label,
+                    decompile = decompile
+                };
                 decompile.AddLastStmt(it);
             }
 
@@ -4733,7 +4767,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             public static void AddLast(OTDecompile decompile, OTOpnd varwr, OTOpnd value)
             {
-                OTStmtStore it = new OTStmtStore(varwr, value, decompile);
+                OTStmtStore it = new(varwr, value, decompile);
                 decompile.AddLastStmt(it);
             }
 
@@ -5160,8 +5194,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             {
                 if(!value.HasSideEffects)
                     return null;
-                OTStmtVoid it = new OTStmtVoid();
-                it.value = value;
+                OTStmtVoid it = new()
+                {
+                    value = value
+                };
                 return it;
             }
 
@@ -5218,7 +5254,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         private class OTStmtBlock: OTStmt
         {
-            public LinkedList<OTStmt> blkstmts = new LinkedList<OTStmt>();
+            public LinkedList<OTStmt> blkstmts = new();
 
             public override void CountRefs()
             {
@@ -5381,11 +5417,12 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     return false;
 
                 // good chance we have a do loop
-                OTStmtDo it = new OTStmtDo();
-
-                // scan ahead looking for the terminating cond/jump loop
-                // also gather up the statements for the do body block
-                it.dobody = new OTStmtBlock();
+                OTStmtDo it = new()
+                {
+                    // scan ahead looking for the terminating cond/jump loop
+                    // also gather up the statements for the do body block
+                    dobody = new OTStmtBlock()
+                };
                 LinkedListNode<OTStmt> nextlink;
                 for(nextlink = link.Next; nextlink != null; nextlink = nextlink.Next)
                 {
@@ -5512,8 +5549,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     return false;
 
                 // good chance we have a for loop
-                OTStmtFor it = new OTStmtFor();
-                it.iswhile = iswhile;
+                OTStmtFor it = new()
+                {
+                    iswhile = iswhile
+                };
 
                 // all labels end with this suffix
                 string suffix = looplabel.name.Substring(loopname.Length);
@@ -5657,7 +5696,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     twout.Write(';');
                     if(forstep != null)
                     {
-                        StringWriter sw = new StringWriter();
+                        StringWriter sw = new();
                         sw.Write(' ');
                         forstep.PrintStmt(sw, indent + INDENT);
                         StringBuilder sb = sw.GetStringBuilder();
@@ -5718,11 +5757,13 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         return false;
 
                     // replace the jump ifdone_<suffix> with the <then body>
-                    OTStmtIf it = new OTStmtIf();
-                    it.thenstmt = thenbody;
+                    OTStmtIf it = new()
+                    {
+                        thenstmt = thenbody,
 
-                    // replace the test value with the opposite
-                    it.testvalu = OTOpndUnOp.Make(MyOp.Brfalse, condstmt.valu);
+                        // replace the test value with the opposite
+                        testvalu = OTOpndUnOp.Make(MyOp.Brfalse, condstmt.valu)
+                    };
                     condstmt.valu = null;
 
                     // strip out the true body statements from the main code including the ifdone_<suffix> label
@@ -5740,7 +5781,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     string suffix = jumpstmt.label.name.Substring(_ifElse.Length);
 
                     // if/then/else
-                    OTStmtIf it = new OTStmtIf();
+                    OTStmtIf it = new();
 
                     // skip forward to find the ifelse_<suffix> label
                     // also save the intervening statements for the true body
@@ -5942,7 +5983,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             public string name;
             public string source;
 
-            private static Dictionary<string, MyOp> myopsbyname = new Dictionary<string, MyOp>();
+            private static Dictionary<string, MyOp> myopsbyname = [];
             private static int nextindex = 0;
 
             public MyOp(OpCode sysop)
@@ -5988,237 +6029,237 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
 
             // these copied from OpCodes.cs
-            public static readonly MyOp Nop = new MyOp(OpCodes.Nop);
-            public static readonly MyOp Break = new MyOp(OpCodes.Break);
-            public static readonly MyOp Ldarg_0 = new MyOp(OpCodes.Ldarg_0);
-            public static readonly MyOp Ldarg_1 = new MyOp(OpCodes.Ldarg_1);
-            public static readonly MyOp Ldarg_2 = new MyOp(OpCodes.Ldarg_2);
-            public static readonly MyOp Ldarg_3 = new MyOp(OpCodes.Ldarg_3);
-            public static readonly MyOp Ldloc_0 = new MyOp(OpCodes.Ldloc_0);
-            public static readonly MyOp Ldloc_1 = new MyOp(OpCodes.Ldloc_1);
-            public static readonly MyOp Ldloc_2 = new MyOp(OpCodes.Ldloc_2);
-            public static readonly MyOp Ldloc_3 = new MyOp(OpCodes.Ldloc_3);
-            public static readonly MyOp Stloc_0 = new MyOp(OpCodes.Stloc_0);
-            public static readonly MyOp Stloc_1 = new MyOp(OpCodes.Stloc_1);
-            public static readonly MyOp Stloc_2 = new MyOp(OpCodes.Stloc_2);
-            public static readonly MyOp Stloc_3 = new MyOp(OpCodes.Stloc_3);
-            public static readonly MyOp Ldarg_S = new MyOp(OpCodes.Ldarg_S);
-            public static readonly MyOp Ldarga_S = new MyOp(OpCodes.Ldarga_S);
-            public static readonly MyOp Starg_S = new MyOp(OpCodes.Starg_S);
-            public static readonly MyOp Ldloc_S = new MyOp(OpCodes.Ldloc_S);
-            public static readonly MyOp Ldloca_S = new MyOp(OpCodes.Ldloca_S);
-            public static readonly MyOp Stloc_S = new MyOp(OpCodes.Stloc_S);
-            public static readonly MyOp Ldnull = new MyOp(OpCodes.Ldnull);
-            public static readonly MyOp Ldc_I4_M1 = new MyOp(OpCodes.Ldc_I4_M1);
-            public static readonly MyOp Ldc_I4_0 = new MyOp(OpCodes.Ldc_I4_0);
-            public static readonly MyOp Ldc_I4_1 = new MyOp(OpCodes.Ldc_I4_1);
-            public static readonly MyOp Ldc_I4_2 = new MyOp(OpCodes.Ldc_I4_2);
-            public static readonly MyOp Ldc_I4_3 = new MyOp(OpCodes.Ldc_I4_3);
-            public static readonly MyOp Ldc_I4_4 = new MyOp(OpCodes.Ldc_I4_4);
-            public static readonly MyOp Ldc_I4_5 = new MyOp(OpCodes.Ldc_I4_5);
-            public static readonly MyOp Ldc_I4_6 = new MyOp(OpCodes.Ldc_I4_6);
-            public static readonly MyOp Ldc_I4_7 = new MyOp(OpCodes.Ldc_I4_7);
-            public static readonly MyOp Ldc_I4_8 = new MyOp(OpCodes.Ldc_I4_8);
-            public static readonly MyOp Ldc_I4_S = new MyOp(OpCodes.Ldc_I4_S);
-            public static readonly MyOp Ldc_I4 = new MyOp(OpCodes.Ldc_I4);
-            public static readonly MyOp Ldc_I8 = new MyOp(OpCodes.Ldc_I8);
-            public static readonly MyOp Ldc_R4 = new MyOp(OpCodes.Ldc_R4);
-            public static readonly MyOp Ldc_R8 = new MyOp(OpCodes.Ldc_R8);
-            public static readonly MyOp Dup = new MyOp(OpCodes.Dup);
-            public static readonly MyOp Pop = new MyOp(OpCodes.Pop);
-            public static readonly MyOp Jmp = new MyOp(OpCodes.Jmp);
-            public static readonly MyOp Call = new MyOp(OpCodes.Call);
-            public static readonly MyOp Calli = new MyOp(OpCodes.Calli);
-            public static readonly MyOp Ret = new MyOp(OpCodes.Ret);
-            public static readonly MyOp Br_S = new MyOp(OpCodes.Br_S);
-            public static readonly MyOp Brfalse_S = new MyOp(OpCodes.Brfalse_S);
-            public static readonly MyOp Brtrue_S = new MyOp(OpCodes.Brtrue_S);
-            public static readonly MyOp Beq_S = new MyOp(OpCodes.Beq_S, "==");
-            public static readonly MyOp Bge_S = new MyOp(OpCodes.Bge_S, ">=");
-            public static readonly MyOp Bgt_S = new MyOp(OpCodes.Bgt_S, ">");
-            public static readonly MyOp Ble_S = new MyOp(OpCodes.Ble_S, "<=");
-            public static readonly MyOp Blt_S = new MyOp(OpCodes.Blt_S, "<");
-            public static readonly MyOp Bne_Un_S = new MyOp(OpCodes.Bne_Un_S, "!=");
-            public static readonly MyOp Bge_Un_S = new MyOp(OpCodes.Bge_Un_S);
-            public static readonly MyOp Bgt_Un_S = new MyOp(OpCodes.Bgt_Un_S);
-            public static readonly MyOp Ble_Un_S = new MyOp(OpCodes.Ble_Un_S);
-            public static readonly MyOp Blt_Un_S = new MyOp(OpCodes.Blt_Un_S);
-            public static readonly MyOp Br = new MyOp(OpCodes.Br);
-            public static readonly MyOp Brfalse = new MyOp(OpCodes.Brfalse, "!");
-            public static readonly MyOp Brtrue = new MyOp(OpCodes.Brtrue, "!!");
-            public static readonly MyOp Beq = new MyOp(OpCodes.Beq, "==");
-            public static readonly MyOp Bge = new MyOp(OpCodes.Bge, ">=");
-            public static readonly MyOp Bgt = new MyOp(OpCodes.Bgt, ">");
-            public static readonly MyOp Ble = new MyOp(OpCodes.Ble, "<=");
-            public static readonly MyOp Blt = new MyOp(OpCodes.Blt, "<");
-            public static readonly MyOp Bne_Un = new MyOp(OpCodes.Bne_Un, "!=");
-            public static readonly MyOp Bge_Un = new MyOp(OpCodes.Bge_Un);
-            public static readonly MyOp Bgt_Un = new MyOp(OpCodes.Bgt_Un);
-            public static readonly MyOp Ble_Un = new MyOp(OpCodes.Ble_Un);
-            public static readonly MyOp Blt_Un = new MyOp(OpCodes.Blt_Un);
-            public static readonly MyOp Switch = new MyOp(OpCodes.Switch);
-            public static readonly MyOp Ldind_I1 = new MyOp(OpCodes.Ldind_I1);
-            public static readonly MyOp Ldind_U1 = new MyOp(OpCodes.Ldind_U1);
-            public static readonly MyOp Ldind_I2 = new MyOp(OpCodes.Ldind_I2);
-            public static readonly MyOp Ldind_U2 = new MyOp(OpCodes.Ldind_U2);
-            public static readonly MyOp Ldind_I4 = new MyOp(OpCodes.Ldind_I4);
-            public static readonly MyOp Ldind_U4 = new MyOp(OpCodes.Ldind_U4);
-            public static readonly MyOp Ldind_I8 = new MyOp(OpCodes.Ldind_I8);
-            public static readonly MyOp Ldind_I = new MyOp(OpCodes.Ldind_I);
-            public static readonly MyOp Ldind_R4 = new MyOp(OpCodes.Ldind_R4);
-            public static readonly MyOp Ldind_R8 = new MyOp(OpCodes.Ldind_R8);
-            public static readonly MyOp Ldind_Ref = new MyOp(OpCodes.Ldind_Ref);
-            public static readonly MyOp Stind_Ref = new MyOp(OpCodes.Stind_Ref);
-            public static readonly MyOp Stind_I1 = new MyOp(OpCodes.Stind_I1);
-            public static readonly MyOp Stind_I2 = new MyOp(OpCodes.Stind_I2);
-            public static readonly MyOp Stind_I4 = new MyOp(OpCodes.Stind_I4);
-            public static readonly MyOp Stind_I8 = new MyOp(OpCodes.Stind_I8);
-            public static readonly MyOp Stind_R4 = new MyOp(OpCodes.Stind_R4);
-            public static readonly MyOp Stind_R8 = new MyOp(OpCodes.Stind_R8);
-            public static readonly MyOp Add = new MyOp(OpCodes.Add, "+");
-            public static readonly MyOp Sub = new MyOp(OpCodes.Sub, "-");
-            public static readonly MyOp Mul = new MyOp(OpCodes.Mul, "*");
-            public static readonly MyOp Div = new MyOp(OpCodes.Div, "/");
-            public static readonly MyOp Div_Un = new MyOp(OpCodes.Div_Un);
-            public static readonly MyOp Rem = new MyOp(OpCodes.Rem, "%");
-            public static readonly MyOp Rem_Un = new MyOp(OpCodes.Rem_Un);
-            public static readonly MyOp And = new MyOp(OpCodes.And, "&");
-            public static readonly MyOp Or = new MyOp(OpCodes.Or, "|");
-            public static readonly MyOp Xor = new MyOp(OpCodes.Xor, "^");
-            public static readonly MyOp Shl = new MyOp(OpCodes.Shl, "<<");
-            public static readonly MyOp Shr = new MyOp(OpCodes.Shr, ">>");
-            public static readonly MyOp Shr_Un = new MyOp(OpCodes.Shr_Un);
-            public static readonly MyOp Neg = new MyOp(OpCodes.Neg, "-");
-            public static readonly MyOp Not = new MyOp(OpCodes.Not, "~");
-            public static readonly MyOp Conv_I1 = new MyOp(OpCodes.Conv_I1);
-            public static readonly MyOp Conv_I2 = new MyOp(OpCodes.Conv_I2);
-            public static readonly MyOp Conv_I4 = new MyOp(OpCodes.Conv_I4);
-            public static readonly MyOp Conv_I8 = new MyOp(OpCodes.Conv_I8);
-            public static readonly MyOp Conv_R4 = new MyOp(OpCodes.Conv_R4);
-            public static readonly MyOp Conv_R8 = new MyOp(OpCodes.Conv_R8);
-            public static readonly MyOp Conv_U4 = new MyOp(OpCodes.Conv_U4);
-            public static readonly MyOp Conv_U8 = new MyOp(OpCodes.Conv_U8);
-            public static readonly MyOp Callvirt = new MyOp(OpCodes.Callvirt);
-            public static readonly MyOp Cpobj = new MyOp(OpCodes.Cpobj);
-            public static readonly MyOp Ldobj = new MyOp(OpCodes.Ldobj);
-            public static readonly MyOp Ldstr = new MyOp(OpCodes.Ldstr);
-            public static readonly MyOp Newobj = new MyOp(OpCodes.Newobj);
-            public static readonly MyOp Castclass = new MyOp(OpCodes.Castclass);
-            public static readonly MyOp Isinst = new MyOp(OpCodes.Isinst);
-            public static readonly MyOp Conv_R_Un = new MyOp(OpCodes.Conv_R_Un);
-            public static readonly MyOp Unbox = new MyOp(OpCodes.Unbox);
-            public static readonly MyOp Throw = new MyOp(OpCodes.Throw);
-            public static readonly MyOp Ldfld = new MyOp(OpCodes.Ldfld);
-            public static readonly MyOp Ldflda = new MyOp(OpCodes.Ldflda);
-            public static readonly MyOp Stfld = new MyOp(OpCodes.Stfld);
-            public static readonly MyOp Ldsfld = new MyOp(OpCodes.Ldsfld);
-            public static readonly MyOp Ldsflda = new MyOp(OpCodes.Ldsflda);
-            public static readonly MyOp Stsfld = new MyOp(OpCodes.Stsfld);
-            public static readonly MyOp Stobj = new MyOp(OpCodes.Stobj);
-            public static readonly MyOp Conv_Ovf_I1_Un = new MyOp(OpCodes.Conv_Ovf_I1_Un);
-            public static readonly MyOp Conv_Ovf_I2_Un = new MyOp(OpCodes.Conv_Ovf_I2_Un);
-            public static readonly MyOp Conv_Ovf_I4_Un = new MyOp(OpCodes.Conv_Ovf_I4_Un);
-            public static readonly MyOp Conv_Ovf_I8_Un = new MyOp(OpCodes.Conv_Ovf_I8_Un);
-            public static readonly MyOp Conv_Ovf_U1_Un = new MyOp(OpCodes.Conv_Ovf_U1_Un);
-            public static readonly MyOp Conv_Ovf_U2_Un = new MyOp(OpCodes.Conv_Ovf_U2_Un);
-            public static readonly MyOp Conv_Ovf_U4_Un = new MyOp(OpCodes.Conv_Ovf_U4_Un);
-            public static readonly MyOp Conv_Ovf_U8_Un = new MyOp(OpCodes.Conv_Ovf_U8_Un);
-            public static readonly MyOp Conv_Ovf_I_Un = new MyOp(OpCodes.Conv_Ovf_I_Un);
-            public static readonly MyOp Conv_Ovf_U_Un = new MyOp(OpCodes.Conv_Ovf_U_Un);
-            public static readonly MyOp Box = new MyOp(OpCodes.Box);
-            public static readonly MyOp Newarr = new MyOp(OpCodes.Newarr);
-            public static readonly MyOp Ldlen = new MyOp(OpCodes.Ldlen);
-            public static readonly MyOp Ldelema = new MyOp(OpCodes.Ldelema);
-            public static readonly MyOp Ldelem_I1 = new MyOp(OpCodes.Ldelem_I1);
-            public static readonly MyOp Ldelem_U1 = new MyOp(OpCodes.Ldelem_U1);
-            public static readonly MyOp Ldelem_I2 = new MyOp(OpCodes.Ldelem_I2);
-            public static readonly MyOp Ldelem_U2 = new MyOp(OpCodes.Ldelem_U2);
-            public static readonly MyOp Ldelem_I4 = new MyOp(OpCodes.Ldelem_I4);
-            public static readonly MyOp Ldelem_U4 = new MyOp(OpCodes.Ldelem_U4);
-            public static readonly MyOp Ldelem_I8 = new MyOp(OpCodes.Ldelem_I8);
-            public static readonly MyOp Ldelem_I = new MyOp(OpCodes.Ldelem_I);
-            public static readonly MyOp Ldelem_R4 = new MyOp(OpCodes.Ldelem_R4);
-            public static readonly MyOp Ldelem_R8 = new MyOp(OpCodes.Ldelem_R8);
-            public static readonly MyOp Ldelem_Ref = new MyOp(OpCodes.Ldelem_Ref);
-            public static readonly MyOp Stelem_I = new MyOp(OpCodes.Stelem_I);
-            public static readonly MyOp Stelem_I1 = new MyOp(OpCodes.Stelem_I1);
-            public static readonly MyOp Stelem_I2 = new MyOp(OpCodes.Stelem_I2);
-            public static readonly MyOp Stelem_I4 = new MyOp(OpCodes.Stelem_I4);
-            public static readonly MyOp Stelem_I8 = new MyOp(OpCodes.Stelem_I8);
-            public static readonly MyOp Stelem_R4 = new MyOp(OpCodes.Stelem_R4);
-            public static readonly MyOp Stelem_R8 = new MyOp(OpCodes.Stelem_R8);
-            public static readonly MyOp Stelem_Ref = new MyOp(OpCodes.Stelem_Ref);
-            public static readonly MyOp Ldelem = new MyOp(OpCodes.Ldelem);
-            public static readonly MyOp Stelem = new MyOp(OpCodes.Stelem);
-            public static readonly MyOp Unbox_Any = new MyOp(OpCodes.Unbox_Any);
-            public static readonly MyOp Conv_Ovf_I1 = new MyOp(OpCodes.Conv_Ovf_I1);
-            public static readonly MyOp Conv_Ovf_U1 = new MyOp(OpCodes.Conv_Ovf_U1);
-            public static readonly MyOp Conv_Ovf_I2 = new MyOp(OpCodes.Conv_Ovf_I2);
-            public static readonly MyOp Conv_Ovf_U2 = new MyOp(OpCodes.Conv_Ovf_U2);
-            public static readonly MyOp Conv_Ovf_I4 = new MyOp(OpCodes.Conv_Ovf_I4);
-            public static readonly MyOp Conv_Ovf_U4 = new MyOp(OpCodes.Conv_Ovf_U4);
-            public static readonly MyOp Conv_Ovf_I8 = new MyOp(OpCodes.Conv_Ovf_I8);
-            public static readonly MyOp Conv_Ovf_U8 = new MyOp(OpCodes.Conv_Ovf_U8);
-            public static readonly MyOp Refanyval = new MyOp(OpCodes.Refanyval);
-            public static readonly MyOp Ckfinite = new MyOp(OpCodes.Ckfinite);
-            public static readonly MyOp Mkrefany = new MyOp(OpCodes.Mkrefany);
-            public static readonly MyOp Ldtoken = new MyOp(OpCodes.Ldtoken);
-            public static readonly MyOp Conv_U2 = new MyOp(OpCodes.Conv_U2);
-            public static readonly MyOp Conv_U1 = new MyOp(OpCodes.Conv_U1);
-            public static readonly MyOp Conv_I = new MyOp(OpCodes.Conv_I);
-            public static readonly MyOp Conv_Ovf_I = new MyOp(OpCodes.Conv_Ovf_I);
-            public static readonly MyOp Conv_Ovf_U = new MyOp(OpCodes.Conv_Ovf_U);
-            public static readonly MyOp Add_Ovf = new MyOp(OpCodes.Add_Ovf);
-            public static readonly MyOp Add_Ovf_Un = new MyOp(OpCodes.Add_Ovf_Un);
-            public static readonly MyOp Mul_Ovf = new MyOp(OpCodes.Mul_Ovf);
-            public static readonly MyOp Mul_Ovf_Un = new MyOp(OpCodes.Mul_Ovf_Un);
-            public static readonly MyOp Sub_Ovf = new MyOp(OpCodes.Sub_Ovf);
-            public static readonly MyOp Sub_Ovf_Un = new MyOp(OpCodes.Sub_Ovf_Un);
-            public static readonly MyOp Endfinally = new MyOp(OpCodes.Endfinally);
-            public static readonly MyOp Leave = new MyOp(OpCodes.Leave);
-            public static readonly MyOp Leave_S = new MyOp(OpCodes.Leave_S);
-            public static readonly MyOp Stind_I = new MyOp(OpCodes.Stind_I);
-            public static readonly MyOp Conv_U = new MyOp(OpCodes.Conv_U);
-            public static readonly MyOp Prefix7 = new MyOp(OpCodes.Prefix7);
-            public static readonly MyOp Prefix6 = new MyOp(OpCodes.Prefix6);
-            public static readonly MyOp Prefix5 = new MyOp(OpCodes.Prefix5);
-            public static readonly MyOp Prefix4 = new MyOp(OpCodes.Prefix4);
-            public static readonly MyOp Prefix3 = new MyOp(OpCodes.Prefix3);
-            public static readonly MyOp Prefix2 = new MyOp(OpCodes.Prefix2);
-            public static readonly MyOp Prefix1 = new MyOp(OpCodes.Prefix1);
-            public static readonly MyOp Prefixref = new MyOp(OpCodes.Prefixref);
-            public static readonly MyOp Arglist = new MyOp(OpCodes.Arglist);
-            public static readonly MyOp Ceq = new MyOp(OpCodes.Ceq, "==");
-            public static readonly MyOp Cgt = new MyOp(OpCodes.Cgt, ">");
-            public static readonly MyOp Cgt_Un = new MyOp(OpCodes.Cgt_Un);
-            public static readonly MyOp Clt = new MyOp(OpCodes.Clt, "<");
-            public static readonly MyOp Clt_Un = new MyOp(OpCodes.Clt_Un);
-            public static readonly MyOp Ldftn = new MyOp(OpCodes.Ldftn);
-            public static readonly MyOp Ldvirtftn = new MyOp(OpCodes.Ldvirtftn);
-            public static readonly MyOp Ldarg = new MyOp(OpCodes.Ldarg);
-            public static readonly MyOp Ldarga = new MyOp(OpCodes.Ldarga);
-            public static readonly MyOp Starg = new MyOp(OpCodes.Starg);
-            public static readonly MyOp Ldloc = new MyOp(OpCodes.Ldloc);
-            public static readonly MyOp Ldloca = new MyOp(OpCodes.Ldloca);
-            public static readonly MyOp Stloc = new MyOp(OpCodes.Stloc);
-            public static readonly MyOp Localloc = new MyOp(OpCodes.Localloc);
-            public static readonly MyOp Endfilter = new MyOp(OpCodes.Endfilter);
-            public static readonly MyOp Unaligned = new MyOp(OpCodes.Unaligned);
-            public static readonly MyOp Volatile = new MyOp(OpCodes.Volatile);
-            public static readonly MyOp Tailcall = new MyOp(OpCodes.Tailcall);
-            public static readonly MyOp Initobj = new MyOp(OpCodes.Initobj);
-            public static readonly MyOp Constrained = new MyOp(OpCodes.Constrained);
-            public static readonly MyOp Cpblk = new MyOp(OpCodes.Cpblk);
-            public static readonly MyOp Initblk = new MyOp(OpCodes.Initblk);
-            public static readonly MyOp Rethrow = new MyOp(OpCodes.Rethrow);
-            public static readonly MyOp Sizeof = new MyOp(OpCodes.Sizeof);
-            public static readonly MyOp Refanytype = new MyOp(OpCodes.Refanytype);
-            public static readonly MyOp Readonly = new MyOp(OpCodes.Readonly);
+            public static readonly MyOp Nop = new(OpCodes.Nop);
+            public static readonly MyOp Break = new(OpCodes.Break);
+            public static readonly MyOp Ldarg_0 = new(OpCodes.Ldarg_0);
+            public static readonly MyOp Ldarg_1 = new(OpCodes.Ldarg_1);
+            public static readonly MyOp Ldarg_2 = new(OpCodes.Ldarg_2);
+            public static readonly MyOp Ldarg_3 = new(OpCodes.Ldarg_3);
+            public static readonly MyOp Ldloc_0 = new(OpCodes.Ldloc_0);
+            public static readonly MyOp Ldloc_1 = new(OpCodes.Ldloc_1);
+            public static readonly MyOp Ldloc_2 = new(OpCodes.Ldloc_2);
+            public static readonly MyOp Ldloc_3 = new(OpCodes.Ldloc_3);
+            public static readonly MyOp Stloc_0 = new(OpCodes.Stloc_0);
+            public static readonly MyOp Stloc_1 = new(OpCodes.Stloc_1);
+            public static readonly MyOp Stloc_2 = new(OpCodes.Stloc_2);
+            public static readonly MyOp Stloc_3 = new(OpCodes.Stloc_3);
+            public static readonly MyOp Ldarg_S = new(OpCodes.Ldarg_S);
+            public static readonly MyOp Ldarga_S = new(OpCodes.Ldarga_S);
+            public static readonly MyOp Starg_S = new(OpCodes.Starg_S);
+            public static readonly MyOp Ldloc_S = new(OpCodes.Ldloc_S);
+            public static readonly MyOp Ldloca_S = new(OpCodes.Ldloca_S);
+            public static readonly MyOp Stloc_S = new(OpCodes.Stloc_S);
+            public static readonly MyOp Ldnull = new(OpCodes.Ldnull);
+            public static readonly MyOp Ldc_I4_M1 = new(OpCodes.Ldc_I4_M1);
+            public static readonly MyOp Ldc_I4_0 = new(OpCodes.Ldc_I4_0);
+            public static readonly MyOp Ldc_I4_1 = new(OpCodes.Ldc_I4_1);
+            public static readonly MyOp Ldc_I4_2 = new(OpCodes.Ldc_I4_2);
+            public static readonly MyOp Ldc_I4_3 = new(OpCodes.Ldc_I4_3);
+            public static readonly MyOp Ldc_I4_4 = new(OpCodes.Ldc_I4_4);
+            public static readonly MyOp Ldc_I4_5 = new(OpCodes.Ldc_I4_5);
+            public static readonly MyOp Ldc_I4_6 = new(OpCodes.Ldc_I4_6);
+            public static readonly MyOp Ldc_I4_7 = new(OpCodes.Ldc_I4_7);
+            public static readonly MyOp Ldc_I4_8 = new(OpCodes.Ldc_I4_8);
+            public static readonly MyOp Ldc_I4_S = new(OpCodes.Ldc_I4_S);
+            public static readonly MyOp Ldc_I4 = new(OpCodes.Ldc_I4);
+            public static readonly MyOp Ldc_I8 = new(OpCodes.Ldc_I8);
+            public static readonly MyOp Ldc_R4 = new(OpCodes.Ldc_R4);
+            public static readonly MyOp Ldc_R8 = new(OpCodes.Ldc_R8);
+            public static readonly MyOp Dup = new(OpCodes.Dup);
+            public static readonly MyOp Pop = new(OpCodes.Pop);
+            public static readonly MyOp Jmp = new(OpCodes.Jmp);
+            public static readonly MyOp Call = new(OpCodes.Call);
+            public static readonly MyOp Calli = new(OpCodes.Calli);
+            public static readonly MyOp Ret = new(OpCodes.Ret);
+            public static readonly MyOp Br_S = new(OpCodes.Br_S);
+            public static readonly MyOp Brfalse_S = new(OpCodes.Brfalse_S);
+            public static readonly MyOp Brtrue_S = new(OpCodes.Brtrue_S);
+            public static readonly MyOp Beq_S = new(OpCodes.Beq_S, "==");
+            public static readonly MyOp Bge_S = new(OpCodes.Bge_S, ">=");
+            public static readonly MyOp Bgt_S = new(OpCodes.Bgt_S, ">");
+            public static readonly MyOp Ble_S = new(OpCodes.Ble_S, "<=");
+            public static readonly MyOp Blt_S = new(OpCodes.Blt_S, "<");
+            public static readonly MyOp Bne_Un_S = new(OpCodes.Bne_Un_S, "!=");
+            public static readonly MyOp Bge_Un_S = new(OpCodes.Bge_Un_S);
+            public static readonly MyOp Bgt_Un_S = new(OpCodes.Bgt_Un_S);
+            public static readonly MyOp Ble_Un_S = new(OpCodes.Ble_Un_S);
+            public static readonly MyOp Blt_Un_S = new(OpCodes.Blt_Un_S);
+            public static readonly MyOp Br = new(OpCodes.Br);
+            public static readonly MyOp Brfalse = new(OpCodes.Brfalse, "!");
+            public static readonly MyOp Brtrue = new(OpCodes.Brtrue, "!!");
+            public static readonly MyOp Beq = new(OpCodes.Beq, "==");
+            public static readonly MyOp Bge = new(OpCodes.Bge, ">=");
+            public static readonly MyOp Bgt = new(OpCodes.Bgt, ">");
+            public static readonly MyOp Ble = new(OpCodes.Ble, "<=");
+            public static readonly MyOp Blt = new(OpCodes.Blt, "<");
+            public static readonly MyOp Bne_Un = new(OpCodes.Bne_Un, "!=");
+            public static readonly MyOp Bge_Un = new(OpCodes.Bge_Un);
+            public static readonly MyOp Bgt_Un = new(OpCodes.Bgt_Un);
+            public static readonly MyOp Ble_Un = new(OpCodes.Ble_Un);
+            public static readonly MyOp Blt_Un = new(OpCodes.Blt_Un);
+            public static readonly MyOp Switch = new(OpCodes.Switch);
+            public static readonly MyOp Ldind_I1 = new(OpCodes.Ldind_I1);
+            public static readonly MyOp Ldind_U1 = new(OpCodes.Ldind_U1);
+            public static readonly MyOp Ldind_I2 = new(OpCodes.Ldind_I2);
+            public static readonly MyOp Ldind_U2 = new(OpCodes.Ldind_U2);
+            public static readonly MyOp Ldind_I4 = new(OpCodes.Ldind_I4);
+            public static readonly MyOp Ldind_U4 = new(OpCodes.Ldind_U4);
+            public static readonly MyOp Ldind_I8 = new(OpCodes.Ldind_I8);
+            public static readonly MyOp Ldind_I = new(OpCodes.Ldind_I);
+            public static readonly MyOp Ldind_R4 = new(OpCodes.Ldind_R4);
+            public static readonly MyOp Ldind_R8 = new(OpCodes.Ldind_R8);
+            public static readonly MyOp Ldind_Ref = new(OpCodes.Ldind_Ref);
+            public static readonly MyOp Stind_Ref = new(OpCodes.Stind_Ref);
+            public static readonly MyOp Stind_I1 = new(OpCodes.Stind_I1);
+            public static readonly MyOp Stind_I2 = new(OpCodes.Stind_I2);
+            public static readonly MyOp Stind_I4 = new(OpCodes.Stind_I4);
+            public static readonly MyOp Stind_I8 = new(OpCodes.Stind_I8);
+            public static readonly MyOp Stind_R4 = new(OpCodes.Stind_R4);
+            public static readonly MyOp Stind_R8 = new(OpCodes.Stind_R8);
+            public static readonly MyOp Add = new(OpCodes.Add, "+");
+            public static readonly MyOp Sub = new(OpCodes.Sub, "-");
+            public static readonly MyOp Mul = new(OpCodes.Mul, "*");
+            public static readonly MyOp Div = new(OpCodes.Div, "/");
+            public static readonly MyOp Div_Un = new(OpCodes.Div_Un);
+            public static readonly MyOp Rem = new(OpCodes.Rem, "%");
+            public static readonly MyOp Rem_Un = new(OpCodes.Rem_Un);
+            public static readonly MyOp And = new(OpCodes.And, "&");
+            public static readonly MyOp Or = new(OpCodes.Or, "|");
+            public static readonly MyOp Xor = new(OpCodes.Xor, "^");
+            public static readonly MyOp Shl = new(OpCodes.Shl, "<<");
+            public static readonly MyOp Shr = new(OpCodes.Shr, ">>");
+            public static readonly MyOp Shr_Un = new(OpCodes.Shr_Un);
+            public static readonly MyOp Neg = new(OpCodes.Neg, "-");
+            public static readonly MyOp Not = new(OpCodes.Not, "~");
+            public static readonly MyOp Conv_I1 = new(OpCodes.Conv_I1);
+            public static readonly MyOp Conv_I2 = new(OpCodes.Conv_I2);
+            public static readonly MyOp Conv_I4 = new(OpCodes.Conv_I4);
+            public static readonly MyOp Conv_I8 = new(OpCodes.Conv_I8);
+            public static readonly MyOp Conv_R4 = new(OpCodes.Conv_R4);
+            public static readonly MyOp Conv_R8 = new(OpCodes.Conv_R8);
+            public static readonly MyOp Conv_U4 = new(OpCodes.Conv_U4);
+            public static readonly MyOp Conv_U8 = new(OpCodes.Conv_U8);
+            public static readonly MyOp Callvirt = new(OpCodes.Callvirt);
+            public static readonly MyOp Cpobj = new(OpCodes.Cpobj);
+            public static readonly MyOp Ldobj = new(OpCodes.Ldobj);
+            public static readonly MyOp Ldstr = new(OpCodes.Ldstr);
+            public static readonly MyOp Newobj = new(OpCodes.Newobj);
+            public static readonly MyOp Castclass = new(OpCodes.Castclass);
+            public static readonly MyOp Isinst = new(OpCodes.Isinst);
+            public static readonly MyOp Conv_R_Un = new(OpCodes.Conv_R_Un);
+            public static readonly MyOp Unbox = new(OpCodes.Unbox);
+            public static readonly MyOp Throw = new(OpCodes.Throw);
+            public static readonly MyOp Ldfld = new(OpCodes.Ldfld);
+            public static readonly MyOp Ldflda = new(OpCodes.Ldflda);
+            public static readonly MyOp Stfld = new(OpCodes.Stfld);
+            public static readonly MyOp Ldsfld = new(OpCodes.Ldsfld);
+            public static readonly MyOp Ldsflda = new(OpCodes.Ldsflda);
+            public static readonly MyOp Stsfld = new(OpCodes.Stsfld);
+            public static readonly MyOp Stobj = new(OpCodes.Stobj);
+            public static readonly MyOp Conv_Ovf_I1_Un = new(OpCodes.Conv_Ovf_I1_Un);
+            public static readonly MyOp Conv_Ovf_I2_Un = new(OpCodes.Conv_Ovf_I2_Un);
+            public static readonly MyOp Conv_Ovf_I4_Un = new(OpCodes.Conv_Ovf_I4_Un);
+            public static readonly MyOp Conv_Ovf_I8_Un = new(OpCodes.Conv_Ovf_I8_Un);
+            public static readonly MyOp Conv_Ovf_U1_Un = new(OpCodes.Conv_Ovf_U1_Un);
+            public static readonly MyOp Conv_Ovf_U2_Un = new(OpCodes.Conv_Ovf_U2_Un);
+            public static readonly MyOp Conv_Ovf_U4_Un = new(OpCodes.Conv_Ovf_U4_Un);
+            public static readonly MyOp Conv_Ovf_U8_Un = new(OpCodes.Conv_Ovf_U8_Un);
+            public static readonly MyOp Conv_Ovf_I_Un = new(OpCodes.Conv_Ovf_I_Un);
+            public static readonly MyOp Conv_Ovf_U_Un = new(OpCodes.Conv_Ovf_U_Un);
+            public static readonly MyOp Box = new(OpCodes.Box);
+            public static readonly MyOp Newarr = new(OpCodes.Newarr);
+            public static readonly MyOp Ldlen = new(OpCodes.Ldlen);
+            public static readonly MyOp Ldelema = new(OpCodes.Ldelema);
+            public static readonly MyOp Ldelem_I1 = new(OpCodes.Ldelem_I1);
+            public static readonly MyOp Ldelem_U1 = new(OpCodes.Ldelem_U1);
+            public static readonly MyOp Ldelem_I2 = new(OpCodes.Ldelem_I2);
+            public static readonly MyOp Ldelem_U2 = new(OpCodes.Ldelem_U2);
+            public static readonly MyOp Ldelem_I4 = new(OpCodes.Ldelem_I4);
+            public static readonly MyOp Ldelem_U4 = new(OpCodes.Ldelem_U4);
+            public static readonly MyOp Ldelem_I8 = new(OpCodes.Ldelem_I8);
+            public static readonly MyOp Ldelem_I = new(OpCodes.Ldelem_I);
+            public static readonly MyOp Ldelem_R4 = new(OpCodes.Ldelem_R4);
+            public static readonly MyOp Ldelem_R8 = new(OpCodes.Ldelem_R8);
+            public static readonly MyOp Ldelem_Ref = new(OpCodes.Ldelem_Ref);
+            public static readonly MyOp Stelem_I = new(OpCodes.Stelem_I);
+            public static readonly MyOp Stelem_I1 = new(OpCodes.Stelem_I1);
+            public static readonly MyOp Stelem_I2 = new(OpCodes.Stelem_I2);
+            public static readonly MyOp Stelem_I4 = new(OpCodes.Stelem_I4);
+            public static readonly MyOp Stelem_I8 = new(OpCodes.Stelem_I8);
+            public static readonly MyOp Stelem_R4 = new(OpCodes.Stelem_R4);
+            public static readonly MyOp Stelem_R8 = new(OpCodes.Stelem_R8);
+            public static readonly MyOp Stelem_Ref = new(OpCodes.Stelem_Ref);
+            public static readonly MyOp Ldelem = new(OpCodes.Ldelem);
+            public static readonly MyOp Stelem = new(OpCodes.Stelem);
+            public static readonly MyOp Unbox_Any = new(OpCodes.Unbox_Any);
+            public static readonly MyOp Conv_Ovf_I1 = new(OpCodes.Conv_Ovf_I1);
+            public static readonly MyOp Conv_Ovf_U1 = new(OpCodes.Conv_Ovf_U1);
+            public static readonly MyOp Conv_Ovf_I2 = new(OpCodes.Conv_Ovf_I2);
+            public static readonly MyOp Conv_Ovf_U2 = new(OpCodes.Conv_Ovf_U2);
+            public static readonly MyOp Conv_Ovf_I4 = new(OpCodes.Conv_Ovf_I4);
+            public static readonly MyOp Conv_Ovf_U4 = new(OpCodes.Conv_Ovf_U4);
+            public static readonly MyOp Conv_Ovf_I8 = new(OpCodes.Conv_Ovf_I8);
+            public static readonly MyOp Conv_Ovf_U8 = new(OpCodes.Conv_Ovf_U8);
+            public static readonly MyOp Refanyval = new(OpCodes.Refanyval);
+            public static readonly MyOp Ckfinite = new(OpCodes.Ckfinite);
+            public static readonly MyOp Mkrefany = new(OpCodes.Mkrefany);
+            public static readonly MyOp Ldtoken = new(OpCodes.Ldtoken);
+            public static readonly MyOp Conv_U2 = new(OpCodes.Conv_U2);
+            public static readonly MyOp Conv_U1 = new(OpCodes.Conv_U1);
+            public static readonly MyOp Conv_I = new(OpCodes.Conv_I);
+            public static readonly MyOp Conv_Ovf_I = new(OpCodes.Conv_Ovf_I);
+            public static readonly MyOp Conv_Ovf_U = new(OpCodes.Conv_Ovf_U);
+            public static readonly MyOp Add_Ovf = new(OpCodes.Add_Ovf);
+            public static readonly MyOp Add_Ovf_Un = new(OpCodes.Add_Ovf_Un);
+            public static readonly MyOp Mul_Ovf = new(OpCodes.Mul_Ovf);
+            public static readonly MyOp Mul_Ovf_Un = new(OpCodes.Mul_Ovf_Un);
+            public static readonly MyOp Sub_Ovf = new(OpCodes.Sub_Ovf);
+            public static readonly MyOp Sub_Ovf_Un = new(OpCodes.Sub_Ovf_Un);
+            public static readonly MyOp Endfinally = new(OpCodes.Endfinally);
+            public static readonly MyOp Leave = new(OpCodes.Leave);
+            public static readonly MyOp Leave_S = new(OpCodes.Leave_S);
+            public static readonly MyOp Stind_I = new(OpCodes.Stind_I);
+            public static readonly MyOp Conv_U = new(OpCodes.Conv_U);
+            public static readonly MyOp Prefix7 = new(OpCodes.Prefix7);
+            public static readonly MyOp Prefix6 = new(OpCodes.Prefix6);
+            public static readonly MyOp Prefix5 = new(OpCodes.Prefix5);
+            public static readonly MyOp Prefix4 = new(OpCodes.Prefix4);
+            public static readonly MyOp Prefix3 = new(OpCodes.Prefix3);
+            public static readonly MyOp Prefix2 = new(OpCodes.Prefix2);
+            public static readonly MyOp Prefix1 = new(OpCodes.Prefix1);
+            public static readonly MyOp Prefixref = new(OpCodes.Prefixref);
+            public static readonly MyOp Arglist = new(OpCodes.Arglist);
+            public static readonly MyOp Ceq = new(OpCodes.Ceq, "==");
+            public static readonly MyOp Cgt = new(OpCodes.Cgt, ">");
+            public static readonly MyOp Cgt_Un = new(OpCodes.Cgt_Un);
+            public static readonly MyOp Clt = new(OpCodes.Clt, "<");
+            public static readonly MyOp Clt_Un = new(OpCodes.Clt_Un);
+            public static readonly MyOp Ldftn = new(OpCodes.Ldftn);
+            public static readonly MyOp Ldvirtftn = new(OpCodes.Ldvirtftn);
+            public static readonly MyOp Ldarg = new(OpCodes.Ldarg);
+            public static readonly MyOp Ldarga = new(OpCodes.Ldarga);
+            public static readonly MyOp Starg = new(OpCodes.Starg);
+            public static readonly MyOp Ldloc = new(OpCodes.Ldloc);
+            public static readonly MyOp Ldloca = new(OpCodes.Ldloca);
+            public static readonly MyOp Stloc = new(OpCodes.Stloc);
+            public static readonly MyOp Localloc = new(OpCodes.Localloc);
+            public static readonly MyOp Endfilter = new(OpCodes.Endfilter);
+            public static readonly MyOp Unaligned = new(OpCodes.Unaligned);
+            public static readonly MyOp Volatile = new(OpCodes.Volatile);
+            public static readonly MyOp Tailcall = new(OpCodes.Tailcall);
+            public static readonly MyOp Initobj = new(OpCodes.Initobj);
+            public static readonly MyOp Constrained = new(OpCodes.Constrained);
+            public static readonly MyOp Cpblk = new(OpCodes.Cpblk);
+            public static readonly MyOp Initblk = new(OpCodes.Initblk);
+            public static readonly MyOp Rethrow = new(OpCodes.Rethrow);
+            public static readonly MyOp Sizeof = new(OpCodes.Sizeof);
+            public static readonly MyOp Refanytype = new(OpCodes.Refanytype);
+            public static readonly MyOp Readonly = new(OpCodes.Readonly);
 
             // used internally
-            public static readonly MyOp Cge = new MyOp("cge", ">=");
-            public static readonly MyOp Cle = new MyOp("cle", "<=");
-            public static readonly MyOp Cne = new MyOp("cne", "!=");
+            public static readonly MyOp Cge = new("cge", ">=");
+            public static readonly MyOp Cle = new("cle", "<=");
+            public static readonly MyOp Cne = new("cne", "!=");
         }
     }
 }

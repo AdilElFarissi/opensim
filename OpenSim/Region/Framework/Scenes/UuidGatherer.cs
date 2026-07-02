@@ -51,8 +51,8 @@ namespace OpenSim.Region.Framework.Scenes
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private static readonly HashSet<UUID> ToSkip = new()
-        {
+        private static readonly HashSet<UUID> ToSkip =
+        [
             new UUID("11111111-1111-0000-0000-000100bba000"),
             new UUID("5a9f4a74-30f2-821c-b88d-70499d3e7183"),
             new UUID("ae2de45c-d252-50b8-5c6e-19f39ce79317"),
@@ -220,7 +220,7 @@ namespace OpenSim.Region.Framework.Scenes
             new UUID("42ecd00b-9947-a97c-400a-bbc9174c7aeb"),
             new UUID("ffffffff-ffff-ffff-ffff-ffffffffffff"),
             Constants.DefaultMaterialID
-        };
+        ];
 
     /// <summary>
     /// Is gathering complete?
@@ -263,9 +263,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// Asset service.
         /// </param>
         public UuidGatherer(IAssetService assetService) : this(assetService, new Dictionary<UUID, sbyte>(),
-                new HashSet <UUID>(),new HashSet <UUID>()) {}
+                [],[]) {}
         public UuidGatherer(IAssetService assetService, IDictionary<UUID, sbyte> collector) : this(assetService, collector,
-            new HashSet <UUID>(), new HashSet <UUID>()) {}
+            [], []) {}
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OpenSim.Region.Framework.Scenes.UuidGatherer"/> class.

@@ -68,7 +68,7 @@ namespace OpenSim.Region.ClientStack.Linden
         /// <summary>
         /// Simulator features
         /// </summary>
-        private readonly OSDMap m_features = new();
+        private readonly OSDMap m_features = [];
 
         private bool m_ExportSupported = false;
 
@@ -171,7 +171,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 };
 
                 // Extra information for viewers that want to use it
-                OSDMap extrasMap = m_features.TryGetValue("OpenSimExtras", out OSD oe) ? oe as OSDMap : new OSDMap();
+                OSDMap extrasMap = m_features.TryGetValue("OpenSimExtras", out OSD oe) ? oe as OSDMap : [];
 
                 extrasMap["AvatarSkeleton"] = true;
                 extrasMap["AnimationSet"] = true;
@@ -219,7 +219,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     extrasMap = extra as OSDMap;
                 else
                 {
-                    extrasMap = new OSDMap();
+                    extrasMap = [];
                     m_features["OpenSimExtras"] = extrasMap;
                 }
                 extrasMap[name] = value;
@@ -346,7 +346,7 @@ namespace OpenSim.Region.ClientStack.Linden
             GridInfo ginfo = scene.SceneGridInfo;
             lock (m_features)
             {
-                OSDMap extrasMap = m_features.TryGetOSDMap("OpenSimExtras", out OSDMap extra) ? extra : new OSDMap();
+                OSDMap extrasMap = m_features.TryGetOSDMap("OpenSimExtras", out OSDMap extra) ? extra : [];
 
                 foreach (string key in extraFeatures.Keys)
                 {
@@ -394,7 +394,7 @@ namespace OpenSim.Region.ClientStack.Linden
 
         private string Replace(string url, string substring, string replacement)
         {
-            if (!String.IsNullOrEmpty(url) && url.Contains(substring))
+            if (!string.IsNullOrEmpty(url) && url.Contains(substring))
                 return url.Replace(substring, replacement);
 
             return url;

@@ -831,7 +831,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// ChatFromWorldEvent is called via Scene when a chat message
         /// from world comes in.
         /// </summary>
-        public delegate void ChatFromWorldEvent(Object sender, OSChatMessage chat);
+        public delegate void ChatFromWorldEvent(object sender, OSChatMessage chat);
         public event ChatFromWorldEvent OnChatFromWorld;
 
         /// <summary>
@@ -839,14 +839,14 @@ namespace OpenSim.Region.Framework.Scenes
         /// substitutes thereof) when a chat message
         /// from the client  comes in.
         /// </summary>
-        public delegate void ChatFromClientEvent(Object sender, OSChatMessage chat);
+        public delegate void ChatFromClientEvent(object sender, OSChatMessage chat);
         public event ChatFromClientEvent OnChatFromClient;
 
         /// <summary>
         /// ChatBroadcastEvent is called via Scene when a broadcast chat message
         /// from world comes in
         /// </summary>
-        public delegate void ChatBroadcastEvent(Object sender, OSChatMessage chat);
+        public delegate void ChatBroadcastEvent(object sender, OSChatMessage chat);
         public event ChatBroadcastEvent OnChatBroadcast;
 
         public delegate float SunLindenHour();
@@ -1007,7 +1007,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// via <see cref="OpenSim.Region.Framework.Scenes.Scene.SubscribeToClientEvents"/>
         /// via <see cref="OpenSim.Region.Framework.Scenes.Scene.AddNewAgent"/>
         /// </remarks>
-        public delegate void MoneyTransferEvent(Object sender, MoneyTransferArgs e);
+        public delegate void MoneyTransferEvent(object sender, MoneyTransferArgs e);
         public event MoneyTransferEvent OnMoneyTransfer;
 
         public class LandBuyArgs : EventArgs
@@ -1046,7 +1046,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Triggered after after <see cref="OnValidateLandBuy"/>
         /// </summary>
-        public delegate void LandBuy(Object sender, LandBuyArgs e);
+        public delegate void LandBuy(object sender, LandBuyArgs e);
         public event LandBuy OnLandBuy;
 
         /// <summary>
@@ -1356,7 +1356,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void TriggerMoneyTransfer(Object sender, MoneyTransferArgs args)
+        public void TriggerMoneyTransfer(object sender, MoneyTransferArgs args)
         {
             MoneyTransferEvent handlerMoneyTransfer = OnMoneyTransfer;
             if (handlerMoneyTransfer != null)
@@ -2181,7 +2181,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void TriggerLandBuy(Object sender, LandBuyArgs args)
+        public void TriggerLandBuy(object sender, LandBuyArgs args)
         {
             LandBuy handlerLandBuy = OnLandBuy;
             if (handlerLandBuy != null)
@@ -2202,7 +2202,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void TriggerValidateLandBuy(Object sender, LandBuyArgs args)
+        public void TriggerValidateLandBuy(object sender, LandBuyArgs args)
         {
             LandBuy handlerValidateLandBuy = OnValidateLandBuy;
             if (handlerValidateLandBuy != null)
@@ -2418,7 +2418,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void TriggerOnChatFromWorld(Object sender, OSChatMessage chat)
+        public void TriggerOnChatFromWorld(object sender, OSChatMessage chat)
         {
             ChatFromWorldEvent handlerChatFromWorld = OnChatFromWorld;
             if (handlerChatFromWorld != null)
@@ -2439,7 +2439,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void TriggerOnChatFromClient(Object sender, OSChatMessage chat)
+        public void TriggerOnChatFromClient(object sender, OSChatMessage chat)
         {
             ChatFromClientEvent handlerChatFromClient = OnChatFromClient;
             if (handlerChatFromClient != null)
@@ -2460,7 +2460,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        public void TriggerOnChatBroadcast(Object sender, OSChatMessage chat)
+        public void TriggerOnChatBroadcast(object sender, OSChatMessage chat)
         {
             ChatBroadcastEvent handlerChatBroadcast = OnChatBroadcast;
             if (handlerChatBroadcast != null)

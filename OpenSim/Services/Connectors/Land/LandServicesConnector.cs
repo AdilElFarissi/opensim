@@ -83,13 +83,15 @@ namespace OpenSim.Services.Connectors
                         targetHandlestr = info.RegionSecret;
                     }
 
-                    Hashtable hash = new Hashtable();
-                    hash["region_handle"] = targetHandlestr;
-                    hash["x"] = x.ToString();
-                    hash["y"] = y.ToString();
+                    Hashtable hash = new()
+                    {
+                        ["region_handle"] = targetHandlestr,
+                        ["x"] = x.ToString(),
+                        ["y"] = y.ToString()
+                    };
                     paramList.Add(hash);
 
-                    XmlRpcRequest request = new XmlRpcRequest("land_data", paramList);
+                    XmlRpcRequest request = new("land_data", paramList);
                     using HttpClient hclient = WebUtil.GetNewGlobalHttpClient(10000);
                     XmlRpcResponse response = request.Send(info.ServerURI, hclient);
                     if (response.IsFault)
@@ -103,19 +105,21 @@ namespace OpenSim.Services.Connectors
                         {
                             try
                             {
-                                landData = new LandData();
-                                landData.AABBMax = Vector3.Parse((string)hash["AABBMax"]);
-                                landData.AABBMin = Vector3.Parse((string)hash["AABBMin"]);
-                                landData.Area = Convert.ToInt32(hash["Area"]);
-                                landData.AuctionID = Convert.ToUInt32(hash["AuctionID"]);
-                                landData.Description = (string)hash["Description"];
-                                landData.Flags = Convert.ToUInt32(hash["Flags"]);
-                                landData.GlobalID = new UUID((string)hash["GlobalID"]);
-                                landData.Name = (string)hash["Name"];
-                                landData.OwnerID = new UUID((string)hash["OwnerID"]);
-                                landData.SalePrice = Convert.ToInt32(hash["SalePrice"]);
-                                landData.SnapshotID = new UUID((string)hash["SnapshotID"]);
-                                landData.UserLocation = Vector3.Parse((string)hash["UserLocation"]);
+                                landData = new LandData
+                                {
+                                    AABBMax = Vector3.Parse((string)hash["AABBMax"]),
+                                    AABBMin = Vector3.Parse((string)hash["AABBMin"]),
+                                    Area = Convert.ToInt32(hash["Area"]),
+                                    AuctionID = Convert.ToUInt32(hash["AuctionID"]),
+                                    Description = (string)hash["Description"],
+                                    Flags = Convert.ToUInt32(hash["Flags"]),
+                                    GlobalID = new UUID((string)hash["GlobalID"]),
+                                    Name = (string)hash["Name"],
+                                    OwnerID = new UUID((string)hash["OwnerID"]),
+                                    SalePrice = Convert.ToInt32(hash["SalePrice"]),
+                                    SnapshotID = new UUID((string)hash["SnapshotID"]),
+                                    UserLocation = Vector3.Parse((string)hash["UserLocation"])
+                                };
                                 if (hash["RegionAccess"] != null)
                                     regionAccess = (byte)Convert.ToInt32((string)hash["RegionAccess"]);
                                 if(hash["Dwell"] != null)

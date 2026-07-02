@@ -99,8 +99,8 @@ namespace OpenSim.Server.Handlers.Grid
                         if (dbConfig is not null)
                         {
                             ServiceBase serviceBase = new(configSource);
-                            string dllName = dbConfig.GetString("StorageProvider", String.Empty);
-                            string connString = dbConfig.GetString("ConnectionString", String.Empty);
+                            string dllName = dbConfig.GetString("StorageProvider", string.Empty);
+                            string connString = dbConfig.GetString("ConnectionString", string.Empty);
 
                             if (dllName.Length != 0 && connString.Length != 0)
                             {
@@ -191,7 +191,7 @@ namespace OpenSim.Server.Handlers.Grid
 
         public XmlRpcResponse XmlRpcGridInfoMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
-            XmlRpcResponse response = new XmlRpcResponse();
+            XmlRpcResponse response = new();
             Hashtable responseData = [];
 
             _log.Debug("[GRID INFO SERVICE]: Request for grid info");
@@ -261,7 +261,7 @@ namespace OpenSim.Server.Handlers.Grid
 
             if (cachedJsonAnswer == null)
             {
-                OSDMap map = new OSDMap();
+                OSDMap map = [];
                 foreach (KeyValuePair<string, string> k in _info)
                 {
                     map[k.Key] = OSD.FromString(k.Value.ToString());

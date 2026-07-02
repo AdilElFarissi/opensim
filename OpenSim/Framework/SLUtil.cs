@@ -298,7 +298,7 @@ namespace OpenSim.Framework
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static int getField(string note, int start, string name, bool isString, out string value)
         {
-            value = String.Empty;
+            value = string.Empty;
             int end = -1;
             int limit = note.Length - start;
             if (limit > 64)
@@ -336,7 +336,7 @@ namespace OpenSim.Framework
                 return null;
 
             string note = Util.UTF8.GetString(data);
-            if (String.IsNullOrWhiteSpace(note))
+            if (string.IsNullOrWhiteSpace(note))
                 return null;
 
             // waste some time checking rigid versions
@@ -460,27 +460,29 @@ namespace OpenSim.Framework
                 return null;
             string desc = valuestr;
 
-            InventoryItemBase item = new InventoryItemBase();
-            item.AssetID = assetID;
-            item.AssetType = (sbyte)assetType;
-            item.BasePermissions = basemask;
-            item.CreationDate = Util.UnixTimeSinceEpoch();
-            item.CreatorData = "";
-            item.CreatorId = creatorID.ToString();
-            item.CurrentPermissions = ownermask;
-            item.Description = desc;
-            item.Flags = flags;
-            item.Folder = UUID.Zero;
-            item.GroupID = UUID.Zero;
-            item.GroupOwned = false;
-            item.GroupPermissions = groupmask;
-            item.InvType = (sbyte)invType;
-            item.Name = name;
-            item.NextPermissions = nextownermask;
-            item.Owner = ownerID;
-            item.SalePrice = 0;
-            item.SaleType = (byte)SaleType.Not;
-            item.ID = UUID.Random();
+            InventoryItemBase item = new()
+            {
+                AssetID = assetID,
+                AssetType = (sbyte)assetType,
+                BasePermissions = basemask,
+                CreationDate = Util.UnixTimeSinceEpoch(),
+                CreatorData = "",
+                CreatorId = creatorID.ToString(),
+                CurrentPermissions = ownermask,
+                Description = desc,
+                Flags = flags,
+                Folder = UUID.Zero,
+                GroupID = UUID.Zero,
+                GroupOwned = false,
+                GroupPermissions = groupmask,
+                InvType = (sbyte)invType,
+                Name = name,
+                NextPermissions = nextownermask,
+                Owner = ownerID,
+                SalePrice = 0,
+                SaleType = (byte)SaleType.Not,
+                ID = UUID.Random()
+            };
             return item;
         }
 
@@ -490,7 +492,7 @@ namespace OpenSim.Framework
                 return null;
 
             string note = Util.UTF8.GetString(data);
-            if (String.IsNullOrWhiteSpace(note))
+            if (string.IsNullOrWhiteSpace(note))
                 return null;
 
             // waste some time checking rigid versions
@@ -517,7 +519,7 @@ namespace OpenSim.Framework
             if (!int.TryParse(note.Substring(57, indx - 57), out int count))
                 return null;
 
-            List<UUID> ids = new List<UUID>();
+            List<UUID> ids = [];
             while(count > 0)
             {
                 string valuestr;
@@ -593,7 +595,7 @@ namespace OpenSim.Framework
                 return new string[0];
 
             string note = Util.UTF8.GetString(data);
-            if (String.IsNullOrWhiteSpace(note))
+            if (string.IsNullOrWhiteSpace(note))
                 return new string[0];
 
             // waste some time checking rigid versions
@@ -636,7 +638,7 @@ namespace OpenSim.Framework
                 end = indx;
                 for (; end < textLen && note[end] != '\n'; ++end);
                 if(end == indx)
-                    lines.Add(String.Empty);
+                    lines.Add(string.Empty);
                 else
                     lines.Add(note.Substring(indx, end - indx));
                 indx = end + 1;

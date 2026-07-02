@@ -45,12 +45,12 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         #region old xml format
         public static void LoadPrimsFromXml(Scene scene, string fileName, bool newIDS, Vector3 loadOffset)
         {
-            XmlDocument doc = new XmlDocument();
+            XmlDocument doc = new();
             XmlNode rootNode;
 
             if (fileName.StartsWith("http:") || File.Exists(fileName))
             {
-                using(XmlTextReader reader = new XmlTextReader(fileName))
+                using(XmlTextReader reader = new(fileName))
                 {
                     reader.DtdProcessing = DtdProcessing.Ignore;
                     reader.WhitespaceHandling = WhitespaceHandling.None;
@@ -83,8 +83,8 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         public static void SavePrimsToXml(Scene scene, string fileName)
         {
-            FileStream file = new FileStream(fileName, FileMode.Create);
-            StreamWriter stream = new StreamWriter(file);
+            FileStream file = new(fileName, FileMode.Create);
+            StreamWriter stream = new(file);
             int primCount = 0;
             stream.WriteLine("<scene>\n");
 
@@ -110,14 +110,14 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         public static string SaveGroupToXml2(SceneObjectGroup grp, Dictionary<string, object> options)
         {
             //return SceneObjectSerializer.ToXml2Format(grp);
-            using (MemoryStream mem = new MemoryStream())
+            using (MemoryStream mem = new())
             {
-                using (XmlTextWriter writer = new XmlTextWriter(mem, System.Text.Encoding.UTF8))
+                using (XmlTextWriter writer = new(mem, System.Text.Encoding.UTF8))
                 {
                     SceneObjectSerializer.SOGToXml2(writer, grp, options);
                     writer.Flush();
 
-                    using (StreamReader reader = new StreamReader(mem))
+                    using (StreamReader reader = new(mem))
                     {
                         mem.Seek(0, SeekOrigin.Begin);
                         return reader.ReadToEnd();
@@ -141,7 +141,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                 primName, scene.RegionInfo.RegionName, fileName);
 
             EntityBase[] entityList = scene.GetEntities();
-            List<EntityBase> primList = new List<EntityBase>();
+            List<EntityBase> primList = [];
 
             foreach (EntityBase ent in entityList)
             {
@@ -167,10 +167,10 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         // Called here only. Should be private?
         public static void SavePrimListToXml2(EntityBase[] entityList, string fileName)
         {
-            FileStream file = new FileStream(fileName, FileMode.Create);
+            FileStream file = new(fileName, FileMode.Create);
             try
             {
-                StreamWriter stream = new StreamWriter(file);
+                StreamWriter stream = new(file);
                 try
                 {
                     SavePrimListToXml2(entityList, stream, Vector3.Zero, Vector3.Zero);
@@ -189,7 +189,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         // Called here only. Should be private?
         public static void SavePrimListToXml2(EntityBase[] entityList, TextWriter stream, Vector3 min, Vector3 max)
         {
-            XmlTextWriter writer = new XmlTextWriter(stream);
+            XmlTextWriter writer = new(stream);
 
             int primCount = 0;
             stream.WriteLine("<scene>");
@@ -209,7 +209,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                     }
 
                     //stream.WriteLine(SceneObjectSerializer.ToXml2Format(g));
-                    SceneObjectSerializer.SOGToXml2(writer, (SceneObjectGroup)ent, new Dictionary<string,object>());
+                    SceneObjectSerializer.SOGToXml2(writer, (SceneObjectGroup)ent, []);
 //                    stream.WriteLine();
 
                     primCount++;
@@ -236,8 +236,10 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         /// <param name="fileName"></param>
         public static void LoadPrimsFromXml2(Scene scene, string fileName)
         {
-            var xr = new XmlTextReader(fileName);
-            xr.DtdProcessing = DtdProcessing.Ignore;
+            var xr = new XmlTextReader(fileName)
+            {
+                DtdProcessing = DtdProcessing.Ignore
+            };
             LoadPrimsFromXml2(scene, xr , false);
         }
 
@@ -249,8 +251,10 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         /// <param name="startScripts"></param>
         public static void LoadPrimsFromXml2(Scene scene, TextReader reader, bool startScripts)
         {
-            var xr = new XmlTextReader(reader);
-            xr.DtdProcessing = DtdProcessing.Ignore;
+            var xr = new XmlTextReader(reader)
+            {
+                DtdProcessing = DtdProcessing.Ignore
+            };
             LoadPrimsFromXml2(scene, xr, startScripts);
         }
 
@@ -263,14 +267,14 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         protected static void LoadPrimsFromXml2(Scene scene, XmlTextReader reader, bool startScripts)
         {
 
-            XmlDocument doc = new XmlDocument();
+            XmlDocument doc = new();
             reader.DtdProcessing = DtdProcessing.Ignore; 
             reader.WhitespaceHandling = WhitespaceHandling.None;
             doc.Load(reader);
             reader.Close();
             XmlNode rootNode = doc.FirstChild;
 
-            ICollection<SceneObjectGroup> sceneObjects = new List<SceneObjectGroup>();
+            ICollection<SceneObjectGroup> sceneObjects = [];
             foreach (XmlNode aPrimNode in rootNode.ChildNodes)
             {
                 SceneObjectGroup obj = DeserializeGroupFromXml2(aPrimNode.OuterXml);

@@ -48,7 +48,7 @@ namespace PrimMesher
             if (mirror)
                 invert = !invert;
 
-            SculptMap smap = new SculptMap(sculptBitmap, lod);
+            SculptMap smap = new(sculptBitmap, lod);
 
             List<List<Vector3>> rows = smap.ToRows(mirror);
 
@@ -57,8 +57,8 @@ namespace PrimMesher
 
         private void _SculptMesh(List<List<Vector3>> rows, SculptType sculptType, bool invert)
         {
-            coords = new List<Vector3>();
-            faces = new List<Face>();
+            coords = [];
+            faces = [];
 
             sculptType = (SculptType)(((int)sculptType) & 0x07);
 
@@ -92,8 +92,8 @@ namespace PrimMesher
                 if (rows.Count % 2 == 0)
                 {
                     int count = rows[0].Count;
-                    List<Vector3> topPoleRow = new List<Vector3>(count);
-                    List<Vector3> bottomPoleRow = new List<Vector3>(count);
+                    List<Vector3> topPoleRow = new(count);
+                    List<Vector3> bottomPoleRow = new(count);
 
                     for (int i = 0; i < count; i++)
                     {
@@ -182,8 +182,8 @@ namespace PrimMesher
 
         public SculptMesh(SculptMesh sm)
         {
-            coords = new List<Vector3>(sm.coords);
-            faces = new List<Face>(sm.faces);
+            coords = [.. sm.coords];
+            faces = [.. sm.faces];
         }
 
         public void Scale(float x, float y, float z)
@@ -191,18 +191,18 @@ namespace PrimMesher
             int i;
             int numVerts = this.coords.Count;
 
-            Vector3 m = new Vector3(x, y, z);
+            Vector3 m = new(x, y, z);
             for (i = 0; i < numVerts; i++)
                 this.coords[i] *= m;
         }
 
-        public void DumpRaw(String path, String name, String title)
+        public void DumpRaw(string path, string name, string title)
         {
             if (path == null)
                 return;
-            String fileName = name + "_" + title + ".raw";
-            String completePath = System.IO.Path.Combine(path, fileName);
-            using(StreamWriter sw = new StreamWriter(completePath))
+            string fileName = name + "_" + title + ".raw";
+            string completePath = System.IO.Path.Combine(path, fileName);
+            using(StreamWriter sw = new(completePath))
             {
                 for (int i = 0; i < faces.Count; i++)
                 {

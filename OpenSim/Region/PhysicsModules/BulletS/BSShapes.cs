@@ -80,7 +80,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         }
         public override string ToString()
         {
-            StringBuilder buff = new StringBuilder();
+            StringBuilder buff = new();
             // buff.Append("ShapeInfo=<");
             buff.Append("<");
             if (Vertices > 0)
@@ -188,7 +188,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
         public override string ToString()
         {
-            StringBuilder buff = new StringBuilder();
+            StringBuilder buff = new();
             if (physShapeInfo == null)
             {
                 buff.Append("<noPhys");
@@ -206,7 +206,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
         #region Common shape routines
         // Create a hash of all the shape parameters to be used as a key for this particular shape.
-        public static System.UInt64 ComputeShapeKey(OMV.Vector3 size, PrimitiveBaseShape pbs, out float retLod)
+        public static ulong ComputeShapeKey(OMV.Vector3 size, PrimitiveBaseShape pbs, out float retLod)
         {
             // level of detail based on size and type of the object
             float lod = BSParam.MeshLOD;
@@ -269,7 +269,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                         {
                             // physicsScene.DetailLog("{0},BSShape.VerifyMeshCreated,assetProviderCallback", xprim.LocalID);
                             bool assetFound = false;
-                            string mismatchIDs = String.Empty;  // DEBUG DEBUG
+                            string mismatchIDs = string.Empty;  // DEBUG DEBUG
                             if (asset != null && yprim.BaseShape.SculptEntry)
                             {
                                 if (yprim.BaseShape.SculptTexture.ToString() == asset.ID)
@@ -328,9 +328,9 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             return fillShape.physShapeInfo;
          }
 
-        public static String UsefulPrimInfo(BSScene pScene, BSPhysObject prim)
+        public static string UsefulPrimInfo(BSScene pScene, BSPhysObject prim)
         {
-            StringBuilder buff = new StringBuilder(prim.PhysObjectName);
+            StringBuilder buff = new(prim.PhysObjectName);
             buff.Append("/pos=");
             buff.Append(prim.RawPosition.ToString());
             if (pScene != null)
@@ -406,13 +406,15 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         {
             BulletShape newShape;
 
-            ShapeData nativeShapeData = new ShapeData();
-            nativeShapeData.Type = shapeType;
-            nativeShapeData.ID = prim.LocalID;
-            nativeShapeData.Scale = prim.Scale;
-            nativeShapeData.Size = prim.Scale;
-            nativeShapeData.MeshKey = (ulong)shapeKey;
-            nativeShapeData.HullKey = (ulong)shapeKey;
+            ShapeData nativeShapeData = new()
+            {
+                Type = shapeType,
+                ID = prim.LocalID,
+                Scale = prim.Scale,
+                Size = prim.Scale,
+                MeshKey = (ulong)shapeKey,
+                HullKey = (ulong)shapeKey
+            };
 
             if (shapeType == BSPhysicsShapeType.SHAPE_CAPSULE)
             {
@@ -430,7 +432,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             }
             newShape.shapeType = shapeType;
             newShape.isNativeShape = true;
-            newShape.shapeKey = (UInt64)shapeKey;
+            newShape.shapeKey = (ulong)shapeKey;
             return newShape;
         }
 
@@ -441,7 +443,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
     public class BSShapeMesh : BSShape
     {
         private static string LogHeader = "[BULLETSIM SHAPE MESH]";
-        public static Dictionary<System.UInt64, BSShapeMesh> Meshes = new Dictionary<System.UInt64, BSShapeMesh>();
+        public static Dictionary<ulong, BSShapeMesh> Meshes = [];
 
         public BSShapeMesh(BulletShape pShape) : base(pShape)
         {
@@ -449,7 +451,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         public static BSShape GetReference(BSScene physicsScene, bool forceRebuild, BSPhysObject prim)
         {
             float lod;
-            System.UInt64 newMeshKey = BSShape.ComputeShapeKey(prim.Size, prim.BaseShape, out lod);
+            ulong newMeshKey = BSShape.ComputeShapeKey(prim.Size, prim.BaseShape, out lod);
 
             BSShapeMesh retMesh = null;
             lock (Meshes)
@@ -530,7 +532,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         }
 
         public delegate BulletShape CreateShapeCall(BulletWorld world, int indicesCount, int[] indices, int verticesCount, float[] vertices );
-        private BulletShape CreatePhysicalMesh(BSScene physicsScene, BSPhysObject prim, System.UInt64 newMeshKey,
+        private BulletShape CreatePhysicalMesh(BSScene physicsScene, BSPhysObject prim, ulong newMeshKey,
                                                 PrimitiveBaseShape pbs, OMV.Vector3 size, float lod)
         {
             return BSShapeMesh.CreatePhysicalMeshShape(physicsScene, prim, newMeshKey, pbs, size, lod,
@@ -545,10 +547,10 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         // This is used by the passed 'makeShape' call to create the Bullet mesh shape.
         // The actual build call is passed so this logic can be used by several of the shapes that use a
         //     simple mesh as their base shape.
-        public static BulletShape CreatePhysicalMeshShape(BSScene physicsScene, BSPhysObject prim, System.UInt64 newMeshKey,
+        public static BulletShape CreatePhysicalMeshShape(BSScene physicsScene, BSPhysObject prim, ulong newMeshKey,
                                                 PrimitiveBaseShape pbs, OMV.Vector3 size, float lod, CreateShapeCall makeShape)
         {
-            BulletShape newShape = new BulletShape();
+            BulletShape newShape = new();
 
             IMesh meshData = null;
             lock (physicsScene.mesher)
@@ -637,7 +639,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         private static string LogHeader = "[BULLETSIM SHAPE HULL]";
     #pragma warning restore 414
 
-        public static Dictionary<System.UInt64, BSShapeHull> Hulls = new Dictionary<System.UInt64, BSShapeHull>();
+        public static Dictionary<ulong, BSShapeHull> Hulls = [];
 
 
         public BSShapeHull(BulletShape pShape) : base(pShape)
@@ -646,7 +648,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         public static BSShape GetReference(BSScene physicsScene, bool forceRebuild, BSPhysObject prim)
         {
             float lod;
-            System.UInt64 newHullKey = BSShape.ComputeShapeKey(prim.Size, prim.BaseShape, out lod);
+            ulong newHullKey = BSShape.ComputeShapeKey(prim.Size, prim.BaseShape, out lod);
 
             BSShapeHull retHull = null;
             lock (Hulls)
@@ -704,10 +706,10 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         }
 
         List<ConvexResult> m_hulls;
-        private BulletShape CreatePhysicalHull(BSScene physicsScene, BSPhysObject prim, System.UInt64 newHullKey,
+        private BulletShape CreatePhysicalHull(BSScene physicsScene, BSPhysObject prim, ulong newHullKey,
                                                 PrimitiveBaseShape pbs, OMV.Vector3 size, float lod)
         {
-            BulletShape newShape = new BulletShape();
+            BulletShape newShape = new();
 
             IMesh meshData = null;
             List<List<OMV.Vector3>> allHulls = null;
@@ -784,17 +786,19 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
                 if (meshShape.physShapeInfo.HasPhysicalShape)
                 {
-                    HACDParams parms = new HACDParams();
-                    parms.maxVerticesPerHull = BSParam.BHullMaxVerticesPerHull;
-                    parms.minClusters = BSParam.BHullMinClusters;
-                    parms.compacityWeight = BSParam.BHullCompacityWeight;
-                    parms.volumeWeight = BSParam.BHullVolumeWeight;
-                    parms.concavity = BSParam.BHullConcavity;
-                    parms.addExtraDistPoints = BSParam.NumericBool(BSParam.BHullAddExtraDistPoints);
-                    parms.addNeighboursDistPoints = BSParam.NumericBool(BSParam.BHullAddNeighboursDistPoints);
-                    parms.addFacesPoints = BSParam.NumericBool(BSParam.BHullAddFacesPoints);
-                    parms.shouldAdjustCollisionMargin = BSParam.NumericBool(BSParam.BHullShouldAdjustCollisionMargin);
-                    parms.whichHACD = 0;    // Use the HACD routine that comes with Bullet
+                    HACDParams parms = new()
+                    {
+                        maxVerticesPerHull = BSParam.BHullMaxVerticesPerHull,
+                        minClusters = BSParam.BHullMinClusters,
+                        compacityWeight = BSParam.BHullCompacityWeight,
+                        volumeWeight = BSParam.BHullVolumeWeight,
+                        concavity = BSParam.BHullConcavity,
+                        addExtraDistPoints = BSParam.NumericBool(BSParam.BHullAddExtraDistPoints),
+                        addNeighboursDistPoints = BSParam.NumericBool(BSParam.BHullAddNeighboursDistPoints),
+                        addFacesPoints = BSParam.NumericBool(BSParam.BHullAddFacesPoints),
+                        shouldAdjustCollisionMargin = BSParam.NumericBool(BSParam.BHullShouldAdjustCollisionMargin),
+                        whichHACD = 0    // Use the HACD routine that comes with Bullet
+                    };
 
                     physicsScene.DetailLog("{0},BSShapeHull.CreatePhysicalHull,hullFromMesh,beforeCall", prim.LocalID, newShape.HasPhysicalShape);
                     newShape = physicsScene.PE.BuildHullShapeFromMesh(physicsScene.World, meshShape.physShapeInfo, parms);
@@ -824,8 +828,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 List<OMV.Vector3> vertices = meshData.getVertexList();
 
                 //format conversion from IMesh format to DecompDesc format
-                List<int> convIndices = new List<int>();
-                List<float3> convVertices = new List<float3>();
+                List<int> convIndices = [];
+                List<float3> convVertices = [];
                 for (int ii = 0; ii < indices.GetLength(0); ii++)
                 {
                     convIndices.Add(indices[ii]);
@@ -848,16 +852,18 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 }
 
                 // setup and do convex hull conversion
-                m_hulls = new List<ConvexResult>();
-                DecompDesc dcomp = new DecompDesc();
-                dcomp.mIndices = convIndices;
-                dcomp.mVertices = convVertices;
-                dcomp.mDepth = maxDepthSplit;
-                dcomp.mCpercent = BSParam.CSHullConcavityThresholdPercent;
-                dcomp.mPpercent = BSParam.CSHullVolumeConservationThresholdPercent;
-                dcomp.mMaxVertices = (uint)BSParam.CSHullMaxVertices;
-                dcomp.mSkinWidth = BSParam.CSHullMaxSkinWidth;
-                ConvexBuilder convexBuilder = new ConvexBuilder(HullReturn);
+                m_hulls = [];
+                DecompDesc dcomp = new()
+                {
+                    mIndices = convIndices,
+                    mVertices = convVertices,
+                    mDepth = maxDepthSplit,
+                    mCpercent = BSParam.CSHullConcavityThresholdPercent,
+                    mPpercent = BSParam.CSHullVolumeConservationThresholdPercent,
+                    mMaxVertices = (uint)BSParam.CSHullMaxVertices,
+                    mSkinWidth = BSParam.CSHullMaxSkinWidth
+                };
+                ConvexBuilder convexBuilder = new(HullReturn);
                 // create the hull into the _hulls variable
                 convexBuilder.process(dcomp);
 
@@ -959,7 +965,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
     public class BSShapeCompound : BSShape
     {
         private static string LogHeader = "[BULLETSIM SHAPE COMPOUND]";
-        public static Dictionary<string, BSShapeCompound> CompoundShapes = new Dictionary<string, BSShapeCompound>();
+        public static Dictionary<string, BSShapeCompound> CompoundShapes = [];
 
         public BSShapeCompound(BulletShape pShape) : base(pShape)
         {
@@ -968,7 +974,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         {
             // Base compound shapes are not shared so this returns a raw shape.
             // A built compound shape can be reused in linksets.
-            BSShapeCompound ret = new BSShapeCompound(CreatePhysicalCompoundShape(physicsScene));
+            BSShapeCompound ret = new(CreatePhysicalCompoundShape(physicsScene));
             CompoundShapes.Add(ret.AddrString, ret);
             return ret;
         }
@@ -1081,7 +1087,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                                 if (physicsScene.PE.IsNativeShape(pShape))
                                 {
                                     // physicsScene.DetailLog("{0},BSShapeCompound.DereferenceAnonCollisionShape,assumingNative,shape={1}", BSScene.DetailLogZero, pShape);
-                                    BSShapeNative nativeShape = new BSShapeNative(pShape);
+                                    BSShapeNative nativeShape = new(pShape);
                                     nativeShape.Dereference(physicsScene);
                                 }
                                 else
@@ -1107,7 +1113,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         private static string LogHeader = "[BULLETSIM SHAPE CONVEX HULL]";
     #pragma warning restore 414
 
-        public static Dictionary<System.UInt64, BSShapeConvexHull> ConvexHulls = new Dictionary<System.UInt64, BSShapeConvexHull>();
+        public static Dictionary<ulong, BSShapeConvexHull> ConvexHulls = [];
 
         public BSShapeConvexHull(BulletShape pShape) : base(pShape)
         {
@@ -1115,7 +1121,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         public static BSShape GetReference(BSScene physicsScene, bool forceRebuild, BSPhysObject prim)
         {
             float lod;
-            System.UInt64 newMeshKey = BSShape.ComputeShapeKey(prim.Size, prim.BaseShape, out lod);
+            ulong newMeshKey = BSShape.ComputeShapeKey(prim.Size, prim.BaseShape, out lod);
 
             physicsScene.DetailLog("{0},BSShapeConvexHull,getReference,newKey={1},size={2},lod={3}",
                                     prim.LocalID, newMeshKey.ToString("X"), prim.Size, lod);
@@ -1209,7 +1215,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         private static string LogHeader = "[BULLETSIM SHAPE GIMPACT]";
     #pragma warning restore 414
 
-        public static Dictionary<System.UInt64, BSShapeGImpact> GImpacts = new Dictionary<System.UInt64, BSShapeGImpact>();
+        public static Dictionary<ulong, BSShapeGImpact> GImpacts = [];
 
         public BSShapeGImpact(BulletShape pShape) : base(pShape)
         {
@@ -1217,7 +1223,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         public static BSShape GetReference(BSScene physicsScene, bool forceRebuild, BSPhysObject prim)
         {
             float lod;
-            System.UInt64 newMeshKey = BSShape.ComputeShapeKey(prim.Size, prim.BaseShape, out lod);
+            ulong newMeshKey = BSShape.ComputeShapeKey(prim.Size, prim.BaseShape, out lod);
 
             physicsScene.DetailLog("{0},BSShapeGImpact,getReference,newKey={1},size={2},lod={3}",
                                     prim.LocalID, newMeshKey.ToString("X"), prim.Size, lod);
@@ -1252,7 +1258,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             return retGImpact;
         }
 
-        private BulletShape CreatePhysicalGImpact(BSScene physicsScene, BSPhysObject prim, System.UInt64 newMeshKey,
+        private BulletShape CreatePhysicalGImpact(BSScene physicsScene, BSPhysObject prim, ulong newMeshKey,
                                                 PrimitiveBaseShape pbs, OMV.Vector3 size, float lod)
         {
             return BSShapeMesh.CreatePhysicalMeshShape(physicsScene, prim, newMeshKey, pbs, size, lod,
@@ -1391,32 +1397,32 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         private const float Edep = 0f;
 
         private OMV.Vector3[] avatarVertices = {
-               new OMV.Vector3( 0.0f, -Awid,  Aup),   // A0
-               new OMV.Vector3( 0.0f, +Awid,  Aup),   // A3
+               new( 0.0f, -Awid,  Aup),   // A0
+               new( 0.0f, +Awid,  Aup),   // A3
 
-               new OMV.Vector3( 0.0f, -Bwid,  Bup),   // B0
-               new OMV.Vector3(+Bdep, -Bfwid, Bup),   // B1
-               new OMV.Vector3(+Bdep, +Bfwid, Bup),   // B2
-               new OMV.Vector3( 0.0f, +Bwid,  Bup),   // B3
-               new OMV.Vector3(-Bdep, +Bfwid, Bup),   // B4
-               new OMV.Vector3(-Bdep, -Bfwid, Bup),   // B5
+               new( 0.0f, -Bwid,  Bup),   // B0
+               new(+Bdep, -Bfwid, Bup),   // B1
+               new(+Bdep, +Bfwid, Bup),   // B2
+               new( 0.0f, +Bwid,  Bup),   // B3
+               new(-Bdep, +Bfwid, Bup),   // B4
+               new(-Bdep, -Bfwid, Bup),   // B5
 
-               new OMV.Vector3( 0.0f, -Cwid,  Cup),   // C0
-               new OMV.Vector3(+Cdep, -Cfwid, Cup),   // C1
-               new OMV.Vector3(+Cdep, +Cfwid, Cup),   // C2
-               new OMV.Vector3( 0.0f, +Cwid,  Cup),   // C3
-               new OMV.Vector3(-Cdep, +Cfwid, Cup),   // C4
-               new OMV.Vector3(-Cdep, -Cfwid, Cup),   // C5
+               new( 0.0f, -Cwid,  Cup),   // C0
+               new(+Cdep, -Cfwid, Cup),   // C1
+               new(+Cdep, +Cfwid, Cup),   // C2
+               new( 0.0f, +Cwid,  Cup),   // C3
+               new(-Cdep, +Cfwid, Cup),   // C4
+               new(-Cdep, -Cfwid, Cup),   // C5
 
-               new OMV.Vector3( 0.0f, -Dwid,  Dup),   // D0
-               new OMV.Vector3(+Ddep, -Dfwid, Dup),   // D1
-               new OMV.Vector3(+Ddep, +Dfwid, Dup),   // D2
-               new OMV.Vector3( 0.0f, +Dwid,  Dup),   // D3
-               new OMV.Vector3(-Ddep, +Dfwid, Dup),   // D4
-               new OMV.Vector3(-Ddep, -Dfwid, Dup),   // D5
+               new( 0.0f, -Dwid,  Dup),   // D0
+               new(+Ddep, -Dfwid, Dup),   // D1
+               new(+Ddep, +Dfwid, Dup),   // D2
+               new( 0.0f, +Dwid,  Dup),   // D3
+               new(-Ddep, +Dfwid, Dup),   // D4
+               new(-Ddep, -Dfwid, Dup),   // D5
 
-               new OMV.Vector3( 0.0f, -Ewid,  Eup),   // E0
-               new OMV.Vector3( 0.0f, +Ewid,  Eup),   // E3
+               new( 0.0f, -Ewid,  Eup),   // E0
+               new( 0.0f, +Ewid,  Eup),   // E3
         };
 
         // Offsets of the vertices in the vertices array

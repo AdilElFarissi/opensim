@@ -58,13 +58,13 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         private int m_sendtime = 2; // seconds to wait before sending changed appearance
 
         private int m_checkTime = 500; // milliseconds to wait between checks for appearance updates
-        private System.Timers.Timer m_updateTimer = new System.Timers.Timer();
-        private ConcurrentDictionary<UUID,long> m_savequeue = new ConcurrentDictionary<UUID,long>();
-        private ConcurrentDictionary<UUID,long> m_sendqueue = new ConcurrentDictionary<UUID,long>();
-        private object m_updatesLock = new object();
+        private System.Timers.Timer m_updateTimer = new();
+        private ConcurrentDictionary<UUID,long> m_savequeue = new();
+        private ConcurrentDictionary<UUID,long> m_sendqueue = new();
+        private object m_updatesLock = new();
         private int m_updatesbusy = 0;
 
-        private object m_setAppearanceLock = new object();
+        private object m_setAppearanceLock = new();
 
         // add throttle
         private const int REBAKE_THROTTLE_SECONDS = 30;
@@ -253,7 +253,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             ScenePresence sp = m_scene.GetScenePresence(agentId);
 
             if (sp == null)
-                return new Dictionary<BakeType, Primitive.TextureEntryFace>();
+                return [];
 
             return GetBakedTextureFaces(sp);
         }
@@ -378,8 +378,8 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 hadSkirt = wearableCache[19].CacheId.IsNotZero(); // .TextureID.IsNotZero();
             }
 
-            HashSet<uint> updatedFaces = new HashSet<uint>();
-            List<UUID> missing = new List<UUID>();
+            HashSet<uint> updatedFaces = [];
+            List<UUID> missing = [];
 
             // Process received baked textures
             for (int i = 0; i < cacheItems.Length; i++)
@@ -746,10 +746,10 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
         private Dictionary<BakeType, Primitive.TextureEntryFace> GetBakedTextureFaces(ScenePresence sp)
         {
             if (sp.IsChildAgent)
-                return new Dictionary<BakeType, Primitive.TextureEntryFace>();
+                return [];
 
             Dictionary<BakeType, Primitive.TextureEntryFace> bakedTextures
-                = new Dictionary<BakeType, Primitive.TextureEntryFace>();
+                = [];
 
             AvatarAppearance appearance = sp.Appearance;
             Primitive.TextureEntryFace[] faceTextures = appearance.Texture.FaceTextures;
@@ -796,7 +796,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
                 if(m_updatesbusy == 0)
                 {
                     m_updatesbusy = -1;
-                    List<UUID> saves = new List<UUID>(m_savequeue.Count);
+                    List<UUID> saves = new(m_savequeue.Count);
                     foreach (KeyValuePair<UUID, long> kvp in m_savequeue)
                     {
                         long sendTime = kvp.Value;
@@ -1091,7 +1091,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             if (!defaultwearable.IsZero())
             {
                 UUID newInvItem = UUID.Random();
-                InventoryItemBase itembase = new InventoryItemBase(newInvItem, userID)
+                InventoryItemBase itembase = new(newInvItem, userID)
                             {
                                 AssetID = defaultwearable,
                                 AssetType = (int)FolderType.BodyPart,
@@ -1223,7 +1223,7 @@ namespace OpenSim.Region.CoreModules.Avatar.AvatarFactory
             }
 
             // operate on a copy of the appearance so we don't have to lock anything yet
-            AvatarAppearance avatAppearance = new AvatarAppearance(sp.Appearance, false);
+            AvatarAppearance avatAppearance = new(sp.Appearance, false);
 
             foreach (AvatarWearingArgs.Wearable wear in e.NowWearing)
             {

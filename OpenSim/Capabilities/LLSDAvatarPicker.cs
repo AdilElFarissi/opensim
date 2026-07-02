@@ -34,7 +34,7 @@ namespace OpenSim.Framework.Capabilities
     {
         public string next_page_url;
         // an array of LLSDPerson
-        public OSDArray agents = new OSDArray();
+        public OSDArray agents = new();
     }
 
     [OSDMap]

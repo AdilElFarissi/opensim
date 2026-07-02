@@ -45,7 +45,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected List<Scene> m_Scenes = new List<Scene>();
+        protected List<Scene> m_Scenes = [];
         protected bool m_InInfoUpdate = false;
         private string token = "7db8eh2gvgg45jj";
         protected bool m_enabled = false;

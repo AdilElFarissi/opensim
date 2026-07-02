@@ -70,7 +70,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 return;
             }
 
-            OSHttpResponse response = new OSHttpResponse(new HttpResponse(Request));
+            OSHttpResponse response = new(new HttpResponse(Request));
 
             if (responsedata is null)
             {
@@ -227,7 +227,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         internal void DoHTTPstop()
         {
-            OSHttpResponse response = new OSHttpResponse(new HttpResponse(Request));
+            OSHttpResponse response = new(new HttpResponse(Request));
 
             if(Request.Body.CanRead)
                 Request.Body.Dispose();

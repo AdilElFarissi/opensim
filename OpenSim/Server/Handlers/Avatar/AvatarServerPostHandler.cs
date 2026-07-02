@@ -56,7 +56,7 @@ namespace OpenSim.Server.Handlers.Avatar
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             string body;
-            using(StreamReader sr = new StreamReader(requestData))
+            using(StreamReader sr = new(requestData))
                 body = sr.ReadToEnd();
             body = body.Trim();
 
@@ -109,7 +109,7 @@ namespace OpenSim.Server.Handlers.Avatar
                 if (avatar == null)
                     return FailureResult();
 
-                Dictionary<string, object> result = new Dictionary<string, object>();
+                Dictionary<string, object> result = [];
                 if (avatar == null)
                     result["result"] = "null";
                 else
@@ -135,7 +135,7 @@ namespace OpenSim.Server.Handlers.Avatar
 
             RemoveRequestParamsNotForStorage(request);
 
-            AvatarData avatar = new AvatarData(request);
+            AvatarData avatar = new(request);
             if (m_AvatarService.SetAvatar(user, avatar))
                 return SuccessResult();
 
@@ -225,7 +225,7 @@ namespace OpenSim.Server.Handlers.Avatar
 
         private byte[] SuccessResult()
         {
-            XmlDocument doc = new XmlDocument();
+            XmlDocument doc = new();
 
             XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
                     "", "");
@@ -247,7 +247,7 @@ namespace OpenSim.Server.Handlers.Avatar
 
         private byte[] FailureResult()
         {
-            XmlDocument doc = new XmlDocument();
+            XmlDocument doc = new();
 
             XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
                     "", "");

@@ -46,7 +46,7 @@ namespace OpenSim.Region.CoreModules.Scripting.ScriptModuleComms
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private static string LogHeader = "[MODULE COMMS]";
 
-        private Dictionary<string,object> m_constants = new Dictionary<string,object>();
+        private Dictionary<string,object> m_constants = [];
 
 #region ScriptInvocation
         protected class ScriptInvocationData
@@ -65,7 +65,7 @@ namespace OpenSim.Region.CoreModules.Scripting.ScriptModuleComms
             }
         }
 
-        private Dictionary<string,ScriptInvocationData> m_scriptInvocation = new Dictionary<string,ScriptInvocationData>();
+        private Dictionary<string,ScriptInvocationData> m_scriptInvocation = [];
 #endregion
 
         private IScriptModule m_scriptModule = null;
@@ -125,7 +125,7 @@ namespace OpenSim.Region.CoreModules.Scripting.ScriptModuleComms
             if (m_scriptModule == null)
                 return;
 
-            Object[] args = new Object[] {-1, code, text, k};
+            object[] args = new object[] {-1, code, text, k};
 
             m_scriptModule.PostScriptEvent(script, "link_message", args);
         }
@@ -239,7 +239,7 @@ namespace OpenSim.Region.CoreModules.Scripting.ScriptModuleComms
 
         public Delegate[] GetScriptInvocationList()
         {
-            List<Delegate> ret = new List<Delegate>();
+            List<Delegate> ret = [];
 
             lock (m_scriptInvocation)
             {
@@ -318,11 +318,7 @@ namespace OpenSim.Region.CoreModules.Scripting.ScriptModuleComms
 
         public object InvokeOperation(UUID hostid, UUID scriptid, string fname, params object[] parms)
         {
-            List<object> olist = new List<object>();
-            olist.Add(hostid);
-            olist.Add(scriptid);
-            foreach (object o in parms)
-                olist.Add(o);
+            List<object> olist = [hostid, scriptid, .. parms];
             Delegate fn = LookupScriptInvocation(fname);
             return fn.DynamicInvoke(olist.ToArray());
         }
@@ -376,7 +372,7 @@ namespace OpenSim.Region.CoreModules.Scripting.ScriptModuleComms
         /// </summary>
         public Dictionary<string, object> GetConstants()
         {
-            Dictionary<string, object> ret = new Dictionary<string, object>();
+            Dictionary<string, object> ret = [];
 
             lock (m_constants)
             {

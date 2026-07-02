@@ -138,9 +138,9 @@ namespace OpenSim.Data.PGSQL
 
             UUID oldParent = retrievedItems[0].parentFolderID;
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
+            using (NpgsqlConnection conn = new(m_ConnectionString))
             {
-                using (NpgsqlCommand cmd = new NpgsqlCommand())
+                using (NpgsqlCommand cmd = new())
                 {
                     cmd.CommandText = $"update {m_Realm} set parentFolderID = :ParentFolderID where inventoryID = :InventoryID";
                     cmd.Parameters.Add(m_database.CreateParameter("ParentFolderID", newParent));
@@ -165,9 +165,9 @@ namespace OpenSim.Data.PGSQL
 
         public XInventoryItem[] GetActiveGestures(UUID principalID)
         {
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
+            using (NpgsqlConnection conn = new(m_ConnectionString))
             {
-                using (NpgsqlCommand cmd = new NpgsqlCommand())
+                using (NpgsqlCommand cmd = new())
                 {
                     // cmd.CommandText = String.Format(@"select * from inventoryitems where ""avatarID"" = :uuid and ""assetType"" = :type and ""flags"" = 1", m_Realm);
 
@@ -184,9 +184,9 @@ namespace OpenSim.Data.PGSQL
 
         public int GetAssetPermissions(UUID principalID, UUID assetID)
         {
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
+            using (NpgsqlConnection conn = new(m_ConnectionString))
             {
-                using (NpgsqlCommand cmd = new NpgsqlCommand())
+                using (NpgsqlCommand cmd = new())
                 {
 /*
                     cmd.CommandText = String.Format(@"select bit_or(""inventoryCurrentPermissions"") as ""inventoryCurrentPermissions""
@@ -255,9 +255,9 @@ namespace OpenSim.Data.PGSQL
 
             UUID oldParentFolderUUID = folders[0].parentFolderID;
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
+            using (NpgsqlConnection conn = new(m_ConnectionString))
             {
-                using (NpgsqlCommand cmd = new NpgsqlCommand())
+                using (NpgsqlCommand cmd = new())
                 {
 
                     cmd.CommandText = $"update {m_Realm} set parentFolderID = :ParentFolderID where folderID = :folderID";
@@ -307,9 +307,9 @@ namespace OpenSim.Data.PGSQL
 
             string sql = @"update inventoryfolders set version=version+1 where folderID = :folderID";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
+            using (NpgsqlConnection conn = new(m_ConnectionString))
             {
-                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+                using (NpgsqlCommand cmd = new(sql, conn))
                 {
                     conn.Open();
                     cmd.Parameters.Add( m_database.CreateParameter("folderID", foldID) );

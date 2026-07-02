@@ -145,7 +145,7 @@ namespace osWebRtcVoice
         }
         public override string ToString() {
             // BitConverter puts a hyphen between each byte. Remove them
-            return BitConverter.ToString(_hash).Replace("-", String.Empty);
+            return BitConverter.ToString(_hash).Replace("-", string.Empty);
         }
         public override byte[] ToBytes() {
             return _hash;
@@ -294,11 +294,11 @@ namespace osWebRtcVoice
             // System.Console.WriteLine(String.Format("AddBytes: offset={0}, len={1}, bytes={2}",  // DEBUG DEBUG
             //    offset, len, BitConverter.ToString(tempBytes).Replace("-", String.Empty)));      // DEBUG DEBUG
             if (len < 0 || offset < 0 || addition == null) {
-                throw new ArgumentException(String.Format("BHasherBytes.AddBytes: Bad parameters. offset={0}, len={1}",
+                throw new ArgumentException(string.Format("BHasherBytes.AddBytes: Bad parameters. offset={0}, len={1}",
                                 offset, len));
             }
             if (offset + len > addition.Length) {
-                throw new ArgumentException(String.Format("BHasherBytes.AddBytes: addition parameters off end of array. addition.len={0}, offset={1}, len={2}",
+                throw new ArgumentException(string.Format("BHasherBytes.AddBytes: addition parameters off end of array. addition.len={0}, offset={1}, len={2}",
                                 addition.Length, offset, len));
             }
             if (len > 0) {
@@ -317,7 +317,7 @@ namespace osWebRtcVoice
     // ======================================================================
     // ULong hash code taken from Meshmerizer
     public class BHasherMdjb2 : BHasherBytes, IBHasher {
-        BHashULong hash = new BHashULong();
+        BHashULong hash = new();
 
         public BHasherMdjb2() : base() {
         }
@@ -354,7 +354,7 @@ namespace osWebRtcVoice
 
     // ======================================================================
     public class BHasherMD5 : BHasherBytes, IBHasher {
-        BHashBytes hash = new BHashBytes();
+        BHashBytes hash = new();
 
         public BHasherMD5() : base() {
         }
@@ -389,7 +389,7 @@ namespace osWebRtcVoice
 
     // ======================================================================
     public class BHasherSHA256 : BHasherBytes, IBHasher {
-        BHashBytes hash = new BHashBytes();
+        BHashBytes hash = new();
 
         public BHasherSHA256() : base() {
         }

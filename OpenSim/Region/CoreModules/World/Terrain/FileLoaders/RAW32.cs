@@ -50,7 +50,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
 
         public ITerrainChannel LoadFile(string filename)
         {
-            FileInfo file = new FileInfo(filename);
+            FileInfo file = new(filename);
             FileStream s = file.Open(FileMode.Open, FileAccess.Read);
             ITerrainChannel retval = LoadStream(s);
 
@@ -61,11 +61,11 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
 
         public ITerrainChannel LoadFile(string filename, int offsetX, int offsetY, int fileWidth, int fileHeight, int sectionWidth, int sectionHeight)
         {
-            TerrainChannel retval = new TerrainChannel(sectionWidth, sectionHeight);
+            TerrainChannel retval = new(sectionWidth, sectionHeight);
 
-            FileInfo file = new FileInfo(filename);
+            FileInfo file = new(filename);
             FileStream s = file.Open(FileMode.Open, FileAccess.Read);
-            BinaryReader bs = new BinaryReader(s);
+            BinaryReader bs = new(s);
 
             int currFileYOffset = 0;
 
@@ -132,9 +132,9 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
             if (trimmedDimension < Constants.RegionSize)
                 trimmedDimension = (int)Constants.RegionSize;
 
-            TerrainChannel retval = new TerrainChannel(trimmedDimension, trimmedDimension);
+            TerrainChannel retval = new(trimmedDimension, trimmedDimension);
 
-            BinaryReader bs = new BinaryReader(s);
+            BinaryReader bs = new(s);
             int y;
             for (y = 0; y < retval.Height; y++)
             {
@@ -152,7 +152,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
 
         public void SaveFile(string filename, ITerrainChannel map)
         {
-            FileInfo file = new FileInfo(filename);
+            FileInfo file = new(filename);
             FileStream s = file.Open(FileMode.Create, FileAccess.Write);
             SaveStream(s, map);
 
@@ -161,7 +161,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
 
         public void SaveStream(Stream s, ITerrainChannel map)
         {
-            BinaryWriter bs = new BinaryWriter(s);
+            BinaryWriter bs = new(s);
 
             int y;
             for (y = 0; y < map.Height; y++)

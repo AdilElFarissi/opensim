@@ -66,9 +66,9 @@ namespace OpenSim.Region.CoreModules.World.Serialiser
 
         private static MemoryStream ReformatXmlString(string xmlstream)
         {
-            MemoryStream stream = new MemoryStream();
-            XmlTextWriter formatter = new XmlTextWriter(stream, Encoding.UTF8);
-            XmlDocument doc = new XmlDocument();
+            MemoryStream stream = new();
+            XmlTextWriter formatter = new(stream, Encoding.UTF8);
+            XmlDocument doc = new();
             doc.LoadXml(xmlstream);
             formatter.Formatting = Formatting.Indented;
             doc.WriteContentTo(formatter);
@@ -81,7 +81,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser
             string xmlstream = "<scene>";
 
             EntityBase[] EntityList = scene.GetEntities();
-            List<string> EntityXml = new List<string>();
+            List<string> EntityXml = [];
 
             foreach (EntityBase ent in EntityList)
             {
@@ -101,7 +101,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser
 
         private static void CreateXmlFile(MemoryStream xmlStream, string fileName)
         {
-            FileStream objectsFile = new FileStream(fileName, FileMode.Create);
+            FileStream objectsFile = new(fileName, FileMode.Create);
 
             xmlStream.WriteTo(objectsFile);
             objectsFile.Flush();
@@ -112,10 +112,10 @@ namespace OpenSim.Region.CoreModules.World.Serialiser
         {
             #region GZip Compressed Version
 
-            using (FileStream objectsFileCompressed = new FileStream(fileName + ".gzs", FileMode.Create))
-            using (MemoryStream gzipMSStream = new MemoryStream())
+            using (FileStream objectsFileCompressed = new(fileName + ".gzs", FileMode.Create))
+            using (MemoryStream gzipMSStream = new())
             {
-                using (GZipStream gzipStream = new GZipStream(gzipMSStream, CompressionMode.Compress, true))
+                using (GZipStream gzipStream = new(gzipMSStream, CompressionMode.Compress, true))
                 {
                     xmlStream.WriteTo(gzipStream);
                 }

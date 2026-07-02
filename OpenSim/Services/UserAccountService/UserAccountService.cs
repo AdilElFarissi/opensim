@@ -203,15 +203,15 @@ namespace OpenSim.Services.UserAccountService
             else
                 u.UserTitle = string.Empty;
             if (d.Data.TryGetValue("UserLevel", out string valueul) && valueul != null)
-                Int32.TryParse(valueul, out u.UserLevel);
+                int.TryParse(valueul, out u.UserLevel);
             if (d.Data.TryGetValue("UserFlags", out string valueuf) && valueuf != null)
-                Int32.TryParse(valueuf, out u.UserFlags);
+                int.TryParse(valueuf, out u.UserFlags);
             if (d.Data.TryGetValue("UserCountry", out string valueuc) && valueuc != null)
                 u.UserCountry = valueuc;
             else
                 u.UserCountry = string.Empty;
 
-            u.ServiceURLs = new Dictionary<string, object>();
+            u.ServiceURLs = [];
             if (d.Data.TryGetValue("ServiceURLs", out string ServiceURLsvalue) && !string.IsNullOrEmpty(ServiceURLsvalue))
             {
                 string[] URLs = ServiceURLsvalue.Split(' ');
@@ -386,7 +386,7 @@ namespace OpenSim.Services.UserAccountService
             string model;
 
            // List<char> excluded = new List<char>(new char[]{' '});
-            List<char> excluded = new List<char>(new char[]{' ', '@', '.', ':' }); //Protect user names from using valid HG identifiers.
+            List<char> excluded = [.. new char[]{' ', '@', '.', ':' }]; //Protect user names from using valid HG identifiers.
             if (cmdparams.Length < 3)
                 firstName = MainConsole.Instance.Prompt("First name", "Default", excluded);
             else firstName = cmdparams[2];
@@ -401,7 +401,7 @@ namespace OpenSim.Services.UserAccountService
                 while(--retries >= 0)
                 {
                     password = MainConsole.Instance.Prompt("Password", null, null, false);
-                    if(String.IsNullOrWhiteSpace(password))
+                    if(string.IsNullOrWhiteSpace(password))
                         MainConsole.Instance.Output("  You must provide a Password");
                     else
                         break;
@@ -429,7 +429,7 @@ namespace OpenSim.Services.UserAccountService
                 model = cmdparams[7];
 
             UUID principalId = UUID.Zero;
-            if(String.IsNullOrWhiteSpace(rawPrincipalId))
+            if(string.IsNullOrWhiteSpace(rawPrincipalId))
                 principalId = UUID.Random();
             else if (!UUID.TryParse(rawPrincipalId, out principalId))
                 throw new Exception(string.Format("ID {0} is not a valid UUID", rawPrincipalId));
@@ -463,7 +463,7 @@ namespace OpenSim.Services.UserAccountService
             MainConsole.Instance.Output("Created: {0}", Utils.UnixTimeToDateTime(ua.Created));
             MainConsole.Instance.Output("Level:   {0}", ua.UserLevel);
             MainConsole.Instance.Output("Flags:   {0}", ua.UserFlags);
-            foreach (KeyValuePair<string, Object> kvp in ua.ServiceURLs)
+            foreach (KeyValuePair<string, object> kvp in ua.ServiceURLs)
                 MainConsole.Instance.Output("{0}: {1}", kvp.Key, kvp.Value);
         }
 
@@ -682,101 +682,113 @@ namespace OpenSim.Services.UserAccountService
             // Get Current Outfit folder
             InventoryFolderBase currentOutfitFolder = m_InventoryService.GetFolderForType(principalID, FolderType.CurrentOutfit);
 
-            InventoryItemBase eyes = new InventoryItemBase(UUID.Random(), principalID);
-            eyes.AssetID = AvatarWearable.DEFAULT_EYES_ASSET;
-            eyes.Name = "Default Eyes";
-            eyes.CreatorId = principalID.ToString();
-            eyes.AssetType = (int)AssetType.Bodypart;
-            eyes.InvType = (int)InventoryType.Wearable;
-            eyes.Folder = bodyPartsFolder.ID;
-            eyes.BasePermissions = (uint)PermissionMask.All;
-            eyes.CurrentPermissions = (uint)PermissionMask.All;
-            eyes.EveryOnePermissions = (uint)PermissionMask.All;
-            eyes.GroupPermissions = (uint)PermissionMask.All;
-            eyes.NextPermissions = (uint)PermissionMask.All;
-            eyes.Flags = (uint)WearableType.Eyes;
+            InventoryItemBase eyes = new(UUID.Random(), principalID)
+            {
+                AssetID = AvatarWearable.DEFAULT_EYES_ASSET,
+                Name = "Default Eyes",
+                CreatorId = principalID.ToString(),
+                AssetType = (int)AssetType.Bodypart,
+                InvType = (int)InventoryType.Wearable,
+                Folder = bodyPartsFolder.ID,
+                BasePermissions = (uint)PermissionMask.All,
+                CurrentPermissions = (uint)PermissionMask.All,
+                EveryOnePermissions = (uint)PermissionMask.All,
+                GroupPermissions = (uint)PermissionMask.All,
+                NextPermissions = (uint)PermissionMask.All,
+                Flags = (uint)WearableType.Eyes
+            };
             m_InventoryService.AddItem(eyes);
             CreateCurrentOutfitLink((int)InventoryType.Wearable, (uint)WearableType.Eyes, eyes.Name, eyes.ID, principalID, currentOutfitFolder.ID);
 
-            InventoryItemBase shape = new InventoryItemBase(UUID.Random(), principalID);
-            shape.AssetID = AvatarWearable.DEFAULT_BODY_ASSET;
-            shape.Name = "Default Shape";
-            shape.CreatorId = principalID.ToString();
-            shape.AssetType = (int)AssetType.Bodypart;
-            shape.InvType = (int)InventoryType.Wearable;
-            shape.Folder = bodyPartsFolder.ID;
-            shape.BasePermissions = (uint)PermissionMask.All;
-            shape.CurrentPermissions = (uint)PermissionMask.All;
-            shape.EveryOnePermissions = (uint)PermissionMask.All;
-            shape.GroupPermissions = (uint)PermissionMask.All;
-            shape.NextPermissions = (uint)PermissionMask.All;
-            shape.Flags = (uint)WearableType.Shape;
+            InventoryItemBase shape = new(UUID.Random(), principalID)
+            {
+                AssetID = AvatarWearable.DEFAULT_BODY_ASSET,
+                Name = "Default Shape",
+                CreatorId = principalID.ToString(),
+                AssetType = (int)AssetType.Bodypart,
+                InvType = (int)InventoryType.Wearable,
+                Folder = bodyPartsFolder.ID,
+                BasePermissions = (uint)PermissionMask.All,
+                CurrentPermissions = (uint)PermissionMask.All,
+                EveryOnePermissions = (uint)PermissionMask.All,
+                GroupPermissions = (uint)PermissionMask.All,
+                NextPermissions = (uint)PermissionMask.All,
+                Flags = (uint)WearableType.Shape
+            };
             m_InventoryService.AddItem(shape);
             CreateCurrentOutfitLink((int)InventoryType.Wearable, (uint)WearableType.Shape, shape.Name, shape.ID, principalID, currentOutfitFolder.ID);
 
-            InventoryItemBase skin = new InventoryItemBase(UUID.Random(), principalID);
-            skin.AssetID = AvatarWearable.DEFAULT_SKIN_ASSET;
-            skin.Name = "Default Skin";
-            skin.CreatorId = principalID.ToString();
-            skin.AssetType = (int)AssetType.Bodypart;
-            skin.InvType = (int)InventoryType.Wearable;
-            skin.Folder = bodyPartsFolder.ID;
-            skin.BasePermissions = (uint)PermissionMask.All;
-            skin.CurrentPermissions = (uint)PermissionMask.All;
-            skin.EveryOnePermissions = (uint)PermissionMask.All;
-            skin.GroupPermissions = (uint)PermissionMask.All;
-            skin.NextPermissions = (uint)PermissionMask.All;
-            skin.Flags = (uint)WearableType.Skin;
+            InventoryItemBase skin = new(UUID.Random(), principalID)
+            {
+                AssetID = AvatarWearable.DEFAULT_SKIN_ASSET,
+                Name = "Default Skin",
+                CreatorId = principalID.ToString(),
+                AssetType = (int)AssetType.Bodypart,
+                InvType = (int)InventoryType.Wearable,
+                Folder = bodyPartsFolder.ID,
+                BasePermissions = (uint)PermissionMask.All,
+                CurrentPermissions = (uint)PermissionMask.All,
+                EveryOnePermissions = (uint)PermissionMask.All,
+                GroupPermissions = (uint)PermissionMask.All,
+                NextPermissions = (uint)PermissionMask.All,
+                Flags = (uint)WearableType.Skin
+            };
             m_InventoryService.AddItem(skin);
             CreateCurrentOutfitLink((int)InventoryType.Wearable, (uint)WearableType.Skin, skin.Name, skin.ID, principalID, currentOutfitFolder.ID);
 
-            InventoryItemBase hair = new InventoryItemBase(UUID.Random(), principalID);
-            hair.AssetID = AvatarWearable.DEFAULT_HAIR_ASSET;
-            hair.Name = "Default Hair";
-            hair.CreatorId = principalID.ToString();
-            hair.AssetType = (int)AssetType.Bodypart;
-            hair.InvType = (int)InventoryType.Wearable;
-            hair.Folder = bodyPartsFolder.ID;
-            hair.BasePermissions = (uint)PermissionMask.All;
-            hair.CurrentPermissions = (uint)PermissionMask.All;
-            hair.EveryOnePermissions = (uint)PermissionMask.All;
-            hair.GroupPermissions = (uint)PermissionMask.All;
-            hair.NextPermissions = (uint)PermissionMask.All;
-            hair.Flags = (uint)WearableType.Hair;
+            InventoryItemBase hair = new(UUID.Random(), principalID)
+            {
+                AssetID = AvatarWearable.DEFAULT_HAIR_ASSET,
+                Name = "Default Hair",
+                CreatorId = principalID.ToString(),
+                AssetType = (int)AssetType.Bodypart,
+                InvType = (int)InventoryType.Wearable,
+                Folder = bodyPartsFolder.ID,
+                BasePermissions = (uint)PermissionMask.All,
+                CurrentPermissions = (uint)PermissionMask.All,
+                EveryOnePermissions = (uint)PermissionMask.All,
+                GroupPermissions = (uint)PermissionMask.All,
+                NextPermissions = (uint)PermissionMask.All,
+                Flags = (uint)WearableType.Hair
+            };
             m_InventoryService.AddItem(hair);
             CreateCurrentOutfitLink((int)InventoryType.Wearable, (uint)WearableType.Hair, hair.Name, hair.ID, principalID, currentOutfitFolder.ID);
 
             InventoryFolderBase clothingFolder = m_InventoryService.GetFolderForType(principalID, FolderType.Clothing);
 
-            InventoryItemBase shirt = new InventoryItemBase(UUID.Random(), principalID);
-            shirt.AssetID = AvatarWearable.DEFAULT_SHIRT_ASSET;
-            shirt.Name = "Default Shirt";
-            shirt.CreatorId = principalID.ToString();
-            shirt.AssetType = (int)AssetType.Clothing;
-            shirt.InvType = (int)InventoryType.Wearable;
-            shirt.Folder = clothingFolder.ID;
-            shirt.BasePermissions = (uint)PermissionMask.All;
-            shirt.CurrentPermissions = (uint)PermissionMask.All;
-            shirt.EveryOnePermissions = (uint)PermissionMask.All;
-            shirt.GroupPermissions = (uint)PermissionMask.All;
-            shirt.NextPermissions = (uint)PermissionMask.All;
-            shirt.Flags = (uint)WearableType.Shirt;
+            InventoryItemBase shirt = new(UUID.Random(), principalID)
+            {
+                AssetID = AvatarWearable.DEFAULT_SHIRT_ASSET,
+                Name = "Default Shirt",
+                CreatorId = principalID.ToString(),
+                AssetType = (int)AssetType.Clothing,
+                InvType = (int)InventoryType.Wearable,
+                Folder = clothingFolder.ID,
+                BasePermissions = (uint)PermissionMask.All,
+                CurrentPermissions = (uint)PermissionMask.All,
+                EveryOnePermissions = (uint)PermissionMask.All,
+                GroupPermissions = (uint)PermissionMask.All,
+                NextPermissions = (uint)PermissionMask.All,
+                Flags = (uint)WearableType.Shirt
+            };
             m_InventoryService.AddItem(shirt);
             CreateCurrentOutfitLink((int)InventoryType.Wearable, (uint)WearableType.Shirt, shirt.Name, shirt.ID, principalID, currentOutfitFolder.ID);
 
-            InventoryItemBase pants = new InventoryItemBase(UUID.Random(), principalID);
-            pants.AssetID = AvatarWearable.DEFAULT_PANTS_ASSET;
-            pants.Name = "Default Pants";
-            pants.CreatorId = principalID.ToString();
-            pants.AssetType = (int)AssetType.Clothing;
-            pants.InvType = (int)InventoryType.Wearable;
-            pants.Folder = clothingFolder.ID;
-            pants.BasePermissions = (uint)PermissionMask.All;
-            pants.CurrentPermissions = (uint)PermissionMask.All;
-            pants.EveryOnePermissions = (uint)PermissionMask.All;
-            pants.GroupPermissions = (uint)PermissionMask.All;
-            pants.NextPermissions = (uint)PermissionMask.All;
-            pants.Flags = (uint)WearableType.Pants;
+            InventoryItemBase pants = new(UUID.Random(), principalID)
+            {
+                AssetID = AvatarWearable.DEFAULT_PANTS_ASSET,
+                Name = "Default Pants",
+                CreatorId = principalID.ToString(),
+                AssetType = (int)AssetType.Clothing,
+                InvType = (int)InventoryType.Wearable,
+                Folder = clothingFolder.ID,
+                BasePermissions = (uint)PermissionMask.All,
+                CurrentPermissions = (uint)PermissionMask.All,
+                EveryOnePermissions = (uint)PermissionMask.All,
+                GroupPermissions = (uint)PermissionMask.All,
+                NextPermissions = (uint)PermissionMask.All,
+                Flags = (uint)WearableType.Pants
+            };
             m_InventoryService.AddItem(pants);
             CreateCurrentOutfitLink((int)InventoryType.Wearable, (uint)WearableType.Pants, pants.Name, pants.ID, principalID, currentOutfitFolder.ID);
 
@@ -792,7 +804,7 @@ namespace OpenSim.Services.UserAccountService
                 wearables[AvatarWearable.SHIRT] = new AvatarWearable(shirt.ID, shirt.AssetID);
                 wearables[AvatarWearable.PANTS] = new AvatarWearable(pants.ID, pants.AssetID);
 
-                AvatarAppearance ap = new AvatarAppearance();
+                AvatarAppearance ap = new();
                 // this loop works, but is questionable
                 for (int i = 0; i < 6; i++)
                 {
@@ -877,13 +889,15 @@ namespace OpenSim.Services.UserAccountService
             // wrong destination folder type?  create new
             if (destinationFolder.Type != (short)FolderType.Clothing)
             {
-                destinationFolder = new InventoryFolderBase();
-                destinationFolder.ID       = UUID.Random();
-                destinationFolder.Name     = "Clothing";
-                destinationFolder.Owner    = destination;
-                destinationFolder.Type     = (short)AssetType.Clothing;
-                destinationFolder.ParentID = m_InventoryService.GetRootFolder(destination).ID;
-                destinationFolder.Version  = 1;
+                destinationFolder = new InventoryFolderBase
+                {
+                    ID = UUID.Random(),
+                    Name = "Clothing",
+                    Owner = destination,
+                    Type = (short)AssetType.Clothing,
+                    ParentID = m_InventoryService.GetRootFolder(destination).ID,
+                    Version = 1
+                };
                 m_InventoryService.AddFolder(destinationFolder);     // store base record
                 m_log.ErrorFormat("[USER ACCOUNT SERVICE]: Created folder for destination {0} Clothing", source);
             }
@@ -892,7 +906,7 @@ namespace OpenSim.Services.UserAccountService
             AvatarWearable basewearable;
             WearableItem wearable;
 
-            AvatarWearable newbasewearable = new AvatarWearable();
+            AvatarWearable newbasewearable = new();
             // copy wearables creating new inventory entries
             for (int i = 0; i < wearables.Length; i++)
             {
@@ -921,27 +935,29 @@ namespace OpenSim.Services.UserAccountService
 
                         if (item != null)
                         {
-                            InventoryItemBase destinationItem = new InventoryItemBase(UUID.Random(), destination);
-                            destinationItem.Name = item.Name;
-                            destinationItem.Owner = destination;
-                            destinationItem.Description = item.Description;
-                            destinationItem.InvType = item.InvType;
-                            destinationItem.CreatorId = item.CreatorId;
-                            destinationItem.CreatorData = item.CreatorData;
-                            destinationItem.NextPermissions = item.NextPermissions;
-                            destinationItem.CurrentPermissions = item.CurrentPermissions;
-                            destinationItem.BasePermissions = item.BasePermissions;
-                            destinationItem.EveryOnePermissions = item.EveryOnePermissions;
-                            destinationItem.GroupPermissions = item.GroupPermissions;
-                            destinationItem.AssetType = item.AssetType;
-                            destinationItem.AssetID = item.AssetID;
-                            destinationItem.GroupID = item.GroupID;
-                            destinationItem.GroupOwned = item.GroupOwned;
-                            destinationItem.SalePrice = item.SalePrice;
-                            destinationItem.SaleType = item.SaleType;
-                            destinationItem.Flags = item.Flags;
-                            destinationItem.CreationDate = item.CreationDate;
-                            destinationItem.Folder = destinationFolder.ID;
+                            InventoryItemBase destinationItem = new(UUID.Random(), destination)
+                            {
+                                Name = item.Name,
+                                Owner = destination,
+                                Description = item.Description,
+                                InvType = item.InvType,
+                                CreatorId = item.CreatorId,
+                                CreatorData = item.CreatorData,
+                                NextPermissions = item.NextPermissions,
+                                CurrentPermissions = item.CurrentPermissions,
+                                BasePermissions = item.BasePermissions,
+                                EveryOnePermissions = item.EveryOnePermissions,
+                                GroupPermissions = item.GroupPermissions,
+                                AssetType = item.AssetType,
+                                AssetID = item.AssetID,
+                                GroupID = item.GroupID,
+                                GroupOwned = item.GroupOwned,
+                                SalePrice = item.SalePrice,
+                                SaleType = item.SaleType,
+                                Flags = item.Flags,
+                                CreationDate = item.CreationDate,
+                                Folder = destinationFolder.ID
+                            };
                             ApplyNextOwnerPermissions(destinationItem);
 
                             m_InventoryService.AddItem(destinationItem);
@@ -978,27 +994,29 @@ namespace OpenSim.Services.UserAccountService
 
                     if (item != null)
                     {
-                        InventoryItemBase destinationItem = new InventoryItemBase(UUID.Random(), destination);
-                        destinationItem.Name = item.Name;
-                        destinationItem.Owner = destination;
-                        destinationItem.Description = item.Description;
-                        destinationItem.InvType = item.InvType;
-                        destinationItem.CreatorId = item.CreatorId;
-                        destinationItem.CreatorData = item.CreatorData;
-                        destinationItem.NextPermissions = item.NextPermissions;
-                        destinationItem.CurrentPermissions = item.CurrentPermissions;
-                        destinationItem.BasePermissions = item.BasePermissions;
-                        destinationItem.EveryOnePermissions = item.EveryOnePermissions;
-                        destinationItem.GroupPermissions = item.GroupPermissions;
-                        destinationItem.AssetType = item.AssetType;
-                        destinationItem.AssetID = item.AssetID;
-                        destinationItem.GroupID = item.GroupID;
-                        destinationItem.GroupOwned = item.GroupOwned;
-                        destinationItem.SalePrice = item.SalePrice;
-                        destinationItem.SaleType = item.SaleType;
-                        destinationItem.Flags = item.Flags;
-                        destinationItem.CreationDate = item.CreationDate;
-                        destinationItem.Folder = destinationFolder.ID;
+                        InventoryItemBase destinationItem = new(UUID.Random(), destination)
+                        {
+                            Name = item.Name,
+                            Owner = destination,
+                            Description = item.Description,
+                            InvType = item.InvType,
+                            CreatorId = item.CreatorId,
+                            CreatorData = item.CreatorData,
+                            NextPermissions = item.NextPermissions,
+                            CurrentPermissions = item.CurrentPermissions,
+                            BasePermissions = item.BasePermissions,
+                            EveryOnePermissions = item.EveryOnePermissions,
+                            GroupPermissions = item.GroupPermissions,
+                            AssetType = item.AssetType,
+                            AssetID = item.AssetID,
+                            GroupID = item.GroupID,
+                            GroupOwned = item.GroupOwned,
+                            SalePrice = item.SalePrice,
+                            SaleType = item.SaleType,
+                            Flags = item.Flags,
+                            CreationDate = item.CreationDate,
+                            Folder = destinationFolder.ID
+                        };
                         ApplyNextOwnerPermissions(destinationItem);
 
                         m_InventoryService.AddItem(destinationItem);
@@ -1022,7 +1040,7 @@ namespace OpenSim.Services.UserAccountService
         protected void CreateCurrentOutfitLink(int invType, uint itemType, string name, UUID itemID, UUID userID, UUID currentOutfitFolderUUID)
         {
             UUID LinkInvItem = UUID.Random();
-            InventoryItemBase itembase = new InventoryItemBase(LinkInvItem, userID)
+            InventoryItemBase itembase = new(LinkInvItem, userID)
             {
                 AssetID = itemID,
                 AssetType = (int)AssetType.Link,

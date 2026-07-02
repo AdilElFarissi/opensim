@@ -48,7 +48,7 @@ namespace OpenSim.Data.MySQL
         {
             string cmnd ="delete from MuteList where AgentID = ?AgentID and MuteID = ?MuteID and MuteName = ?MuteName";
 
-            using (MySqlCommand cmd = new MySqlCommand(cmnd))
+            using (MySqlCommand cmd = new(cmnd))
             {
                 cmd.Parameters.AddWithValue("?AgentID", agentID.ToString());
                 cmd.Parameters.AddWithValue("?MuteID", muteID.ToString());

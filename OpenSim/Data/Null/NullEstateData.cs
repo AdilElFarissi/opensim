@@ -47,8 +47,10 @@ namespace OpenSim.Data.Null
             {
                 // This fools the initialization caller into thinking an estate was fetched (a check in OpenSimBase).
                 // The estate info is pretty empty so don't try banning anyone.
-                m_estate = new EstateSettings();
-                m_estate.EstateID = 1;
+                m_estate = new EstateSettings
+                {
+                    EstateID = 1
+                };
                 m_estate.OnSave += StoreEstateSettings;
             }
             return m_estate;
@@ -101,21 +103,19 @@ namespace OpenSim.Data.Null
 
         public List<EstateSettings> LoadEstateSettingsAll()
         {
-            List<EstateSettings> allEstateSettings = new List<EstateSettings>();
-            allEstateSettings.Add(GetEstate());
+            List<EstateSettings> allEstateSettings = [GetEstate()];
             return allEstateSettings;
         }
 
         public List<int> GetEstatesAll()
         {
-            List<int> result = new List<int>();
-            result.Add((int)GetEstate().EstateID);
+            List<int> result = [(int)GetEstate().EstateID];
             return result;
         }
 
         public List<int> GetEstates(string search)
         {
-            List<int> result = new List<int>();
+            List<int> result = [];
             return result;
         }
 
@@ -126,7 +126,7 @@ namespace OpenSim.Data.Null
 
         public List<UUID> GetRegions(int estateID)
         {
-            List<UUID> result = new List<UUID>();
+            List<UUID> result = [];
             return result;
         }
 
@@ -140,7 +140,7 @@ namespace OpenSim.Data.Null
 
         public List<int> GetEstatesByOwner(UUID ownerID)
         {
-            return new List<int>();
+            return [];
         }
 
         #endregion

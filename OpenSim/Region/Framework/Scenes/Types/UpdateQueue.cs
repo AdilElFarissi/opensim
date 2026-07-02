@@ -36,7 +36,7 @@ namespace OpenSim.Region.Framework.Scenes.Types
 
         private Dictionary<UUID, bool> m_ids;
 
-        private object m_syncObject = new object();
+        private object m_syncObject = new();
 
         public int Count
         {
@@ -46,7 +46,7 @@ namespace OpenSim.Region.Framework.Scenes.Types
         public UpdateQueue()
         {
             m_queue = new Queue<SceneObjectPart>();
-            m_ids = new Dictionary<UUID, bool>();
+            m_ids = [];
         }
 
         public void Clear()

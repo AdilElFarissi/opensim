@@ -107,7 +107,7 @@ namespace pCampBot
                     return new Dictionary<UUID, Primitive>(m_objects);
             }
         }
-        private Dictionary<UUID, Primitive> m_objects = new Dictionary<UUID, Primitive>();
+        private Dictionary<UUID, Primitive> m_objects = [];
 
         /// <summary>
         /// Is this bot connected to the grid?
@@ -119,7 +119,7 @@ namespace pCampBot
             get
             {
                 lock (Client.Network.Simulators)
-                    return new List<Simulator>(Client.Network.Simulators);
+                    return [.. Client.Network.Simulators];
             }
         }
 
@@ -154,7 +154,7 @@ namespace pCampBot
         /// </summary>
         private Thread m_actionThread;
 
-        protected List<uint> objectIDs = new List<uint>();
+        protected List<uint> objectIDs = [];
 
         /// <summary>
         /// Random number generator.
@@ -192,7 +192,7 @@ namespace pCampBot
 
             Manager = bm;
 
-            Behaviours = new Dictionary<string, IBehaviour>();
+            Behaviours = [];
             foreach (IBehaviour behaviour in behaviours)
                 AddBehaviour(behaviour);
 
@@ -208,7 +208,7 @@ namespace pCampBot
 
         public bool AddBehaviour(IBehaviour behaviour)
         {
-            Dictionary<string, IBehaviour> updatedBehaviours = new Dictionary<string, IBehaviour>(Behaviours);
+            Dictionary<string, IBehaviour> updatedBehaviours = new(Behaviours);
 
             if (!updatedBehaviours.ContainsKey(behaviour.AbbreviatedName))
             {
@@ -227,7 +227,7 @@ namespace pCampBot
             if (Behaviours.Count <= 0)
                 return false;
 
-            Dictionary<string, IBehaviour> updatedBehaviours = new Dictionary<string, IBehaviour>(Behaviours);
+            Dictionary<string, IBehaviour> updatedBehaviours = new(Behaviours);
             IBehaviour behaviour;
 
             if (!updatedBehaviours.TryGetValue(abbreviatedName, out behaviour))
@@ -243,7 +243,7 @@ namespace pCampBot
 
         private void CreateLibOmvClient()
         {
-            GridClient newClient = new GridClient();
+            GridClient newClient = new();
 
             if (Client != null)
             {
@@ -332,9 +332,11 @@ namespace pCampBot
 
         public void Connect()
         {
-            Thread connectThread = new Thread(ConnectInternal);
-            connectThread.Name = Name;
-            connectThread.IsBackground = true;
+            Thread connectThread = new(ConnectInternal)
+            {
+                Name = Name,
+                IsBackground = true
+            };
 
             connectThread.Start();
         }
@@ -446,7 +448,7 @@ namespace pCampBot
                 {
                     if (asset.Decode())
                     {
-                        File.WriteAllBytes(Path.Combine(saveDir, String.Format("{1}.{0}",
+                        File.WriteAllBytes(Path.Combine(saveDir, string.Format("{1}.{0}",
                         asset.AssetType.ToString().ToLower(),
                         asset.WearableType)), asset.AssetData);
                     }
@@ -501,12 +503,12 @@ namespace pCampBot
                 string[] bodyparts = Directory.GetFiles(saveDir, "*.bodypart", SearchOption.TopDirectoryOnly);
                 InventoryFolder clothfolder = FindClothingFolder();
                 UUID transid = UUID.Random();
-                List<InventoryBase> listwearables = new List<InventoryBase>();
+                List<InventoryBase> listwearables = [];
 
                 for (int i = 0; i < clothing.Length; i++)
                 {
                     UUID assetID = UUID.Random();
-                    AssetClothing asset = new AssetClothing(assetID, File.ReadAllBytes(clothing[i]));
+                    AssetClothing asset = new(assetID, File.ReadAllBytes(clothing[i]));
                     asset.Decode();
                     asset.Owner = Client.Self.AgentID;
                     asset.WearableType = GetWearableType(clothing[i]);
@@ -530,7 +532,7 @@ namespace pCampBot
                 for (int i = 0; i < bodyparts.Length; i++)
                 {
                     UUID assetID = UUID.Random();
-                    AssetBodypart asset = new AssetBodypart(assetID, File.ReadAllBytes(bodyparts[i]));
+                    AssetBodypart asset = new(assetID, File.ReadAllBytes(bodyparts[i]));
                     asset.Decode();
                     asset.Owner = Client.Self.AgentID;
                     asset.WearableType = GetWearableType(bodyparts[i]);
@@ -573,7 +575,7 @@ namespace pCampBot
         {
             UUID rootfolder = Client.Inventory.Store.RootFolder.UUID;
             List<InventoryBase> listfolders = Client.Inventory.Store.GetContents(rootfolder);
-            InventoryFolder clothfolder = new InventoryFolder(UUID.Random());
+            InventoryFolder clothfolder = new(UUID.Random());
             foreach (InventoryBase folder in listfolders)
             {
                 if (folder.Name == "Clothing")

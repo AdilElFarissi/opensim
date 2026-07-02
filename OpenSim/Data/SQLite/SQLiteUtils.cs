@@ -52,7 +52,7 @@ namespace OpenSim.Data.SQLite
         /// <param name="type"></param>
         public static void createCol(DataTable dt, string name, Type type)
         {
-            DataColumn col = new DataColumn(name, type);
+            DataColumn col = new(name, type);
             dt.Columns.Add(col);
         }
 
@@ -92,12 +92,12 @@ namespace OpenSim.Data.SQLite
             }
 
             string sql = "insert into " + table + "(";
-            sql += String.Join(", ", cols);
+            sql += string.Join(", ", cols);
             // important, the first ':' needs to be here, the rest get added in the join
             sql += ") values (:";
-            sql += String.Join(", :", cols);
+            sql += string.Join(", :", cols);
             sql += ")";
-            SQLiteCommand cmd = new SQLiteCommand(sql);
+            SQLiteCommand cmd = new(sql);
 
             // this provides the binding for all our parameters, so
             // much less code than it used to be
@@ -118,7 +118,7 @@ namespace OpenSim.Data.SQLite
         public static SQLiteCommand createUpdateCommand(string table, string pk, DataTable dt)
         {
             string sql = "update " + table + " set ";
-            string subsql = String.Empty;
+            string subsql = string.Empty;
             foreach (DataColumn col in dt.Columns)
             {
                 if (subsql.Length > 0)
@@ -130,7 +130,7 @@ namespace OpenSim.Data.SQLite
             }
             sql += subsql;
             sql += " where " + pk;
-            SQLiteCommand cmd = new SQLiteCommand(sql);
+            SQLiteCommand cmd = new(sql);
 
             // this provides the binding for all our parameters, so
             // much less code than it used to be
@@ -150,7 +150,7 @@ namespace OpenSim.Data.SQLite
         public static string defineTable(DataTable dt)
         {
             string sql = "create table " + dt.TableName + "(";
-            string subsql = String.Empty;
+            string subsql = string.Empty;
             foreach (DataColumn col in dt.Columns)
             {
                 if (subsql.Length > 0)
@@ -200,11 +200,13 @@ namespace OpenSim.Data.SQLite
         ///<returns>a built sqlite parameter</returns>
         public static SQLiteParameter createSQLiteParameter(string name, Type type)
         {
-            SQLiteParameter param = new SQLiteParameter();
-            param.ParameterName = ":" + name;
-            param.DbType = dbtypeFromType(type);
-            param.SourceColumn = name;
-            param.SourceVersion = DataRowVersion.Current;
+            SQLiteParameter param = new()
+            {
+                ParameterName = ":" + name,
+                DbType = dbtypeFromType(type),
+                SourceColumn = name,
+                SourceVersion = DataRowVersion.Current
+            };
             return param;
         }
 
@@ -221,35 +223,35 @@ namespace OpenSim.Data.SQLite
         /// <returns>a DbType</returns>
         public static DbType dbtypeFromType(Type type)
         {
-            if (type == typeof (String))
+            if (type == typeof (string))
             {
                 return DbType.String;
             }
-            else if (type == typeof (Int32))
+            else if (type == typeof (int))
             {
                 return DbType.Int32;
             }
-            else if (type == typeof (UInt32))
+            else if (type == typeof (uint))
             {
                 return DbType.UInt32;
             }
-            else if (type == typeof (Int64))
+            else if (type == typeof (long))
             {
                 return DbType.Int64;
             }
-            else if (type == typeof (UInt64))
+            else if (type == typeof (ulong))
             {
                 return DbType.UInt64;
             }
-            else if (type == typeof (Double))
+            else if (type == typeof (double))
             {
                 return DbType.Double;
             }
-            else if (type == typeof (Boolean))
+            else if (type == typeof (bool))
             {
                 return DbType.Boolean;
             }
-            else if (type == typeof (Byte[]))
+            else if (type == typeof (byte[]))
             {
                 return DbType.Binary;
             }
@@ -266,35 +268,35 @@ namespace OpenSim.Data.SQLite
         /// <remarks>this is something we'll need to implement for each db slightly differently.</remarks>
         public static string sqliteType(Type type)
         {
-            if (type == typeof (String))
+            if (type == typeof (string))
             {
                 return "varchar(255)";
             }
-            else if (type == typeof (Int32))
+            else if (type == typeof (int))
             {
                 return "integer";
             }
-            else if (type == typeof (UInt32))
+            else if (type == typeof (uint))
             {
                 return "integer";
             }
-            else if (type == typeof (Int64))
+            else if (type == typeof (long))
             {
                 return "varchar(255)";
             }
-            else if (type == typeof (UInt64))
+            else if (type == typeof (ulong))
             {
                 return "varchar(255)";
             }
-            else if (type == typeof (Double))
+            else if (type == typeof (double))
             {
                 return "float";
             }
-            else if (type == typeof (Boolean))
+            else if (type == typeof (bool))
             {
                 return "integer";
             }
-            else if (type == typeof (Byte[]))
+            else if (type == typeof (byte[]))
             {
                 return "blob";
             }

@@ -513,7 +513,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             float posZLimit = m_scene.GetGroundHeight(position.X, position.Y);
             posZLimit += localHalfAVHeight + 0.1f;
 
-            if ((position.Z < posZLimit) && !(Single.IsInfinity(posZLimit) || Single.IsNaN(posZLimit)))
+            if ((position.Z < posZLimit) && !(float.IsInfinity(posZLimit) || float.IsNaN(posZLimit)))
             {
                 position.Z = posZLimit;
             }
@@ -597,14 +597,14 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     Access = (byte)SimAccess.Down // == not there
                 };
 
-                List<MapBlockData> blocks = new() { block };
+                List<MapBlockData> blocks = [block];
                 sp.ControllingClient.SendMapBlock(blocks, 0);
                 return;
             }
 
             string homeURI = m_scene.GetAgentHomeURI(sp.ControllingClient.AgentId);
 
-            string reason = String.Empty;
+            string reason = string.Empty;
             finalDestination = GetFinalDestination(reg, sp.ControllingClient.AgentId, homeURI, out _);
 
             if (finalDestination == null)
@@ -1368,7 +1368,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
         protected void KillEntity(Scene scene, uint localID)
         {
-            scene.SendKillObject(new List<uint> { localID });
+            scene.SendKillObject([localID]);
         }
 
         // HG hook
@@ -1654,7 +1654,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                                                             ctx, out Vector3 newpos, out string failureReason);
             if (neighbourRegion is null)
             {
-                if (!agent.IsDeleted && failureReason != String.Empty && agent.ControllingClient != null)
+                if (!agent.IsDeleted && failureReason != string.Empty && agent.ControllingClient != null)
                     agent.ControllingClient.SendAlertMessage(failureReason);
                 return agent;
             }
@@ -1781,7 +1781,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         {
             int ts = Util.EnvironmentTickCount();
             bool sucess = true;
-            string reason = String.Empty;
+            string reason = string.Empty;
             List<ulong> childRegionsToClose = null;
             UUID agentUUID = agent.UUID;
             try
@@ -1806,7 +1806,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                     cAgent.ControlFlags |= (uint)AgentManager.ControlFlags.AGENT_CONTROL_FLY;
 
                 // We don't need the callback anymnore
-                cAgent.CallbackURI = String.Empty;
+                cAgent.CallbackURI = string.Empty;
 
                 // Beyond this point, extra cleanup is needed beyond removing transit state
                 m_entityTransferStateMachine.UpdateInTransit(agentUUID, AgentTransferState.Transferring);
@@ -2012,7 +2012,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         List<GridRegion> RegionsInView(Vector3 pos, RegionInfo curregion, List<GridRegion> fullneighbours, float viewrange)
         {
             if (fullneighbours.Count == 0 || viewrange == 0)
-                return new List<GridRegion>();
+                return [];
 
             int itmp = (int)curregion.WorldLocX + (int)pos.X;
             int minX = itmp - (int)viewrange;
@@ -2050,11 +2050,11 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         {
             int viewrange = (int)sp.RegionViewDistance;
             if (viewrange == 0)
-                return new List<GridRegion>();
+                return [];
 
             List<GridRegion> fullneighbours = GetNeighbors(sp);
             if (fullneighbours.Count == 0)
-                return new List<GridRegion>();
+                return [];
 
             Vector3 pos = sp.AbsolutePosition;
             int itmp = (int)m_sceneRegionInfo.WorldLocX + (int)pos.X;
@@ -2125,8 +2125,8 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             AgentCircuitData currentAgentCircuit =
                 m_scene.AuthenticateHandler.GetAgentCircuitData(sp.ControllingClient.CircuitCode);
 
-            List<AgentCircuitData> cagents = new();
-            List<ulong> newneighbours = new();
+            List<AgentCircuitData> cagents = [];
+            List<ulong> newneighbours = [];
 
             foreach (GridRegion neighbour in neighbours)
             {
@@ -2178,10 +2178,10 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
                 foreach (ulong handler in previousRegionNeighbourHandles)
                     seeds.Remove(handler);
 
-                toclose = new List<ulong>(previousRegionNeighbourHandles);
+                toclose = [.. previousRegionNeighbourHandles];
             }
             else
-                toclose = new List<ulong>();
+                toclose = [];
             /// Update all child agent with everyone's seeds
                 //            foreach (AgentCircuitData a in cagents)
                 //                a.ChildrenCapSeeds = new Dictionary<ulong, string>(seeds);
@@ -2310,7 +2310,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             // previousRegionNeighbourHandles now contains regions to forget
             if (previousRegionNeighbour.Count > 0)
             {
-                List<ulong> toclose = new(previousRegionNeighbour.Keys);
+                List<ulong> toclose = [.. previousRegionNeighbour.Keys];
                 sp.CloseChildAgents(toclose);
             }
  
@@ -2370,7 +2370,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             if (seeds.Count == 0)
                 return;
 
-            List<ulong> toclose = new(seeds.Keys);
+            List<ulong> toclose = [.. seeds.Keys];
             Util.FireAndForget(delegate
                 {
                     sp.CloseChildAgents(toclose);
@@ -2395,7 +2395,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
         //    contains that point. A conservitive estimate.
         private class NotFoundLocationCache
         {
-            private readonly Dictionary<ulong, DateTime> m_notFoundLocations = new();
+            private readonly Dictionary<ulong, DateTime> m_notFoundLocations = [];
             public NotFoundLocationCache()
             {
             }
@@ -2431,7 +2431,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
 
             private void DoExpiration()
             {
-                List<ulong> m_toRemove = new();
+                List<ulong> m_toRemove = [];
                 DateTime now = DateTime.UtcNow;
                 lock (m_notFoundLocations)
                 {
@@ -2587,7 +2587,7 @@ namespace OpenSim.Region.CoreModules.Framework.EntityTransfer
             Scene pScene = avatar.Scene;
             uint dd = (uint)pScene.MaxRegionViewDistance;
             if(dd <= 1)
-                return new List<GridRegion>();
+                return [];
 
             RegionInfo regionInfo = pScene.RegionInfo;
             uint startX = regionInfo.WorldLocX;

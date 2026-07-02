@@ -36,7 +36,7 @@ namespace OpenSim.Framework.Monitoring
 public class CounterStat : Stat
 {
     private SortedDictionary<string, EventHistogram> m_histograms;
-    private object counterLock = new object();
+    private object counterLock = new();
 
     public CounterStat(
                         string shortName,
@@ -48,7 +48,7 @@ public class CounterStat : Stat
                         StatVerbosity verbosity)
         : base(shortName, name, description, unitName, category, container, StatType.Push, null, verbosity)
     {
-        m_histograms = new SortedDictionary<string, EventHistogram>();
+        m_histograms = [];
     }
 
     // Histograms are presumably added at intialization time and the list does not change thereafter.
@@ -101,7 +101,7 @@ public class CounterStat : Stat
             {
                 if (m_histograms.Count > 0)
                 {
-                    OSDArray histos = new OSDArray();
+                    OSDArray histos = [];
                     foreach (EventHistogram histo in m_histograms.Values)
                     {
                         histos.Add(histo.GetHistogramAsOSDMap());

@@ -150,7 +150,7 @@ namespace OpenSim.Services.Interfaces
         public string ServerURI
         {
             get {
-                if (!String.IsNullOrEmpty(m_serverURI)) {
+                if (!string.IsNullOrEmpty(m_serverURI)) {
                     return m_serverURI;
                 } else {
                     if (HttpPort == 0)
@@ -162,7 +162,7 @@ namespace OpenSim.Services.Interfaces
             set {
                 if ( value == null)
                 {
-                    m_serverURI = String.Empty;
+                    m_serverURI = string.Empty;
                     return;
                 }
 
@@ -195,7 +195,7 @@ namespace OpenSim.Services.Interfaces
             get { return m_regionName; }
             set { m_regionName = value; }
         }
-        protected string m_regionName = String.Empty;
+        protected string m_regionName = string.Empty;
 
         /// <summary>
         /// Region flags.
@@ -367,15 +367,15 @@ namespace OpenSim.Services.Interfaces
 
             if (kvp.ContainsKey("serverPort"))
             {
-                Int32 port = 0;
-                Int32.TryParse((string)kvp["serverPort"], out port);
+                int port = 0;
+                int.TryParse((string)kvp["serverPort"], out port);
                 InternalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), port);
             }
 
             if (kvp.ContainsKey("serverHttpPort"))
             {
-                UInt32 port = 0;
-                UInt32.TryParse((string)kvp["serverHttpPort"], out port);
+                uint port = 0;
+                uint.TryParse((string)kvp["serverHttpPort"], out port);
                 HttpPort = port;
             }
 
@@ -403,13 +403,15 @@ namespace OpenSim.Services.Interfaces
 
         public Dictionary<string, object> ToKeyValuePairs()
         {
-            Dictionary<string, object> kvp = new Dictionary<string, object>();
-            kvp["uuid"] = RegionID.ToString();
-            kvp["locX"] = RegionLocX.ToString();
-            kvp["locY"] = RegionLocY.ToString();
-            kvp["sizeX"] = RegionSizeX.ToString();
-            kvp["sizeY"] = RegionSizeY.ToString();
-            kvp["regionName"] = RegionName;
+            Dictionary<string, object> kvp = new()
+            {
+                ["uuid"] = RegionID.ToString(),
+                ["locX"] = RegionLocX.ToString(),
+                ["locY"] = RegionLocY.ToString(),
+                ["sizeX"] = RegionSizeX.ToString(),
+                ["sizeY"] = RegionSizeY.ToString(),
+                ["regionName"] = RegionName
+            };
 
             if (RegionFlags != null)
                 kvp["flags"] = ((int)RegionFlags).ToString();
@@ -442,7 +444,7 @@ namespace OpenSim.Services.Interfaces
             return (!RegionID.IsZero()) && RegionID.Equals(region.RegionID);
         }
 
-        public override bool Equals(Object obj)
+        public override bool Equals(object obj)
         {
             if (obj == null)
                 return false;

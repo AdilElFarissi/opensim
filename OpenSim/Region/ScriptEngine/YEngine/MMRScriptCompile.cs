@@ -99,7 +99,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     }
 
                      // Compile abstract syntax tree to write object file.
-                    using(BinaryWriter objFileWriter = new BinaryWriter(File.Create(tmpFileName)))
+                    using(BinaryWriter objFileWriter = new(File.Create(tmpFileName)))
                     {
                         bool ok = ScriptCodeGen.CodeGen(tokenScript, objFileWriter, sourceHash);
                         if (!ok)
@@ -137,7 +137,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
              // Read object file to create ScriptObjCode object.
              // Maybe also write disassembly to a file for debugging.
-            BinaryReader objFileReader = new BinaryReader (objFileStream);
+            BinaryReader objFileReader = new(objFileStream);
             ScriptObjCode scriptObjCode = null;
             try
             {

@@ -170,7 +170,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
             #region Overriders
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static implicit operator Boolean(Vector3 vec)
+            public static implicit operator bool(Vector3 vec)
             {
                 return vec.x != 0 || vec.y != 0 || vec.z != 0;
             }
@@ -178,20 +178,20 @@ namespace OpenSim.Region.ScriptEngine.Shared
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public override string ToString()
             {
-                string s = String.Format(Culture.FormatProvider, "<{0:0.000000}, {1:0.000000}, {2:0.000000}>", x, y, z);
+                string s = string.Format(Culture.FormatProvider, "<{0:0.000000}, {1:0.000000}, {2:0.000000}>", x, y, z);
                 return s;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static explicit operator LSLString(Vector3 vec)
             {
-                string s = String.Format(Culture.FormatProvider, "<{0:0.000000}, {1:0.000000}, {2:0.000000}>", vec.x, vec.y, vec.z);
+                string s = string.Format(Culture.FormatProvider, "<{0:0.000000}, {1:0.000000}, {2:0.000000}>", vec.x, vec.y, vec.z);
                 return new LSLString(s);
             }
 
             public static explicit operator string(Vector3 vec)
             {
-                string s = String.Format(Culture.FormatProvider, "<{0:0.000000}, {1:0.000000}, {2:0.000000}>", vec.x, vec.y, vec.z);
+                string s = string.Format(Culture.FormatProvider, "<{0:0.000000}, {1:0.000000}, {2:0.000000}>", vec.x, vec.y, vec.z);
                 return s;
             }
 
@@ -666,7 +666,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
             #endregion
 
             #region Overriders
-            public static implicit operator Boolean(Quaternion q)
+            public static implicit operator bool(Quaternion q)
             {
                 if (q.x != 0)
                     return true;
@@ -694,19 +694,19 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public override string ToString()
             {
-                string st = String.Format(Culture.FormatProvider, "<{0:0.000000}, {1:0.000000}, {2:0.000000}, {3:0.000000}>", x, y, z, s);
+                string st = string.Format(Culture.FormatProvider, "<{0:0.000000}, {1:0.000000}, {2:0.000000}, {3:0.000000}>", x, y, z, s);
                 return st;
             }
 
             public static explicit operator string(Quaternion r)
             {
-                string st = String.Format(Culture.FormatProvider, "<{0:0.000000}, {1:0.000000}, {2:0.000000}, {3:0.000000}>", r.x, r.y, r.z, r.s);
+                string st = string.Format(Culture.FormatProvider, "<{0:0.000000}, {1:0.000000}, {2:0.000000}, {3:0.000000}>", r.x, r.y, r.z, r.s);
                 return st;
             }
 
             public static explicit operator LSLString(Quaternion r)
             {
-                string st = String.Format(Culture.FormatProvider, "<{0:0.000000}, {1:0.000000}, {2:0.000000}, {3:0.000000}>", r.x, r.y, r.z, r.s);
+                string st = string.Format(Culture.FormatProvider, "<{0:0.000000}, {1:0.000000}, {2:0.000000}, {3:0.000000}>", r.x, r.y, r.z, r.s);
                 return new LSLString(st);
             }
 
@@ -926,7 +926,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                     return io;
                 if (o is float fo)
                     return fo;
-                if (o is Double dov)
+                if (o is double dov)
                     return (float)dov;
                 if (o is LSL_Types.LSLString lso)
                     return Convert.ToSingle(lso.m_string);
@@ -1156,7 +1156,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static implicit operator Boolean(list l)
+            public static implicit operator bool(list l)
             {
                 return l.Length != 0;
             }
@@ -1990,7 +1990,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return osStringBuilderCache.GetStringAndRelease(sb);
             }
 
-            public static explicit operator String(list l)
+            public static explicit operator string(list l)
             {
                 return l.ToSoup();
             }
@@ -2282,7 +2282,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             #region Operators
 
-            static public implicit operator Boolean(key k)
+            static public implicit operator bool(key k)
             {
                 if (k.value.Length == 0)
                 {
@@ -2306,12 +2306,12 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public static bool operator true(key k)
             {
-                return (Boolean)k;
+                return (bool)k;
             }
 
             public static bool operator false(key k)
             {
-                return !(Boolean)k;
+                return !(bool)k;
             }
 
             static public implicit operator key(string s)
@@ -2319,7 +2319,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return new key(s);
             }
 
-            static public implicit operator String(key k)
+            static public implicit operator string(key k)
             {
                 return k.value;
             }
@@ -2380,19 +2380,19 @@ namespace OpenSim.Region.ScriptEngine.Shared
 
             public LSLString(double d)
             {
-                string s = String.Format(Culture.FormatProvider, "{0:0.000000}", d);
+                string s = string.Format(Culture.FormatProvider, "{0:0.000000}", d);
                 m_string = s;
             }
 
             public LSLString(LSLFloat f)
             {
-                string s = String.Format(Culture.FormatProvider, "{0:0.000000}", f.value);
+                string s = string.Format(Culture.FormatProvider, "{0:0.000000}", f.value);
                 m_string = s;
             }
 
             public LSLString(int i)
             {
-                string s = String.Format("{0}", i);
+                string s = string.Format("{0}", i);
                 m_string = s;
             }
 
@@ -2401,7 +2401,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
             #endregion
 
             #region Operators
-            static public implicit operator Boolean(LSLString s)
+            static public implicit operator bool(LSLString s)
             {
                 if (s.m_string.Length == 0)
                 {
@@ -2675,7 +2675,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return new list(new object[] { i });
             }
 
-            static public implicit operator Boolean(LSLInteger i)
+            static public implicit operator bool(LSLInteger i)
             {
                 if (i.value == 0)
                 {
@@ -2824,7 +2824,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return new LSLInteger(~i.value);
             }
 
-            public override bool Equals(Object o)
+            public override bool Equals(object o)
             {
                 if (o is LSLInteger lio)
                     return value == lio.value;
@@ -2912,7 +2912,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return i.value >> s;
             }
 
-            static public implicit operator System.Double(LSLInteger i)
+            static public implicit operator double(LSLInteger i)
             {
                 return (double)i.value;
             }
@@ -2995,7 +2995,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return new LSLString(string.Format(Culture.FormatProvider, "{0:0.000000}", f.value));
             }
 
-            static public implicit operator Boolean(LSLFloat f)
+            static public implicit operator bool(LSLFloat f)
             {
                 return f.value != 0.0;
             }
@@ -3135,7 +3135,7 @@ namespace OpenSim.Region.ScriptEngine.Shared
                 return string.Format(Culture.FormatProvider, "{0:0.000000}", this.value);
             }
 
-            public override bool Equals(Object o)
+            public override bool Equals(object o)
             {
                 if (o is LSLFloat fo)
                     return value == fo.value;

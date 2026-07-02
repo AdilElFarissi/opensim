@@ -40,12 +40,14 @@ namespace OpenSim.Services.Interfaces
 
         public Dictionary<string, object> ToKeyValuePairs()
         {
-            Dictionary<string, object> result = new Dictionary<string, object>();
-            result["PrincipalID"] = PrincipalID;
-            result["AccountType"] = AccountType;
-            result["PasswordHash"] = PasswordHash;
-            result["PasswordSalt"] = PasswordSalt;
-            result["WebLoginKey"] = WebLoginKey;
+            Dictionary<string, object> result = new()
+            {
+                ["PrincipalID"] = PrincipalID,
+                ["AccountType"] = AccountType,
+                ["PasswordHash"] = PasswordHash,
+                ["PasswordSalt"] = PasswordSalt,
+                ["WebLoginKey"] = WebLoginKey
+            };
 
             return result;
         }

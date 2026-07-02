@@ -157,15 +157,14 @@ namespace OpenSim.Server.Base
         /// </param>
         private void HandleConsoleInstallPlugin(string module, string[] cmd)
         {
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
 
             if (cmd.Length == 3)
             {
                 int ndx = Convert.ToInt16(cmd[2]);
                 if (PluginManager.InstallPlugin(ndx, out result) == true)
                 {
-                    ArrayList s = new ArrayList();
-                    s.AddRange(result.Keys);
+                    ArrayList s = [.. result.Keys];
                     s.Sort();
 
                     var list = result.Keys.ToList();
@@ -198,11 +197,10 @@ namespace OpenSim.Server.Base
         // List installed plugins
         private void HandleConsoleListInstalledPlugin(string module, string[] cmd)
         {
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
             PluginManager.ListInstalledAddins(out result);
 
-            ArrayList s = new ArrayList();
-            s.AddRange(result.Keys);
+            ArrayList s = [.. result.Keys];
             s.Sort();
 
             var list = result.Keys.ToList();
@@ -222,7 +220,7 @@ namespace OpenSim.Server.Base
         // List available plugins on registered repositories
         private void HandleConsoleListAvailablePlugin(string module, string[] cmd)
         {
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
             PluginManager.ListAvailable(out result);
 
             var list = result.Keys.ToList();
@@ -296,7 +294,7 @@ namespace OpenSim.Server.Base
         // List repositories
         private void HandleConsoleListRepos(string module, string[] cmd)
         {
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
             PluginManager.ListRepositories(out result);
 
             var list = result.Keys.ToList();
@@ -320,7 +318,7 @@ namespace OpenSim.Server.Base
             if (cmd.Length >= 3)
             {
 
-                Dictionary<string, object> result = new Dictionary<string, object>();
+                Dictionary<string, object> result = [];
 
                 int ndx = Convert.ToInt16(cmd[2]);
                 PluginManager.AddinInfo(ndx, out result);

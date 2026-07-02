@@ -52,7 +52,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             string requestBody;
             Encoding encoding = Encoding.UTF8;
-            using(StreamReader streamReader = new StreamReader(request,encoding))
+            using(StreamReader streamReader = new(request,encoding))
                 requestBody = streamReader.ReadToEnd();
 
             string param = GetParam(path);

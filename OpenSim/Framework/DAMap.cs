@@ -50,7 +50,7 @@ namespace OpenSim.Framework
 
         private static readonly int MIN_NAMESPACE_LENGTH = 4;
 
-        private OSDMap m_map = new OSDMap();
+        private OSDMap m_map = [];
 
         // WARNING: this is temporary for experimentation only, it will be removed!!!!
         public OSDMap TopLevelMap
@@ -63,7 +63,7 @@ namespace OpenSim.Framework
 
         public static DAMap FromXml(string rawXml)
         {
-            DAMap map = new DAMap();
+            DAMap map = new();
             map.ReadXml(rawXml);
             return map;
         }
@@ -134,7 +134,7 @@ namespace OpenSim.Framework
                 if (!(namespacesMap[key] is OSDMap))
                 {
                     if (keysToRemove == null)
-                        keysToRemove = new List<string>();
+                        keysToRemove = [];
 
                     keysToRemove.Add(key);
                 }
@@ -159,7 +159,7 @@ namespace OpenSim.Framework
                     if (!(nsOsdMap[key] is OSDMap))
                     {
                         if (keysToRemove == null)
-                            keysToRemove = new List<string>();
+                            keysToRemove = [];
 
                         keysToRemove.Add(key);
                     }
@@ -236,7 +236,7 @@ namespace OpenSim.Framework
             {
                 if (!m_map.ContainsKey(ns))
                 {
-                    nsMap = new OSDMap();
+                    nsMap = [];
                     m_map[ns] = nsMap;
                 }
 

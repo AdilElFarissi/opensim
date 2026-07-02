@@ -102,7 +102,7 @@ namespace OpenSim.Region.CoreModules.World.Wind.Plugins
 
         public Vector3 WindSpeed(float fX, float fY, float fZ)
         {
-            Vector3 windVector = new Vector3(0.0f, 0.0f, 0.0f);
+            Vector3 windVector = new(0.0f, 0.0f, 0.0f);
 
             int x = (int)fX / 16;
             int y = (int)fY / 16;
@@ -136,9 +136,10 @@ namespace OpenSim.Region.CoreModules.World.Wind.Plugins
 
         public System.Collections.Generic.Dictionary<string, string> WindParams()
         {
-            Dictionary<string, string> Params = new Dictionary<string, string>();
-
-            Params.Add("strength", "wind strength");
+            Dictionary<string, string> Params = new()
+            {
+                { "strength", "wind strength" }
+            };
 
             return Params;
         }
@@ -160,7 +161,7 @@ namespace OpenSim.Region.CoreModules.World.Wind.Plugins
                 case "strength":
                     return m_strength;
                 default:
-                    throw new Exception(String.Format("Unknown {0} parameter {1}", this.Name, param));
+                    throw new Exception(string.Format("Unknown {0} parameter {1}", this.Name, param));
             }
         }
 

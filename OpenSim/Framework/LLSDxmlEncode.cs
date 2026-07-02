@@ -38,7 +38,7 @@ namespace OpenSim.Framework
 {
     public static class LLSDxmlEncode
     {
-        static readonly  DateTime depoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        static readonly  DateTime depoch = new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
         public static void AddStart(StringBuilder sb, bool addxmlversion = false)
         {
@@ -323,7 +323,7 @@ namespace OpenSim.Framework
 
         public static void AddElem(string e, StringBuilder sb)
         {
-            if(String.IsNullOrEmpty(e))
+            if(string.IsNullOrEmpty(e))
                 sb.Append("<string />");
             else
             {
@@ -335,7 +335,7 @@ namespace OpenSim.Framework
 
         public static void AddRawElem(string e, StringBuilder sb)
         {
-            if(String.IsNullOrEmpty(e))
+            if(string.IsNullOrEmpty(e))
                 return;
 
             sb.Append(e);
@@ -355,7 +355,7 @@ namespace OpenSim.Framework
             else
                 s = e.ToString();
 
-            if(String.IsNullOrEmpty(s))
+            if(string.IsNullOrEmpty(s))
                 sb.Append("<uri />");
             else
             {
@@ -676,7 +676,7 @@ namespace OpenSim.Framework
             sb.Append(name);
             sb.Append("</key>");
 
-            if(String.IsNullOrEmpty(e))
+            if(string.IsNullOrEmpty(e))
                 sb.Append("<string />");
             else
             {
@@ -688,7 +688,7 @@ namespace OpenSim.Framework
 
         public static void AddRawElem(string name, string e, StringBuilder sb)
         {
-            if (String.IsNullOrEmpty(e))
+            if (string.IsNullOrEmpty(e))
                 return;
 
             sb.Append("<key>");
@@ -715,7 +715,7 @@ namespace OpenSim.Framework
             else
                 s = e.ToString();
 
-            if(String.IsNullOrEmpty(s))
+            if(string.IsNullOrEmpty(s))
                 sb.Append("<uri />");
             else
             {

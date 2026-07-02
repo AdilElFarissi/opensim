@@ -125,7 +125,7 @@ public class Vertex : IComparable<Vertex>, IEquatable<Vertex>
         return 0;
     }
 
-    public String ToRaw()
+    public string ToRaw()
     {
         // Why this stuff with the number formatter?
         // Well, the raw format uses the english/US notation of numbers
@@ -133,11 +133,13 @@ public class Vertex : IComparable<Vertex>, IEquatable<Vertex>
         // The german notation uses these characters exactly vice versa!
         // The Float.ToString() routine is a localized one, giving different results depending on the country
         // settings your machine works with. Unusable for a machine readable file format :-(
-        NumberFormatInfo nfi = new NumberFormatInfo();
-        nfi.NumberDecimalSeparator = ".";
-        nfi.NumberDecimalDigits = 6;
+        NumberFormatInfo nfi = new()
+        {
+            NumberDecimalSeparator = ".",
+            NumberDecimalDigits = 6
+        };
 
-        String s1 = X.ToString(nfi) + " " + Y.ToString(nfi) + " " + Z.ToString(nfi);
+        string s1 = X.ToString(nfi) + " " + Y.ToString(nfi) + " " + Z.ToString(nfi);
 
         return s1;
     }
@@ -165,24 +167,26 @@ public class Triangle
         v3 = new Vertex(_v3x, _v3y, _v3z);
     }
 
-    public override String ToString()
+    public override string ToString()
     {
-        NumberFormatInfo nfi = new NumberFormatInfo();
-        nfi.CurrencyDecimalDigits = 2;
-        nfi.CurrencyDecimalSeparator = ".";
+        NumberFormatInfo nfi = new()
+        {
+            CurrencyDecimalDigits = 2,
+            CurrencyDecimalSeparator = "."
+        };
 
-        String s1 = "<" + v1.X.ToString(nfi) + "," + v1.Y.ToString(nfi) + "," + v1.Z.ToString(nfi) + ">";
-        String s2 = "<" + v2.X.ToString(nfi) + "," + v2.Y.ToString(nfi) + "," + v2.Z.ToString(nfi) + ">";
-        String s3 = "<" + v3.X.ToString(nfi) + "," + v3.Y.ToString(nfi) + "," + v3.Z.ToString(nfi) + ">";
+        string s1 = "<" + v1.X.ToString(nfi) + "," + v1.Y.ToString(nfi) + "," + v1.Z.ToString(nfi) + ">";
+        string s2 = "<" + v2.X.ToString(nfi) + "," + v2.Y.ToString(nfi) + "," + v2.Z.ToString(nfi) + ">";
+        string s3 = "<" + v3.X.ToString(nfi) + "," + v3.Y.ToString(nfi) + "," + v3.Z.ToString(nfi) + ">";
 
         return s1 + ";" + s2 + ";" + s3;
     }
 
     // Dumps a triangle in the "raw faces" format, blender can import. This is for visualisation and
     // debugging purposes
-    public String ToStringRaw()
+    public string ToStringRaw()
     {
-        String output = v1.ToRaw() + " " + v2.ToRaw() + " " + v3.ToRaw();
+        string output = v1.ToRaw() + " " + v2.ToRaw() + " " + v3.ToRaw();
         return output;
     }
 }

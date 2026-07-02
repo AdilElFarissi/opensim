@@ -57,35 +57,41 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         public void SendTeleportHomeOneUser(uint EstateID, UUID PreyID)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            sendData["METHOD"] = "teleport_home_one_user";
-            sendData["TOKEN"] = token;
+            Dictionary<string, object> sendData = new()
+            {
+                ["METHOD"] = "teleport_home_one_user",
+                ["TOKEN"] = token,
 
-            sendData["EstateID"] = EstateID.ToString();
-            sendData["PreyID"] = PreyID.ToString();
+                ["EstateID"] = EstateID.ToString(),
+                ["PreyID"] = PreyID.ToString()
+            };
 
             SendToEstate(EstateID, sendData);
         }
 
         public void SendTeleportHomeAllUsers(uint EstateID)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            sendData["METHOD"] = "teleport_home_all_users";
-            sendData["TOKEN"] = token;
+            Dictionary<string, object> sendData = new()
+            {
+                ["METHOD"] = "teleport_home_all_users",
+                ["TOKEN"] = token,
 
-            sendData["EstateID"] = EstateID.ToString();
+                ["EstateID"] = EstateID.ToString()
+            };
 
             SendToEstate(EstateID, sendData);
         }
 
         public bool SendUpdateCovenant(uint EstateID, UUID CovenantID)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            sendData["METHOD"] = "update_covenant";
-            sendData["TOKEN"] = token;
+            Dictionary<string, object> sendData = new()
+            {
+                ["METHOD"] = "update_covenant",
+                ["TOKEN"] = token,
 
-            sendData["CovenantID"] = CovenantID.ToString();
-            sendData["EstateID"] = EstateID.ToString();
+                ["CovenantID"] = CovenantID.ToString(),
+                ["EstateID"] = EstateID.ToString()
+            };
 
             // Handle local regions locally
             //
@@ -103,11 +109,13 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         public bool SendUpdateEstate(uint EstateID)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            sendData["METHOD"] = "update_estate";
-            sendData["TOKEN"] = token;
+            Dictionary<string, object> sendData = new()
+            {
+                ["METHOD"] = "update_estate",
+                ["TOKEN"] = token,
 
-            sendData["EstateID"] = EstateID.ToString();
+                ["EstateID"] = EstateID.ToString()
+            };
 
             // Handle local regions locally
             //
@@ -124,14 +132,16 @@ namespace OpenSim.Region.CoreModules.World.Estate
 
         public void SendEstateMessage(uint EstateID, UUID FromID, string FromName, string Message)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            sendData["METHOD"] = "estate_message";
-            sendData["TOKEN"] = token;
+            Dictionary<string, object> sendData = new()
+            {
+                ["METHOD"] = "estate_message",
+                ["TOKEN"] = token,
 
-            sendData["EstateID"] = EstateID.ToString();
-            sendData["FromID"] = FromID.ToString();
-            sendData["FromName"] = FromName;
-            sendData["Message"] = Message;
+                ["EstateID"] = EstateID.ToString(),
+                ["FromID"] = FromID.ToString(),
+                ["FromName"] = FromName,
+                ["Message"] = Message
+            };
 
             SendToEstate(EstateID, sendData);
         }
@@ -141,7 +151,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             List<UUID> regions = m_EstateModule.Scenes[0].GetEstateRegions((int)EstateID);
 
             // Don't send to the same instance twice
-            HashSet<string> done = new HashSet<string>();
+            HashSet<string> done = [];
 
             // Handle local regions locally
             lock (m_EstateModule.Scenes)

@@ -45,7 +45,7 @@ namespace pCampBot
 
         public virtual void Interrupt() {}
 
-        protected AutoResetEvent m_interruptEvent = new AutoResetEvent(false);
+        protected AutoResetEvent m_interruptEvent = new(false);
 
         public virtual void Initialize(Bot bot)
         {

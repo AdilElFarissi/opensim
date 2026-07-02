@@ -57,10 +57,12 @@ namespace OpenSim.Framework
 
         public OSDMap Pack()
         {
-            OSDMap attachdata = new OSDMap();
-            attachdata["point"] = OSD.FromInteger(AttachPoint);
-            attachdata["item"] = OSD.FromUUID(ItemID);
-            attachdata["asset"] = OSD.FromUUID(AssetID);
+            OSDMap attachdata = new()
+            {
+                ["point"] = OSD.FromInteger(AttachPoint),
+                ["item"] = OSD.FromUUID(ItemID),
+                ["asset"] = OSD.FromUUID(AssetID)
+            };
 
             return attachdata;
         }

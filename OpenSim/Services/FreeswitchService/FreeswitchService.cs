@@ -48,7 +48,7 @@ namespace OpenSim.Services.FreeswitchService
         {
             m_log.DebugFormat("[FreeSwitchVoice]: HandleDialplanRequest called with {0}",request.ToString());
 
-            Hashtable response = new Hashtable();
+            Hashtable response = [];
 
 //            foreach (DictionaryEntry item in request)
 //            {
@@ -60,14 +60,14 @@ namespace OpenSim.Services.FreeswitchService
             response["keepalive"] = false;
             response["int_response_code"] = 200;
 
-            if (m_freeSwitchContext != String.Empty && m_freeSwitchContext != requestcontext)
+            if (m_freeSwitchContext != string.Empty && m_freeSwitchContext != requestcontext)
             {
                 m_log.Debug("[FreeSwitchDirectory]: returning empty as it's for another context");
                 response["str_response_string"] = "";
             }
             else
             {
-                response["str_response_string"] = String.Format(@"<?xml version=""1.0"" encoding=""utf-8""?>
+                response["str_response_string"] = string.Format(@"<?xml version=""1.0"" encoding=""utf-8""?>
                    <document type=""freeswitch/xml"">
                      <section name=""dialplan"">
                      <context name=""{0}"">" +
@@ -110,7 +110,7 @@ namespace OpenSim.Services.FreeswitchService
 
         public Hashtable HandleDirectoryRequest(Hashtable request)
         {
-            Hashtable response = new Hashtable();
+            Hashtable response = [];
             string domain = (string) request["domain"];
             if (domain != m_freeSwitchRealm)
             {
@@ -221,12 +221,13 @@ namespace OpenSim.Services.FreeswitchService
             string domain = (string) request["domain"];
             string user = (string) request["user"];
 
-            Hashtable response = new Hashtable();
-            response["content_type"] = "text/xml";
-            response["keepalive"] = false;
-            response["int_response_code"] = 200;
+            Hashtable response = new()
+            {
+                ["content_type"] = "text/xml",
+                ["keepalive"] = false,
+                ["int_response_code"] = 200,
 
-            response["str_response_string"] = String.Format(
+                ["str_response_string"] = string.Format(
                 "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" +
                 "<document type=\"freeswitch/xml\">\r\n" +
                     "<section name=\"directory\" description=\"User Directory\">\r\n" +
@@ -238,13 +239,14 @@ namespace OpenSim.Services.FreeswitchService
                                 "</params>\r\n" +
                                 "<variables>\r\n" +
                                     "<variable name=\"user_context\" value=\"{3}\" />\r\n" +
-                                    "<variable name=\"presence_id\" value=\"{1}@{0}\"/>"+
+                                    "<variable name=\"presence_id\" value=\"{1}@{0}\"/>" +
                                 "</variables>\r\n" +
                             "</user>\r\n" +
                         "</domain>\r\n" +
                     "</section>\r\n" +
                 "</document>\r\n",
-                domain , user, password, Context);
+                domain, user, password, Context)
+            };
 
             return response;
         }
@@ -259,11 +261,12 @@ namespace OpenSim.Services.FreeswitchService
             string user = (string) request["user"];
             string sipRequestUser = (string) request["sip_request_user"];
 
-            Hashtable response = new Hashtable();
-            response["content_type"] = "text/xml";
-            response["keepalive"] = false;
-            response["int_response_code"] = 200;
-            response["str_response_string"] = String.Format(
+            Hashtable response = new()
+            {
+                ["content_type"] = "text/xml",
+                ["keepalive"] = false,
+                ["int_response_code"] = 200,
+                ["str_response_string"] = string.Format(
                 "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" +
                 "<document type=\"freeswitch/xml\">\r\n" +
                     "<section name=\"directory\" description=\"User Directory\">\r\n" +
@@ -275,7 +278,7 @@ namespace OpenSim.Services.FreeswitchService
                                 "</params>\r\n" +
                                 "<variables>\r\n" +
                                     "<variable name=\"user_context\" value=\"{4}\" />\r\n" +
-                                    "<variable name=\"presence_id\" value=\"{1}@$${{domain}}\"/>"+
+                                    "<variable name=\"presence_id\" value=\"{1}@$${{domain}}\"/>" +
                                 "</variables>\r\n" +
                             "</user>\r\n" +
                             "<user id=\"{3}\">\r\n" +
@@ -285,18 +288,19 @@ namespace OpenSim.Services.FreeswitchService
                                 "</params>\r\n" +
                                 "<variables>\r\n" +
                                     "<variable name=\"user_context\" value=\"{4}\" />\r\n" +
-                                    "<variable name=\"presence_id\" value=\"{3}@$${{domain}}\"/>"+
+                                    "<variable name=\"presence_id\" value=\"{3}@$${{domain}}\"/>" +
                                 "</variables>\r\n" +
                             "</user>\r\n" +
                         "</domain>\r\n" +
                     "</section>\r\n" +
                 "</document>\r\n",
-                domain , user, password,sipRequestUser, Context);
+                domain, user, password, sipRequestUser, Context)
+            };
 
             return response;
         }
 
-        private Hashtable HandleLocateUser(String Realm, Hashtable request)
+        private Hashtable HandleLocateUser(string Realm, Hashtable request)
         {
             m_log.Info("[FreeSwitchDirectory]: HandleLocateUser called");
 
@@ -304,11 +308,12 @@ namespace OpenSim.Services.FreeswitchService
             string domain = (string) request["domain"];
             string user = (string) request["user"];
 
-            Hashtable response = new Hashtable();
-            response["content_type"] = "text/xml";
-            response["keepalive"] = false;
-            response["int_response_code"] = 200;
-            response["str_response_string"] = String.Format(
+            Hashtable response = new()
+            {
+                ["content_type"] = "text/xml",
+                ["keepalive"] = false,
+                ["int_response_code"] = 200,
+                ["str_response_string"] = string.Format(
                 "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" +
                 "<document type=\"freeswitch/xml\">\r\n" +
                     "<section name=\"directory\" description=\"User Directory\">\r\n" +
@@ -317,15 +322,16 @@ namespace OpenSim.Services.FreeswitchService
                                 "<param name=\"dial-string\" value=\"{{sip_contact_user=${{dialed_user}}}}{{presence_id=${{dialed_user}}@${{dialed_domain}}}}${{sofia_contact(${{dialed_user}}@${{dialed_domain}})}}\"/>\r\n" +
                             "</params>\r\n" +
                             "<user id=\"{1}\">\r\n" +
-                            "<variables>\r\n"+
-                              "<variable name=\"default_gateway\" value=\"$${{default_provider}}\"/>\r\n"+
-                              "<variable name=\"presence_id\" value=\"{1}@$${{domain}}\"/>"+
-                            "</variables>\r\n"+
+                            "<variables>\r\n" +
+                              "<variable name=\"default_gateway\" value=\"$${{default_provider}}\"/>\r\n" +
+                              "<variable name=\"presence_id\" value=\"{1}@$${{domain}}\"/>" +
+                            "</variables>\r\n" +
                             "</user>\r\n" +
                         "</domain>\r\n" +
                     "</section>\r\n" +
                 "</document>\r\n",
-                domain , user);
+                domain, user)
+            };
 
             return response;
         }
@@ -337,11 +343,12 @@ namespace OpenSim.Services.FreeswitchService
             // TODO the password we return needs to match that sent in the request, this is hard coded for now
             string domain = (string) request["domain"];
 
-            Hashtable response = new Hashtable();
-            response["content_type"] = "text/xml";
-            response["keepalive"] = false;
-            response["int_response_code"] = 200;
-            response["str_response_string"] = String.Format(
+            Hashtable response = new()
+            {
+                ["content_type"] = "text/xml",
+                ["keepalive"] = false,
+                ["int_response_code"] = 200,
+                ["str_response_string"] = string.Format(
                 "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n" +
                 "<document type=\"freeswitch/xml\">\r\n" +
                     "<section name=\"directory\" description=\"User Directory\">\r\n" +
@@ -349,53 +356,55 @@ namespace OpenSim.Services.FreeswitchService
                             "<params>\r\n" +
                                 "<param name=\"dial-string\" value=\"{{sip_contact_user=${{dialed_user}}}}{{presence_id=${{dialed_user}}@${{dialed_domain}}}}${{sofia_contact(${{dialed_user}}@${{dialed_domain}})}}\"/>\r\n" +
                             "</params>\r\n" +
-                            "<groups name=\"default\">\r\n"+
-                                "<users>\r\n"+
-                                    "<user id=\"$${{default_provider}}\">\r\n"+
-                                        "<gateways>\r\n"+
-                                          "<gateway name=\"$${{default_provider}}\">\r\n"+
-                                            "<param name=\"username\" value=\"$${{default_provider_username}}\"/>\r\n"+
-                                            "<param name=\"password\" value=\"$${{default_provider_password}}\"/>\r\n"+
-                                            "<param name=\"from-user\" value=\"$${{default_provider_username}}\"/>\r\n"+
-                                            "<param name=\"from-domain\" value=\"$${{default_provider_from_domain}}\"/>\r\n"+
-                                            "<param name=\"expire-seconds\" value=\"600\"/>\r\n"+
-                                            "<param name=\"register\" value=\"$${{default_provider_register}}\"/>\r\n"+
-                                            "<param name=\"retry-seconds\" value=\"30\"/>\r\n"+
-                                            "<param name=\"extension\" value=\"$${{default_provider_contact}}\"/>\r\n"+
-                                            "<param name=\"contact-params\" value=\"domain_name=$${{domain}}\"/>\r\n"+
-                                            "<param name=\"context\" value=\"{1}\"/>\r\n"+
-                                          "</gateway>\r\n"+
-                                        "</gateways>\r\n"+
-                                        "<params>\r\n"+
-                                          "<param name=\"password\" value=\"$${{default_provider_password}}\"/>\r\n"+
-                                        "</params>\r\n"+
-                                      "</user>\r\n"+
-                                "</users>"+
+                            "<groups name=\"default\">\r\n" +
+                                "<users>\r\n" +
+                                    "<user id=\"$${{default_provider}}\">\r\n" +
+                                        "<gateways>\r\n" +
+                                          "<gateway name=\"$${{default_provider}}\">\r\n" +
+                                            "<param name=\"username\" value=\"$${{default_provider_username}}\"/>\r\n" +
+                                            "<param name=\"password\" value=\"$${{default_provider_password}}\"/>\r\n" +
+                                            "<param name=\"from-user\" value=\"$${{default_provider_username}}\"/>\r\n" +
+                                            "<param name=\"from-domain\" value=\"$${{default_provider_from_domain}}\"/>\r\n" +
+                                            "<param name=\"expire-seconds\" value=\"600\"/>\r\n" +
+                                            "<param name=\"register\" value=\"$${{default_provider_register}}\"/>\r\n" +
+                                            "<param name=\"retry-seconds\" value=\"30\"/>\r\n" +
+                                            "<param name=\"extension\" value=\"$${{default_provider_contact}}\"/>\r\n" +
+                                            "<param name=\"contact-params\" value=\"domain_name=$${{domain}}\"/>\r\n" +
+                                            "<param name=\"context\" value=\"{1}\"/>\r\n" +
+                                          "</gateway>\r\n" +
+                                        "</gateways>\r\n" +
+                                        "<params>\r\n" +
+                                          "<param name=\"password\" value=\"$${{default_provider_password}}\"/>\r\n" +
+                                        "</params>\r\n" +
+                                      "</user>\r\n" +
+                                "</users>" +
                             "</groups>\r\n" +
-                            "<variables>\r\n"+
-                              "<variable name=\"default_gateway\" value=\"$${{default_provider}}\"/>\r\n"+
-                            "</variables>\r\n"+
+                            "<variables>\r\n" +
+                              "<variable name=\"default_gateway\" value=\"$${{default_provider}}\"/>\r\n" +
+                            "</variables>\r\n" +
                         "</domain>\r\n" +
                     "</section>\r\n" +
                 "</document>\r\n",
-                domain, Context);
+                domain, Context)
+            };
 
             return response;
         }
 
         public string GetJsonConfig()
         {
-            OSDMap map = new OSDMap(9);
-
-            map.Add("Realm", m_freeSwitchRealm);
-            map.Add("SIPProxy", m_freeSwitchSIPProxy);
-            map.Add("AttemptUseSTUN", m_freeSwitchAttemptUseSTUN);
-            map.Add("EchoServer", m_freeSwitchEchoServer);
-            map.Add("EchoPort", m_freeSwitchEchoPort);
-            map.Add("DefaultWellKnownIP", m_freeSwitchDefaultWellKnownIP);
-            map.Add("DefaultTimeout", m_freeSwitchDefaultTimeout);
-            map.Add("Context", m_freeSwitchContext);
-            map.Add("APIPrefix", m_freeSwitchAPIPrefix);
+            OSDMap map = new(9)
+            {
+                { "Realm", m_freeSwitchRealm },
+                { "SIPProxy", m_freeSwitchSIPProxy },
+                { "AttemptUseSTUN", m_freeSwitchAttemptUseSTUN },
+                { "EchoServer", m_freeSwitchEchoServer },
+                { "EchoPort", m_freeSwitchEchoPort },
+                { "DefaultWellKnownIP", m_freeSwitchDefaultWellKnownIP },
+                { "DefaultTimeout", m_freeSwitchDefaultTimeout },
+                { "Context", m_freeSwitchContext },
+                { "APIPrefix", m_freeSwitchAPIPrefix }
+            };
 
             return OSDParser.SerializeJsonString(map);
         }

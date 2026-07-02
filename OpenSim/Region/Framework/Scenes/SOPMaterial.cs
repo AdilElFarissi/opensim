@@ -185,15 +185,15 @@ namespace OpenSim.Region.Framework.Scenes
             SpecularLightColorG = (byte)(SpecularLightColortmp.G);
             SpecularLightColorB = (byte)(SpecularLightColortmp.B);
 
-            SpecularLightExponent = (Byte)mat["SpecExp"].AsUInteger();
-            EnvironmentIntensity = (Byte)mat["EnvIntensity"].AsUInteger();
-            DiffuseAlphaMode = (Byte)mat["DiffuseAlphaMode"].AsUInteger();
-            AlphaMaskCutoff = (Byte)mat["AlphaMaskCutoff"].AsUInteger();
+            SpecularLightExponent = (byte)mat["SpecExp"].AsUInteger();
+            EnvironmentIntensity = (byte)mat["EnvIntensity"].AsUInteger();
+            DiffuseAlphaMode = (byte)mat["DiffuseAlphaMode"].AsUInteger();
+            AlphaMaskCutoff = (byte)mat["AlphaMaskCutoff"].AsUInteger();
         }
 
         public void genID()
         {
-            Byte[] data = toLLSDxml();
+            byte[] data = toLLSDxml();
             using (var md5 = MD5.Create())
                 ID = new UUID(md5.ComputeHash(data), 0);
         }
@@ -221,7 +221,7 @@ namespace OpenSim.Region.Framework.Scenes
             return inthash;
         }
 
-        public override bool Equals(Object o)
+        public override bool Equals(object o)
         {
             if (o == null || !(o is FaceMaterial))
                 return false;
@@ -252,7 +252,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public OSDMap toOSD()
         {
-            OSDMap mat = new OSDMap();
+            OSDMap mat = [];
             float scale = 10000f;
 
             mat["NormMap"] = NormalMapID;
@@ -269,11 +269,13 @@ namespace OpenSim.Region.Framework.Scenes
             mat["SpecRepeatY"] = (int)(scale * SpecularRepeatY);
             mat["SpecRotation"] = (int)(scale * SpecularRotation);
 
-            OSDArray carray = new OSDArray(4);
-            carray.Add(SpecularLightColorR);
-            carray.Add(SpecularLightColorG);
-            carray.Add(SpecularLightColorB);
-            carray.Add(255); // solid color
+            OSDArray carray =
+            [
+                SpecularLightColorR,
+                SpecularLightColorG,
+                SpecularLightColorB,
+                255, // solid color
+            ];
             mat["SpecColor"] = carray;
             mat["SpecExp"] = SpecularLightExponent;
             mat["EnvIntensity"] = EnvironmentIntensity;

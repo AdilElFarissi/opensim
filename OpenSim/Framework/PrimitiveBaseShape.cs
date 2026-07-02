@@ -1603,7 +1603,7 @@ namespace OpenSim.Framework
                             xtw.WriteAttributeString("type", MEDIA_TEXTURE_TYPE);
                             xtw.WriteAttributeString("version", "0.1");
 
-                            OSDArray meArray = new();
+                            OSDArray meArray = [];
                             foreach (MediaEntry me in this)
                             {
                                 OSD osd = (null == me ? new OSD() : me.GetOSD());
@@ -1632,7 +1632,7 @@ namespace OpenSim.Framework
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public static MediaList FromXml(string rawXml)
             {
-                MediaList ml = new();
+                MediaList ml = [];
                 ml.ReadXml(rawXml);
                 if(ml.Count == 0)
                     return null;

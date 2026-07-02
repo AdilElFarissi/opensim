@@ -172,7 +172,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         private bool m_useHoverPID;
         private PIDHoverType m_PIDHoverType;
 
-        public OdeCharacter(uint localID, String avName, ODEScene parent_scene, Vector3 pos, Vector3 pSize, float pfeetOffset, float density, float walk_divisor, float rundivisor)
+        public OdeCharacter(uint localID, string avName, ODEScene parent_scene, Vector3 pos, Vector3 pSize, float pfeetOffset, float density, float walk_divisor, float rundivisor)
         {
             m_baseLocalID = localID;
             m_parent_scene = parent_scene;
@@ -1164,7 +1164,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             _position = UBOdeNative.BodyGetPositionOMV(Body);
             // check outbounds forcing to be in world
             bool fixbody = false;
-            if ((Single.IsNaN(_position.X) || Single.IsInfinity(_position.X)))
+            if ((float.IsNaN(_position.X) || float.IsInfinity(_position.X)))
             {
                 fixbody = true;
                 _position.X = 128f;
@@ -1180,7 +1180,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 _position.X = m_parent_scene.WorldExtents.X - 0.01f;
             }
 
-            if ((Single.IsNaN(_position.Y) || Single.IsInfinity(_position.Y)))
+            if ((float.IsNaN(_position.Y) || float.IsInfinity(_position.Y)))
             {
                 fixbody = true;
                 _position.Y = 128f;
@@ -1196,7 +1196,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
                 _position.Y = m_parent_scene.WorldExtents.Y - 0.01f;
             }
 
-            if ((Single.IsNaN(_position.Z) || Single.IsInfinity(_position.Z)))
+            if ((float.IsNaN(_position.Z) || float.IsInfinity(_position.Z)))
             {
                 fixbody = true;
                 _position.Z = 128f;

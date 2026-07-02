@@ -66,7 +66,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             string body;
-            using(StreamReader sr = new StreamReader(requestData))
+            using(StreamReader sr = new(requestData))
                 body = sr.ReadToEnd();
             body = body.Trim();
 
@@ -158,7 +158,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
         {
             bool verified = VerifyServiceKey(request);
 
-            FriendInfo friend = new FriendInfo(request);
+            FriendInfo friend = new(request);
 
             bool success = m_TheService.NewFriendship(friend, verified);
 
@@ -177,7 +177,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
             if (secret.Length == 0)
                 return BoolResult(false);
 
-            FriendInfo friend = new FriendInfo(request);
+            FriendInfo friend = new(request);
             bool success = m_TheService.DeleteFriendship(friend, secret);
 
             return BoolResult(success);
@@ -199,7 +199,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
         byte[] ValidateFriendshipOffered(Dictionary<string, object> request)
         {
-            FriendInfo friend = new FriendInfo(request);
+            FriendInfo friend = new(request);
             UUID friendID = UUID.Zero;
             if (!UUID.TryParse(friend.Friend, out friendID))
                 return BoolResult(false);
@@ -230,7 +230,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
                 return FailureResult();
             }
 
-            List<string> friends = new List<string>();
+            List<string> friends = [];
             int i = 0;
             foreach (KeyValuePair<string, object> kvp in request)
             {
@@ -243,7 +243,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
             List<UUID> onlineFriends = m_TheService.StatusNotification(friends, principalID, online);
 
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
             if (onlineFriends == null || onlineFriends.Count == 0)
                 result["RESULT"] = "NULL";
             else
@@ -290,7 +290,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
         private byte[] SuccessResult()
         {
-            XmlDocument doc = new XmlDocument();
+            XmlDocument doc = new();
 
             XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
                     "", "");
@@ -311,7 +311,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
         private byte[] SuccessResult(string value)
         {
-            XmlDocument doc = new XmlDocument();
+            XmlDocument doc = new();
 
             XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration, "", "");
 
@@ -338,12 +338,12 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
         private byte[] FailureResult()
         {
-            return FailureResult(String.Empty);
+            return FailureResult(string.Empty);
         }
 
         private byte[] FailureResult(string msg)
         {
-            XmlDocument doc = new XmlDocument();
+            XmlDocument doc = new();
 
             XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
                     "", "");
@@ -369,7 +369,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
         private byte[] BoolResult(bool value)
         {
-            XmlDocument doc = new XmlDocument();
+            XmlDocument doc = new();
 
             XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
                     "", "");

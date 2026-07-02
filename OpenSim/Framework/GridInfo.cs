@@ -414,10 +414,10 @@ namespace OpenSim.Framework
                 string[] alias = gatekeeperURIAlias.Split(',');
                 for (int i = 0; i < alias.Length; ++i)
                 {
-                    OSHHTPHost tmp = new OSHHTPHost(alias[i].Trim(), false);
+                    OSHHTPHost tmp = new(alias[i].Trim(), false);
                     if (tmp.IsValidHost)
                     {
-                        m_gateKeeperAlias ??= new HashSet<OSHHTPHost>();
+                        m_gateKeeperAlias ??= [];
                         m_gateKeeperAlias.Add(tmp);
                     }
                 }
@@ -456,10 +456,10 @@ namespace OpenSim.Framework
                 string[] alias = homeAlias.Split(',');
                 for (int i = 0; i < alias.Length; ++i)
                 {
-                    OSHHTPHost tmp = new OSHHTPHost(alias[i].Trim(), false);
+                    OSHHTPHost tmp = new(alias[i].Trim(), false);
                     if (tmp.IsValidHost)
                     {
-                        m_homeURLAlias ??= new HashSet<OSHHTPHost>();
+                        m_homeURLAlias ??= [];
                         m_homeURLAlias.Add(tmp);
                     }
                 }
@@ -521,10 +521,10 @@ namespace OpenSim.Framework
             if (!string.IsNullOrWhiteSpace(stunservers))
             {
                 string[] stuns = stunservers.Split(',');
-                List<string> stunsarr = new List<string>(stuns.Length);
+                List<string> stunsarr = new(stuns.Length);
                 for (int i = 0; i < stuns.Length; ++i)
                 {
-                    OSHHTPHost tmp = new OSHHTPHost(stuns[i].Trim(), false);
+                    OSHHTPHost tmp = new(stuns[i].Trim(), false);
                     if (tmp.IsValidHost)
                         stunsarr.Add("stun:" + tmp.HostAndPort);
                 }
@@ -603,7 +603,7 @@ namespace OpenSim.Framework
         // 1 if local
         public int IsLocalGrid(string othergatekeeper)
         {
-            OSHHTPHost tmp = new OSHHTPHost(othergatekeeper, false);
+            OSHHTPHost tmp = new(othergatekeeper, false);
             if (!tmp.IsValidHost)
                 return ((tmp.Flags & OSHTTPURIFlags.Empty) == 0) ? -1 : 1;
             if (tmp.Equals(m_gateKeeperURL))
@@ -615,7 +615,7 @@ namespace OpenSim.Framework
 
         public int IsLocalGrid(string othergatekeeper, bool withResolveCheck)
         {
-            OSHHTPHost tmp = new OSHHTPHost(othergatekeeper, false);
+            OSHHTPHost tmp = new(othergatekeeper, false);
             if (!tmp.IsValidHost)
                 return ((tmp.Flags & OSHTTPURIFlags.Empty) == 0) ? -1 : 1;
             if (tmp.Equals(m_gateKeeperURL))
@@ -645,7 +645,7 @@ namespace OpenSim.Framework
 
         public int IsLocalHome(string otherhome)
         {
-            OSHHTPHost tmp = new OSHHTPHost(otherhome, false);
+            OSHHTPHost tmp = new(otherhome, false);
             if (!tmp.IsValidHost)
                 return ((tmp.Flags & OSHTTPURIFlags.Empty) == 0) ? -1 : 1;
             if (tmp.Equals(m_homeURL))
@@ -657,7 +657,7 @@ namespace OpenSim.Framework
 
         public int IsLocalHome(string otherhome, bool withResolveCheck)
         {
-            OSHHTPHost tmp = new OSHHTPHost(otherhome, false);
+            OSHHTPHost tmp = new(otherhome, false);
             if (!tmp.IsValidHost)
                 return ((tmp.Flags & OSHTTPURIFlags.Empty) == 0) ? -1 : 1;
             if (tmp.Equals(m_homeURL))
@@ -681,11 +681,11 @@ namespace OpenSim.Framework
                 {
                     for (int i = 0; i < value.Length; ++i)
                     {
-                        OSHHTPHost tmp = new OSHHTPHost(value[i].Trim(), false);
+                        OSHHTPHost tmp = new(value[i].Trim(), false);
                         if (tmp.IsValidHost)
                         {
                             if (m_gateKeeperAlias == null)
-                                m_gateKeeperAlias = new HashSet<OSHHTPHost>();
+                                m_gateKeeperAlias = [];
                             m_gateKeeperAlias.Add(tmp);
                         }
                     }
@@ -726,7 +726,7 @@ namespace OpenSim.Framework
             get { return m_gridUrl; }
             set
             {
-                OSHHTPHost tmp = new OSHHTPHost(value, true);
+                OSHHTPHost tmp = new(value, true);
                 if (tmp.IsResolvedHost)
                     m_gridUrl = tmp.URI;
                 else
@@ -739,7 +739,7 @@ namespace OpenSim.Framework
             get { return m_SearchURL; }
             set
             {
-                OSHTTPURI tmp = new OSHTTPURI(value, true);
+                OSHTTPURI tmp = new(value, true);
                 if (tmp.IsResolvedHost)
                     m_SearchURL = tmp.URI;
                 else
@@ -752,7 +752,7 @@ namespace OpenSim.Framework
             get { return m_DestinationGuideURL; }
             set
             {
-                OSHTTPURI tmp = new OSHTTPURI(value, true);
+                OSHTTPURI tmp = new(value, true);
                 if (tmp.IsResolvedHost)
                     m_DestinationGuideURL = tmp.URI;
                 else
@@ -765,7 +765,7 @@ namespace OpenSim.Framework
             get { return m_economyURL; }
             set
             {
-                OSHTTPURI tmp = new OSHTTPURI(value, true);
+                OSHTTPURI tmp = new(value, true);
                 if (tmp.IsResolvedHost)
                     m_economyURL = tmp.URI;
                 else
@@ -780,10 +780,10 @@ namespace OpenSim.Framework
             {
                 if(value.Length > 0)
                 {
-                    List<string> values = new List<string>(value.Length);
+                    List<string> values = new(value.Length);
                     for (int i = 0; i < value.Length; ++i)
                     {
-                        OSHHTPHost tmp = new OSHHTPHost(value[i].Trim(), false);
+                        OSHHTPHost tmp = new(value[i].Trim(), false);
                         if (tmp.IsValidHost)
                             values.Add("stun:" + tmp.HostAndPort);
                     }

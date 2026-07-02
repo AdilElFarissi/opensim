@@ -57,13 +57,13 @@ namespace OpenSim.ConsoleClient
 
                 request.BeginGetResponse(delegate(IAsyncResult ar)
                 {
-                    string reply = String.Empty;
+                    string reply = string.Empty;
 
                     using (WebResponse response = request.EndGetResponse(ar))
                     {
                         try
                         {
-                            using (StreamReader r = new StreamReader(response.GetResponseStream()))
+                            using (StreamReader r = new(response.GetResponseStream()))
                                 reply = r.ReadToEnd();
 
                         }

@@ -41,7 +41,7 @@ namespace OpenSim.Services.Connectors
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private string m_ServerURI = String.Empty;
+        private string m_ServerURI = string.Empty;
 
         public AgentPreferencesServicesConnector()
         {
@@ -83,10 +83,10 @@ namespace OpenSim.Services.Connectors
 
         public AgentPrefs GetAgentPreferences(UUID principalID)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
+            Dictionary<string, object> sendData = [];
 
             string reply = string.Empty;
-            string uri = String.Concat(m_ServerURI, "/agentprefs");
+            string uri = string.Concat(m_ServerURI, "/agentprefs");
 
             sendData["METHOD"] = "getagentprefs";
             sendData["UserID"] = principalID;
@@ -122,24 +122,25 @@ namespace OpenSim.Services.Connectors
                 m_log.DebugFormat("[AGENT PREFERENCES CONNECTOR]: GetAgentPreferences received null response");
                 return null;
             }
-            AgentPrefs prefs = new AgentPrefs(replyData);
+            AgentPrefs prefs = new(replyData);
             return prefs;
         }
 
         public bool StoreAgentPreferences(AgentPrefs data)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
+            Dictionary<string, object> sendData = new()
+            {
+                ["METHOD"] = "setagentprefs",
 
-            sendData["METHOD"] = "setagentprefs";
-
-            sendData["PrincipalID"] = data.PrincipalID.ToString();
-            sendData["AccessPrefs"] = data.AccessPrefs;
-            sendData["HoverHeight"] = data.HoverHeight.ToString();
-            sendData["Language"] = data.Language;
-            sendData["LanguageIsPublic"] = data.LanguageIsPublic.ToString();
-            sendData["PermEveryone"] = data.PermEveryone.ToString();
-            sendData["PermGroup"] = data.PermGroup.ToString();
-            sendData["PermNextOwner"] = data.PermNextOwner.ToString();
+                ["PrincipalID"] = data.PrincipalID.ToString(),
+                ["AccessPrefs"] = data.AccessPrefs,
+                ["HoverHeight"] = data.HoverHeight.ToString(),
+                ["Language"] = data.Language,
+                ["LanguageIsPublic"] = data.LanguageIsPublic.ToString(),
+                ["PermEveryone"] = data.PermEveryone.ToString(),
+                ["PermGroup"] = data.PermGroup.ToString(),
+                ["PermNextOwner"] = data.PermNextOwner.ToString()
+            };
 
             string uri = string.Concat(m_ServerURI, "/agentprefs");
             string reqString = ServerUtils.BuildQueryString(sendData);
@@ -168,7 +169,7 @@ namespace OpenSim.Services.Connectors
 
         public string GetLang(UUID principalID)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
+            Dictionary<string, object> sendData = [];
             string reply = string.Empty;
 
             sendData["METHOD"] = "getagentlang";

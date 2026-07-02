@@ -43,7 +43,7 @@ namespace OpenSim
         private static readonly ILog m_log
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected Dictionary<EndPoint, uint> m_clientCircuits = new Dictionary<EndPoint, uint>();
+        protected Dictionary<EndPoint, uint> m_clientCircuits = [];
         protected NetworkServersInfo m_networkServersInfo;
         protected uint m_httpServerPort;
         protected bool m_httpServerSSL;
@@ -84,7 +84,7 @@ namespace OpenSim
             }
 
             // unsecure main server
-            BaseHttpServer server = new BaseHttpServer(mainport);
+            BaseHttpServer server = new(mainport);
             if(!m_networkServersInfo.HttpUsesSSL)
             {
                 m_httpServer = server;

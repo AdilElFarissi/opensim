@@ -72,10 +72,10 @@ namespace OpenSim.Data.MySQL
 
             try
             {
-                using (MySqlConnection conn = new MySqlConnection(m_ConnectionString))
+                using (MySqlConnection conn = new(m_ConnectionString))
                 {
                     conn.Open();
-                    Migration m = new Migration(conn, Assembly, "FSAssetStore");
+                    Migration m = new(conn, Assembly, "FSAssetStore");
                     m.Update();
                     conn.Close();
                 }
@@ -102,7 +102,7 @@ namespace OpenSim.Data.MySQL
 
         private bool ExecuteNonQuery(MySqlCommand cmd)
         {
-            using (MySqlConnection conn = new MySqlConnection(m_ConnectionString))
+            using (MySqlConnection conn = new(m_ConnectionString))
             {
                 try
                 {
@@ -137,11 +137,11 @@ namespace OpenSim.Data.MySQL
 
         public AssetMetadata Get(string id, out string hash)
         {
-            hash = String.Empty;
+            hash = string.Empty;
 
-            AssetMetadata meta = new AssetMetadata();
+            AssetMetadata meta = new();
 
-            using (MySqlConnection conn = new MySqlConnection(m_ConnectionString))
+            using (MySqlConnection conn = new(m_ConnectionString))
             {
                 try
                 {
@@ -155,7 +155,7 @@ namespace OpenSim.Data.MySQL
 
                 using (MySqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = String.Format("select id, name, description, type, hash, create_time, asset_flags, access_time from {0} where id = ?id", m_Table);
+                    cmd.CommandText = string.Format("select id, name, description, type, hash, create_time, asset_flags, access_time from {0} where id = ?id", m_Table);
                     cmd.Parameters.AddWithValue("?id", id);
 
                     using (IDataReader reader = cmd.ExecuteReader())
@@ -192,7 +192,7 @@ namespace OpenSim.Data.MySQL
             if (DaysBetweenAccessTimeUpdates > 0 && (DateTime.UtcNow - Utils.UnixTimeToDateTime(AccessTime)).TotalDays < DaysBetweenAccessTimeUpdates)
                 return;
 
-            using (MySqlConnection conn = new MySqlConnection(m_ConnectionString))
+            using (MySqlConnection conn = new(m_ConnectionString))
             {
                 try
                 {
@@ -206,7 +206,7 @@ namespace OpenSim.Data.MySQL
 
                 using (MySqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = String.Format("UPDATE {0} SET `access_time` = UNIX_TIMESTAMP() WHERE `id` = ?id", m_Table);
+                    cmd.CommandText = string.Format("UPDATE {0} SET `access_time` = UNIX_TIMESTAMP() WHERE `id` = ?id", m_Table);
                     cmd.Parameters.AddWithValue("?id", AssetID);
                     cmd.ExecuteNonQuery();
                 }
@@ -221,7 +221,7 @@ namespace OpenSim.Data.MySQL
                 string oldhash;
                 AssetMetadata existingAsset = Get(meta.ID, out oldhash);
 
-                using (MySqlCommand cmd = new MySqlCommand())
+                using (MySqlCommand cmd = new())
                 {
                     cmd.Parameters.AddWithValue("?id", meta.ID);
                     cmd.Parameters.AddWithValue("?name", meta.Name);
@@ -233,7 +233,7 @@ namespace OpenSim.Data.MySQL
 
                     if (existingAsset == null)
                     {
-                        cmd.CommandText = String.Format("insert into {0} (id, name, description, type, hash, asset_flags, create_time, access_time) values ( ?id, ?name, ?description, ?type, ?hash, ?asset_flags, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())", m_Table);
+                        cmd.CommandText = string.Format("insert into {0} (id, name, description, type, hash, asset_flags, create_time, access_time) values ( ?id, ?name, ?description, ?type, ?hash, ?asset_flags, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())", m_Table);
 
                         ExecuteNonQuery(cmd);
 
@@ -274,12 +274,12 @@ namespace OpenSim.Data.MySQL
             for (int i = 0; i < uuids.Length; i++)
                 results[i] = false;
 
-            HashSet<UUID> exists = new HashSet<UUID>();
+            HashSet<UUID> exists = [];
 
             string ids = "'" + string.Join("','", uuids) + "'";
             string sql = string.Format("select id from {1} where id in ({0})", ids, m_Table);
 
-            using (MySqlConnection conn = new MySqlConnection(m_ConnectionString))
+            using (MySqlConnection conn = new(m_ConnectionString))
             {
                 try
                 {
@@ -316,7 +316,7 @@ namespace OpenSim.Data.MySQL
         {
             int count = 0;
 
-            using (MySqlConnection conn = new MySqlConnection(m_ConnectionString))
+            using (MySqlConnection conn = new(m_ConnectionString))
             {
                 try
                 {
@@ -330,7 +330,7 @@ namespace OpenSim.Data.MySQL
 
                 using(MySqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = String.Format("select count(*) as count from {0}",m_Table);
+                    cmd.CommandText = string.Format("select count(*) as count from {0}",m_Table);
 
                     using (IDataReader reader = cmd.ExecuteReader())
                     {
@@ -347,10 +347,10 @@ namespace OpenSim.Data.MySQL
 
         public bool Delete(string id)
         {
-            using(MySqlCommand cmd = new MySqlCommand())
+            using(MySqlCommand cmd = new())
             {
 
-                cmd.CommandText = String.Format("delete from {0} where id = ?id",m_Table);
+                cmd.CommandText = string.Format("delete from {0} where id = ?id",m_Table);
 
                 cmd.Parameters.AddWithValue("?id", id);
 
@@ -364,7 +364,7 @@ namespace OpenSim.Data.MySQL
         {
             int imported = 0;
 
-            using (MySqlConnection importConn = new MySqlConnection(conn))
+            using (MySqlConnection importConn = new(conn))
             {
                 try
                 {
@@ -380,13 +380,13 @@ namespace OpenSim.Data.MySQL
 
                 using (MySqlCommand cmd = importConn.CreateCommand())
                 {
-                    string limit = String.Empty;
+                    string limit = string.Empty;
                     if (count != -1)
                     {
-                        limit = String.Format(" limit {0},{1}", start, count);
+                        limit = string.Format(" limit {0},{1}", start, count);
                     }
 
-                    cmd.CommandText = String.Format("select * from {0}{1}", table, limit);
+                    cmd.CommandText = string.Format("select * from {0}{1}", table, limit);
 
                     MainConsole.Instance.Output("Querying database");
                     using (IDataReader reader = cmd.ExecuteReader())
@@ -397,13 +397,14 @@ namespace OpenSim.Data.MySQL
                         {
                             if ((imported % 100) == 0)
                             {
-                                MainConsole.Instance.Output(String.Format("{0} assets imported so far", imported));
+                                MainConsole.Instance.Output(string.Format("{0} assets imported so far", imported));
                             }
 
-                            AssetBase asset = new AssetBase();
-                            AssetMetadata meta = new AssetMetadata();
-
-                            meta.ID = reader["id"].ToString();
+                            AssetBase asset = new();
+                            AssetMetadata meta = new()
+                            {
+                                ID = reader["id"].ToString()
+                            };
                             meta.FullID = new UUID(meta.ID);
 
                             meta.Name = reader["name"].ToString();
@@ -424,7 +425,7 @@ namespace OpenSim.Data.MySQL
                 importConn.Close();
             }
 
-            MainConsole.Instance.Output(String.Format("Import done, {0} assets imported", imported));
+            MainConsole.Instance.Output(string.Format("Import done, {0} assets imported", imported));
         }
 
         #endregion

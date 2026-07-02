@@ -46,14 +46,14 @@ namespace OpenSim.Data
         public ulong everyonePowers;
         public ulong ownersPowers;
 
-        public Dictionary<UUID, XGroupMember> members = new Dictionary<UUID, XGroupMember>();
-        public Dictionary<UUID, XGroupNotice> notices = new Dictionary<UUID, XGroupNotice>();
+        public Dictionary<UUID, XGroupMember> members = [];
+        public Dictionary<UUID, XGroupNotice> notices = [];
 
         public XGroup Clone()
         {
             XGroup clone = (XGroup)MemberwiseClone();
-            clone.members = new Dictionary<UUID, XGroupMember>();
-            clone.notices = new Dictionary<UUID, XGroupNotice>();
+            clone.members = [];
+            clone.notices = [];
 
             foreach (KeyValuePair<UUID, XGroupMember> kvp in members)
                 clone.members[kvp.Key] = kvp.Value.Clone();

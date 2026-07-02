@@ -42,7 +42,7 @@ namespace OpenSim.Groups
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private string m_ServerURI;
-        private object m_Lock = new object();
+        private object m_Lock = new();
 
         public GroupsServiceHGConnector(string url)
         {
@@ -57,13 +57,15 @@ namespace OpenSim.Groups
         {
             reason = string.Empty;
 
-            Dictionary<string, object> sendData = new Dictionary<string,object>();
-            sendData["RequestingAgentID"] = RequestingAgentID;
-            sendData["AgentID"] = AgentID.ToString();
-            sendData["AccessToken"] = accessToken;
-            sendData["GroupID"] = groupID.ToString();
-            sendData["Location"] = url;
-            sendData["Name"] = name;
+            Dictionary<string, object> sendData = new()
+            {
+                ["RequestingAgentID"] = RequestingAgentID,
+                ["AgentID"] = AgentID.ToString(),
+                ["AccessToken"] = accessToken,
+                ["GroupID"] = groupID.ToString(),
+                ["Location"] = url,
+                ["Name"] = name
+            };
             Dictionary<string, object> ret = MakeRequest("POSTGROUP", sendData);
 
             if (ret == null)
@@ -85,10 +87,12 @@ namespace OpenSim.Groups
 
         public void RemoveAgentFromGroup(string AgentID, UUID GroupID, string token)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            sendData["AgentID"] = AgentID;
-            sendData["GroupID"] = GroupID.ToString();
-            sendData["AccessToken"] = GroupsDataUtils.Sanitize(token);
+            Dictionary<string, object> sendData = new()
+            {
+                ["AgentID"] = AgentID,
+                ["GroupID"] = GroupID.ToString(),
+                ["AccessToken"] = GroupsDataUtils.Sanitize(token)
+            };
             MakeRequest("REMOVEAGENTFROMGROUP", sendData);
         }
 
@@ -97,7 +101,7 @@ namespace OpenSim.Groups
             if (GroupID.IsZero() && string.IsNullOrEmpty(GroupName))
                 return null;
 
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
+            Dictionary<string, object> sendData = [];
             if (!GroupID.IsZero())
                 sendData["GroupID"] = GroupID.ToString();
             if (!string.IsNullOrEmpty(GroupName))
@@ -122,12 +126,14 @@ namespace OpenSim.Groups
 
         public List<ExtendedGroupMembersData> GetGroupMembers(string RequestingAgentID, UUID GroupID, string token)
         {
-            List<ExtendedGroupMembersData> members = new List<ExtendedGroupMembersData>();
+            List<ExtendedGroupMembersData> members = [];
 
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            sendData["GroupID"] = GroupID.ToString();
-            sendData["RequestingAgentID"] = RequestingAgentID;
-            sendData["AccessToken"] = GroupsDataUtils.Sanitize(token);
+            Dictionary<string, object> sendData = new()
+            {
+                ["GroupID"] = GroupID.ToString(),
+                ["RequestingAgentID"] = RequestingAgentID,
+                ["AccessToken"] = GroupsDataUtils.Sanitize(token)
+            };
             Dictionary<string, object> ret = MakeRequest("GETGROUPMEMBERS", sendData);
 
             if (ret == null)
@@ -150,12 +156,14 @@ namespace OpenSim.Groups
 
         public List<GroupRolesData> GetGroupRoles(string RequestingAgentID, UUID GroupID, string token)
         {
-            List<GroupRolesData> roles = new List<GroupRolesData>();
+            List<GroupRolesData> roles = [];
 
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            sendData["GroupID"] = GroupID.ToString();
-            sendData["RequestingAgentID"] = RequestingAgentID;
-            sendData["AccessToken"] = GroupsDataUtils.Sanitize(token);
+            Dictionary<string, object> sendData = new()
+            {
+                ["GroupID"] = GroupID.ToString(),
+                ["RequestingAgentID"] = RequestingAgentID,
+                ["AccessToken"] = GroupsDataUtils.Sanitize(token)
+            };
             Dictionary<string, object> ret = MakeRequest("GETGROUPROLES", sendData);
 
             if (ret == null)
@@ -178,12 +186,14 @@ namespace OpenSim.Groups
 
         public List<ExtendedGroupRoleMembersData> GetGroupRoleMembers(string RequestingAgentID, UUID GroupID, string token)
         {
-            List<ExtendedGroupRoleMembersData> rmembers = new List<ExtendedGroupRoleMembersData>();
+            List<ExtendedGroupRoleMembersData> rmembers = [];
 
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            sendData["GroupID"] = GroupID.ToString();
-            sendData["RequestingAgentID"] = RequestingAgentID;
-            sendData["AccessToken"] = GroupsDataUtils.Sanitize(token);
+            Dictionary<string, object> sendData = new()
+            {
+                ["GroupID"] = GroupID.ToString(),
+                ["RequestingAgentID"] = RequestingAgentID,
+                ["AccessToken"] = GroupsDataUtils.Sanitize(token)
+            };
             Dictionary<string, object> ret = MakeRequest("GETROLEMEMBERS", sendData);
 
             if (ret == null)
@@ -207,13 +217,15 @@ namespace OpenSim.Groups
         public bool AddNotice(string RequestingAgentID, UUID groupID, UUID noticeID, string fromName, string subject, string message,
                                     bool hasAttachment, byte attType, string attName, UUID attItemID, string attOwnerID)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            sendData["GroupID"] = groupID.ToString();
-            sendData["NoticeID"] = noticeID.ToString();
-            sendData["FromName"] = GroupsDataUtils.Sanitize(fromName);
-            sendData["Subject"] = GroupsDataUtils.Sanitize(subject);
-            sendData["Message"] = GroupsDataUtils.Sanitize(message);
-            sendData["HasAttachment"] = hasAttachment.ToString();
+            Dictionary<string, object> sendData = new()
+            {
+                ["GroupID"] = groupID.ToString(),
+                ["NoticeID"] = noticeID.ToString(),
+                ["FromName"] = GroupsDataUtils.Sanitize(fromName),
+                ["Subject"] = GroupsDataUtils.Sanitize(subject),
+                ["Message"] = GroupsDataUtils.Sanitize(message),
+                ["HasAttachment"] = hasAttachment.ToString()
+            };
             if (hasAttachment)
             {
                 sendData["AttachmentType"] = attType.ToString();
@@ -236,9 +248,11 @@ namespace OpenSim.Groups
 
         public bool VerifyNotice(UUID noticeID, UUID groupID)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            sendData["NoticeID"] = noticeID.ToString();
-            sendData["GroupID"] = groupID.ToString();
+            Dictionary<string, object> sendData = new()
+            {
+                ["NoticeID"] = noticeID.ToString(),
+                ["GroupID"] = groupID.ToString()
+            };
             Dictionary<string, object> ret = MakeRequest("VERIFYNOTICE", sendData);
 
             if (ret == null)

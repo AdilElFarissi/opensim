@@ -48,9 +48,9 @@ namespace OpenSim.Region.CoreModules.World.Serialiser
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
 //        private Commander m_commander = new Commander("export");
-        private List<Scene> m_regions = new List<Scene>();
+        private List<Scene> m_regions = [];
         private string m_savedir = "exports";
-        private List<IFileSerialiser> m_serialisers = new List<IFileSerialiser>();
+        private List<IFileSerialiser> m_serialisers = [];
 
         #region ISharedRegionModule Members
 
@@ -177,7 +177,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser
 
         public List<string> SerialiseRegion(Scene scene, string saveDir)
         {
-            List<string> results = new List<string>();
+            List<string> results = [];
 
             if (!Directory.Exists(saveDir))
             {
@@ -224,7 +224,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser
 //            }
 //        }
 
-        private void InterfaceSaveRegion(Object[] args)
+        private void InterfaceSaveRegion(object[] args)
         {
             foreach (Scene region in m_regions)
             {
@@ -236,7 +236,7 @@ namespace OpenSim.Region.CoreModules.World.Serialiser
             }
         }
 
-        private void InterfaceSaveAllRegions(Object[] args)
+        private void InterfaceSaveAllRegions(object[] args)
         {
             foreach (Scene region in m_regions)
             {

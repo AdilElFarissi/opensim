@@ -68,12 +68,12 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
         /// to work around this problem.</remarks>
         public bool ReuseLowDataTextures { get; set; }
 
-        private Dictionary<UUID, Scene> RegisteredScenes = new Dictionary<UUID, Scene>();
+        private Dictionary<UUID, Scene> RegisteredScenes = [];
 
         private Dictionary<string, IDynamicTextureRender> RenderPlugins =
-            new Dictionary<string, IDynamicTextureRender>();
+            [];
 
-        private Dictionary<UUID, DynamicTextureUpdater> Updaters = new Dictionary<UUID, DynamicTextureUpdater>();
+        private Dictionary<UUID, DynamicTextureUpdater> Updaters = [];
 
         /// <summary>
         /// Record dynamic textures that we can reuse for a given data and parameter combination rather than
@@ -90,8 +90,10 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
         /// </summary>
         public DynamicTextureModule()
         {
-            m_reuseableDynamicTextures = new Cache(CacheMedium.Memory, CacheStrategy.Conservative);
-            m_reuseableDynamicTextures.DefaultTTL = new TimeSpan(24, 0, 0);
+            m_reuseableDynamicTextures = new Cache(CacheMedium.Memory, CacheStrategy.Conservative)
+            {
+                DefaultTTL = new TimeSpan(24, 0, 0)
+            };
         }
 
         #region IDynamicTextureManager Members
@@ -187,17 +189,19 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
         {
             if (RenderPlugins.ContainsKey(contentType))
             {
-                DynamicTextureUpdater updater = new DynamicTextureUpdater();
-                updater.SimUUID = simID;
-                updater.PrimID = primID;
-                updater.ContentType = contentType;
-                updater.Url = url;
-                updater.UpdaterID = UUID.Random();
-                updater.Params = extraParams;
-                updater.BlendWithOldTexture = SetBlending;
-                updater.FrontAlpha = AlphaValue;
-                updater.Face = face;
-                updater.Disp = disp;
+                DynamicTextureUpdater updater = new()
+                {
+                    SimUUID = simID,
+                    PrimID = primID,
+                    ContentType = contentType,
+                    Url = url,
+                    UpdaterID = UUID.Random(),
+                    Params = extraParams,
+                    BlendWithOldTexture = SetBlending,
+                    FrontAlpha = AlphaValue,
+                    Face = face,
+                    Disp = disp
+                };
 
                 lock (Updaters)
                 {
@@ -249,18 +253,20 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
             if (ReuseTextures)
                 disp = disp & ~DISP_EXPIRE;
 
-            DynamicTextureUpdater updater = new DynamicTextureUpdater();
-            updater.SimUUID = simID;
-            updater.PrimID = primID;
-            updater.ContentType = contentType;
-            updater.BodyData = data;
-            updater.UpdaterID = UUID.Random();
-            updater.Params = extraParams;
-            updater.BlendWithOldTexture = SetBlending;
-            updater.FrontAlpha = AlphaValue;
-            updater.Face = face;
-            updater.Url = "Local image";
-            updater.Disp = disp;
+            DynamicTextureUpdater updater = new()
+            {
+                SimUUID = simID,
+                PrimID = primID,
+                ContentType = contentType,
+                BodyData = data,
+                UpdaterID = UUID.Random(),
+                Params = extraParams,
+                BlendWithOldTexture = SetBlending,
+                FrontAlpha = AlphaValue,
+                Face = face,
+                Url = "Local image",
+                Disp = disp
+            };
 
             object objReusableTextureUUID = null;
 
@@ -342,8 +348,10 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
 
                 if (ReuseTextures)
                 {
-                    m_reuseableDynamicTextures = new Cache(CacheMedium.Memory, CacheStrategy.Conservative);
-                    m_reuseableDynamicTextures.DefaultTTL = new TimeSpan(24, 0, 0);
+                    m_reuseableDynamicTextures = new Cache(CacheMedium.Memory, CacheStrategy.Conservative)
+                    {
+                        DefaultTTL = new TimeSpan(24, 0, 0)
+                    };
                 }
             }
         }
@@ -527,11 +535,13 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                 }
 
                 // Create a new asset for user
-                AssetBase asset = new AssetBase(
+                AssetBase asset = new(
                         UUID.Random(), "DynamicImage" + Random.Shared.Next(1, 10000), (sbyte)AssetType.Texture,
-                        part.OwnerID.ToString());
-                asset.Data = assetData;
-                asset.Description = string.Format("URL image : {0}", Url);
+                        part.OwnerID.ToString())
+                {
+                    Data = assetData,
+                    Description = string.Format("URL image : {0}", Url)
+                };
                 if (asset.Description.Length > 128)
                     asset.Description = asset.Description.Substring(0, 128);
                 asset.Local = true;     // dynamic images aren't saved in the assets server
@@ -562,7 +572,7 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                 if (!OpenJPEG.DecodeToImage(frontImage, out managedImage, out image) || image == null)
                     return null;
 
-                Bitmap image1 = new Bitmap(image);
+                Bitmap image1 = new(image);
                 image.Dispose();
 
                 if(backImage == null)
@@ -590,7 +600,7 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
                     return null;
                 }
 
-                Bitmap image2 = new Bitmap(image);
+                Bitmap image2 = new(image);
                 image.Dispose();
 
                 using(Bitmap joint = MergeBitMaps(image1, image2, newAlpha))
@@ -653,14 +663,14 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
 
                     if (alpha > 0)
                     {
-                        ColorMatrix matrix = new ColorMatrix(new float[][]{
+                        ColorMatrix matrix = new(new float[][]{
                             new float[] {1F, 0, 0, 0, 0},
                             new float[] {0, 1F, 0, 0, 0},
                             new float[] {0, 0, 1F, 0, 0},
                             new float[] {0, 0, 0, alpha/255f, 0},
                             new float[] {0, 0, 0, 0, 1F}});
 
-                        ImageAttributes imageAttributes = new ImageAttributes();
+                        ImageAttributes imageAttributes = new();
                         imageAttributes.SetColorMatrix(matrix);
 
                         jG.CompositingMode = CompositingMode.SourceOver;
@@ -675,17 +685,17 @@ namespace OpenSim.Region.CoreModules.Scripting.DynamicTexture
             {
                 int Width = b.Width;
                 int Height = b.Height;
-                Bitmap joint = new Bitmap(Width, Height, PixelFormat.Format32bppArgb);
+                Bitmap joint = new(Width, Height, PixelFormat.Format32bppArgb);
                 if(alpha > 0)
                 {
-                    ColorMatrix matrix = new ColorMatrix(new float[][]{
+                    ColorMatrix matrix = new(new float[][]{
                     new float[] {1F, 0, 0, 0, 0},
                     new float[] {0, 1F, 0, 0, 0},
                     new float[] {0, 0, 1F, 0, 0},
                     new float[] {0, 0, 0, alpha/255f, 0},
                     new float[] {0, 0, 0, 0, 1F}});
 
-                    ImageAttributes imageAttributes = new ImageAttributes();
+                    ImageAttributes imageAttributes = new();
                     imageAttributes.SetColorMatrix(matrix);
 
                     using (Graphics jG = Graphics.FromImage(joint))

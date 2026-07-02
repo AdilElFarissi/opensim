@@ -106,8 +106,10 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                                             m_controllingPrim.MoveToTargetTau,  // timeScale
                                             BSMotor.Infinite,                   // decay time scale
                                             1f                                  // efficiency
-                );
-                m_targetMotor.PhysicsScene = m_physicsScene; // DEBUG DEBUG so motor will output detail log messages.
+                )
+                {
+                    PhysicsScene = m_physicsScene // DEBUG DEBUG so motor will output detail log messages.
+                };
                 m_targetMotor.SetTarget(m_controllingPrim.MoveToTargetTarget);
                 m_targetMotor.SetCurrent(m_controllingPrim.RawPosition);
 

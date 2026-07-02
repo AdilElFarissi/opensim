@@ -65,12 +65,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <value>
         /// Pending save and load completions initiated from the console
         /// </value>
-        protected List<UUID> m_pendingConsoleTasks = new List<UUID>();
+        protected List<UUID> m_pendingConsoleTasks = [];
 
         /// <value>
         /// All scenes that this module knows about
         /// </value>
-        private Dictionary<UUID, Scene> m_scenes = new Dictionary<UUID, Scene>();
+        private Dictionary<UUID, Scene> m_scenes = [];
         private Scene m_aScene;
 
         private IUserAccountService m_UserAccountService;
@@ -201,7 +201,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         public bool ArchiveInventory(
              UUID id, string firstName, string lastName, string invPath, string pass, Stream saveStream)
         {
-            return ArchiveInventory(id, firstName, lastName, invPath, pass, saveStream, new Dictionary<string, object>());
+            return ArchiveInventory(id, firstName, lastName, invPath, pass, saveStream, []);
         }
 
         public bool ArchiveInventory(
@@ -218,7 +218,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 //                    {
                         try
                         {
-                            InventoryArchiveWriteRequest iarReq = new InventoryArchiveWriteRequest(id, this, m_aScene, userInfo, invPath, saveStream);
+                            InventoryArchiveWriteRequest iarReq = new(id, this, m_aScene, userInfo, invPath, saveStream);
                             iarReq.Execute(options, UserAccountService);
                         }
                         catch (EntryPointNotFoundException e)
@@ -262,7 +262,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 //                    {
                         try
                         {
-                            InventoryArchiveWriteRequest iarReq  = new InventoryArchiveWriteRequest(id, this, m_aScene, userInfo, invPath, savePath);
+                            InventoryArchiveWriteRequest iarReq  = new(id, this, m_aScene, userInfo, invPath, savePath);
                             iarReq.Execute(options, UserAccountService);
                         }
                         catch (EntryPointNotFoundException e)
@@ -291,7 +291,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
         public bool DearchiveInventory(UUID id, string firstName, string lastName, string invPath, string pass, Stream loadStream)
         {
-            return DearchiveInventory(id, firstName, lastName, invPath, pass, loadStream, new Dictionary<string, object>());
+            return DearchiveInventory(id, firstName, lastName, invPath, pass, loadStream, []);
         }
 
         public bool DearchiveInventory(
@@ -397,7 +397,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
             {
                 UUID id = UUID.Random();
 
-                Dictionary<string, object> options = new Dictionary<string, object>();
+                Dictionary<string, object> options = [];
                 OptionSet optionSet = new OptionSet().Add("m|merge", delegate (string v) { options["merge"] = v != null; });
 
                 List<string> mainParams = optionSet.Parse(cmdparams);
@@ -438,28 +438,36 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         {
             UUID id = UUID.Random();
 
-            Dictionary<string, object> options = new Dictionary<string, object>();
+            Dictionary<string, object> options = [];
 
-            OptionSet ops = new OptionSet();
-            //ops.Add("v|version=", delegate(string v) { options["version"] = v; });
-            ops.Add("h|home=", delegate(string v) { options["home"] = v; });
-            ops.Add("v|verbose", delegate(string v) { options["verbose"] = v; });
-            ops.Add("c|creators", delegate(string v) { options["creators"] = v; });
-            ops.Add("noassets", delegate(string v) { options["noassets"] = v != null; });
-            ops.Add("skipbadassets", delegate(string v) { options["skipbadassets"] = v != null; });
-            ops.Add("e|exclude=", delegate(string v)
+            OptionSet ops = new()
+            {
+                //ops.Add("v|version=", delegate(string v) { options["version"] = v; });
+                { "h|home=", delegate (string v) { options["home"] = v; } },
+                { "v|verbose", delegate (string v) { options["verbose"] = v; } },
+                { "c|creators", delegate (string v) { options["creators"] = v; } },
+                { "noassets", delegate (string v) { options["noassets"] = v != null; } },
+                { "skipbadassets", delegate (string v) { options["skipbadassets"] = v != null; } },
                 {
-                    if (!options.ContainsKey("exclude"))
-                        options["exclude"] = new List<String>();
-                    ((List<String>)options["exclude"]).Add(v);
-                });
-            ops.Add("f|excludefolder=", delegate(string v)
+                    "e|exclude=",
+                    delegate (string v)
+                    {
+                        if (!options.ContainsKey("exclude"))
+                            options["exclude"] = new List<string>();
+                        ((List<string>)options["exclude"]).Add(v);
+                    }
+                },
                 {
-                    if (!options.ContainsKey("excludefolders"))
-                        options["excludefolders"] = new List<String>();
-                    ((List<String>)options["excludefolders"]).Add(v);
-                });
-            ops.Add("perm=", delegate(string v) { options["checkPermissions"] = v; });
+                    "f|excludefolder=",
+                    delegate (string v)
+                    {
+                        if (!options.ContainsKey("excludefolders"))
+                            options["excludefolders"] = new List<string>();
+                        ((List<string>)options["excludefolders"]).Add(v);
+                    }
+                },
+                { "perm=", delegate (string v) { options["checkPermissions"] = v; } }
+            };
 
             List<string> mainParams = ops.Parse(cmdparams);
 

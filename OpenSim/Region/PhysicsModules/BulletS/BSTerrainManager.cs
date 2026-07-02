@@ -76,7 +76,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         public const float HEIGHT_EQUAL_FUDGE = 0.2f;
 
         // Until the whole simulator is changed to pass us the region size, we rely on constants.
-        public Vector3 DefaultRegionSize = new Vector3(Constants.RegionSize, Constants.RegionSize, Constants.RegionHeight);
+        public Vector3 DefaultRegionSize = new(Constants.RegionSize, Constants.RegionSize, Constants.RegionHeight);
 
         // The scene that I am part of
         private BSScene m_physicsScene { get; set; }
@@ -109,7 +109,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             m_physicsScene = physicsScene;
             DefaultRegionSize = regionSize;
 
-            m_terrains = new Dictionary<Vector3,BSTerrainPhys>();
+            m_terrains = [];
 
             // Assume one region of default size
             m_worldOffset = Vector3.Zero;
@@ -130,7 +130,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             DetailLog("{0},BSTerrainManager.CreateInitialGroundPlaneAndTerrain,region={1}", BSScene.DetailLogZero, m_physicsScene.RegionName);
             // The ground plane is here to catch things that are trying to drop to negative infinity
             BulletShape groundPlaneShape = m_physicsScene.PE.CreateGroundPlaneShape(BSScene.GROUNDPLANE_ID, 1f, BSParam.TerrainCollisionMargin);
-            Vector3 groundPlaneAltitude = new Vector3(0f, 0f, BSParam.TerrainGroundPlane);
+            Vector3 groundPlaneAltitude = new(0f, 0f, BSParam.TerrainGroundPlane);
             m_groundPlane = m_physicsScene.PE.CreateBodyWithDefaultMotionState(groundPlaneShape,
                                             BSScene.GROUNDPLANE_ID, groundPlaneAltitude, Quaternion.Identity);
 
@@ -255,7 +255,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             DetailLog("{0},BSTerrainManager.UpdateTerrain,call,id={1},minC={2},maxC={3}",
                                 BSScene.DetailLogZero, id, minCoords, maxCoords);
 
-            Vector3 terrainRegionBase = new Vector3(minCoords.X, minCoords.Y, 0f);
+            Vector3 terrainRegionBase = new(minCoords.X, minCoords.Y, 0f);
 
             lock (m_terrains)
             {
@@ -570,7 +570,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         }
 
 
-        private void DetailLog(string msg, params Object[] args)
+        private void DetailLog(string msg, params object[] args)
         {
             m_physicsScene.PhysicsLogging.Write(msg, args);
         }

@@ -42,7 +42,7 @@ namespace pCampBot
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        public AutoResetEvent m_regionCrossedMutex = new AutoResetEvent(false);
+        public AutoResetEvent m_regionCrossedMutex = new(false);
 
         public const int m_regionCrossingTimeout = 1000 * 60;
 
@@ -66,7 +66,7 @@ namespace pCampBot
             uint currentX, currentY;
             Utils.LongToUInts(currentHandle, out currentX, out currentY);
 
-            List<GridRegion> candidateRegions = new List<GridRegion>();
+            List<GridRegion> candidateRegions = [];
             TryAddRegion(Utils.UIntsToLong(Math.Max(0, currentX - Constants.RegionSize), currentY), candidateRegions); // West
             TryAddRegion(Utils.UIntsToLong(currentX + Constants.RegionSize, currentY), candidateRegions);              // East
             TryAddRegion(Utils.UIntsToLong(currentX, Math.Max(0, currentY - Constants.RegionSize)), candidateRegions); // South

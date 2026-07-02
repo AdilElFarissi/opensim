@@ -71,7 +71,7 @@ namespace OpenSim.Framework.Capabilities
     [OSDMap]
     public class LLSDInventoryDescendents
     {
-        public OSDArray folders = new OSDArray();
+        public OSDArray folders = new();
     }
 
     [OSDMap]
@@ -90,8 +90,8 @@ namespace OpenSim.Framework.Capabilities
         public UUID agent_id;
         public int descendents;
         public UUID folder_id;
-        public OSDArray categories = new OSDArray();
-        public OSDArray items = new OSDArray();
+        public OSDArray categories = new();
+        public OSDArray items = new();
         public UUID owner_id;
         public int version;
     }
@@ -100,6 +100,6 @@ namespace OpenSim.Framework.Capabilities
     public class LLSDFetchInventory
     {
         public UUID agent_id;
-        public OSDArray items = new OSDArray();
+        public OSDArray items = new();
     }
 }

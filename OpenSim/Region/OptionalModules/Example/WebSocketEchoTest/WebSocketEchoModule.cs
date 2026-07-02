@@ -52,7 +52,7 @@ namespace OpenSim.Region.OptionalModules.WebSocketEchoModule
         public Type ReplaceableInterface { get { return null; } }
 
 
-        private HashSet<WebSocketHttpServerHandler> _activeHandlers = new HashSet<WebSocketHttpServerHandler>();
+        private HashSet<WebSocketHttpServerHandler> _activeHandlers = [];
 
         public void Initialise(IConfigSource pConfig)
         {

@@ -52,7 +52,7 @@ namespace OpenSim.Framework
 
         public static WearableCacheItem[] FromOSD(OSD pInput, IAssetCache dataCache)
         {
-            List<WearableCacheItem> ret = new List<WearableCacheItem>();
+            List<WearableCacheItem> ret = [];
             if (pInput.Type == OSDType.Array)
             {
                 OSDArray itemarray = (OSDArray) pInput;
@@ -67,9 +67,11 @@ namespace OpenSim.Framework
 
                     if (dataCache != null && item.ContainsKey("assetdata"))
                     {
-                        AssetBase asset = new AssetBase(item["textureid"].AsUUID(),"BakedTexture",(sbyte)AssetType.Texture,UUID.Zero.ToString());
-                        asset.Temporary = true;
-                        asset.Data = item["assetdata"].AsBinary();
+                        AssetBase asset = new(item["textureid"].AsUUID(), "BakedTexture", (sbyte)AssetType.Texture, UUID.Zero.ToString())
+                        {
+                            Temporary = true,
+                            Data = item["assetdata"].AsBinary()
+                        };
                         dataCache.Cache(asset);
                     }
                 }
@@ -86,9 +88,11 @@ namespace OpenSim.Framework
                 {
                     string assetCreator = item["assetcreator"].AsString();
                     string assetName = item["assetname"].AsString();
-                    AssetBase asset = new AssetBase(item["textureid"].AsUUID(), assetName, (sbyte)AssetType.Texture, assetCreator);
-                    asset.Temporary = true;
-                    asset.Data = item["assetdata"].AsBinary();
+                    AssetBase asset = new(item["textureid"].AsUUID(), assetName, (sbyte)AssetType.Texture, assetCreator)
+                    {
+                        Temporary = true,
+                        Data = item["assetdata"].AsBinary()
+                    };
                     dataCache.Cache(asset);
                 }
             }
@@ -102,13 +106,15 @@ namespace OpenSim.Framework
 
         public static OSD ToOSD(WearableCacheItem[] pcacheItems, IAssetCache dataCache)
         {
-            OSDArray arr = new OSDArray();
+            OSDArray arr = [];
             foreach (WearableCacheItem item in pcacheItems)
             {
-                OSDMap itemmap = new OSDMap();
-                itemmap.Add("textureindex", OSD.FromUInteger(item.TextureIndex));
-                itemmap.Add("cacheid", OSD.FromUUID(item.CacheId));
-                itemmap.Add("textureid", OSD.FromUUID(item.TextureID));
+                OSDMap itemmap = new()
+                {
+                    { "textureindex", OSD.FromUInteger(item.TextureIndex) },
+                    { "cacheid", OSD.FromUUID(item.CacheId) },
+                    { "textureid", OSD.FromUUID(item.TextureID) }
+                };
                 if (dataCache != null)
                 {
                     if (dataCache.Check(item.TextureID.ToString()))
@@ -130,7 +136,7 @@ namespace OpenSim.Framework
 
         public static OSDArray BakedToOSD(WearableCacheItem[] pcacheItems, int start, int end)
         {
-            OSDArray arr = new OSDArray();
+            OSDArray arr = [];
             if(start < 0)
                 start = 0;
             if (end < 0 || end > AvatarAppearance.BAKE_INDICES.Length)
@@ -145,10 +151,12 @@ namespace OpenSim.Framework
                     continue;
                 WearableCacheItem item = pcacheItems[idx];
 
-                OSDMap itemmap = new OSDMap();
-                itemmap.Add("textureindex", OSD.FromUInteger(item.TextureIndex));
-                itemmap.Add("cacheid", OSD.FromUUID(item.CacheId));
-                itemmap.Add("textureid", OSD.FromUUID(item.TextureID));
+                OSDMap itemmap = new()
+                {
+                    { "textureindex", OSD.FromUInteger(item.TextureIndex) },
+                    { "cacheid", OSD.FromUUID(item.CacheId) },
+                    { "textureid", OSD.FromUUID(item.TextureID) }
+                };
                 arr.Add(itemmap);
             }
             return arr;

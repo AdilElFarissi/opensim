@@ -72,12 +72,12 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <value>
         /// List of assets that were found.  This will be passed back to the requester.
         /// </value>
-        protected List<UUID> m_foundAssetUuids = new List<UUID>();
+        protected List<UUID> m_foundAssetUuids = [];
 
         /// <value>
         /// Maintain a list of assets that could not be found.  This will be passed back to the requester.
         /// </value>
-        protected List<UUID> m_notFoundAssetUuids = new List<UUID>();
+        protected List<UUID> m_notFoundAssetUuids = [];
 
         /// <value>
         /// Record the number of asset replies required so we know when we've finished
@@ -126,8 +126,10 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 return;
             }
 
-            m_timeOutTimer = new System.Timers.Timer(90000);
-            m_timeOutTimer .AutoReset = false;
+            m_timeOutTimer = new System.Timers.Timer(90000)
+            {
+                AutoReset = false
+            };
             m_timeOutTimer.Elapsed += OnTimeout;
             m_timeout = false;
             int gccontrol = 0;
@@ -212,7 +214,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 return;
             Culture.SetCurrentCulture();
 
-            Boolean timedOut = (Boolean)o;
+            bool timedOut = (bool)o;
 
             try
             {

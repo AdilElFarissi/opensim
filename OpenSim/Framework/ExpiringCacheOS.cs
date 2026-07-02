@@ -48,8 +48,8 @@ namespace OpenSim.Framework
 
         public ExpiringCacheOS()
         {
-            m_expireControl = new Dictionary<TKey1, int>();
-            m_values = new Dictionary<TKey1, TValue1>();
+            m_expireControl = [];
+            m_values = [];
             m_rwLock = new ReaderWriterLockSlim();
             m_expire = MINEXPIRECHECK;
             m_startTS = Util.GetTimeStampMS();
@@ -57,8 +57,8 @@ namespace OpenSim.Framework
 
         public ExpiringCacheOS(int expireCheckTimeinMS)
         {
-            m_expireControl = new Dictionary<TKey1, int>();
-            m_values = new Dictionary<TKey1, TValue1>();
+            m_expireControl = [];
+            m_values = [];
             m_rwLock = new ReaderWriterLockSlim();
             m_startTS = Util.GetTimeStampMS();
             m_expire = (expireCheckTimeinMS > MINEXPIRECHECK) ? m_expire = expireCheckTimeinMS : MINEXPIRECHECK;
@@ -113,7 +113,7 @@ namespace OpenSim.Framework
                 }
 
                 int now = (int)(Util.GetTimeStampMS() - m_startTS);
-                List<TKey1> expired = new List<TKey1>(m_expireControl.Count);
+                List<TKey1> expired = new(m_expireControl.Count);
                 foreach(KeyValuePair<TKey1, int> kvp in m_expireControl)
                 {
                     int expire = kvp.Value;

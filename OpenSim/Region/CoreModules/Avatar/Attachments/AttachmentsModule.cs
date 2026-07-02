@@ -411,7 +411,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             if (DebugLevel > 0)
                 m_log.Debug($"[ATTACHMENTS MODULE]: Rezzing any attachments for {sp.Name} from simulator-side");
 
-            Dictionary<UUID, string> itemData = new();
+            Dictionary<UUID, string> itemData = [];
             IAttachmentsService attServ = m_scene.RequestModuleInterface<IAttachmentsService>();
             if (attServ is not null)
             {
@@ -880,7 +880,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
 
                 rootPart.ClearUndoState();
 
-                List<UUID> uuids = new() { inventoryID };
+                List<UUID> uuids = [inventoryID];
                 m_scene.InventoryService.DeleteItems(sp.UUID, uuids);
                 sp.ControllingClient.SendRemoveInventoryItem(inventoryID);
             }
@@ -1142,7 +1142,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
                     m_scene.ForEachClient(
                         client =>
                             { if (client.IsActive && client.AgentId.NotEqual(so.AttachedAvatar))
-                                client.SendKillObject(new List<uint>() { so.LocalId });
+                                client.SendKillObject([so.LocalId]);
                             });
                 }
 
@@ -1177,7 +1177,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Attachments
             InventoryItemBase newItem = m_invAccessModule.CopyToInventory(
                     DeRezAction.TakeCopy,
                     m_scene.InventoryService.GetFolderForType(sp.UUID, FolderType.Object).ID,
-                    new List<SceneObjectGroup> { grp },
+                    [grp],
                     sp.ControllingClient, true)[0];
 
             // sets itemID so client can show item as 'attached' in inventory

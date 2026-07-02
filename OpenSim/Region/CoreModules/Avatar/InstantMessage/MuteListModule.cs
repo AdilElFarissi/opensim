@@ -45,7 +45,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 MethodBase.GetCurrentMethod().DeclaringType);
 
         protected bool m_Enabled = false;
-        protected List<Scene> m_SceneList = new List<Scene>();
+        protected List<Scene> m_SceneList = [];
         protected IMuteListService m_service = null;
         private IUserManagement m_userManagementModule;
 
@@ -167,7 +167,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 return;
             }
 
-            Byte[] data = m_service.MuteListRequest(client.AgentId, crc);
+            byte[] data = m_service.MuteListRequest(client.AgentId, crc);
             if (data == null)
             {
                 if(crc == 0)
@@ -214,13 +214,15 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
                 }
             }
 
-            MuteData mute = new MuteData();
-            mute.AgentID = agentID;
-            mute.MuteID = muteID;
-            mute.MuteName = muteName;
-            mute.MuteType = muteType;
-            mute.MuteFlags = (int)muteFlags;
-            mute.Stamp = Util.UnixTimeSinceEpoch();
+            MuteData mute = new()
+            {
+                AgentID = agentID,
+                MuteID = muteID,
+                MuteName = muteName,
+                MuteType = muteType,
+                MuteFlags = (int)muteFlags,
+                Stamp = Util.UnixTimeSinceEpoch()
+            };
 
             m_service.UpdateMute(mute);
         }

@@ -140,7 +140,7 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             if (url == "localhost")
             {
-                FetchInventory2Handler fetchHandler = new FetchInventory2Handler(m_inventoryService, agentID);
+                FetchInventory2Handler fetchHandler = new(m_inventoryService, agentID);
                 caps.RegisterSimpleHandler("FetchInventory2",
                     new SimpleOSDMapHandler("POST", "/" + UUID.Random(), delegate (IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, OSDMap map)
                     {
@@ -162,7 +162,7 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             if (url == "localhost")
             {
-                FetchLib2Handler fetchHandler = new FetchLib2Handler(m_inventoryService, m_LibraryService, agentID);
+                FetchLib2Handler fetchHandler = new(m_inventoryService, m_LibraryService, agentID);
                 caps.RegisterSimpleHandler("FetchLib2",
                     new SimpleOSDMapHandler("POST", "/" + UUID.Random(), delegate (IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, OSDMap map)
                     {

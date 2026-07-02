@@ -40,7 +40,7 @@ namespace OpenSim.Services.Connectors
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
-        private string m_ServerURI = String.Empty;
+        private string m_ServerURI = string.Empty;
         private bool m_ResponseOnFailure = true;
 
         public AuthorizationServicesConnector()
@@ -67,7 +67,7 @@ namespace OpenSim.Services.Connectors
             }
 
             string serviceURI = authorizationConfig.GetString("AuthorizationServerURI",
-                    String.Empty);
+                    string.Empty);
 
             if (serviceURI.Length == 0)
             {
@@ -91,7 +91,7 @@ namespace OpenSim.Services.Connectors
 
             string uri = m_ServerURI;
 
-            AuthorizationRequest req = new AuthorizationRequest(userID, firstname, surname, email, regionName, regionID);
+            AuthorizationRequest req = new(userID, firstname, surname, email, regionName, regionID);
 
             AuthorizationResponse response;
             try

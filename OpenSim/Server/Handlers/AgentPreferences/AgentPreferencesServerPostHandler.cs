@@ -55,7 +55,7 @@ namespace OpenSim.Server.Handlers.AgentPreferences
         protected override byte[] ProcessRequest(string path, Stream requestData,
             IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-            StreamReader sr = new StreamReader(requestData);
+            StreamReader sr = new(requestData);
             string body = sr.ReadToEnd();
             sr.Close();
             body = body.Trim();
@@ -100,7 +100,7 @@ namespace OpenSim.Server.Handlers.AgentPreferences
             if (!UUID.TryParse(request["UserID"].ToString(), out userID))
                 return FailureResult();
             AgentPrefs prefs = m_AgentPreferencesService.GetAgentPreferences(userID);
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
             if (prefs != null)
                 result = prefs.ToKeyValuePairs();
 
@@ -122,14 +122,16 @@ namespace OpenSim.Server.Handlers.AgentPreferences
             if (!UUID.TryParse(request["PrincipalID"].ToString(), out userID))
                 return FailureResult();
 
-            AgentPrefs data = new AgentPrefs(userID);
-            data.AccessPrefs = request["AccessPrefs"].ToString();
-            data.HoverHeight = float.Parse(request["HoverHeight"].ToString());
-            data.Language = request["Language"].ToString();
-            data.LanguageIsPublic = bool.Parse(request["LanguageIsPublic"].ToString());
-            data.PermEveryone = int.Parse(request["PermEveryone"].ToString());
-            data.PermGroup = int.Parse(request["PermGroup"].ToString());
-            data.PermNextOwner = int.Parse(request["PermNextOwner"].ToString());
+            AgentPrefs data = new(userID)
+            {
+                AccessPrefs = request["AccessPrefs"].ToString(),
+                HoverHeight = float.Parse(request["HoverHeight"].ToString()),
+                Language = request["Language"].ToString(),
+                LanguageIsPublic = bool.Parse(request["LanguageIsPublic"].ToString()),
+                PermEveryone = int.Parse(request["PermEveryone"].ToString()),
+                PermGroup = int.Parse(request["PermGroup"].ToString()),
+                PermNextOwner = int.Parse(request["PermNextOwner"].ToString())
+            };
 
             return m_AgentPreferencesService.StoreAgentPreferences(data) ? SuccessResult() : FailureResult();
         }
@@ -149,15 +151,17 @@ namespace OpenSim.Server.Handlers.AgentPreferences
                 if (prefs.LanguageIsPublic)
                     lang = prefs.Language;
             }
-            Dictionary<string, object> result = new Dictionary<string, object>();
-            result["Language"] = lang;
+            Dictionary<string, object> result = new()
+            {
+                ["Language"] = lang
+            };
             string xmlString = ServerUtils.BuildXmlResponse(result);
             return Util.UTF8NoBomEncoding.GetBytes(xmlString);
         }
 
         private byte[] SuccessResult()
         {
-            XmlDocument doc = new XmlDocument();
+            XmlDocument doc = new();
 
             XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
                 "", "");
@@ -179,7 +183,7 @@ namespace OpenSim.Server.Handlers.AgentPreferences
 
         private byte[] FailureResult()
         {
-            XmlDocument doc = new XmlDocument();
+            XmlDocument doc = new();
 
             XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
                 "", "");

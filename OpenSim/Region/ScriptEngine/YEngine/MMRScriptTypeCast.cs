@@ -212,7 +212,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
         }
 
-        private static readonly MIGIAF migiaf = new MIGIAF();
+        private static readonly MIGIAF migiaf = new();
         private struct MIGIAF: ScriptMyILGen
         {
             // ScriptMyILGen

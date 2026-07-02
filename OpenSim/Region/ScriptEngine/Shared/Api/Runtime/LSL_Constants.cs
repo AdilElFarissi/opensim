@@ -723,8 +723,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
         public const int AGENT_LIST_EXCLUDENPC = 0x4000000;
 
         // Can not be public const?
-        public static readonly vector ZERO_VECTOR = new vector(0.0, 0.0, 0.0);
-        public static readonly rotation ZERO_ROTATION = new rotation(0.0, 0.0, 0.0, 1.0);
+        public static readonly vector ZERO_VECTOR = new(0.0, 0.0, 0.0);
+        public static readonly rotation ZERO_ROTATION = new(0.0, 0.0, 0.0, 1.0);
 
         // constants for llSetCameraParams
         public const int CAMERA_PITCH = 0;
@@ -792,7 +792,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 
         // constants for the llDetectedTouch* functions
         public const int TOUCH_INVALID_FACE = -1;
-        public static readonly vector TOUCH_INVALID_TEXCOORD = new vector(-1.0, -1.0, 0.0);
+        public static readonly vector TOUCH_INVALID_TEXCOORD = new(-1.0, -1.0, 0.0);
         public static readonly vector TOUCH_INVALID_VECTOR = ZERO_VECTOR;
 
         // constants for llGetPrimMediaParams/llSetPrimMediaParams

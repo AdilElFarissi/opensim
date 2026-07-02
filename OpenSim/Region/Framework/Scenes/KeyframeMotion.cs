@@ -40,12 +40,12 @@ namespace OpenSim.Region.Framework.Scenes
     public class KeyframeTimer
     {
         private static Dictionary<Scene, KeyframeTimer> m_timers =
-                new Dictionary<Scene, KeyframeTimer>();
+                [];
 
         private Timer m_timer;
-        private Dictionary<KeyframeMotion, object> m_motions = new Dictionary<KeyframeMotion, object>();
-        private object m_lockObject = new object();
-        private object m_timerLock = new object();
+        private Dictionary<KeyframeMotion, object> m_motions = [];
+        private object m_lockObject = new();
+        private object m_timerLock = new();
         private const double m_tickDuration = 50.0;
 
         public double TickDuration
@@ -55,9 +55,11 @@ namespace OpenSim.Region.Framework.Scenes
 
         public KeyframeTimer(Scene scene)
         {
-            m_timer = new Timer();
-            m_timer.Interval = TickDuration;
-            m_timer.AutoReset = true;
+            m_timer = new Timer
+            {
+                Interval = TickDuration,
+                AutoReset = true
+            };
             m_timer.Elapsed += OnTimer;
         }
 
@@ -81,7 +83,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 lock (m_lockObject)
                 {
-                    motions = new List<KeyframeMotion>(m_motions.Keys);
+                    motions = [.. m_motions.Keys];
                 }
 
                 foreach (KeyframeMotion m in motions)
@@ -207,7 +209,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private Keyframe m_currentFrame;
 
-        private List<Keyframe> m_frames = new List<Keyframe>();
+        private List<Keyframe> m_frames = [];
 
         private Keyframe[] m_keyframes;
 
@@ -298,15 +300,15 @@ namespace OpenSim.Region.Framework.Scenes
                 m_timerStopped = true;
         }
 
-        public static KeyframeMotion FromData(SceneObjectGroup grp, Byte[] data)
+        public static KeyframeMotion FromData(SceneObjectGroup grp, byte[] data)
         {
             KeyframeMotion newMotion = null;
 
             try
             {
-                using (MemoryStream ms = new MemoryStream(data))
+                using (MemoryStream ms = new(data))
                 {
-                    BinaryFormatter fmt = new BinaryFormatter();
+                    BinaryFormatter fmt = new();
                     newMotion = (KeyframeMotion)fmt.Deserialize(ms);
                 }
 
@@ -397,10 +399,11 @@ namespace OpenSim.Region.Framework.Scenes
         {
             StopTimer();
 
-            KeyframeMotion newmotion = new KeyframeMotion(null, m_mode, m_data);
-
-            newmotion.m_group = newgrp;
-            newmotion.m_scene = newgrp.Scene;
+            KeyframeMotion newmotion = new(null, m_mode, m_data)
+            {
+                m_group = newgrp,
+                m_scene = newgrp.Scene
+            };
 
             if (m_keyframes != null)
             {
@@ -410,7 +413,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             lock (m_frames)
             {
-                newmotion.m_frames = new List<Keyframe>(m_frames);
+                newmotion.m_frames = [.. m_frames];
 
                 newmotion.m_basePosition = m_basePosition;
                 newmotion.m_baseRotation = m_baseRotation;
@@ -814,7 +817,7 @@ namespace OpenSim.Region.Framework.Scenes
 //            }
         }
 
-        public Byte[] Serialize()
+        public byte[] Serialize()
         {
             bool timerWasStopped;
             lock (m_frames)
@@ -826,9 +829,9 @@ namespace OpenSim.Region.Framework.Scenes
             SceneObjectGroup tmp = m_group;
             m_group = null;
 
-            using (MemoryStream ms = new MemoryStream())
+            using (MemoryStream ms = new())
             {
-                BinaryFormatter fmt = new BinaryFormatter();
+                BinaryFormatter fmt = new();
                 if (!m_selected && tmp != null)
                     m_serializedPosition = tmp.AbsolutePosition;
                 fmt.Serialize(ms, this);

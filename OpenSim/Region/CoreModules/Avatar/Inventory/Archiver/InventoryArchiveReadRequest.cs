@@ -106,22 +106,22 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         /// <summary>
         /// Inventory nodes loaded from the iar.
         /// </summary>
-        protected Dictionary<UUID, InventoryNodeBase> m_loadedNodes = new Dictionary<UUID, InventoryNodeBase>();
+        protected Dictionary<UUID, InventoryNodeBase> m_loadedNodes = [];
 
         /// <summary>
         /// In order to load identically named folders, we need to keep track of the folders that we have already
         /// resolved.
         /// </summary>
-        Dictionary <string, InventoryFolderBase> m_resolvedFolders = new Dictionary<string, InventoryFolderBase>();
+        Dictionary <string, InventoryFolderBase> m_resolvedFolders = [];
 
         /// <summary>
         /// Record the creator id that should be associated with an asset.  This is used to adjust asset creator ids
         /// after OSP resolution (since OSP creators are only stored in the item
         /// </summary>
-        protected Dictionary<UUID, UUID> m_creatorIdForAssetId = new Dictionary<UUID, UUID>();
-        protected Dictionary<UUID, UUID> m_itemIDs = new Dictionary<UUID, UUID>();
-        protected List<InventoryItemBase> m_invLinks = new List<InventoryItemBase>();
-        protected Dictionary<UUID, InventoryNodeBase> m_invLinksFolders = new Dictionary<UUID, InventoryNodeBase>();
+        protected Dictionary<UUID, UUID> m_creatorIdForAssetId = [];
+        protected Dictionary<UUID, UUID> m_itemIDs = [];
+        protected List<InventoryItemBase> m_invLinks = [];
+        protected Dictionary<UUID, InventoryNodeBase> m_invLinksFolders = [];
 
         public InventoryArchiveReadRequest(
             IInventoryService inv, IAssetService assets, IUserAccountService uacc, UserAccount userInfo, string invPath, string loadPath, bool merge)

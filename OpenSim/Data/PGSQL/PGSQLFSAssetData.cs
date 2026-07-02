@@ -96,13 +96,13 @@ namespace OpenSim.Data.PGSQL
 
         public AssetMetadata Get(string id, out string hash)
         {
-            hash = String.Empty;
+            hash = string.Empty;
             AssetMetadata meta = null;
-            UUID uuid = new UUID(id);
+            UUID uuid = new(id);
 
-            string query = String.Format("select \"id\", \"type\", \"hash\", \"create_time\", \"access_time\", \"asset_flags\" from {0} where \"id\" = :id", m_Table);
-            using (NpgsqlConnection dbcon = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(query, dbcon))
+            string query = string.Format("select \"id\", \"type\", \"hash\", \"create_time\", \"access_time\", \"asset_flags\" from {0} where \"id\" = :id", m_Table);
+            using (NpgsqlConnection dbcon = new(m_connectionString))
+            using (NpgsqlCommand cmd = new(query, dbcon))
             {
                 dbcon.Open();
                 cmd.Parameters.Add(m_database.CreateParameter("id", uuid));
@@ -114,8 +114,8 @@ namespace OpenSim.Data.PGSQL
                         hash = reader["hash"].ToString();
                         meta.ID = id;
                         meta.FullID = uuid;
-                        meta.Name = String.Empty;
-                        meta.Description = String.Empty;
+                        meta.Name = string.Empty;
+                        meta.Description = string.Empty;
                         meta.Type = (sbyte)Convert.ToInt32(reader["type"]);
                         meta.ContentType = SLUtil.SLAssetTypeToContentType(meta.Type);
                         meta.CreationDate = Util.ToDateTime(Convert.ToInt32(reader["create_time"]));
@@ -136,9 +136,9 @@ namespace OpenSim.Data.PGSQL
             if (DaysBetweenAccessTimeUpdates > 0 && (DateTime.UtcNow - Utils.UnixTimeToDateTime(AccessTime)).TotalDays < DaysBetweenAccessTimeUpdates)
                 return;
 
-            string query = String.Format("UPDATE {0} SET \"access_time\" = :access_time WHERE \"id\" = :id", m_Table);
-            using (NpgsqlConnection dbcon = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(query, dbcon))
+            string query = string.Format("UPDATE {0} SET \"access_time\" = :access_time WHERE \"id\" = :id", m_Table);
+            using (NpgsqlConnection dbcon = new(m_connectionString))
+            using (NpgsqlCommand cmd = new(query, dbcon))
             {
                 dbcon.Open();
                 int now = (int)((System.DateTime.Now.Ticks - m_ticksToEpoch) / 10000000);
@@ -156,15 +156,15 @@ namespace OpenSim.Data.PGSQL
                 string oldhash;
                 AssetMetadata existingAsset = Get(meta.ID, out oldhash);
 
-                string query = String.Format("UPDATE {0} SET \"access_time\" = :access_time WHERE \"id\" = :id", m_Table);
+                string query = string.Format("UPDATE {0} SET \"access_time\" = :access_time WHERE \"id\" = :id", m_Table);
                 if (existingAsset == null)
                 {
-                   query = String.Format("insert into {0} (\"id\", \"type\", \"hash\", \"asset_flags\", \"create_time\", \"access_time\") values ( :id, :type, :hash, :asset_flags, :create_time, :access_time)", m_Table);
+                   query = string.Format("insert into {0} (\"id\", \"type\", \"hash\", \"asset_flags\", \"create_time\", \"access_time\") values ( :id, :type, :hash, :asset_flags, :create_time, :access_time)", m_Table);
                    found = true;
                 }
 
-                using (NpgsqlConnection dbcon = new NpgsqlConnection(m_connectionString))
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, dbcon))
+                using (NpgsqlConnection dbcon = new(m_connectionString))
+                using (NpgsqlCommand cmd = new(query, dbcon))
                 {
                     dbcon.Open();
                     int now = (int)((System.DateTime.Now.Ticks - m_ticksToEpoch) / 10000000);
@@ -196,12 +196,12 @@ namespace OpenSim.Data.PGSQL
             if (uuids.Length == 0)
                 return new bool[0];
 
-            HashSet<UUID> exists = new HashSet<UUID>();
+            HashSet<UUID> exists = [];
 
             string ids = "'" + string.Join("','", uuids) + "'";
             string query = string.Format("select \"id\" from {1} where id in ({0})", ids, m_Table);
-            using (NpgsqlConnection dbcon = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(query, dbcon))
+            using (NpgsqlConnection dbcon = new(m_connectionString))
+            using (NpgsqlCommand cmd = new(query, dbcon))
             {
                 dbcon.Open();
                 using (NpgsqlDataReader reader = cmd.ExecuteReader(CommandBehavior.Default))
@@ -223,9 +223,9 @@ namespace OpenSim.Data.PGSQL
         public int Count()
         {
             int count = 0;
-            string query = String.Format("select count(*) as count from {0}", m_Table);
-            using (NpgsqlConnection dbcon = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(query, dbcon))
+            string query = string.Format("select count(*) as count from {0}", m_Table);
+            using (NpgsqlConnection dbcon = new(m_connectionString))
+            using (NpgsqlCommand cmd = new(query, dbcon))
             {
                 dbcon.Open();
                 IDataReader reader = cmd.ExecuteReader();
@@ -239,9 +239,9 @@ namespace OpenSim.Data.PGSQL
 
         public bool Delete(string id)
         {
-            string query = String.Format("delete from {0} where \"id\" = :id", m_Table);
-            using (NpgsqlConnection dbcon = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(query, dbcon))
+            string query = string.Format("delete from {0} where \"id\" = :id", m_Table);
+            using (NpgsqlConnection dbcon = new(m_connectionString))
+            using (NpgsqlCommand cmd = new(query, dbcon))
             {
                 dbcon.Open();
                 cmd.Parameters.Add(m_database.CreateParameter("id", new UUID(id)));
@@ -254,16 +254,16 @@ namespace OpenSim.Data.PGSQL
         public void Import(string conn, string table, int start, int count, bool force, FSStoreDelegate store)
         {
             int imported = 0;
-            string limit = String.Empty;
+            string limit = string.Empty;
             if(count != -1)
             {
-                limit = String.Format(" limit {0} offset {1}", start, count);
+                limit = string.Format(" limit {0} offset {1}", start, count);
             }
-            string query = String.Format("select * from {0}{1}", table, limit);
+            string query = string.Format("select * from {0}{1}", table, limit);
             try
             {
-                using (NpgsqlConnection remote = new NpgsqlConnection(conn))
-                using (NpgsqlCommand cmd = new NpgsqlCommand(query, remote))
+                using (NpgsqlConnection remote = new(conn))
+                using (NpgsqlCommand cmd = new(query, remote))
                 {
                     remote.Open();
                     MainConsole.Instance.Output("Querying database");
@@ -274,17 +274,18 @@ namespace OpenSim.Data.PGSQL
                         {
                             if ((imported % 100) == 0)
                             {
-                                MainConsole.Instance.Output(String.Format("{0} assets imported so far", imported));
+                                MainConsole.Instance.Output(string.Format("{0} assets imported so far", imported));
                             }
     
-                            AssetBase asset = new AssetBase();
-                            AssetMetadata meta = new AssetMetadata();
-
-                            meta.ID = reader["id"].ToString();
+                            AssetBase asset = new();
+                            AssetMetadata meta = new()
+                            {
+                                ID = reader["id"].ToString()
+                            };
                             meta.FullID = new UUID(meta.ID);
 
-                            meta.Name = String.Empty;
-                            meta.Description = String.Empty;
+                            meta.Name = string.Empty;
+                            meta.Description = string.Empty;
                             meta.Type = (sbyte)Convert.ToInt32(reader["assetType"]);
                             meta.ContentType = SLUtil.SLAssetTypeToContentType(meta.Type);
                             meta.CreationDate = Util.ToDateTime(Convert.ToInt32(reader["create_time"]));
@@ -306,7 +307,7 @@ namespace OpenSim.Data.PGSQL
                 return;
             }
 
-            MainConsole.Instance.Output(String.Format("Import done, {0} assets imported", imported));
+            MainConsole.Instance.Output(string.Format("Import done, {0} assets imported", imported));
         }
 
         #endregion

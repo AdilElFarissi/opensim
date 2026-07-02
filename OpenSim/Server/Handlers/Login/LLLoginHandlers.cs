@@ -128,8 +128,10 @@ namespace OpenSim.Server.Handlers.Login
                     LoginResponse reply = null;
                     reply = m_LocalService.Login(first, last, passwd, startLocation, scopeID, clientVersion, channel, mac, id0, remoteClient);
 
-                    XmlRpcResponse response = new XmlRpcResponse();
-                    response.Value = reply.ToHashtable();
+                    XmlRpcResponse response = new()
+                    {
+                        Value = reply.ToHashtable()
+                    };
                     return response;
 
                 }
@@ -140,12 +142,13 @@ namespace OpenSim.Server.Handlers.Login
         }
         public XmlRpcResponse HandleXMLRPCLoginBlocked(XmlRpcRequest request, IPEndPoint client)
         {
-            XmlRpcResponse response = new XmlRpcResponse();
-            Hashtable resp = new Hashtable();
-
-            resp["reason"] = "presence";
-            resp["message"] = "Logins are currently restricted. Please try again later.";
-            resp["login"] = "false";
+            XmlRpcResponse response = new();
+            Hashtable resp = new()
+            {
+                ["reason"] = "presence",
+                ["message"] = "Logins are currently restricted. Please try again later.",
+                ["login"] = "false"
+            };
             response.Value = resp;
             return response;
         }
@@ -164,23 +167,27 @@ namespace OpenSim.Server.Handlers.Login
                     string first = requestData["first"].ToString();
                     string last = requestData["last"].ToString();
                     string passwd = requestData["passwd"].ToString();
-                    int level = Int32.Parse(requestData["level"].ToString());
+                    int level = int.Parse(requestData["level"].ToString());
 
                     m_log.InfoFormat("[LOGIN]: XMLRPC Set Level to {2} Requested by {0} {1}", first, last, level);
 
                     Hashtable reply = m_LocalService.SetLevel(first, last, passwd, level, remoteClient);
 
-                    XmlRpcResponse response = new XmlRpcResponse();
-                    response.Value = reply;
+                    XmlRpcResponse response = new()
+                    {
+                        Value = reply
+                    };
 
                     return response;
 
                 }
             }
 
-            XmlRpcResponse failResponse = new XmlRpcResponse();
-            Hashtable failHash = new Hashtable();
-            failHash["success"] = "false";
+            XmlRpcResponse failResponse = new();
+            Hashtable failHash = new()
+            {
+                ["success"] = "false"
+            };
             failResponse.Value = failHash;
             return failResponse;
 
@@ -279,24 +286,29 @@ namespace OpenSim.Server.Handlers.Login
 
         private XmlRpcResponse FailedXMLRPCResponse()
         {
-            Hashtable hash = new Hashtable();
-            hash["reason"] = "key";
-            hash["message"] = "Incomplete login credentials. Check your username and password.";
-            hash["login"] = "false";
+            Hashtable hash = new()
+            {
+                ["reason"] = "key",
+                ["message"] = "Incomplete login credentials. Check your username and password.",
+                ["login"] = "false"
+            };
 
-            XmlRpcResponse response = new XmlRpcResponse();
-            response.Value = hash;
+            XmlRpcResponse response = new()
+            {
+                Value = hash
+            };
 
             return response;
         }
 
         private OSD FailedOSDResponse()
         {
-            OSDMap map = new OSDMap();
-
-            map["reason"] = OSD.FromString("key");
-            map["message"] = OSD.FromString("Invalid login credentials. Check your username and passwd.");
-            map["login"] = OSD.FromString("false");
+            OSDMap map = new()
+            {
+                ["reason"] = OSD.FromString("key"),
+                ["message"] = OSD.FromString("Invalid login credentials. Check your username and passwd."),
+                ["login"] = OSD.FromString("false")
+            };
 
             return map;
         }

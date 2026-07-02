@@ -39,12 +39,12 @@ namespace OpenSim.Framework
         /// <summary>
         /// Agent circuits indexed by circuit code.
         /// </summary>
-        private readonly Dictionary<uint, AgentCircuitData> m_agentCircuits = new();
+        private readonly Dictionary<uint, AgentCircuitData> m_agentCircuits = [];
 
         /// <summary>
         /// Agent circuits indexed by agent UUID.
         /// </summary>
-        private readonly Dictionary<UUID, AgentCircuitData> m_agentCircuitsByUUID = new();
+        private readonly Dictionary<UUID, AgentCircuitData> m_agentCircuitsByUUID = [];
 
         private readonly object m_lock = new();
 

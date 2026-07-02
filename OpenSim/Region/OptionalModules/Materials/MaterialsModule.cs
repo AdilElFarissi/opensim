@@ -63,10 +63,10 @@ namespace OpenSim.Region.OptionalModules.Materials
         private int m_maxMaterialsPerTransaction = 50;
         private readonly object  materialslock = new();
 
-        public Dictionary<UUID, FaceMaterial> m_Materials = new();
-        public Dictionary<UUID, int> m_MaterialsRefCount = new();
+        public Dictionary<UUID, FaceMaterial> m_Materials = [];
+        public Dictionary<UUID, int> m_MaterialsRefCount = [];
 
-        private readonly Dictionary<FaceMaterial, double> m_changed = new();
+        private readonly Dictionary<FaceMaterial, double> m_changed = [];
         private readonly Queue<UUID> delayedDelete = new();
         private bool m_storeBusy;
 
@@ -166,12 +166,12 @@ namespace OpenSim.Region.OptionalModules.Materials
 
                 if (forcedBackup)
                 {
-                    toStore = new List<FaceMaterial>(m_changed.Keys);
+                    toStore = [.. m_changed.Keys];
                     m_changed.Clear();
                 }
                 else
                 {
-                    toStore = new List<FaceMaterial>();
+                    toStore = [];
                     double storetime = Util.GetTimeStamp() - 30.0;
                     foreach(KeyValuePair<FaceMaterial, double> kvp in m_changed)
                     {
@@ -488,7 +488,7 @@ namespace OpenSim.Region.OptionalModules.Materials
                 return;
             }
 
-            OSDArray respArr = new();
+            OSDArray respArr = [];
 
             if (req.TryGetValue("Zipped", out OSD tmpOSD))
             {
@@ -579,8 +579,8 @@ namespace OpenSim.Region.OptionalModules.Materials
                     {
                         if (materialsFromViewer.TryGetValue("FullMaterialsPerFace", out tmpOSD) && (tmpOSD is OSDArray))
                         {
-                            Dictionary<uint, SceneObjectPart> parts = new();
-                            HashSet<uint> errorReported = new();
+                            Dictionary<uint, SceneObjectPart> parts = [];
+                            HashSet<uint> errorReported = [];
                             OSDArray matsArr = tmpOSD as OSDArray;
                             try
                             {
@@ -756,7 +756,7 @@ namespace OpenSim.Region.OptionalModules.Materials
         {
             lock(CacheGetLock)
             {
-                OSDArray allOsd = new();
+                OSDArray allOsd = [];
                 double now = Util.GetTimeStamp();
                 if(CacheGet is null || now - CacheGetTime > 30)
                 {
@@ -803,7 +803,7 @@ namespace OpenSim.Region.OptionalModules.Materials
             byte[] data = OSDParser.SerializeLLSDBinary(inOsd, useHeader);
             using (MemoryStream msSinkCompressed = new())
             {
-                using (Ionic.Zlib.ZlibStream zOut = new Ionic.Zlib.ZlibStream(msSinkCompressed,
+                using (Ionic.Zlib.ZlibStream zOut = new(msSinkCompressed,
                     Ionic.Zlib.CompressionMode.Compress, CompressionLevel.BestCompression, true))
                 {
                     zOut.Write(data, 0, data.Length);
@@ -900,7 +900,7 @@ namespace OpenSim.Region.OptionalModules.Materials
                 httpRequest.InputStream.Dispose();
 
                 OSD tmp;
-                HashSet<SceneObjectPart> changedSOPs = new();
+                HashSet<SceneObjectPart> changedSOPs = [];
 
                 foreach (OSDMap map in req)
                 {
@@ -1085,7 +1085,7 @@ namespace OpenSim.Region.OptionalModules.Materials
             {
                 if (extmap.TryGetValue("KHR_texture_transform", out tmposd) && tmposd is OSDMap trmap)
                 {
-                    OSDMap tmpmap = new OSDMap();
+                    OSDMap tmpmap = [];
                     if (trmap.TryGetValue("offset", out tmposd) && tmposd is OSDArray offset)
                     {
                         tmpmap["o"] = new OSDArray()
@@ -1160,7 +1160,7 @@ namespace OpenSim.Region.OptionalModules.Materials
 
                 bool hasTexURIS = texturesURIs is not null;
 
-                OSDMap outosd = new();
+                OSDMap outosd = [];
                 OSDArray ti = new(4);
                 OSDMap tmpmap;
 

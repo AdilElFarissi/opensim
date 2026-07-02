@@ -69,10 +69,10 @@ namespace OpenSim.Data.MySQL
         {
             m_connectionString = connect;
 
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            using (MySqlConnection dbcon = new(m_connectionString))
             {
                 dbcon.Open();
-                Migration m = new Migration(dbcon, Assembly, "AssetStore");
+                Migration m = new(dbcon, Assembly, "AssetStore");
                 m.Update();
                 dbcon.Close();
             }
@@ -107,11 +107,11 @@ namespace OpenSim.Data.MySQL
         {
             AssetBase asset = null;
 
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            using (MySqlConnection dbcon = new(m_connectionString))
             {
                 dbcon.Open();
 
-                using (MySqlCommand cmd = new MySqlCommand(
+                using (MySqlCommand cmd = new(
                     "SELECT name, description, assetType, local, temporary, asset_flags, CreatorID, data FROM assets WHERE id=?id",
                     dbcon))
                 {
@@ -123,9 +123,11 @@ namespace OpenSim.Data.MySQL
                         {
                             if (dbReader.Read())
                             {
-                                asset = new AssetBase(assetID, (string)dbReader["name"], (sbyte)dbReader["assetType"], dbReader["CreatorID"].ToString());
-                                asset.Data = (byte[])dbReader["data"];
-                                asset.Description = (string)dbReader["description"];
+                                asset = new AssetBase(assetID, (string)dbReader["name"], (sbyte)dbReader["assetType"], dbReader["CreatorID"].ToString())
+                                {
+                                    Data = (byte[])dbReader["data"],
+                                    Description = (string)dbReader["description"]
+                                };
 
                                 string local = dbReader["local"].ToString();
                                 if (local.Equals("1") || local.Equals("true", StringComparison.InvariantCultureIgnoreCase))
@@ -175,11 +177,11 @@ namespace OpenSim.Data.MySQL
                     asset.Description, asset.ID, asset.Description.Length, assetDescription.Length);
             }
 
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            using (MySqlConnection dbcon = new(m_connectionString))
             {
                 dbcon.Open();
                 using (MySqlCommand cmd =
-                    new MySqlCommand(
+                    new(
                         "replace INTO assets(id, name, description, assetType, local, temporary, create_time, access_time, asset_flags, CreatorID, data)" +
                         "VALUES(?id, ?name, ?description, ?assetType, ?local, ?temporary, ?create_time, ?access_time, ?asset_flags, ?CreatorID, ?data)",
                         dbcon))
@@ -216,12 +218,12 @@ namespace OpenSim.Data.MySQL
 
         private void UpdateAccessTime(AssetBase asset)
         {
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            using (MySqlConnection dbcon = new(m_connectionString))
             {
                 dbcon.Open();
 
                 using (MySqlCommand cmd
-                    = new MySqlCommand("update assets set access_time=?access_time where id=?id", dbcon))
+                    = new("update assets set access_time=?access_time where id=?id", dbcon))
                 {
                     try
                     {
@@ -254,15 +256,15 @@ namespace OpenSim.Data.MySQL
             if (uuids.Length == 0)
                 return [];
 
-            HashSet<UUID> exist = new HashSet<UUID>();
+            HashSet<UUID> exist = [];
 
             string ids = "'" + string.Join("','", uuids) + "'";
             string sql = string.Format("SELECT id FROM assets WHERE id IN ({0})", ids);
 
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            using (MySqlConnection dbcon = new(m_connectionString))
             {
                 dbcon.Open();
-                using (MySqlCommand cmd = new MySqlCommand(sql, dbcon))
+                using (MySqlCommand cmd = new(sql, dbcon))
                 {
                     using (MySqlDataReader dbReader = cmd.ExecuteReader())
                     {
@@ -293,14 +295,14 @@ namespace OpenSim.Data.MySQL
         /// <returns>A list of AssetMetadata objects.</returns>
         public override List<AssetMetadata> FetchAssetMetadataSet(int start, int count)
         {
-            List<AssetMetadata> retList = new List<AssetMetadata>(count);
+            List<AssetMetadata> retList = new(count);
 
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            using (MySqlConnection dbcon = new(m_connectionString))
             {
                 dbcon.Open();
 
                 using (MySqlCommand cmd
-                    = new MySqlCommand(
+                    = new(
                         "SELECT name,description,assetType,temporary,id,asset_flags,CreatorID FROM assets LIMIT ?start, ?count",
                         dbcon))
                 {
@@ -313,17 +315,19 @@ namespace OpenSim.Data.MySQL
                         {
                             while (dbReader.Read())
                             {
-                                AssetMetadata metadata = new AssetMetadata();
-                                metadata.Name = (string)dbReader["name"];
-                                metadata.Description = (string)dbReader["description"];
-                                metadata.Type = (sbyte)dbReader["assetType"];
-                                metadata.Temporary = Convert.ToBoolean(dbReader["temporary"]); // Not sure if this is correct.
-                                metadata.Flags = (AssetFlags)Convert.ToInt32(dbReader["asset_flags"]);
-                                metadata.FullID = DBGuid.FromDB(dbReader["id"]);
-                                metadata.CreatorID = dbReader["CreatorID"].ToString();
+                                AssetMetadata metadata = new()
+                                {
+                                    Name = (string)dbReader["name"],
+                                    Description = (string)dbReader["description"],
+                                    Type = (sbyte)dbReader["assetType"],
+                                    Temporary = Convert.ToBoolean(dbReader["temporary"]), // Not sure if this is correct.
+                                    Flags = (AssetFlags)Convert.ToInt32(dbReader["asset_flags"]),
+                                    FullID = DBGuid.FromDB(dbReader["id"]),
+                                    CreatorID = dbReader["CreatorID"].ToString(),
 
-                                // Current SHA1s are not stored/computed.
-                                metadata.SHA1 = Array.Empty<byte>();
+                                    // Current SHA1s are not stored/computed.
+                                    SHA1 = Array.Empty<byte>()
+                                };
 
                                 retList.Add(metadata);
                             }
@@ -346,11 +350,11 @@ namespace OpenSim.Data.MySQL
 
         public override bool Delete(string id)
         {
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            using (MySqlConnection dbcon = new(m_connectionString))
             {
                 dbcon.Open();
 
-                using (MySqlCommand cmd = new MySqlCommand("delete from assets where id=?id", dbcon))
+                using (MySqlCommand cmd = new("delete from assets where id=?id", dbcon))
                 {
                     cmd.Parameters.AddWithValue("?id", id);
                     cmd.ExecuteNonQuery();

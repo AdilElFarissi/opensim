@@ -243,7 +243,7 @@ namespace osWebRtcVoice
         public override void Handle_Event(JanusMessageResp pResp)
         {
             base.Handle_Event(pResp);
-            AudioBridgeResp abResp = new AudioBridgeResp(pResp);
+            AudioBridgeResp abResp = new(pResp);
             if (abResp is not null && abResp.AudioBridgeReturnCode == "event")
             {
                 // An audio bridge event!
@@ -254,7 +254,7 @@ namespace osWebRtcVoice
         public override void Handle_Message(JanusMessageResp pResp)
         {
             base.Handle_Message(pResp);
-            AudioBridgeResp abResp = new AudioBridgeResp(pResp);
+            AudioBridgeResp abResp = new(pResp);
             if (abResp is not null && abResp.AudioBridgeReturnCode == "event")
             {
                 // An audio bridge event!

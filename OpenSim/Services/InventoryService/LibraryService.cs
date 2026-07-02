@@ -52,7 +52,7 @@ namespace OpenSim.Services.InventoryService
 
         private static readonly UUID libOwner = Constants.m_MrOpenSimID;
         private const string m_LibraryRootFolderIDstr = "00000112-000f-0000-0000-000100bba000";
-        private static readonly UUID m_LibraryRootFolderID = new UUID(m_LibraryRootFolderIDstr);
+        private static readonly UUID m_LibraryRootFolderID = new(m_LibraryRootFolderIDstr);
 
         static private InventoryFolderImpl m_LibraryRootFolder;
 
@@ -67,11 +67,11 @@ namespace OpenSim.Services.InventoryService
         /// setup so that we don't have to repeatedly search the tree of library folders.
         /// </summary>
         static protected Dictionary<UUID, InventoryFolderImpl> libraryFolders
-            = new Dictionary<UUID, InventoryFolderImpl>(32);
+            = new(32);
 
-        static protected Dictionary<UUID, InventoryItemBase> m_items = new Dictionary<UUID, InventoryItemBase>(256);
+        static protected Dictionary<UUID, InventoryItemBase> m_items = new(256);
         static LibraryService m_root;
-        static object m_rootLock = new object();
+        static object m_rootLock = new();
         static readonly uint m_BasePermissions = (uint)PermissionMask.AllAndExport;
         static readonly uint m_EveryOnePermissions = (uint)PermissionMask.AllAndExportNoMod;
         static readonly uint m_CurrentPermissions = (uint)PermissionMask.AllAndExport;
@@ -99,13 +99,15 @@ namespace OpenSim.Services.InventoryService
 
             m_log.Debug("[LIBRARY]: Starting library service...");
 
-            m_LibraryRootFolder = new InventoryFolderImpl();
-            m_LibraryRootFolder.Owner = libOwner;
-            m_LibraryRootFolder.ID = m_LibraryRootFolderID;
-            m_LibraryRootFolder.Name = pLibName;
-            m_LibraryRootFolder.ParentID = UUID.Zero;
-            m_LibraryRootFolder.Type = 8;
-            m_LibraryRootFolder.Version = 1;
+            m_LibraryRootFolder = new InventoryFolderImpl
+            {
+                Owner = libOwner,
+                ID = m_LibraryRootFolderID,
+                Name = pLibName,
+                ParentID = UUID.Zero,
+                Type = 8,
+                Version = 1
+            };
             libraryFolders.Add(m_LibraryRootFolder.ID, m_LibraryRootFolder);
 
             LoadLibraries(pLibrariesLocation);
@@ -114,21 +116,23 @@ namespace OpenSim.Services.InventoryService
         public InventoryItemBase CreateItem(UUID inventoryID, UUID assetID, string name, string description,
                                             int assetType, int invType, UUID parentFolderID)
         {
-            InventoryItemBase item = new InventoryItemBase();
-            item.Owner = libOwner;
-            item.CreatorId = libOwner.ToString();
-            item.ID = inventoryID;
-            item.AssetID = assetID;
-            item.Description = description;
-            item.Name = name;
-            item.AssetType = assetType;
-            item.InvType = invType;
-            item.Folder = parentFolderID;
-            item.BasePermissions = m_BasePermissions;
-            item.EveryOnePermissions = m_EveryOnePermissions;
-            item.CurrentPermissions = m_CurrentPermissions;
-            item.NextPermissions = m_NextPermissions;
-            item.GroupPermissions = m_GroupPermissions;
+            InventoryItemBase item = new()
+            {
+                Owner = libOwner,
+                CreatorId = libOwner.ToString(),
+                ID = inventoryID,
+                AssetID = assetID,
+                Description = description,
+                Name = name,
+                AssetType = assetType,
+                InvType = invType,
+                Folder = parentFolderID,
+                BasePermissions = m_BasePermissions,
+                EveryOnePermissions = m_EveryOnePermissions,
+                CurrentPermissions = m_CurrentPermissions,
+                NextPermissions = m_NextPermissions,
+                GroupPermissions = m_GroupPermissions
+            };
             return item;
         }
 
@@ -156,10 +160,10 @@ namespace OpenSim.Services.InventoryService
                 return;
             }
 
-            string foldersPath = Path.Combine(basePath, config.GetString("foldersFile", String.Empty));
+            string foldersPath = Path.Combine(basePath, config.GetString("foldersFile", string.Empty));
             LoadFromFile(foldersPath, "Library folders", ReadFolderFromConfig);
 
-            string itemsPath = Path.Combine( basePath, config.GetString("itemsFile", String.Empty));
+            string itemsPath = Path.Combine( basePath, config.GetString("itemsFile", string.Empty));
             LoadFromFile(itemsPath, "Library items", ReadItemFromConfig);
         }
 
@@ -169,14 +173,15 @@ namespace OpenSim.Services.InventoryService
         /// <param name="source"></param>
         private void ReadFolderFromConfig(IConfig config, string path)
         {
-            InventoryFolderImpl folderInfo = new InventoryFolderImpl();
-
-            folderInfo.ID = new UUID(config.GetString("folderID", m_LibraryRootFolderIDstr));
-            folderInfo.Name = config.GetString("name", "unknown");
-            folderInfo.ParentID = new UUID(config.GetString("parentFolderID", m_LibraryRootFolderIDstr));
-            folderInfo.Type = (short)config.GetInt("type", 8);
-            folderInfo.Version = (ushort)config.GetInt("version", 1);
-            folderInfo.Owner = libOwner;
+            InventoryFolderImpl folderInfo = new()
+            {
+                ID = new UUID(config.GetString("folderID", m_LibraryRootFolderIDstr)),
+                Name = config.GetString("name", "unknown"),
+                ParentID = new UUID(config.GetString("parentFolderID", m_LibraryRootFolderIDstr)),
+                Type = (short)config.GetInt("type", 8),
+                Version = (ushort)config.GetInt("version", 1),
+                Owner = libOwner
+            };
 
             if (libraryFolders.TryGetValue(folderInfo.ParentID, out InventoryFolderImpl parentFolder))
             {
@@ -198,14 +203,16 @@ namespace OpenSim.Services.InventoryService
         /// <param name="source"></param>
         private void ReadItemFromConfig(IConfig config, string path)
         {
-            InventoryItemBase item = new InventoryItemBase();
-            item.Owner = libOwner;
-            item.CreatorId = libOwner.ToString();
-            UUID itID = new UUID(config.GetString("inventoryID", m_LibraryRootFolderIDstr));
+            InventoryItemBase item = new()
+            {
+                Owner = libOwner,
+                CreatorId = libOwner.ToString()
+            };
+            UUID itID = new(config.GetString("inventoryID", m_LibraryRootFolderIDstr));
             item.ID = itID; 
             item.AssetID = new UUID(config.GetString("assetID", item.ID.ToString()));
             item.Folder = new UUID(config.GetString("folderID", m_LibraryRootFolderIDstr));
-            item.Name = config.GetString("name", String.Empty);
+            item.Name = config.GetString("name", string.Empty);
             item.Description = config.GetString("description", item.Name);
             item.InvType = config.GetInt("inventoryType", 0);
             item.AssetType = config.GetInt("assetType", item.InvType);
@@ -250,7 +257,7 @@ namespace OpenSim.Services.InventoryService
             {
                 try
                 {
-                    XmlConfigSource source = new XmlConfigSource(path);
+                    XmlConfigSource source = new(path);
 
                     for (int i = 0; i < source.Configs.Count; i++)
                     {
@@ -275,8 +282,10 @@ namespace OpenSim.Services.InventoryService
         /// <returns></returns>
         public Dictionary<UUID, InventoryFolderImpl> GetAllFolders()
         {
-            Dictionary<UUID, InventoryFolderImpl> fs = new Dictionary<UUID, InventoryFolderImpl>();
-            fs.Add(m_LibraryRootFolderID, m_LibraryRootFolder);
+            Dictionary<UUID, InventoryFolderImpl> fs = new()
+            {
+                { m_LibraryRootFolderID, m_LibraryRootFolder }
+            };
             List<InventoryFolderImpl> fis = TraverseFolder(m_LibraryRootFolder);
             foreach (InventoryFolderImpl f in fis)
             {
@@ -289,7 +298,7 @@ namespace OpenSim.Services.InventoryService
         private List<InventoryFolderImpl> TraverseFolder(InventoryFolderImpl node)
         {
             List<InventoryFolderImpl> folders = node.RequestListOfFolderImpls();
-            List<InventoryFolderImpl> subs = new List<InventoryFolderImpl>();
+            List<InventoryFolderImpl> subs = [];
             foreach (InventoryFolderImpl f in folders)
                 subs.AddRange(TraverseFolder(f));
 

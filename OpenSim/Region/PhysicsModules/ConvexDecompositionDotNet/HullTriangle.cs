@@ -32,7 +32,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 {
     public class HullTriangle : int3
     {
-        public int3 n = new int3();
+        public int3 n = new();
         public int id;
         public int vmax;
         public float rise;

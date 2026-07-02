@@ -525,7 +525,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             TokenDeclSDTypeClass sdtDecl = sdtType.decl;
             tokenTypeInt = new TokenTypeInt(sdtType);
 
-            TokenName name = new TokenName(sdtType, "Get");
+            TokenName name = new(sdtType, "Get");
             TokenType[] argsig = new TokenType[nSubs];
             for(int i = 0; i < nSubs; i++)
             {
@@ -599,7 +599,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             TokenTypeSDTypeClass sdtType = (TokenTypeSDTypeClass)baseRVal.type;
             TokenDeclSDTypeClass sdtDecl = sdtType.decl;
-            TokenName name = new TokenName(sdtType, "Get");
+            TokenName name = new(sdtType, "Get");
             int nSubs = subRVals.Length;
             TokenType[] argsig = new TokenType[nSubs];
             argsig[0] = new TokenTypeInt(sdtType);

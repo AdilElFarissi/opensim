@@ -60,7 +60,7 @@ namespace OpenSim.Framework
         /// <summary>
         /// Base Caps path for user
         /// </summary>
-        public string CapsPath = String.Empty;
+        public string CapsPath = string.Empty;
 
         /// <summary>
         /// Seed caps for neighbor regions that the user can see into
@@ -195,9 +195,11 @@ namespace OpenSim.Framework
                 OSDArray childrenSeeds = new(ChildrenCapSeeds.Count);
                 foreach (KeyValuePair<ulong, string> kvp in ChildrenCapSeeds)
                 {
-                    OSDMap pair = new OSDMap();
-                    pair["handle"] = OSD.FromString(kvp.Key.ToString());
-                    pair["seed"] = OSD.FromString(kvp.Value);
+                    OSDMap pair = new()
+                    {
+                        ["handle"] = OSD.FromString(kvp.Key.ToString()),
+                        ["seed"] = OSD.FromString(kvp.Value)
+                    };
                     childrenSeeds.Add(pair);
                 }
                 if (ChildrenCapSeeds.Count > 0)
@@ -233,7 +235,7 @@ namespace OpenSim.Framework
             // OBSOLETE -- soon to be deleted
             if (ServiceURLs != null && ServiceURLs.Count > 0)
             {
-                OSDArray urls = new OSDArray(ServiceURLs.Count * 2);
+                OSDArray urls = new(ServiceURLs.Count * 2);
                 foreach (KeyValuePair<string, object> kvp in ServiceURLs)
                 {
                     //System.Console.WriteLine("XXX " + kvp.Key + "=" + kvp.Value);
@@ -246,7 +248,7 @@ namespace OpenSim.Framework
             // again, this time the right way
             if (ServiceURLs != null && ServiceURLs.Count > 0)
             {
-                OSDMap urls = new OSDMap();
+                OSDMap urls = [];
                 foreach (KeyValuePair<string, object> kvp in ServiceURLs)
                 {
                     //System.Console.WriteLine("XXX " + kvp.Key + "=" + kvp.Value);
@@ -276,7 +278,7 @@ namespace OpenSim.Framework
             if (args.TryGetValue("children_seeds", out tmpOSD) && tmpOSD is OSDArray)
             {
                 OSDArray childrenSeeds = (OSDArray)tmpOSD;
-                ChildrenCapSeeds = new Dictionary<ulong, string>();
+                ChildrenCapSeeds = [];
                 foreach (OSD o in childrenSeeds)
                 {
                     if (o.Type == OSDType.Map)
@@ -286,7 +288,7 @@ namespace OpenSim.Framework
                         OSDMap pair = (OSDMap)o;
                         if (pair.TryGetValue("handle", out tmpOSD))
                         {
-                            if (!UInt64.TryParse(tmpOSD.AsString(), out handle))
+                            if (!ulong.TryParse(tmpOSD.AsString(), out handle))
                                 continue;
                         }
                         if (!ChildrenCapSeeds.ContainsKey(handle))
@@ -301,12 +303,12 @@ namespace OpenSim.Framework
                 }
             }
             else
-                ChildrenCapSeeds = new Dictionary<ulong, string>();
+                ChildrenCapSeeds = [];
 
             if (args.TryGetValue("child", out tmpOSD))
                 child = tmpOSD.AsBoolean();
             if (args.TryGetValue("circuit_code", out tmpOSD))
-                UInt32.TryParse(tmpOSD.AsString(), out circuitcode);
+                uint.TryParse(tmpOSD.AsString(), out circuitcode);
             if (args.TryGetValue("first_name", out tmpOSD))
                 firstname = tmpOSD.AsString();
             if (args.TryGetValue("last_name", out tmpOSD))
@@ -365,12 +367,12 @@ namespace OpenSim.Framework
                 m_log.ErrorFormat("[AGENTCIRCUITDATA] failed to unpack appearance; {0}",e.Message);
             }
 
-            ServiceURLs = new Dictionary<string, object>();
+            ServiceURLs = [];
             // Try parse the new way, OSDMap
             if (args.TryGetValue("serviceurls", out tmpOSD) && (tmpOSD is OSDMap))
             {
                 OSDMap urls = (OSDMap)tmpOSD;
-                foreach (KeyValuePair<String, OSD> kvp in urls)
+                foreach (KeyValuePair<string, OSD> kvp in urls)
                 {
                     ServiceURLs[kvp.Key] = kvp.Value.AsString();
                     //System.Console.WriteLine("XXX " + kvp.Key + "=" + ServiceURLs[kvp.Key]);

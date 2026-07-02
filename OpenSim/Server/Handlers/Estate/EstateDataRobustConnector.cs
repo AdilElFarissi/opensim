@@ -52,15 +52,15 @@ namespace OpenSim.Server.Handlers
         {
             IConfig serverConfig = config.Configs[m_ConfigName];
             if (serverConfig == null)
-                throw new Exception(String.Format("No section {0} in config file", m_ConfigName));
+                throw new Exception(string.Format("No section {0} in config file", m_ConfigName));
 
             string service = serverConfig.GetString("LocalServiceModule",
-                    String.Empty);
+                    string.Empty);
 
             if (service.Length == 0)
                 throw new Exception("No LocalServiceModule in config file");
 
-            Object[] args = new Object[] { config };
+            object[] args = new object[] { config };
             IEstateDataService e_service = ServerUtils.LoadPlugin<IEstateDataService>(service, args);
 
             IServiceAuth auth = ServiceAuth.Create(config, m_ConfigName);
@@ -117,7 +117,7 @@ namespace OpenSim.Server.Handlers
             }
 
             if (data == null)
-                data = new Dictionary<string, object>();
+                data = [];
 
             string xmlString = ServerUtils.BuildXmlResponse(data);
             return Util.UTF8NoBomEncoding.GetBytes(xmlString);
@@ -154,7 +154,7 @@ namespace OpenSim.Server.Handlers
                 {
                     httpResponse.StatusCode = (int)HttpStatusCode.OK;
                     httpResponse.ContentType = "text/xml";
-                    data = new Dictionary<string, object>();
+                    data = [];
                     int i = 0;
                     foreach (int id in estateIDs)
                         data["estate" + i++] = id;
@@ -171,7 +171,7 @@ namespace OpenSim.Server.Handlers
                 {
                     httpResponse.StatusCode = (int)HttpStatusCode.OK;
                     httpResponse.ContentType = "text/xml";
-                    data = new Dictionary<string, object>();
+                    data = [];
                     int i = 0;
                     foreach (EstateSettings es in estates)
                         data["estate" + i++] = es.ToMap();
@@ -229,12 +229,12 @@ namespace OpenSim.Server.Handlers
             if (!string.IsNullOrEmpty(eid))
             {
                 int id = 0;
-                if (Int32.TryParse(eid, out id))
+                if (int.TryParse(eid, out id))
                 {
                     List<UUID> regions = m_EstateService.GetRegions(id);
                     if (regions != null && regions.Count > 0)
                     {
-                        data = new Dictionary<string, object>();
+                        data = [];
                         int i = 0;
                         foreach (UUID uuid in regions)
                             data["region" + i++] = uuid.ToString();
@@ -280,7 +280,7 @@ namespace OpenSim.Server.Handlers
                 if ("estate".Equals(resource))
                 {
                     string body;
-                    using(StreamReader sr = new StreamReader(request))
+                    using(StreamReader sr = new(request))
                         body = sr.ReadToEnd();
 
                     body = body.Trim();
@@ -292,7 +292,7 @@ namespace OpenSim.Server.Handlers
             }
 
             if (data == null)
-                data = new Dictionary<string, object>();
+                data = [];
 
             string xmlString = ServerUtils.BuildXmlResponse(data);
             return Util.UTF8NoBomEncoding.GetBytes(xmlString);
@@ -303,7 +303,7 @@ namespace OpenSim.Server.Handlers
         {
             // /estates/estate/
             // /estates/estate/?eid=int&region=uuid
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
             string eid = (string)httpRequest.Query["eid"];
             string region = (string)httpRequest.Query["region"];
 
@@ -313,7 +313,7 @@ namespace OpenSim.Server.Handlers
                 requestData.ContainsKey("OP") && requestData["OP"] != null && "STORE".Equals(requestData["OP"]))
             {
                 // /estates/estate/
-                EstateSettings es = new EstateSettings(requestData);
+                EstateSettings es = new(requestData);
                 m_EstateService.StoreEstateSettings(es);
                 //m_log.DebugFormat("[EstateServerPostHandler]: Store estate {0}", es.ToString());
                 httpResponse.StatusCode = (int)HttpStatusCode.OK;
@@ -324,7 +324,7 @@ namespace OpenSim.Server.Handlers
             {
                 int id = 0;
                 UUID regionID = UUID.Zero;
-                if (UUID.TryParse(region, out regionID) && Int32.TryParse(eid, out id))
+                if (UUID.TryParse(region, out regionID) && int.TryParse(eid, out id))
                 {
                     m_log.DebugFormat("[EstateServerPostHandler]: Link region {0} to estate {1}", regionID, id);
                     httpResponse.StatusCode = (int)HttpStatusCode.OK;

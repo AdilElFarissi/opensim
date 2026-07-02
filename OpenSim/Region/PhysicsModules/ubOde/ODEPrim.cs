@@ -134,7 +134,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
 
         private PhysicsActor _parent;
 
-        private readonly List<OdePrim> childrenPrim = new();
+        private readonly List<OdePrim> childrenPrim = [];
 
         public float m_collisionscore;
         private int m_colliderfilter = 0;
@@ -1262,7 +1262,7 @@ namespace OpenSim.Region.PhysicsModule.ubOde
             return false;
         }
 
-        public OdePrim(String primName, ODEScene parent_scene, Vector3 pos, Vector3 size,
+        public OdePrim(string primName, ODEScene parent_scene, Vector3 pos, Vector3 size,
                        Quaternion rotation, PrimitiveBaseShape pbs, bool pisPhysical,bool pisPhantom,byte _shapeType,uint plocalID)
         {
             m_parentScene = parent_scene;
@@ -3970,13 +3970,13 @@ namespace OpenSim.Region.PhysicsModule.ubOde
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static bool QuaternionIsFinite(Quaternion q)
         {
-            if (Single.IsNaN(q.X) || Single.IsInfinity(q.X))
+            if (float.IsNaN(q.X) || float.IsInfinity(q.X))
                 return false;
-            if (Single.IsNaN(q.Y) || Single.IsInfinity(q.Y))
+            if (float.IsNaN(q.Y) || float.IsInfinity(q.Y))
                 return false;
-            if (Single.IsNaN(q.Z) || Single.IsInfinity(q.Z))
+            if (float.IsNaN(q.Z) || float.IsInfinity(q.Z))
                 return false;
-            if (Single.IsNaN(q.W) || Single.IsInfinity(q.W))
+            if (float.IsNaN(q.W) || float.IsInfinity(q.W))
                 return false;
             return true;
         }

@@ -42,15 +42,15 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
     public class AssetLoaderFileSystem : IAssetLoader
     {
         private const string LIBRARY_OWNER_IDstr = "11111111-1111-0000-0000-000100bba000";
-        private static readonly UUID LIBRARY_OWNER_ID = new UUID(LIBRARY_OWNER_IDstr);
+        private static readonly UUID LIBRARY_OWNER_ID = new(LIBRARY_OWNER_IDstr);
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected static AssetBase CreateAsset(string assetIdStr, string name, string path, sbyte type)
         {
-            AssetBase asset = new AssetBase(new UUID(assetIdStr), name, type, LIBRARY_OWNER_IDstr);
+            AssetBase asset = new(new UUID(assetIdStr), name, type, LIBRARY_OWNER_IDstr);
 
-            if (!String.IsNullOrEmpty(path))
+            if (!string.IsNullOrEmpty(path))
             {
                 //m_log.InfoFormat("[ASSETS]: Loading: [{0}][{1}]", name, path);
 
@@ -73,12 +73,12 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
 //                info.Type == (sbyte)AssetType.ImageJPEG ||
 //                info.Type == (sbyte)AssetType.ImageTGA);
 
-            FileInfo fInfo = new FileInfo(path);
+            FileInfo fInfo = new(path);
             long numBytes = fInfo.Length;
             if (fInfo.Exists)
             {
-                FileStream fStream = new FileStream(path, FileMode.Open, FileAccess.Read);
-                BinaryReader br = new BinaryReader(fStream);
+                FileStream fStream = new(path, FileMode.Open, FileAccess.Read);
+                BinaryReader br = new(fStream);
                 byte[] idata = br.ReadBytes((int)numBytes);
                 br.Close();
                 fStream.Close();
@@ -93,20 +93,20 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
 
         public void ForEachDefaultXmlAsset(string assetSetFilename, Action<AssetBase> action)
         {
-            List<AssetBase> assets = new List<AssetBase>();
+            List<AssetBase> assets = [];
             if (File.Exists(assetSetFilename))
             {
                 string assetSetPath = "ERROR";
                 string assetRootPath = "";
                 try
                 {
-                    XmlConfigSource source = new XmlConfigSource(assetSetFilename);
+                    XmlConfigSource source = new(assetSetFilename);
                     assetRootPath = Path.GetFullPath(source.SavePath);
                     assetRootPath = Path.GetDirectoryName(assetRootPath);
 
                     for (int i = 0; i < source.Configs.Count; i++)
                     {
-                        assetSetPath = source.Configs[i].GetString("file", String.Empty);
+                        assetSetPath = source.Configs[i].GetString("file", string.Empty);
 
                         LoadXmlAssetSet(Path.Combine(assetRootPath, assetSetPath), assets);
                     }
@@ -137,16 +137,16 @@ namespace OpenSim.Framework.AssetLoader.Filesystem
             {
                 try
                 {
-                    XmlConfigSource source = new XmlConfigSource(assetSetPath);
-                    String dir = Path.GetDirectoryName(assetSetPath);
+                    XmlConfigSource source = new(assetSetPath);
+                    string dir = Path.GetDirectoryName(assetSetPath);
 
                     for (int i = 0; i < source.Configs.Count; i++)
                     {
                         string assetIdStr = source.Configs[i].GetString("assetID", UUID.Random().ToString());
-                        string name = source.Configs[i].GetString("name", String.Empty);
+                        string name = source.Configs[i].GetString("name", string.Empty);
                         sbyte type = (sbyte)source.Configs[i].GetInt("assetType", 0);
 
-                        string assetPath =  source.Configs[i].GetString("fileName", String.Empty);
+                        string assetPath =  source.Configs[i].GetString("fileName", string.Empty);
                         AssetBase newAsset;
                         if (string.IsNullOrEmpty(assetPath))
                             newAsset = CreateAsset(assetIdStr, name, null, type);

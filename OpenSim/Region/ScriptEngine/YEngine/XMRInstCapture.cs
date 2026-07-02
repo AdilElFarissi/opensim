@@ -80,8 +80,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 //CheckRunLockInvariants(true);
 
                 // Get copy of script globals and stack in relocateable form.
-                Byte[] snapshotBytes;
-                using (MemoryStream snapshotStream = new MemoryStream())
+                byte[] snapshotBytes;
+                using (MemoryStream snapshotStream = new())
                 {
                     MigrateOutEventHandler(snapshotStream);
                     snapshotBytes = snapshotStream.ToArray();
@@ -169,7 +169,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 //m_RunOnePhase = "GetExecutionState G";
 
                 // "Plugins" indicate enabled timers and listens, etc.
-                Object[] pluginData = AsyncCommandManager.GetSerializationData(m_Engine, m_ItemID);
+                object[] pluginData = AsyncCommandManager.GetSerializationData(m_Engine, m_ItemID);
 
                 XmlNode plugins = doc.CreateElement("", "Plugins", "");
                 AppendXMLObjectArray(doc, plugins, pluginData, "plugin");
@@ -202,7 +202,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             // write the .state file while we are here.
             using(FileStream fs = File.Create(m_StateFileName))
             {
-                using(StreamWriter sw = new StreamWriter(fs))
+                using(StreamWriter sw = new(fs))
                     sw.Write(scriptStateN.OuterXml);
             }
 

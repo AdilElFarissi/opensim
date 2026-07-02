@@ -46,7 +46,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
-        private List<Scene> m_Scenelist = new List<Scene>();
+        private List<Scene> m_Scenelist = [];
 
         private IMessageTransferModule m_TransferModule;
         private bool m_Enabled = true;
@@ -167,7 +167,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                     if (im.binaryBucket.Length < 17) // Invalid
                         return;
 
-                    UUID recipientID = new UUID(im.toAgentID);
+                    UUID recipientID = new(im.toAgentID);
                     ScenePresence recipientAgent = scene.GetScenePresence(recipientID);
                     UUID copyID;
 
@@ -181,15 +181,17 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 
                     if (assetType == AssetType.Folder)
                     {
-                        UUID folderID = new UUID(im.binaryBucket, 1);
+                        UUID folderID = new(im.binaryBucket, 1);
                         if (folderID.IsZero())
                         {
                             client.SendAgentAlertMessage("Can't find folder to give. Nothing given.", false);
                             return;
                         }
 
-                        Dictionary<UUID,AssetType> ids = new Dictionary<UUID, AssetType>();
-                        ids[folderID] = assetType;
+                        Dictionary<UUID,AssetType> ids = new()
+                        {
+                            [folderID] = assetType
+                        };
 
                         if (im.binaryBucket.Length >= 34 && im.binaryBucket.Length % 17 == 0)
                         {
@@ -219,7 +221,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                     }
                     else
                     {
-                        UUID itemID = new UUID(im.binaryBucket, 1);
+                        UUID itemID = new(im.binaryBucket, 1);
                         if (itemID.IsZero())
                         {
                             client.SendAgentAlertMessage("Can't find item to give. Nothing given.", false);
@@ -277,7 +279,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                 }
                 case InstantMessageDialog.InventoryAccepted:
                 {
-                    UUID inventoryID = new UUID(im.imSessionID); // The inventory item/folder, back from it's trip
+                    UUID inventoryID = new(im.imSessionID); // The inventory item/folder, back from it's trip
                     if(inventoryID.IsZero())
                         return;
 
@@ -300,7 +302,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                     if (im.binaryBucket == null || im.binaryBucket.Length < 16)
                         return;
 
-                    UUID destinationFolderID = new UUID(im.binaryBucket, 0);
+                    UUID destinationFolderID = new(im.binaryBucket, 0);
                     if(destinationFolderID.IsZero()) // uuid-zero is a valid folder ID(?) keeping old code assuming not
                         return;
 
@@ -311,7 +313,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                     if(destinationFolder == null)
                         return; // no where to put it
 
-                    UUID inventoryID = new UUID(im.imSessionID); // The inventory item/folder, back from it's trip
+                    UUID inventoryID = new(im.imSessionID); // The inventory item/folder, back from it's trip
                     if(inventoryID.IsZero())
                         return;
 
@@ -325,7 +327,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                         {
                             //previousParentFolderID = item.Folder;
                             item.Folder = destinationFolderID;
-                            invService.MoveItems(item.Owner, new List<InventoryItemBase>() { item });
+                            invService.MoveItems(item.Owner, [item]);
                             client.SendInventoryItemCreateUpdate(item, 0);
                         }
                     }
@@ -356,7 +358,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                         return;
                     }
 
-                    UUID inventoryID = new UUID(im.imSessionID); // The inventory item/folder, back from it's trip
+                    UUID inventoryID = new(im.imSessionID); // The inventory item/folder, back from it's trip
                     if(inventoryID.IsZero())
                     {
                         client.SendAgentAlertMessage("Item or folder not found", false);
@@ -371,7 +373,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                         if (trashFolder.ID != item.Folder)
                         {
                             item.Folder = trashFolder.ID;
-                            invService.MoveItems(item.Owner, new List<InventoryItemBase>() { item });
+                            invService.MoveItems(item.Owner, [item]);
                             client.SendInventoryItemCreateUpdate(item, 0);
                         }
                     }
@@ -417,7 +419,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
         private void OnGridInstantMessage(GridInstantMessage im)
         {
             // Check if this is ours to handle
-            UUID recipientID = new UUID(im.toAgentID);
+            UUID recipientID = new(im.toAgentID);
             Scene scene = FindClientAndScene(recipientID, out ScenePresence user);
 
             if (scene == null)
@@ -444,7 +446,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 
                     if (AssetType.Folder == assetType)
                     {
-                        UUID folderID = new UUID(im.binaryBucket, 1);
+                        UUID folderID = new(im.binaryBucket, 1);
 
                         InventoryFolderBase folder = scene.InventoryService.GetFolder(recipientID, folderID);
 
@@ -456,7 +458,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                     }
                     else
                     {
-                        UUID itemID = new UUID(im.binaryBucket, 1);
+                        UUID itemID = new(im.binaryBucket, 1);
 
                         InventoryItemBase item = scene.InventoryService.GetItem(recipientID, itemID);
 
@@ -483,7 +485,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
 
                     if (AssetType.Folder == assetType)
                     {
-                        UUID folderID = new UUID(im.imSessionID);
+                        UUID folderID = new(im.imSessionID);
                         InventoryFolderBase folder = scene.InventoryService.GetFolder(recipientID, folderID);
 
                         if (folder != null)
@@ -491,7 +493,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                     }
                     else
                     {
-                        UUID itemID = new UUID(im.imSessionID);
+                        UUID itemID = new(im.imSessionID);
                         InventoryItemBase item = scene.InventoryService.GetItem(recipientID, itemID);
 
                         if (item != null)
@@ -500,8 +502,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Transfer
                         }
                     }
 
-                    // Fix up binary bucket since this may be 17 chars long here
-                    Byte[] bucket = new Byte[1];
+                        // Fix up binary bucket since this may be 17 chars long here
+                        byte[] bucket = new byte[1];
                     bucket[0] = im.binaryBucket[0];
                     im.binaryBucket = bucket;
 

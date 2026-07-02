@@ -42,7 +42,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         public BSConstraintCollection(BulletWorld world)
         {
             m_world = world;
-            m_constraints = new List<BSConstraint>();
+            m_constraints = [];
         }
 
         public void Dispose()
@@ -140,7 +140,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         // Return 'true' if any constraints were destroyed.
         public bool RemoveAndDestroyConstraint(BulletBody body1)
         {
-            List<BSConstraint> toRemove = new List<BSConstraint>();
+            List<BSConstraint> toRemove = [];
             uint lookingID = body1.ID;
             lock (m_constraints)
             {

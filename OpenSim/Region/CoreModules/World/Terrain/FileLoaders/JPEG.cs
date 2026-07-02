@@ -111,7 +111,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
             Bitmap bmp;
             Color[] colours;
 
-            using (Bitmap gradientmapLd = new Bitmap("defaultstripe.png"))
+            using (Bitmap gradientmapLd = new("defaultstripe.png"))
             {
                 pallete = gradientmapLd.Height;
 

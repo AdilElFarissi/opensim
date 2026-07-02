@@ -63,9 +63,9 @@ namespace OpenSim.Data.SQLite
 
         public void DeleteOld()
         {
-            using (SQLiteCommand cmd = new SQLiteCommand())
+            using (SQLiteCommand cmd = new())
             {
-                cmd.CommandText = String.Format("delete from {0} where TMStamp < datetime('now', '-2 day') ", m_Realm);
+                cmd.CommandText = string.Format("delete from {0} where TMStamp < datetime('now', '-2 day') ", m_Realm);
 
                 DoQuery(cmd);
             }

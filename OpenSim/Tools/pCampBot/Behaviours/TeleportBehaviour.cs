@@ -66,7 +66,7 @@ namespace pCampBot
 
             Simulator sourceRegion = Bot.Client.Network.CurrentSim;
             GridRegion destRegion = knownRegions[rng.Next(knownRegions.Length)];
-            Vector3 destPosition = new Vector3(rng.Next(255), rng.Next(255), 50);
+            Vector3 destPosition = new(rng.Next(255), rng.Next(255), 50);
 
             m_log.DebugFormat(
                 "[TELEPORT BEHAVIOUR]: Teleporting {0} from {1} {2} to {3} {4}",

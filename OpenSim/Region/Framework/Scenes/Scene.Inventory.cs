@@ -348,13 +348,13 @@ namespace OpenSim.Region.Framework.Scenes
             if (!Permissions.CanEditScript(itemId, primId, remoteClient.AgentId))
             {
                 remoteClient.SendAgentAlertMessage("Insufficient permissions to edit script", false);
-                return new ArrayList();
+                return [];
             }
 
             // Retrieve group
             SceneObjectPart part = GetSceneObjectPart(primId);
             if (part is null)
-                return new ArrayList();
+                return [];
 
             SceneObjectGroup group = part.ParentGroup;
 
@@ -367,7 +367,7 @@ namespace OpenSim.Region.Framework.Scenes
                         + " but the item does not exist in this inventory",
                     itemId, part.Name, part.UUID);
 
-                return new ArrayList();
+                return [];
             }
 
             item.ScriptRunning = isScriptRunning;
@@ -412,7 +412,7 @@ namespace OpenSim.Region.Framework.Scenes
             else
             {
                 m_log.ErrorFormat("[PRIM INVENTORY]: Avatar {0} cannot be found to update its prim item asset", avatarId);
-                return new ArrayList();
+                return [];
             }
         }
 
@@ -850,7 +850,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 if ((item.CurrentPermissions & (uint)PermissionMask.Copy) == 0)
                 {
-                    List<UUID> items = new() { itemId };
+                    List<UUID> items = [itemId];
                     InventoryService.DeleteItems(senderId, items);
                 }
             }
@@ -859,8 +859,8 @@ namespace OpenSim.Region.Framework.Scenes
             return itemCopy;
         }
 
-        private readonly HashSet<short> denyGiveFolderTypes = new()
-            {
+        private readonly HashSet<short> denyGiveFolderTypes =
+            [
                 (short)FolderType.Trash,
                 (short)FolderType.LostAndFound,
                 (short)FolderType.CurrentOutfit,
@@ -868,7 +868,7 @@ namespace OpenSim.Region.Framework.Scenes
                 (short)FolderType.Outbox,
                 (short)FolderType.Suitcase,
                 (short)FolderType.Root
-            };
+            ];
         /// <summary>
         /// Give an entire inventory folder from one user to another.  The entire contents (including all descendent
         /// folders) is given.
@@ -1077,7 +1077,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// </summary>
         public void MoveInventoryItemsLeaveCopy(IClientAPI remoteClient, List<InventoryItemBase> items, UUID destfolder)
         {
-            List<InventoryItemBase> moveitems = new();
+            List<InventoryItemBase> moveitems = [];
             foreach (InventoryItemBase b in items)
             {
                 CopyInventoryItem(remoteClient, 0, remoteClient.AgentId, b.ID, b.Folder, null);
@@ -2219,11 +2219,11 @@ namespace OpenSim.Region.Framework.Scenes
         {
             // First, see of we can perform the requested action and
             // build a list of eligible objects
-            List<uint> deleteIDs = new();
-            List<SceneObjectGroup> deleteGroups = new();
-            List<SceneObjectGroup> takeCopyGroups = new();
-            List<SceneObjectGroup> takeDeleteGroups = new();
-            List<SceneObjectGroup> noPermtakeCopyGroups = new();
+            List<uint> deleteIDs = [];
+            List<SceneObjectGroup> deleteGroups = [];
+            List<SceneObjectGroup> takeCopyGroups = [];
+            List<SceneObjectGroup> takeDeleteGroups = [];
+            List<SceneObjectGroup> noPermtakeCopyGroups = [];
 
             ScenePresence sp = null;
             if(remoteClient is not null)
@@ -2318,7 +2318,7 @@ namespace OpenSim.Region.Framework.Scenes
                     {
                         if (remoteClient is not null)
                         {
-                            if (Permissions.CanReturnObjects( null, remoteClient, new List<SceneObjectGroup>() {grp}))
+                            if (Permissions.CanReturnObjects( null, remoteClient, [grp]))
                             {
                                 takeDeleteGroups.Add(grp);
                                 if (AddToReturns)
@@ -2486,8 +2486,8 @@ namespace OpenSim.Region.Framework.Scenes
             byte[] assetData, bool isAttachment, out List<SceneObjectGroup> objlist, out List<Vector3> veclist,
             out Vector3 bbox, out float offsetHeight)
         {
-            objlist = new List<SceneObjectGroup>();
-            veclist = new List<Vector3>();
+            objlist = [];
+            veclist = [];
             bbox = Vector3.Zero;
             offsetHeight = 0;
 
@@ -2882,7 +2882,7 @@ namespace OpenSim.Region.Framework.Scenes
         public virtual bool returnObjects(SceneObjectGroup[] returnobjects,
                 IClientAPI client)
         {
-            List<uint> localIDs = new();
+            List<uint> localIDs = [];
 
             foreach (SceneObjectGroup grp in returnobjects)
             {
@@ -2925,7 +2925,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
             }
 
-            List<SceneObjectGroup> groups = new();
+            List<SceneObjectGroup> groups = [];
 
             foreach (uint localID in localIDs)
             {
@@ -2992,7 +2992,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void DelinkObjects(List<uint> primIds, IClientAPI client)
         {
-            List<SceneObjectPart> parts = new();
+            List<SceneObjectPart> parts = [];
 
             foreach (uint localID in primIds)
             {
@@ -3027,8 +3027,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="childPrimIds">A list of child prims for the objects that should be linked in.</param>
         public void LinkObjects(UUID agentId, uint parentPrimId, List<uint> childPrimIds)
         {
-            List<UUID> owners = new();
-            List<SceneObjectPart> children = new();
+            List<UUID> owners = [];
+            List<SceneObjectPart> children = [];
             SceneObjectPart root = GetSceneObjectPart(parentPrimId);
 
             if (root is null)

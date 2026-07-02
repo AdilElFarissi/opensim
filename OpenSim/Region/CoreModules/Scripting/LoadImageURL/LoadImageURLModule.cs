@@ -181,7 +181,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
             if(m_proxy is not null)
                 request.Proxy = m_proxy;
 
-            RequestState state = new RequestState(request, requestID);
+            RequestState state = new(request, requestID);
             // IAsyncResult result = request.BeginGetResponse(new AsyncCallback(HttpRequestReturn), state);
             request.BeginGetResponse(HttpRequestReturn, state);
             return true;
@@ -196,7 +196,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
             WebRequest request = (WebRequest) state.Request;
             Stream stream = null;
             byte[] imageJ2000 = Array.Empty<byte>();
-            Size newSize = new Size(0, 0);
+            Size newSize = new(0, 0);
             HttpWebResponse response = null;
 
             try
@@ -209,7 +209,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
                     {
                         try
                         {
-                            using(Bitmap image = new Bitmap(stream))
+                            using(Bitmap image = new(stream))
                             {
                                 // TODO: make this a bit less hard coded
                                 if((image.Height < 64) && (image.Width < 64))
@@ -245,7 +245,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LoadImageURL
 
                                 if(newSize.Width != image.Width || newSize.Height != image.Height)
                                 {
-                                    using(Bitmap resize = new Bitmap(image, newSize))
+                                    using(Bitmap resize = new(image, newSize))
                                      imageJ2000 = OpenJPEG.EncodeFromImage(resize, false);
                                 }
                                 else

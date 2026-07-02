@@ -41,7 +41,7 @@ namespace OpenSim.Region.OptionalModules.World.WorldView
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected WorldViewModule m_WorldViewModule;
-        protected Object m_RequestLock = new Object();
+        protected object m_RequestLock = new();
 
         public WorldViewRequestHandler(WorldViewModule fmodule, string rid)
                 : base("GET", "/worldview/" + rid)
@@ -64,7 +64,7 @@ namespace OpenSim.Region.OptionalModules.World.WorldView
                 lock (m_RequestLock)
                 {
                     Dictionary<string, object> request =
-                            new Dictionary<string, object>();
+                            [];
                     foreach (string name in httpRequest.QueryString)
                         request[name] = httpRequest.QueryString[name];
 
@@ -79,7 +79,7 @@ namespace OpenSim.Region.OptionalModules.World.WorldView
             return Array.Empty<byte>();
         }
 
-        public Byte[] SendWorldView(Dictionary<string, object> request)
+        public byte[] SendWorldView(Dictionary<string, object> request)
         {
             float posX;
             float posY;
@@ -131,8 +131,8 @@ namespace OpenSim.Region.OptionalModules.World.WorldView
                 return Array.Empty<byte>();
             }
 
-            Vector3 pos = new Vector3(posX, posY, posZ);
-            Vector3 rot = new Vector3(rotX, rotY, rotZ);
+            Vector3 pos = new(posX, posY, posZ);
+            Vector3 rot = new(rotX, rotY, rotZ);
 
             return m_WorldViewModule.GenerateWorldView(pos, rot, fov, width,
                     height, usetex);

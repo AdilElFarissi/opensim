@@ -45,16 +45,17 @@ namespace OpenSim.Services.Friends
         public virtual FriendInfo[] GetFriends(UUID PrincipalID)
         {
             FriendsData[] data = m_Database.GetFriends(PrincipalID);
-            List<FriendInfo> info = new List<FriendInfo>();
+            List<FriendInfo> info = [];
 
             foreach (FriendsData d in data)
             {
-                FriendInfo i = new FriendInfo();
-
-                i.PrincipalID = new UUID(d.PrincipalID);
-                i.Friend = d.Friend;
-                i.MyFlags = Convert.ToInt32(d.Data["Flags"]);
-                i.TheirFlags = Convert.ToInt32(d.Data["TheirFlags"]);
+                FriendInfo i = new()
+                {
+                    PrincipalID = new UUID(d.PrincipalID),
+                    Friend = d.Friend,
+                    MyFlags = Convert.ToInt32(d.Data["Flags"]),
+                    TheirFlags = Convert.ToInt32(d.Data["TheirFlags"])
+                };
 
                 info.Add(i);
             }
@@ -65,11 +66,11 @@ namespace OpenSim.Services.Friends
         public virtual FriendInfo[] GetFriends(string PrincipalID)
         {
             FriendsData[] data = m_Database.GetFriends(PrincipalID);
-            List<FriendInfo> info = new List<FriendInfo>();
+            List<FriendInfo> info = [];
 
             foreach (FriendsData d in data)
             {
-                FriendInfo i = new FriendInfo();
+                FriendInfo i = new();
 
                 if (!Util.ParseUniversalUserIdentifier(i.Friend, out UUID friendID))
                     continue; // junk entry
@@ -85,12 +86,15 @@ namespace OpenSim.Services.Friends
 
         public virtual bool StoreFriend(string PrincipalID, string Friend, int flags)
         {
-            FriendsData d = new FriendsData();
-
-            d.PrincipalID = PrincipalID;
-            d.Friend = Friend;
-            d.Data = new Dictionary<string, string>();
-            d.Data["Flags"] = flags.ToString();
+            FriendsData d = new()
+            {
+                PrincipalID = PrincipalID,
+                Friend = Friend,
+                Data = new Dictionary<string, string>
+                {
+                    ["Flags"] = flags.ToString()
+                }
+            };
 
             return m_Database.Store(d);
         }

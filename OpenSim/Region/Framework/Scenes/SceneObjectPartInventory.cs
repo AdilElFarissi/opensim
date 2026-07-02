@@ -48,9 +48,9 @@ namespace OpenSim.Region.Framework.Scenes
         private string m_inventoryFileName = "";
         private uint m_inventoryFileNameSerial = 0;
         private int m_inventoryPrivileged = 0;
-        private object m_inventoryFileLock = new object();
+        private object m_inventoryFileLock = new();
 
-        private Dictionary<UUID, ArrayList> m_scriptErrors = new Dictionary<UUID, ArrayList>();
+        private Dictionary<UUID, ArrayList> m_scriptErrors = [];
 
         /// <value>
         /// The part to which the inventory belongs.
@@ -177,7 +177,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             UUID partID = m_part.UUID;
-            IList<TaskInventoryItem> items = new List<TaskInventoryItem>(m_items.Values);
+            IList<TaskInventoryItem> items = [.. m_items.Values];
             m_items.Clear();
             if(m_scripts == null)
             {
@@ -296,7 +296,7 @@ namespace OpenSim.Region.Framework.Scenes
         private void gatherScriptsAndQueryStates()
         {
             m_items.LockItemsForWrite(true);
-            m_scripts = new Dictionary<UUID, TaskInventoryItem>();
+            m_scripts = [];
             foreach (TaskInventoryItem item in m_items.Values)
             {
                 if (item.InvType == (int)InventoryType.LSL)
@@ -376,7 +376,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_items.LockItemsForRead(false);
                 return 0;
             }
-            List<TaskInventoryItem> scripts = new List<TaskInventoryItem>(m_scripts.Values);
+            List<TaskInventoryItem> scripts = [.. m_scripts.Values];
             m_items.LockItemsForRead(false);
 
             int scriptsValidForStarting = 0;
@@ -391,13 +391,13 @@ namespace OpenSim.Region.Framework.Scenes
         public ArrayList GetScriptErrors(UUID itemID)
         {
             IScriptModule[] scriptEngines = m_part.ParentGroup.Scene.RequestModuleInterfaces<IScriptModule>();
-            ArrayList ret = new ArrayList();
+            ArrayList ret = [];
             foreach (IScriptModule e in scriptEngines)
             {
                 if (e != null)
                 {
                     ArrayList errors = e.GetScriptErrors(itemID);
-                    foreach (Object line in errors)
+                    foreach (object line in errors)
                         ret.Add(line);
                 }
             }
@@ -420,7 +420,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_items.LockItemsForRead(false);
                 return;
             }
-            List<TaskInventoryItem> scripts = new List<TaskInventoryItem>(m_scripts.Values);
+            List<TaskInventoryItem> scripts = [.. m_scripts.Values];
             m_items.LockItemsForRead(false);
 
             foreach (TaskInventoryItem item in scripts)
@@ -441,7 +441,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_items.LockItemsForRead(false);
                 return;
             }
-            List<TaskInventoryItem> scripts = new List<TaskInventoryItem>(m_scripts.Values);
+            List<TaskInventoryItem> scripts = [.. m_scripts.Values];
             m_items.LockItemsForRead(false);
 
             foreach (TaskInventoryItem item in scripts)
@@ -476,7 +476,7 @@ namespace OpenSim.Region.Framework.Scenes
             {
                 m_items.LockItemsForRead(false);
 
-                StoreScriptError(itemID, String.Format("TaskItem ID {0} could not be found", item.ItemID));
+                StoreScriptError(itemID, string.Format("TaskItem ID {0} could not be found", item.ItemID));
                 m_log.ErrorFormat(
                     "[PRIM INVENTORY]: Couldn't start script {0}, {1} at {2} in {3} since taskitem ID {4} could not be found",
                     item.Name, item.ItemID, m_part.AbsolutePosition,
@@ -494,7 +494,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_items.LockItemsForWrite(false);
 
                 m_part.ParentGroup.Scene.EventManager.TriggerRezScript(
-                    m_part.LocalId, itemID, String.Empty, startParam, postOnRez, engine, stateSource);
+                    m_part.LocalId, itemID, string.Empty, startParam, postOnRez, engine, stateSource);
                 StoreScriptErrors(itemID, null);
                 m_part.ParentGroup.AddActiveScriptCount(1);
                 m_part.ScheduleFullUpdate();
@@ -504,7 +504,7 @@ namespace OpenSim.Region.Framework.Scenes
             AssetBase asset = m_part.ParentGroup.Scene.AssetService.Get(item.AssetID.ToString());
             if (asset == null)
             {
-                StoreScriptError(itemID, String.Format("asset ID {0} could not be found", item.AssetID));
+                StoreScriptError(itemID, string.Format("asset ID {0} could not be found", item.AssetID));
                 m_log.ErrorFormat(
                     "[PRIM INVENTORY]: Couldn't start script {0}, {1} at {2} in {3} since asset ID {4} could not be found",
                     item.Name, item.ItemID, m_part.AbsolutePosition,
@@ -546,7 +546,7 @@ namespace OpenSim.Region.Framework.Scenes
                 stateID = loadedID;
             if (m_part.ParentGroup.m_savedScriptState.ContainsKey(stateID))
             {
-                XmlDocument doc = new XmlDocument();
+                XmlDocument doc = new();
                 doc.LoadXml(m_part.ParentGroup.m_savedScriptState[stateID]);
 
                 ////////// CRUFT WARNING ///////////////////////////////////
@@ -560,7 +560,7 @@ namespace OpenSim.Region.Framework.Scenes
                 XmlNode n = doc.SelectSingleNode("ScriptState");
                 if (n != null) // Old format data
                 {
-                    XmlDocument newDoc = new XmlDocument();
+                    XmlDocument newDoc = new();
 
                     XmlElement rootN = newDoc.CreateElement("", "State", "");
                     XmlAttribute uuidA = newDoc.CreateAttribute("", "UUID", "");
@@ -628,7 +628,7 @@ namespace OpenSim.Region.Framework.Scenes
             else
             {
                 m_items.LockItemsForRead(false);
-                string msg = String.Format("couldn't be found for prim {0}, {1} at {2} in {3}", m_part.Name, m_part.UUID,
+                string msg = string.Format("couldn't be found for prim {0}, {1} at {2} in {3}", m_part.Name, m_part.UUID,
                     m_part.AbsolutePosition, m_part.ParentGroup.Scene.RegionInfo.RegionName);
                 StoreScriptError(itemId, msg);
                 m_log.ErrorFormat(
@@ -670,8 +670,7 @@ namespace OpenSim.Region.Framework.Scenes
                         errors = m_scriptErrors[itemId];
                         if (errors == null)
                         {
-                            errors = new ArrayList(1);
-                            errors.Add("timedout waiting for errors");
+                            errors = ["timedout waiting for errors"];
                         }
                         break;
                     }
@@ -711,7 +710,7 @@ namespace OpenSim.Region.Framework.Scenes
             // Get a default non-null value to indicate success.
             if (errors == null)
             {
-                errors = new ArrayList();
+                errors = [];
             }
 
             // Post to CreateScriptInstanceEr() and wake it up
@@ -725,8 +724,7 @@ namespace OpenSim.Region.Framework.Scenes
         // Like StoreScriptErrors(), but just posts a single string message
         private void StoreScriptError(UUID itemId, string message)
         {
-            ArrayList errors = new ArrayList(1);
-            errors.Add(message);
+            ArrayList errors = [message];
             StoreScriptErrors(itemId, errors);
         }
 
@@ -812,8 +810,8 @@ namespace OpenSim.Region.Framework.Scenes
                 return;
             }
 
-            List<UUID> grants = new List<UUID>();
-            List<UUID> items = new List<UUID>();
+            List<UUID> grants = [];
+            List<UUID> items = [];
 
             foreach (TaskInventoryItem item in m_scripts.Values)
             {
@@ -845,8 +843,8 @@ namespace OpenSim.Region.Framework.Scenes
             }
 
             bool removeControl = ((permissions & 4) != 0); //takecontrol
-            List<UUID> grants = new List<UUID>();
-            List<UUID> items = new List<UUID>();
+            List<UUID> grants = [];
+            List<UUID> items = [];
 
             permissions = ~permissions;
             foreach (TaskInventoryItem item in m_scripts.Values)
@@ -887,7 +885,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             bool removeControl = ((permissions & 4) != 0); //takecontrol
             UUID grant = sp.UUID;
-            List<UUID> items = new List<UUID>();
+            List<UUID> items = [];
 
             permissions = ~permissions;
             foreach (TaskInventoryItem item in m_scripts.Values)
@@ -948,12 +946,12 @@ namespace OpenSim.Region.Framework.Scenes
             int suffix=1;
             while (suffix < 256)
             {
-                string tryName=String.Format("{0} {1}", name, suffix);
+                string tryName= string.Format("{0} {1}", name, suffix);
                 if (!InventoryContainsName(tryName))
                     return tryName;
                 suffix++;
             }
-            return String.Empty;
+            return string.Empty;
         }
 
         /// <summary>
@@ -1019,7 +1017,7 @@ namespace OpenSim.Region.Framework.Scenes
             { 
                 if (item.InvType == (int)InventoryType.LSL)
                 {
-                    m_scripts ??= new Dictionary<UUID, TaskInventoryItem>();
+                    m_scripts ??= [];
                     m_scripts[item.ItemID] = item;
                 }
                 m_inventorySerial++;
@@ -1059,7 +1057,7 @@ namespace OpenSim.Region.Framework.Scenes
                 { 
                     if (item.InvType == (int)InventoryType.LSL)
                     {
-                        m_scripts ??= new Dictionary<UUID, TaskInventoryItem>();
+                        m_scripts ??= [];
                         m_scripts[item.ItemID] = item;
                     }
                     nchanges++;
@@ -1364,7 +1362,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_items[item.ItemID] = item;
                 if(item.InvType == (int)InventoryType.LSL)
                 {
-                    m_scripts ??= new Dictionary<UUID, TaskInventoryItem>();
+                    m_scripts ??= [];
                     m_scripts[item.ItemID] = item;
                 }
 
@@ -1636,7 +1634,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public class InventoryStringBuilder
         {
-            private StringBuilder BuildString = new StringBuilder(1024);
+            private StringBuilder BuildString = new(1024);
 
             public InventoryStringBuilder(UUID folderID, UUID parentID)
             {
@@ -1686,7 +1684,7 @@ namespace OpenSim.Region.Framework.Scenes
                 BuildString.Append('\n');
             }
 
-            public String GetString()
+            public string GetString()
             {
                 return BuildString.ToString();
             }
@@ -1811,7 +1809,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_items.LockItemsForRead(false);
                 return 0;
             }
-            List<TaskInventoryItem> scripts = new List<TaskInventoryItem>(m_scripts.Values);
+            List<TaskInventoryItem> scripts = [.. m_scripts.Values];
             m_items.LockItemsForRead(false);
 
             foreach (TaskInventoryItem item in scripts)
@@ -1836,7 +1834,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_items.LockItemsForRead(true);
 
-            List<UUID> ret = new List<UUID>(m_items.Count);
+            List<UUID> ret = new(m_items.Count);
             foreach (TaskInventoryItem item in m_items.Values)
                 ret.Add(item.ItemID);
 
@@ -1847,7 +1845,7 @@ namespace OpenSim.Region.Framework.Scenes
         public List<TaskInventoryItem> GetInventoryItems()
         {
             m_items.LockItemsForRead(true);
-            List<TaskInventoryItem> ret = new List<TaskInventoryItem>(m_items.Values);
+            List<TaskInventoryItem> ret = [.. m_items.Values];
             m_items.LockItemsForRead(false);
 
             return ret;
@@ -1857,7 +1855,7 @@ namespace OpenSim.Region.Framework.Scenes
         {
             m_items.LockItemsForRead(true);
 
-            List<TaskInventoryItem> ret = new List<TaskInventoryItem>(m_items.Count);
+            List<TaskInventoryItem> ret = new(m_items.Count);
             foreach (TaskInventoryItem item in m_items.Values)
                 if (item.InvType == (int)type)
                     ret.Add(item);
@@ -1873,7 +1871,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         public Dictionary<UUID, string> GetScriptStates(bool oldIDs)
         {
-            Dictionary<UUID, string> ret = new Dictionary<UUID, string>();
+            Dictionary<UUID, string> ret = [];
 
             if (m_part.ParentGroup.Scene == null) // Group not in a scene
                 return ret;
@@ -1888,7 +1886,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_items.LockItemsForRead(false);
                 return ret;
             }
-            List<TaskInventoryItem> scripts = new List<TaskInventoryItem>(m_scripts.Values);
+            List<TaskInventoryItem> scripts = [.. m_scripts.Values];
             m_items.LockItemsForRead(false);
 
             foreach (TaskInventoryItem item in scripts)
@@ -1902,7 +1900,7 @@ namespace OpenSim.Region.Framework.Scenes
                         //    e.Name, item.Name, m_part.Name, m_part.ParentGroup.Name, m_part.ParentGroup.Scene.Name);
 
                         string n = e.GetXMLState(item.ItemID);
-                        if (n != String.Empty)
+                        if (n != string.Empty)
                         {
                             if (oldIDs)
                             {
@@ -1934,7 +1932,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_items.LockItemsForRead(false);
                 return;
             }
-            List<TaskInventoryItem> scripts = new List<TaskInventoryItem>(m_scripts.Values);
+            List<TaskInventoryItem> scripts = [.. m_scripts.Values];
             m_items.LockItemsForRead(false);
 
             foreach (TaskInventoryItem item in scripts)
@@ -1951,7 +1949,7 @@ namespace OpenSim.Region.Framework.Scenes
                             continue;
 
                         if (item.OwnerChanged)
-                            engine.PostScriptEvent(item.ItemID, "changed", new Object[] { (int)Changed.OWNER });
+                            engine.PostScriptEvent(item.ItemID, "changed", new object[] { (int)Changed.OWNER });
 
                         item.OwnerChanged = false;
                     }

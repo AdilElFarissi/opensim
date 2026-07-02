@@ -61,17 +61,17 @@ namespace OpenSim.Region.UserStatistics
         /// <summary>
         /// User statistics sessions keyed by agent ID
         /// </summary>
-        private Dictionary<UUID, UserSession> m_sessions = new Dictionary<UUID, UserSession>();
+        private Dictionary<UUID, UserSession> m_sessions = [];
 
-        private List<Scene> m_scenes = new List<Scene>();
-        private Dictionary<string, IStatsController> reports = new Dictionary<string, IStatsController>();
-        private Dictionary<UUID, USimStatsData> m_simstatsCounters = new Dictionary<UUID, USimStatsData>();
+        private List<Scene> m_scenes = [];
+        private Dictionary<string, IStatsController> reports = [];
+        private Dictionary<UUID, USimStatsData> m_simstatsCounters = [];
         private const int updateStatsMod = 6;
         private int updateLogMod = 1;
         private volatile int updateLogCounter = 0;
         private volatile int concurrencyCounter = 0;
         private bool enabled = false;
-        private string m_loglines = String.Empty;
+        private string m_loglines = string.Empty;
         private volatile int lastHit = 12000;
 
         #region ISharedRegionModule
@@ -97,14 +97,14 @@ namespace OpenSim.Region.UserStatistics
             dbConn.Open();
             CreateTables(dbConn);
 
-            Prototype_distributor protodep = new Prototype_distributor();
-            Updater_distributor updatedep = new Updater_distributor();
-            ActiveConnectionsAJAX ajConnections = new ActiveConnectionsAJAX();
-            SimStatsAJAX ajSimStats = new SimStatsAJAX();
-            LogLinesAJAX ajLogLines = new LogLinesAJAX();
-            Default_Report defaultReport = new Default_Report();
-            Clients_report clientReport = new Clients_report();
-            Sessions_Report sessionsReport = new Sessions_Report();
+            Prototype_distributor protodep = new();
+            Updater_distributor updatedep = new();
+            ActiveConnectionsAJAX ajConnections = new();
+            SimStatsAJAX ajSimStats = new();
+            LogLinesAJAX ajLogLines = new();
+            Default_Report defaultReport = new();
+            Clients_report clientReport = new();
+            Sessions_Report sessionsReport = new();
 
             reports.Add("prototype.js", protodep);
             reports.Add("updater.js", updatedep);
@@ -237,19 +237,20 @@ namespace OpenSim.Region.UserStatistics
             int response_code = 200;
             string contenttype = "text/html";
             UpdateUserStats(ParseViewerStats(request["body"].ToString(), UUID.Zero), dbConn);
-            Hashtable responsedata = new Hashtable();
-
-            responsedata["int_response_code"] = response_code;
-            responsedata["content_type"] = contenttype;
-            responsedata["keepalive"] = false;
-            responsedata["str_response_string"] = string.Empty;
+            Hashtable responsedata = new()
+            {
+                ["int_response_code"] = response_code,
+                ["content_type"] = contenttype,
+                ["keepalive"] = false,
+                ["str_response_string"] = string.Empty
+            };
             return responsedata;
         }
 
         private Hashtable HandleStatsRequest(Hashtable request)
         {
             lastHit = System.Environment.TickCount;
-            Hashtable responsedata = new Hashtable();
+            Hashtable responsedata = [];
             string regpath = request["uri"].ToString();
             int response_code = 404;
             string contenttype = "text/html";
@@ -266,7 +267,7 @@ namespace OpenSim.Region.UserStatistics
 
             if (reports.TryGetValue(regpath, out IStatsController rep))
             {
-                Hashtable repParams = new Hashtable();
+                Hashtable repParams = [];
 
                 if (request.ContainsKey("json"))
                     jsonFormatOutput = true;
@@ -329,7 +330,7 @@ namespace OpenSim.Region.UserStatistics
 
         private void CreateTables(SQLiteConnection db)
         {
-            using (SQLiteCommand createcmd = new SQLiteCommand(SQL_STATS_TABLE_CREATE, db))
+            using (SQLiteCommand createcmd = new(SQL_STATS_TABLE_CREATE, db))
             {
                 createcmd.ExecuteNonQuery();
             }
@@ -383,10 +384,12 @@ namespace OpenSim.Region.UserStatistics
                 if (!m_sessions.ContainsKey(agent.UUID))
                 {
                     UserSessionData usd = UserSessionUtil.newUserSessionData();
-                    uid = new UserSession();
-                    uid.name_f = agent.Firstname;
-                    uid.name_l = agent.Lastname;
-                    uid.session_data = usd;
+                    uid = new UserSession
+                    {
+                        name_f = agent.Firstname,
+                        name_l = agent.Lastname,
+                        session_data = usd
+                    };
 
                     m_sessions.Add(agent.UUID, uid);
                 }
@@ -417,11 +420,11 @@ namespace OpenSim.Region.UserStatistics
             int sizeOfChar = encoding.GetByteCount("\n");
             byte[] buffer = encoding.GetBytes("\n");
             string logfile = Util.logFile();
-            FileStream fs = new FileStream(logfile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-            Int64 tokenCount = 0;
-            Int64 endPosition = fs.Length / sizeOfChar;
+            FileStream fs = new(logfile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            long tokenCount = 0;
+            long endPosition = fs.Length / sizeOfChar;
 
-            for (Int64 position = sizeOfChar; position < endPosition; position += sizeOfChar)
+            for (long position = sizeOfChar; position < endPosition; position += sizeOfChar)
             {
                 fs.Seek(-position, SeekOrigin.End);
                 fs.Read(buffer, 0, buffer.Length);
@@ -465,12 +468,12 @@ namespace OpenSim.Region.UserStatistics
 
             UpdateUserStats(ParseViewerStats(request, agentID), dbConn);
 
-            return String.Empty;
+            return string.Empty;
         }
 
         private UserSession ParseViewerStats(string request, UUID agentID)
         {
-            UserSession uid = new UserSession();
+            UserSession uid = new();
             UserSessionData usd;
             OSD message = OSDParser.DeserializeLLSDXml(request);
             OSDMap mmap;
@@ -627,7 +630,7 @@ namespace OpenSim.Region.UserStatistics
 
             lock (db)
             {
-                using (SQLiteCommand updatecmd = new SQLiteCommand(SQL_STATS_TABLE_INSERT, db))
+                using (SQLiteCommand updatecmd = new(SQL_STATS_TABLE_INSERT, db))
                 {
                     updatecmd.Parameters.Add(new SQLiteParameter(":session_id", uid.session_data.session_id.ToString()));
                     updatecmd.Parameters.Add(new SQLiteParameter(":agent_id", uid.session_data.agent_id.ToString()));
@@ -884,7 +887,7 @@ VALUES
 
         public static float ArrayMode_f(float[] arr)
         {
-            List<float> mode = new List<float>();
+            List<float> mode = [];
 
             float[] srtArr = new float[arr.Length];
             float[,] freq = new float[arr.Length, 2];
@@ -939,7 +942,7 @@ VALUES
 
         public static int ArrayMode_i(int[] arr)
         {
-            List<int> mode = new List<int>();
+            List<int> mode = [];
 
             int[] srtArr = new int[arr.Length];
             int[,] freq = new int[arr.Length, 2];
@@ -1043,10 +1046,10 @@ VALUES
             s.f_off_circuit = 0;
             s.f_resent = 0;
             s.f_send_packet = 0;
-            s._ping = new List<float>();
-            s._fps = new List<float>();
-            s._sim_fps = new List<float>();
-            s._agents_in_view = new List<int>();
+            s._ping = [];
+            s._fps = [];
+            s._sim_fps = [];
+            s._agents_in_view = [];
             return s;
         }
     }

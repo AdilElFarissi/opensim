@@ -68,14 +68,14 @@ namespace OpenSim.Server.Handlers.Hypergrid
         }
 
         public UserAgentServerConnector(IConfigSource config, IHttpServer server, IFriendsSimConnector friendsConnector) :
-                base(config, server, String.Empty)
+                base(config, server, string.Empty)
         {
             IConfig gridConfig = config.Configs["UserAgentService"];
             if (gridConfig != null)
             {
                 string serviceDll = gridConfig.GetString("LocalServiceModule", string.Empty);
 
-                Object[] args = new Object[] { config, friendsConnector };
+                object[] args = new object[] { config, friendsConnector };
                 m_HomeUsersService = ServerUtils.LoadPlugin<IUserAgentService>(serviceDll, args);
             }
             if (m_HomeUsersService == null)
@@ -121,7 +121,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
             Vector3 position = Vector3.UnitY, lookAt = Vector3.UnitY;
             GridRegion regInfo = m_HomeUsersService.GetHomeRegion(userID, out position, out lookAt);
 
-            Hashtable hash = new Hashtable();
+            Hashtable hash = [];
             if (regInfo == null)
                 hash["result"] = "false";
             else
@@ -140,8 +140,10 @@ namespace OpenSim.Server.Handlers.Hypergrid
                 hash["position"] = position.ToString();
                 hash["lookAt"] = lookAt.ToString();
             }
-            XmlRpcResponse response = new XmlRpcResponse();
-            response.Value = hash;
+            XmlRpcResponse response = new()
+            {
+                Value = hash
+            };
             return response;
 
         }
@@ -158,10 +160,14 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
             bool success = m_HomeUsersService.IsAgentComingHome(sessionID, gridName);
 
-            Hashtable hash = new Hashtable();
-            hash["result"] = success.ToString();
-            XmlRpcResponse response = new XmlRpcResponse();
-            response.Value = hash;
+            Hashtable hash = new()
+            {
+                ["result"] = success.ToString()
+            };
+            XmlRpcResponse response = new()
+            {
+                Value = hash
+            };
             return response;
 
         }
@@ -178,10 +184,14 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
             bool success = m_HomeUsersService.VerifyAgent(sessionID, token);
 
-            Hashtable hash = new Hashtable();
-            hash["result"] = success.ToString();
-            XmlRpcResponse response = new XmlRpcResponse();
-            response.Value = hash;
+            Hashtable hash = new()
+            {
+                ["result"] = success.ToString()
+            };
+            XmlRpcResponse response = new()
+            {
+                Value = hash
+            };
             return response;
 
         }
@@ -198,10 +208,14 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
             bool success = m_HomeUsersService.VerifyClient(sessionID, token);
 
-            Hashtable hash = new Hashtable();
-            hash["result"] = success.ToString();
-            XmlRpcResponse response = new XmlRpcResponse();
-            response.Value = hash;
+            Hashtable hash = new()
+            {
+                ["result"] = success.ToString()
+            };
+            XmlRpcResponse response = new()
+            {
+                Value = hash
+            };
             return response;
 
         }
@@ -220,10 +234,14 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
             m_HomeUsersService.LogoutAgent(userID, sessionID);
 
-            Hashtable hash = new Hashtable();
-            hash["result"] = "true";
-            XmlRpcResponse response = new XmlRpcResponse();
-            response.Value = hash;
+            Hashtable hash = new()
+            {
+                ["result"] = "true"
+            };
+            XmlRpcResponse response = new()
+            {
+                Value = hash
+            };
             return response;
 
         }
@@ -231,8 +249,10 @@ namespace OpenSim.Server.Handlers.Hypergrid
         [Obsolete]
         public XmlRpcResponse StatusNotification(XmlRpcRequest request, IPEndPoint remoteClient)
         {
-            Hashtable hash = new Hashtable();
-            hash["result"] = "false";
+            Hashtable hash = new()
+            {
+                ["result"] = "false"
+            };
 
             Hashtable requestData = (Hashtable)request.Params[0];
             //string host = (string)requestData["host"];
@@ -242,7 +262,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
                 string userID_str = (string)requestData["userID"];
                 UUID userID = UUID.Zero;
                 UUID.TryParse(userID_str, out userID);
-                List<string> ids = new List<string>();
+                List<string> ids = [];
                 foreach (object key in requestData.Keys)
                 {
                     if (key is string && ((string)key).StartsWith("friend_") && requestData[key] != null)
@@ -267,8 +287,10 @@ namespace OpenSim.Server.Handlers.Hypergrid
 
             }
 
-            XmlRpcResponse response = new XmlRpcResponse();
-            response.Value = hash;
+            XmlRpcResponse response = new()
+            {
+                Value = hash
+            };
             return response;
 
         }
@@ -276,7 +298,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
         [Obsolete]
         public XmlRpcResponse GetOnlineFriends(XmlRpcRequest request, IPEndPoint remoteClient)
         {
-            Hashtable hash = new Hashtable();
+            Hashtable hash = [];
 
             Hashtable requestData = (Hashtable)request.Params[0];
             //string host = (string)requestData["host"];
@@ -286,7 +308,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
                 string userID_str = (string)requestData["userID"];
                 UUID userID = UUID.Zero;
                 UUID.TryParse(userID_str, out userID);
-                List<string> ids = new List<string>();
+                List<string> ids = [];
                 foreach (object key in requestData.Keys)
                 {
                     if (key is string && ((string)key).StartsWith("friend_") && requestData[key] != null)
@@ -307,15 +329,17 @@ namespace OpenSim.Server.Handlers.Hypergrid
                 //    hash["result"] = "No Friends Online";
             }
 
-            XmlRpcResponse response = new XmlRpcResponse();
-            response.Value = hash;
+            XmlRpcResponse response = new()
+            {
+                Value = hash
+            };
             return response;
 
         }
 
         public XmlRpcResponse GetUserInfo(XmlRpcRequest request, IPEndPoint remoteClient)
         {
-            Hashtable hash = new Hashtable();
+            Hashtable hash = [];
             Hashtable requestData = (Hashtable)request.Params[0];
 
             // This needs checking!
@@ -340,14 +364,16 @@ namespace OpenSim.Server.Handlers.Hypergrid
                 }
             }
 
-            XmlRpcResponse response = new XmlRpcResponse();
-            response.Value = hash;
+            XmlRpcResponse response = new()
+            {
+                Value = hash
+            };
             return response;
         }
 
         public XmlRpcResponse GetServerURLs(XmlRpcRequest request, IPEndPoint remoteClient)
         {
-            Hashtable hash = new Hashtable();
+            Hashtable hash = [];
 
             Hashtable requestData = (Hashtable)request.Params[0];
             //string host = (string)requestData["host"];
@@ -368,8 +394,10 @@ namespace OpenSim.Server.Handlers.Hypergrid
                     hash["result"] = "No Service URLs";
             }
 
-            XmlRpcResponse response = new XmlRpcResponse();
-            response.Value = hash;
+            XmlRpcResponse response = new()
+            {
+                Value = hash
+            };
             return response;
 
         }
@@ -383,7 +411,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
         /// <returns></returns>
         public XmlRpcResponse LocateUser(XmlRpcRequest request, IPEndPoint remoteClient)
         {
-            Hashtable hash = new Hashtable();
+            Hashtable hash = [];
 
             bool authorized = true;
             if (m_VerifyCallers)
@@ -416,8 +444,10 @@ namespace OpenSim.Server.Handlers.Hypergrid
                 }
             }
 
-            XmlRpcResponse response = new XmlRpcResponse();
-            response.Value = hash;
+            XmlRpcResponse response = new()
+            {
+                Value = hash
+            };
             return response;
 
         }
@@ -430,7 +460,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
         /// <returns></returns>
         public XmlRpcResponse GetUUI(XmlRpcRequest request, IPEndPoint remoteClient)
         {
-            Hashtable hash = new Hashtable();
+            Hashtable hash = [];
 
             Hashtable requestData = (Hashtable)request.Params[0];
             //string host = (string)requestData["host"];
@@ -451,8 +481,10 @@ namespace OpenSim.Server.Handlers.Hypergrid
                     hash["result"] = "User unknown";
             }
 
-            XmlRpcResponse response = new XmlRpcResponse();
-            response.Value = hash;
+            XmlRpcResponse response = new()
+            {
+                Value = hash
+            };
             return response;
         }
 
@@ -464,7 +496,7 @@ namespace OpenSim.Server.Handlers.Hypergrid
         /// <returns></returns>
         public XmlRpcResponse GetUUID(XmlRpcRequest request, IPEndPoint remoteClient)
         {
-            Hashtable hash = new Hashtable();
+            Hashtable hash = [];
 
             Hashtable requestData = (Hashtable)request.Params[0];
             //string host = (string)requestData["host"];
@@ -477,8 +509,10 @@ namespace OpenSim.Server.Handlers.Hypergrid
                 hash["UUID"] = uuid.ToString();
             }
 
-            XmlRpcResponse response = new XmlRpcResponse();
-            response.Value = hash;
+            XmlRpcResponse response = new()
+            {
+                Value = hash
+            };
             return response;
         }
     }

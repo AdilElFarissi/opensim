@@ -299,18 +299,18 @@ namespace OpenSim.Region.Framework.Scenes
         private byte[] m_TextureAnimation;
         private byte m_clickAction;
         private Color m_color = Color.Black;
-        private List<uint> m_lastColliders = new List<uint>();
+        private List<uint> m_lastColliders = [];
         private bool m_lastLandCollide;
         private int m_linkNum;
 
         private int m_scriptAccessPin;
 
-        private Dictionary<UUID, scriptEvents> m_scriptEvents = new Dictionary<UUID, scriptEvents>();
+        private Dictionary<UUID, scriptEvents> m_scriptEvents = [];
         private Quaternion m_sitTargetOrientation = Quaternion.Identity;
         private Vector3 m_sitTargetPosition;
         private string m_sitAnimation = "SIT";
         private UndoRedoState m_UndoRedo = null;
-        private readonly object m_UndoLock = new object();
+        private readonly object m_UndoLock = new();
 
         private bool m_passTouches = false;
         private bool m_passCollisions = false;
@@ -401,7 +401,7 @@ namespace OpenSim.Region.Framework.Scenes
             LastColSoundSentTime = Util.EnvironmentTickCount();
         }
 
-        public static osUTF8 defaultName = new osUTF8("Object", true);
+        public static osUTF8 defaultName = new("Object", true);
         /// <summary>
         /// Create a completely new SceneObjectPart (prim).  This will need to be added separately to a SceneObjectGroup
         /// </summary>
@@ -486,7 +486,7 @@ namespace OpenSim.Region.Framework.Scenes
         private byte _objectSaleType;
         private int _salePrice;
         private uint _category;
-        private Int32 _creationDate;
+        private int _creationDate;
         private uint _parentID = 0;
         private uint _baseMask = (uint)(PermissionMask.All | PermissionMask.Export);
         private uint _ownerMask = (uint)(PermissionMask.All | PermissionMask.Export);
@@ -744,7 +744,7 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_TextureAnimation = value; }
         }
 
-        public Byte[] ParticleSystem
+        public byte[] ParticleSystem
         {
             get
             {
@@ -1224,7 +1224,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        private readonly object UpdateFlagLock = new object();
+        private readonly object UpdateFlagLock = new();
 
         /// <summary>
         /// Used for media on a prim.
@@ -1534,7 +1534,7 @@ namespace OpenSim.Region.Framework.Scenes
             set { m_sitAnimation = value; }
         }
 
-        public readonly UUID invalidCollisionSoundUUID = new UUID("ffffffff-ffff-ffff-ffff-ffffffffffff");
+        public readonly UUID invalidCollisionSoundUUID = new("ffffffff-ffff-ffff-ffff-ffffffffffff");
 
         // 0 for default collision sounds, -1 for script disabled sound 1 for script defined sound
         // runtime thing.. do not persist
@@ -2229,7 +2229,7 @@ namespace OpenSim.Region.Framework.Scenes
             if (userExposed)
                 dupe.UUID = UUID.Random();
 
-            dupe.m_scriptEvents = new Dictionary<UUID, scriptEvents>();
+            dupe.m_scriptEvents = [];
 
             dupe.PhysActor = null;
 
@@ -2290,7 +2290,7 @@ namespace OpenSim.Region.Framework.Scenes
                 Shape.RenderMaterials.overrides.CopyTo(dupe.Shape.RenderMaterials.overrides,0);
             }
 
-            dupe.m_sittingAvatars = new HashSet<ScenePresence>();
+            dupe.m_sittingAvatars = [];
             dupe.SitTargetAvatar = UUID.Zero;
             // safeguard  actual copy is done in sog.copy
             dupe.KeyframeMotion = null;
@@ -2479,7 +2479,7 @@ namespace OpenSim.Region.Framework.Scenes
         public uint AggregatedInnerOwnerPerms {get; private set; }
         public uint AggregatedInnerGroupPerms {get; private set; }
         public uint AggregatedInnerEveryonePerms {get; private set; }
-        private readonly object InnerPermsLock = new object();
+        private readonly object InnerPermsLock = new();
 
         public void AggregateInnerPerms()
         {
@@ -2687,7 +2687,7 @@ namespace OpenSim.Region.Framework.Scenes
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private DetectedObject CreateDetObject(ScenePresence av)
         {
-            DetectedObject detobj = new DetectedObject()
+            DetectedObject detobj = new()
             {
                 keyUUID = av.UUID,
                 nameStr = av.ControllingClient.Name,
@@ -2725,8 +2725,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         private ColliderArgs CreateColliderArgs(SceneObjectPart dest, List<uint> colliders)
         {
-            ColliderArgs colliderArgs = new ColliderArgs();
-            List<DetectedObject> colliding = new List<DetectedObject>();
+            ColliderArgs colliderArgs = new();
+            List<DetectedObject> colliding = [];
             Scene parentScene = ParentGroup.Scene;
             foreach (uint localId in colliders)
             {
@@ -2785,10 +2785,12 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void SendLandCollisionEvent(scriptEvents ev, ScriptCollidingNotification notify)
         {
-            ColliderArgs LandCollidingMessage = new ColliderArgs();
-            LandCollidingMessage.Colliders = new List<DetectedObject>()
+            ColliderArgs LandCollidingMessage = new()
             {
-                CreateDetObjectForGround()
+                Colliders =
+                [
+                    CreateDetObjectForGround()
+                ]
             };
 
             if ((ScriptEvents & ev) != 0)
@@ -2835,15 +2837,15 @@ namespace OpenSim.Region.Framework.Scenes
             bool thisHitLand = false;
             bool startLand = false;
 
-            List<uint> thisHitColliders = new List<uint>(ncollisions);
-            List<uint> endedColliders = new List<uint>(m_lastColliders.Count);
-            List<uint> startedColliders = new List<uint>(ncollisions);
+            List<uint> thisHitColliders = new(ncollisions);
+            List<uint> endedColliders = new(m_lastColliders.Count);
+            List<uint> startedColliders = new(ncollisions);
 
             // calculate things that started colliding this time
             // and build up list of colliders this time
             if (!VolumeDetectActive && CollisionSoundType >= 0)
             {
-                List<CollisionForSoundInfo> soundinfolist = new List<CollisionForSoundInfo>();
+                List<CollisionForSoundInfo> soundinfolist = [];
                 CollisionForSoundInfo soundinfo;
                 ContactPoint curcontact;
 
@@ -3728,8 +3730,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             // The only way to get a deep copy/ If we don't do this, we can
             // never detect color changes further down.
-            Byte[] buf = Shape.Textures.GetBytes();
-            Primitive.TextureEntry tex = new Primitive.TextureEntry(buf, 0, buf.Length);
+            byte[] buf = Shape.Textures.GetBytes();
+            Primitive.TextureEntry tex = new(buf, 0, buf.Length);
             Color4 texcolor;
             int nsides = GetNumberOfSides();
             if (face >= 0 && face < nsides)
@@ -4348,7 +4350,7 @@ namespace OpenSim.Region.Framework.Scenes
                 //distance[i] = (normals[i].X * AmBa.X + normals[i].Y * AmBa.Y + normals[i].Z * AmBa.Z) * -1;
             }
 
-            EntityIntersection result = new EntityIntersection()
+            EntityIntersection result = new()
             {
                 distance = 1024
             };
@@ -4495,7 +4497,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="xmlWriter"></param>
         public void ToXml(XmlTextWriter xmlWriter)
         {
-            SceneObjectSerializer.SOPToXml2(xmlWriter, this, new Dictionary<string, object>());
+            SceneObjectSerializer.SOPToXml2(xmlWriter, this, []);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -5035,7 +5037,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="serializedTextureEntry"></param>
         public void UpdateTextureEntry(byte[] serializedTextureEntry)
         {
-            Primitive.TextureEntry newTex = new Primitive.TextureEntry(serializedTextureEntry, 0, serializedTextureEntry.Length);
+            Primitive.TextureEntry newTex = new(serializedTextureEntry, 0, serializedTextureEntry.Length);
             Primitive.TextureEntry oldTex = Shape.Textures;
 
             Changed changeFlags = 0;
@@ -5375,7 +5377,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// Logs the prim's permissions. Useful when debugging permission problems.
         /// </summary>
         /// <param name="message"></param>
-        private void LogPermissions(String message)
+        private void LogPermissions(string message)
         {
             PermissionsUtil.LogPermissions(Name, message, BaseMask, OwnerMask, NextOwnerMask);
         }
@@ -5476,7 +5478,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (IsSitTargetSet && SitTargetAvatar.IsZero())
                     SitTargetAvatar = sp.UUID;
 
-                m_sittingAvatars ??= new HashSet<ScenePresence>();
+                m_sittingAvatars ??= [];
 
                 if (m_sittingAvatars.Add(sp))
                 {
@@ -5534,7 +5536,7 @@ namespace OpenSim.Region.Framework.Scenes
                 if (m_sittingAvatars == null)
                     return null;
                 else
-                    return new HashSet<ScenePresence>(m_sittingAvatars);
+                    return [.. m_sittingAvatars];
             }
         }
 
@@ -5602,7 +5604,7 @@ namespace OpenSim.Region.Framework.Scenes
             }
         }
 
-        private readonly object animsLock = new object();
+        private readonly object animsLock = new();
         public Dictionary<UUID, int> Animations = null;
         public Dictionary<UUID, string> AnimationsNames = null;
 
@@ -5695,8 +5697,8 @@ namespace OpenSim.Region.Framework.Scenes
             }
             else
             {
-                Animations = new Dictionary<UUID, int>();
-                AnimationsNames = new Dictionary<UUID, string>();
+                Animations = [];
+                AnimationsNames = [];
             }
             ScheduleUpdate(PrimUpdateFlags.Animations);
             return ret;
@@ -5769,8 +5771,8 @@ namespace OpenSim.Region.Framework.Scenes
 
             if (data.Length < 2)
             {
-                Animations = new Dictionary<UUID, int>();
-                AnimationsNames = new Dictionary<UUID, string>();
+                Animations = [];
+                AnimationsNames = [];
                 return;
             }
 

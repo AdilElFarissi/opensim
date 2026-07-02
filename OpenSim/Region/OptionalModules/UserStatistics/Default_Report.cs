@@ -56,9 +56,11 @@ namespace OpenSim.Region.UserStatistics
             mData.sim_stat_data = (Dictionary<UUID,USimStatsData>)pParams["SimStats"];
             mData.stats_reports = (Dictionary<string, IStatsController>) pParams["Reports"];
 
-            Hashtable nh = new Hashtable();
-            nh.Add("hdata", mData);
-            nh.Add("Reports", pParams["Reports"]);
+            Hashtable nh = new()
+            {
+                { "hdata", mData },
+                { "Reports", pParams["Reports"] }
+            };
 
             return nh;
         }
@@ -75,7 +77,7 @@ namespace OpenSim.Region.UserStatistics
         {
 
 
-            StringBuilder output = new StringBuilder();
+            StringBuilder output = new();
 
 
 
@@ -202,15 +204,17 @@ TD.align_top { vertical-align: top; }
 
         public stats_default_page_values rep_DefaultReport_data(SQLiteConnection db, List<Scene> m_scene)
         {
-            stats_default_page_values returnstruct = new stats_default_page_values();
-            returnstruct.all_scenes = m_scene.ToArray();
+            stats_default_page_values returnstruct = new()
+            {
+                all_scenes = m_scene.ToArray()
+            };
             lock (db)
             {
                 string SQL = @"SELECT COUNT(DISTINCT agent_id) as agents, COUNT(*) as sessions, AVG(avg_fps) as client_fps,
                                 AVG(avg_sim_fps) as savg_sim_fps, AVG(avg_ping) as sav_ping, SUM(n_out_kb) as num_in_kb,
                                 SUM(n_out_pk) as num_in_packets, SUM(n_in_kb) as num_out_kb, SUM(n_in_pk) as num_out_packets, AVG(mem_use) as sav_mem_use
                                 FROM stats_session_data;";
-                SQLiteCommand cmd = new SQLiteCommand(SQL, db);
+                SQLiteCommand cmd = new(SQL, db);
                 SQLiteDataReader sdr = cmd.ExecuteReader();
                 if (sdr.HasRows)
                 {
@@ -246,15 +250,17 @@ TD.align_top { vertical-align: top; }
         public string RenderJson(Hashtable pModelResult) {
             stats_default_page_values values = (stats_default_page_values) pModelResult["hdata"];
 
-            OSDMap summaryInfo = new OSDMap();
-            summaryInfo.Add("totalUsers", new OSDString(values.total_num_users.ToString()));
-            summaryInfo.Add("totalSessions", new OSDString(values.total_num_sessions.ToString()));
-            summaryInfo.Add("averageClientFPS", new OSDString(values.avg_client_fps.ToString()));
-            summaryInfo.Add("averageClientMem", new OSDString(values.avg_client_mem_use.ToString()));
-            summaryInfo.Add("averageSimFPS", new OSDString(values.avg_sim_fps.ToString()));
-            summaryInfo.Add("averagePingTime", new OSDString(values.avg_ping.ToString()));
-            summaryInfo.Add("totalKBOut", new OSDString(values.total_kb_out.ToString()));
-            summaryInfo.Add("totalKBIn", new OSDString(values.total_kb_in.ToString()));
+            OSDMap summaryInfo = new()
+            {
+                { "totalUsers", new OSDString(values.total_num_users.ToString()) },
+                { "totalSessions", new OSDString(values.total_num_sessions.ToString()) },
+                { "averageClientFPS", new OSDString(values.avg_client_fps.ToString()) },
+                { "averageClientMem", new OSDString(values.avg_client_mem_use.ToString()) },
+                { "averageSimFPS", new OSDString(values.avg_sim_fps.ToString()) },
+                { "averagePingTime", new OSDString(values.avg_ping.ToString()) },
+                { "totalKBOut", new OSDString(values.total_kb_out.ToString()) },
+                { "totalKBIn", new OSDString(values.total_kb_in.ToString()) }
+            };
             return summaryInfo.ToString();
         }
     }

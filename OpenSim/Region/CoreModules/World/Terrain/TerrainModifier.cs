@@ -48,16 +48,18 @@ namespace OpenSim.Region.CoreModules.World.Terrain
 
         public abstract float operate(float[,] map, TerrainModifierData data, int x, int y);
 
-        protected String parseParameters(string[] args, out TerrainModifierData data)
+        protected string parseParameters(string[] args, out TerrainModifierData data)
         {
             string val;
             string arg;
             string result;
-            data = new TerrainModifierData();
-            data.shape = String.Empty;
-            data.bevel = String.Empty;
-            data.dx = 0;
-            data.dy = 0;
+            data = new TerrainModifierData
+            {
+                shape = string.Empty,
+                bevel = string.Empty,
+                dx = 0,
+                dy = 0
+            };
             if (args.Length < 4)
             {
                 result = "Usage: " + GetUsage();
@@ -75,7 +77,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                     // check for shape
                     if (arg.StartsWith("-rec=") || arg.StartsWith("-ell="))
                     {
-                        if (data.shape != String.Empty)
+                        if (data.shape != string.Empty)
                         {
                             result = "Only 1 '-rec' or '-ell' parameter is permitted.";
                         }
@@ -86,7 +88,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                             string[] coords = val.Split(Util.SplitCommaArray);
                             if ((coords.Length < 3) || (coords.Length > 4))
                             {
-                                result = String.Format("Bad format for shape parameter {0}", arg);
+                                result = string.Format("Bad format for shape parameter {0}", arg);
                             }
                             else
                             {
@@ -119,14 +121,14 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                                 }
                                 else
                                 {
-                                    result = String.Format("Bad value in shape parameters {0}", arg);
+                                    result = string.Format("Bad value in shape parameters {0}", arg);
                                 }
                             }
                         }
                     }
                     else if (arg.StartsWith("-taper="))
                     {
-                        if (data.bevel != String.Empty)
+                        if (data.bevel != string.Empty)
                         {
                             result = "Only 1 '-taper' parameter is permitted.";
                         }
@@ -135,22 +137,22 @@ namespace OpenSim.Region.CoreModules.World.Terrain
                             data.bevel = "taper";
                             val = arg.Substring(arg.IndexOf("=") + 1);
                             result = this.parseFloat(val, out data.bevelevation);
-                            if (result != String.Empty)
+                            if (result != string.Empty)
                             {
-                                result = String.Format("Bad format for taper parameter {0}", arg);
+                                result = string.Format("Bad format for taper parameter {0}", arg);
                             }
                         }
                     }
                     else
                     {
-                        result = String.Format("Unrecognized parameter {0}", arg);
+                        result = string.Format("Unrecognized parameter {0}", arg);
                     }
                 }
             }
             return result;
         }
 
-        protected string parseFloat(String s, out float f)
+        protected string parseFloat(string s, out float f)
         {
             if (float.TryParse(s, out f))
                 return string.Empty;
@@ -159,9 +161,9 @@ namespace OpenSim.Region.CoreModules.World.Terrain
             return string.Format("{0} is invalid", s);
         }
 
-        protected string parseInt(String s, out int i)
+        protected string parseInt(string s, out int i)
         {
-            if (Int32.TryParse(s, out i))
+            if (int.TryParse(s, out i))
                 return string.Empty;
 
             return string.Format("{0} is invalid", s);

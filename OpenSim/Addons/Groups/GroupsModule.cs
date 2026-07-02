@@ -47,7 +47,7 @@ namespace OpenSim.Groups
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private List<Scene> m_sceneList = new List<Scene>();
+        private List<Scene> m_sceneList = [];
 
         private IMessageTransferModule m_msgTransferModule = null;
 
@@ -359,7 +359,7 @@ namespace OpenSim.Groups
             // Group invitations
             if ((im.dialog == (byte)InstantMessageDialog.GroupInvitationAccept) || (im.dialog == (byte)InstantMessageDialog.GroupInvitationDecline))
             {
-                UUID inviteID = new UUID(im.imSessionID);
+                UUID inviteID = new(im.imSessionID);
                 GroupInviteInfo inviteInfo = m_groupData.GetAgentToGroupInvite(remoteAgentIDstr, inviteID);
 
                 if (inviteInfo == null)
@@ -370,7 +370,7 @@ namespace OpenSim.Groups
 
                 //m_log.DebugFormat("[XXX]: Invite is for Agent {0} to Group {1}.", inviteInfo.AgentID, inviteInfo.GroupID);
 
-                UUID fromAgentID = new UUID(im.fromAgentID);
+                UUID fromAgentID = new(im.fromAgentID);
                 UUID invitee = UUID.Zero;
                 string tmp = string.Empty;
                 Util.ParseUniversalUserIdentifier(inviteInfo.AgentID, out invitee, out tmp, out tmp, out tmp, out tmp);
@@ -387,20 +387,22 @@ namespace OpenSim.Groups
                             remoteClient.SendAgentAlertMessage("Unable to add you to the group: " + reason, false);
                         else
                         {
-                            GridInstantMessage msg = new GridInstantMessage();
-                            msg.imSessionID = UUID.Zero.Guid;
-                            msg.fromAgentID = UUID.Zero.Guid;
-                            msg.toAgentID = invitee.Guid;
-                            msg.timestamp = (uint)Util.UnixTimeSinceEpoch();
-                            msg.fromAgentName = "Groups";
-                            msg.message = string.Format("You have been added to the group.");
-                            msg.dialog = (byte)OpenMetaverse.InstantMessageDialog.MessageBox;
-                            msg.fromGroup = false;
-                            msg.offline = (byte)0;
-                            msg.ParentEstateID = 0;
-                            msg.Position = Vector3.Zero;
-                            msg.RegionID = UUID.Zero.Guid;
-                            msg.binaryBucket = Array.Empty<byte>();
+                            GridInstantMessage msg = new()
+                            {
+                                imSessionID = UUID.Zero.Guid,
+                                fromAgentID = UUID.Zero.Guid,
+                                toAgentID = invitee.Guid,
+                                timestamp = (uint)Util.UnixTimeSinceEpoch(),
+                                fromAgentName = "Groups",
+                                message = string.Format("You have been added to the group."),
+                                dialog = (byte)OpenMetaverse.InstantMessageDialog.MessageBox,
+                                fromGroup = false,
+                                offline = (byte)0,
+                                ParentEstateID = 0,
+                                Position = Vector3.Zero,
+                                RegionID = UUID.Zero.Guid,
+                                binaryBucket = Array.Empty<byte>()
+                            };
 
                             OutgoingInstantMessage(msg, invitee);
                             IClientAPI inviteeClient = GetActiveRootClient(invitee);
@@ -431,7 +433,7 @@ namespace OpenSim.Groups
                 if (!m_groupNoticesEnabled)
                     return;
 
-                UUID GroupID = new UUID(im.toAgentID);
+                UUID GroupID = new(im.toAgentID);
                 GroupMembershipData grpMemberData = m_groupData.GetAgentGroupMembership(remoteAgentIDstr, remoteAgentIDstr, GroupID);
                 if (grpMemberData == null)
                 {
@@ -520,7 +522,7 @@ namespace OpenSim.Groups
                 if (!m_groupNoticesEnabled)
                     return;
 
-                UUID noticeID = new UUID(im.imSessionID);
+                UUID noticeID = new(im.imSessionID);
 
                 if (m_debugEnabled)
                     m_log.DebugFormat("[xmlGROUPS]: Accepted notice {0} for {1}", noticeID, remoteClient.AgentId);
@@ -551,7 +553,7 @@ namespace OpenSim.Groups
                 }
 
                 string tmp;
-                UUID giver = new UUID(im.toAgentID);
+                UUID giver = new(im.toAgentID);
                 Util.ParseUniversalUserIdentifier(notice.noticeData.AttachmentOwnerID, out giver, out tmp, out tmp, out tmp, out tmp);
 
                 m_log.DebugFormat("[Groups]: Giving inventory from {0} to {1}", giver, remoteClient.AgentId);
@@ -574,7 +576,7 @@ namespace OpenSim.Groups
                 if (!m_groupNoticesEnabled)
                     return;
 
-                UUID noticeID = new UUID(im.imSessionID);
+                UUID noticeID = new(im.imSessionID);
 
                 if (m_debugEnabled)
                     m_log.DebugFormat("[GROUPS]: Accepted notice {0} for {1}", noticeID, remoteAgentIDstr);
@@ -602,7 +604,7 @@ namespace OpenSim.Groups
                 if (m_debugEnabled)
                     m_log.DebugFormat("[xmlGroups]: Deny inventory from {0} to {1}", giver, remoteAgentIDstr);
 
-                string message = String.Empty;
+                string message = string.Empty;
 
                 InventoryItemBase itemCopy = scene.InventoryService.GetItem(remoteAgentID, attachmentUUID);
                 if (itemCopy == null)
@@ -619,7 +621,7 @@ namespace OpenSim.Groups
                     return;
 
                 itemCopy.Folder = trash.ID;
-                scene.InventoryService.MoveItems(itemCopy.Owner, new List<InventoryItemBase>() { itemCopy });
+                scene.InventoryService.MoveItems(itemCopy.Owner, [itemCopy]);
 
                 if (itemCopy == null)
                 {
@@ -642,7 +644,7 @@ namespace OpenSim.Groups
                 // if it's being delivered here, then the ejectee is here
                 // so we need to send local updates to the agent.
 
-                UUID ejecteeID = new UUID(im.toAgentID);
+                UUID ejecteeID = new(im.toAgentID);
 
                 im.imSessionID = UUID.Zero.Guid;
                 im.dialog = (byte)InstantMessageDialog.MessageFromAgent;
@@ -651,7 +653,7 @@ namespace OpenSim.Groups
                 IClientAPI ejectee = GetActiveRootClient(ejecteeID);
                 if (ejectee != null)
                 {
-                    UUID groupID = new UUID(im.imSessionID);
+                    UUID groupID = new(im.imSessionID);
                     ejectee.SendAgentDropGroup(groupID);
                     SendAgentGroupDataUpdate(ejectee,true);
                 }
@@ -672,7 +674,7 @@ namespace OpenSim.Groups
                 {
                     case (byte)InstantMessageDialog.GroupInvitation:
                     case (byte)InstantMessageDialog.GroupNotice:
-                        UUID toAgentID = new UUID(msg.toAgentID);
+                        UUID toAgentID = new(msg.toAgentID);
                         IClientAPI localClient = GetActiveRootClient(toAgentID);
                         if (localClient != null)
                         {
@@ -722,11 +724,13 @@ namespace OpenSim.Groups
             List<GroupRolesData> agentRoles = m_groupData.GetAgentGroupRoles(GetRequestingAgentIDStr(remoteClient), GetRequestingAgentIDStr(remoteClient), groupID);
             GroupMembershipData agentMembership = m_groupData.GetAgentGroupMembership(GetRequestingAgentIDStr(remoteClient), GetRequestingAgentIDStr(remoteClient), groupID);
 
-            List<GroupTitlesData> titles = new List<GroupTitlesData>();
+            List<GroupTitlesData> titles = [];
             foreach (GroupRolesData role in agentRoles)
             {
-                GroupTitlesData title = new GroupTitlesData();
-                title.Name = role.Name;
+                GroupTitlesData title = new()
+                {
+                    Name = role.Name
+                };
                 if (agentMembership != null)
                 {
                     title.Selected = agentMembership.ActiveRole == role.RoleID;
@@ -812,7 +816,7 @@ namespace OpenSim.Groups
         {
             if (m_debugEnabled) m_log.DebugFormat("[Groups]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
-            GroupProfileData profile = new GroupProfileData();
+            GroupProfileData profile = new();
 
             // just to get the OwnerRole...
             ExtendedGroupRecord groupInfo = m_groupData.GetGroupRecord(GetRequestingAgentIDStr(remoteClient), groupID, string.Empty);
@@ -904,7 +908,7 @@ namespace OpenSim.Groups
             {
                 if (avatar.GodController.UserLevel < m_levelGroupCreate)
                 {
-                    remoteClient.SendCreateGroupReply(UUID.Zero, false, String.Format("Insufficient permissions to create a group. Requires level {0}", m_levelGroupCreate));
+                    remoteClient.SendCreateGroupReply(UUID.Zero, false, string.Format("Insufficient permissions to create a group. Requires level {0}", m_levelGroupCreate));
                     return UUID.Zero;
                 }
             }
@@ -948,7 +952,7 @@ namespace OpenSim.Groups
             // ToDo: check if agent is a member of group and is allowed to see notices?
 
             List<ExtendedGroupNoticeData> notices = m_groupData.GetGroupNotices(GetRequestingAgentIDStr(remoteClient), groupID);
-            List<GroupNoticeData> os_notices = new List<GroupNoticeData>();
+            List<GroupNoticeData> os_notices = [];
             foreach (ExtendedGroupNoticeData n in notices)
             {
                 GroupNoticeData osn = n.ToGroupNoticeData();
@@ -1069,7 +1073,7 @@ namespace OpenSim.Groups
         {
             if (m_debugEnabled) m_log.DebugFormat("[Groups]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
-            GridInstantMessage msg = new GridInstantMessage();
+            GridInstantMessage msg = new();
             byte[] bucket;
 
             msg.imSessionID = groupNoticeID.Guid;
@@ -1234,7 +1238,7 @@ namespace OpenSim.Groups
 
             string ejecteeName;
             // Send Message to Ejectee
-            GridInstantMessage msg = new GridInstantMessage();
+            GridInstantMessage msg = new();
 
             // if local send a normal message
             if(ejecteeClient != null)
@@ -1279,20 +1283,22 @@ namespace OpenSim.Groups
             }
 
             // Message to ejector
-            msg = new GridInstantMessage();
-            msg.imSessionID = UUID.Zero.Guid;
-            msg.fromAgentID = agentID.Guid;
-            msg.toAgentID = agentID.Guid;
-            msg.timestamp = 0;
-            msg.fromAgentName = agentName;
-            msg.message = string.Format("{2} has been ejected from '{1}' by {0}.", agentName, groupInfo.GroupName, ejecteeName);
-            msg.dialog = (byte)OpenMetaverse.InstantMessageDialog.MessageFromAgent;
-            msg.fromGroup = false;
-            msg.offline = (byte)0;
-            msg.ParentEstateID = 0;
-            msg.Position = Vector3.Zero;
-            msg.RegionID = regionInfo.RegionID.Guid;
-            msg.binaryBucket = Array.Empty<byte>();
+            msg = new GridInstantMessage
+            {
+                imSessionID = UUID.Zero.Guid,
+                fromAgentID = agentID.Guid,
+                toAgentID = agentID.Guid,
+                timestamp = 0,
+                fromAgentName = agentName,
+                message = string.Format("{2} has been ejected from '{1}' by {0}.", agentName, groupInfo.GroupName, ejecteeName),
+                dialog = (byte)OpenMetaverse.InstantMessageDialog.MessageFromAgent,
+                fromGroup = false,
+                offline = (byte)0,
+                ParentEstateID = 0,
+                Position = Vector3.Zero,
+                RegionID = regionInfo.RegionID.Guid,
+                binaryBucket = Array.Empty<byte>()
+            };
             OutgoingInstantMessage(msg, agentID);
         }
 
@@ -1324,24 +1330,25 @@ namespace OpenSim.Groups
                 {
                     Guid inviteUUID = InviteID.Guid;
 
-                    GridInstantMessage msg = new GridInstantMessage();
+                    GridInstantMessage msg = new()
+                    {
+                        imSessionID = inviteUUID,
 
-                    msg.imSessionID = inviteUUID;
-
-                    // msg.fromAgentID = agentID.Guid;
-                    msg.fromAgentID = groupID.Guid;
-                    msg.toAgentID = invitedAgentID.Guid;
-                    //msg.timestamp = (uint)Util.UnixTimeSinceEpoch();
-                    msg.timestamp = 0;
-                    msg.fromAgentName = agentName;
-                    msg.message = string.Format("{0} has invited you to join a group called {1}. There is no cost to join this group.", agentName, group.GroupName);
-                    msg.dialog = (byte)OpenMetaverse.InstantMessageDialog.GroupInvitation;
-                    msg.fromGroup = true;
-                    msg.offline = (byte)0;
-                    msg.ParentEstateID = 0;
-                    msg.Position = Vector3.Zero;
-                    msg.RegionID = regionInfo.RegionID.Guid;
-                    msg.binaryBucket = new byte[20];
+                        // msg.fromAgentID = agentID.Guid;
+                        fromAgentID = groupID.Guid,
+                        toAgentID = invitedAgentID.Guid,
+                        //msg.timestamp = (uint)Util.UnixTimeSinceEpoch();
+                        timestamp = 0,
+                        fromAgentName = agentName,
+                        message = string.Format("{0} has invited you to join a group called {1}. There is no cost to join this group.", agentName, group.GroupName),
+                        dialog = (byte)OpenMetaverse.InstantMessageDialog.GroupInvitation,
+                        fromGroup = true,
+                        offline = (byte)0,
+                        ParentEstateID = 0,
+                        Position = Vector3.Zero,
+                        RegionID = regionInfo.RegionID.Guid,
+                        binaryBucket = new byte[20]
+                    };
 
                     OutgoingInstantMessage(msg, invitedAgentID);
                 }

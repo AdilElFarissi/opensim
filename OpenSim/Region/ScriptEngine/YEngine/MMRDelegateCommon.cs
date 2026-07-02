@@ -38,8 +38,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private string sig;  // rettype(arg1type,arg2type,...), eg, "void(list,string,integer)"
         private Type type;   // resultant delegate type
 
-        private readonly static Dictionary<string, DelegateCommon> delegateCommons = new();
-        private readonly static Dictionary<Type, DelegateCommon> delegateCommonsBySysType = new();
+        private readonly static Dictionary<string, DelegateCommon> delegateCommons = [];
+        private readonly static Dictionary<Type, DelegateCommon> delegateCommonsBySysType = [];
         private static ModuleBuilder delegateModuleBuilder = null;
         public static Type[] constructorArgTypes = new Type[] { typeof(object), typeof(IntPtr) };
 

@@ -68,7 +68,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>UDP socket, used in either client or server mode</summary>
         private Socket m_udpSocket;
 
-        public static Object m_udpBuffersPoolLock = new();
+        public static object m_udpBuffersPoolLock = new();
         public static UDPPacketBuffer[] m_udpBuffersPool = new UDPPacketBuffer[1000];
         public static int m_udpBuffersPoolPtr = -1;
 

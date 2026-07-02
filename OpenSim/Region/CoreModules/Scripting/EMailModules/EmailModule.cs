@@ -73,11 +73,11 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
         private ParserOptions m_mailParseOptions;
 
         private int m_MaxQueueSize = 50; // maximum size of an object mail queue
-        private Dictionary<UUID, List<Email>> m_MailQueues = new Dictionary<UUID, List<Email>>();
-        private Dictionary<UUID, double> m_LastGetEmailCall = new Dictionary<UUID, double>();
-        private Dictionary<UUID, throttleControlInfo> m_ownerThrottles = new Dictionary<UUID, throttleControlInfo>();
-        private Dictionary<string, throttleControlInfo> m_primAddressThrottles = new Dictionary<string, throttleControlInfo>();
-        private Dictionary<string, throttleControlInfo> m_SMPTAddressThrottles = new Dictionary<string, throttleControlInfo>();
+        private Dictionary<UUID, List<Email>> m_MailQueues = [];
+        private Dictionary<UUID, double> m_LastGetEmailCall = [];
+        private Dictionary<UUID, throttleControlInfo> m_ownerThrottles = [];
+        private Dictionary<string, throttleControlInfo> m_primAddressThrottles = [];
+        private Dictionary<string, throttleControlInfo> m_SMPTAddressThrottles = [];
         private double m_QueueTimeout = 30 * 60; // 15min;
         private double m_nextQueuesExpire;
         private double m_nextOwnerThrottlesExpire;
@@ -103,10 +103,10 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
         private static SslPolicyErrors m_SMTP_SslPolicyErrorsMask;
         private bool m_checkSpecName;
 
-        private object m_queuesLock = new object();
+        private object m_queuesLock = new();
 
         // Scenes by Region Handle
-        private Dictionary<ulong, Scene> m_Scenes = new Dictionary<ulong, Scene>();
+        private Dictionary<ulong, Scene> m_Scenes = [];
 
         private bool m_Enabled = false;
 
@@ -156,7 +156,7 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                     m_MailsToSMTPAddressRate = m_MailsToPrimAddressPerHour / 3600.0;
 
                     SMTP_SERVER_HOSTNAME = SMTPConfig.GetString("SMTP_SERVER_HOSTNAME", SMTP_SERVER_HOSTNAME);
-                    OSHHTPHost hosttmp = new OSHHTPHost(SMTP_SERVER_HOSTNAME, true);
+                    OSHHTPHost hosttmp = new(SMTP_SERVER_HOSTNAME, true);
                     if(!hosttmp.IsResolvedHost)
                     {
                         m_log.ErrorFormat("[EMAIL]: could not resolve SMTP_SERVER_HOSTNAME {0}", SMTP_SERVER_HOSTNAME);
@@ -300,8 +300,7 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                 {
                     if(elist == null)
                     {
-                        elist = new List<Email>();
-                        elist.Add(email);
+                        elist = [email];
                         m_MailQueues[to] = elist;
                     }
                     else
@@ -469,7 +468,7 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                 try
                 {
                     //Creation EmailMessage
-                    MimeMessage mmsg = new MimeMessage();
+                    MimeMessage mmsg = new();
 
                     if(SMTP_MAIL_FROM != null)
                     {
@@ -548,13 +547,15 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
                 if (!UUID.TryParse(address.Substring(0, indx), out UUID toID))
                     return;
 
-                Email email = new Email();
-                email.time = Util.UnixTimeSinceEpoch().ToString();
-                email.subject = subject;
-                email.sender = objectID.ToString() + "@" + m_InterObjectHostname;
-                email.message = "Object-Name: " + LastObjectName +
-                              "\nRegion: " + LastObjectRegionName + "\nLocal-Position: " +
-                              LastObjectPosition + "\n\n" + body;
+                Email email = new()
+                {
+                    time = Util.UnixTimeSinceEpoch().ToString(),
+                    subject = subject,
+                    sender = objectID.ToString() + "@" + m_InterObjectHostname,
+                    message = "Object-Name: " + LastObjectName +
+                                  "\nRegion: " + LastObjectRegionName + "\nLocal-Position: " +
+                                  LastObjectPosition + "\n\n" + body
+                };
 
                 if (IsLocal(toID))
                 {
@@ -586,7 +587,7 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
             {
                 if (m_ownerThrottles.Count > 0 && now > m_nextOwnerThrottlesExpire)
                 {
-                    List<UUID> removal = new List<UUID>(m_ownerThrottles.Count);
+                    List<UUID> removal = new(m_ownerThrottles.Count);
                     foreach (KeyValuePair<UUID, throttleControlInfo> kpv in m_ownerThrottles)
                     {
                         if (kpv.Value.lastTime < lasthour)
@@ -604,7 +605,7 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
             {
                 if (m_primAddressThrottles.Count > 0 && now > m_nextPrimAddressThrottlesExpire)
                 {
-                    List<string> removal = new List<string>(m_primAddressThrottles.Count);
+                    List<string> removal = new(m_primAddressThrottles.Count);
                     foreach (KeyValuePair<string, throttleControlInfo> kpv in m_primAddressThrottles)
                     {
                         if (kpv.Value.lastTime < lasthour)
@@ -622,7 +623,7 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
             {
                 if (m_SMPTAddressThrottles.Count > 0 && now > m_nextSMTPAddressThrottlesExpire)
                 {
-                    List<string> removal = new List<string>(m_SMPTAddressThrottles.Count);
+                    List<string> removal = new(m_SMPTAddressThrottles.Count);
                     foreach (KeyValuePair<string, throttleControlInfo> kpv in m_SMPTAddressThrottles)
                     {
                         if (kpv.Value.lastTime < lasthour)
@@ -642,7 +643,7 @@ namespace OpenSim.Region.CoreModules.Scripting.EmailModules
 
                 if(m_LastGetEmailCall.Count > 1 && now > m_nextQueuesExpire)
                 {
-                    List<UUID> removal = new List<UUID>(m_LastGetEmailCall.Count);
+                    List<UUID> removal = new(m_LastGetEmailCall.Count);
                     foreach (KeyValuePair<UUID, double> kpv in m_LastGetEmailCall)
                     {
                         if (kpv.Value < now)

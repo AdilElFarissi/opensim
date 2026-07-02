@@ -49,8 +49,8 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
 
         public  MeshBuildingData()
         {
-            m_vertices = new Dictionary<Vertex, int>();
-            m_triangles = new List<Triangle>();
+            m_vertices = [];
+            m_triangles = [];
             m_centroid = Vector3.Zero;
             m_centroidDiv = 0;
             m_obbXmin = float.MaxValue;
@@ -455,7 +455,7 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
             }
         }
 
-        public void DumpRaw(String path, String name, String title)
+        public void DumpRaw(string path, string name, string title)
         {
             if (path is null)
                 return;

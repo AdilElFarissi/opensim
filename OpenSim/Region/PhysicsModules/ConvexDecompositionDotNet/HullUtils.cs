@@ -145,14 +145,20 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
         {
             int3 t = t0;
             int n = tris.Count;
-            HullTriangle ta = new HullTriangle(v, t[1], t[2], tris);
-            ta.n = new int3(t0.n[0], n + 1, n + 2);
+            HullTriangle ta = new(v, t[1], t[2], tris)
+            {
+                n = new int3(t0.n[0], n + 1, n + 2)
+            };
             tris[t0.n[0]].setneib(t[1], t[2], n + 0);
-            HullTriangle tb = new HullTriangle(v, t[2], t[0], tris);
-            tb.n = new int3(t0.n[1], n + 2, n + 0);
+            HullTriangle tb = new(v, t[2], t[0], tris)
+            {
+                n = new int3(t0.n[1], n + 2, n + 0)
+            };
             tris[t0.n[1]].setneib(t[2], t[0], n + 1);
-            HullTriangle tc = new HullTriangle(v, t[0], t[1], tris);
-            tc.n = new int3(t0.n[2], n + 0, n + 1);
+            HullTriangle tc = new(v, t[0], t[1], tris)
+            {
+                n = new int3(t0.n[2], n + 0, n + 1)
+            };
             tris[t0.n[2]].setneib(t[0], t[1], n + 2);
             checkit(ta, tris);
             checkit(tb, tris);
@@ -182,7 +188,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 
         public static Quaternion RotationArc(float3 v0, float3 v1)
         {
-            Quaternion q = new Quaternion();
+            Quaternion q = new();
             v0 = float3.normalize(v0); // Comment these two lines out if you know its not needed.
             v1 = float3.normalize(v1); // If vector is already unit length then why do it again?
             float3 c = float3.cross(v0, v1);
@@ -210,7 +216,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 
         public static float3 LineProject(float3 p0, float3 p1, float3 a)
         {
-            float3 w = new float3();
+            float3 w = new();
             w = p1 - p0;
             float t = float3.dot(w, (a - p0)) / (w.x * w.x + w.y * w.y + w.z * w.z);
             return p0 + w * t;
@@ -223,7 +229,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 
         public static float LineProjectTime(float3 p0, float3 p1, float3 a)
         {
-            float3 w = new float3();
+            float3 w = new();
             w = p1 - p0;
             float t = float3.dot(w, (a - p0)) / (w.x * w.x + w.y * w.y + w.z * w.z);
             return t;
@@ -233,32 +239,32 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
         {
             float3x3 mp = float3x3.Transpose(new float3x3(p0.normal, p1.normal, p2.normal));
             float3x3 mi = float3x3.Inverse(mp);
-            float3 b = new float3(p0.dist, p1.dist, p2.dist);
+            float3 b = new(p0.dist, p1.dist, p2.dist);
             return -b * mi;
         }
 
         public static bool PolyHit(List<float3> vert, float3 v0, float3 v1)
         {
-            float3 impact = new float3();
-            float3 normal = new float3();
+            float3 impact = new();
+            float3 normal = new();
             return PolyHit(vert, v0, v1, out impact, out normal);
         }
 
         public static bool PolyHit(List<float3> vert, float3 v0, float3 v1, out float3 impact)
         {
-            float3 normal = new float3();
+            float3 normal = new();
             return PolyHit(vert, v0, v1, out impact, out normal);
         }
 
         public static bool PolyHit(List<float3> vert, float3 v0, float3 v1, out float3 impact, out float3 normal)
         {
-            float3 the_point = new float3();
+            float3 the_point = new();
 
             impact = null;
             normal = null;
 
             int i;
-            float3 nrml = new float3(0, 0, 0);
+            float3 nrml = new(0, 0, 0);
             for (i = 0; i < vert.Count; i++)
             {
                 int i1 = (i + 1) % vert.Count;
@@ -291,9 +297,9 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
             for (int j = 0; inside && j < vert.Count; j++)
             {
                 // let inside = 0 if outside
-                float3 pp1 = new float3();
-                float3 pp2 = new float3();
-                float3 side = new float3();
+                float3 pp1 = new();
+                float3 pp2 = new();
+                float3 side = new();
                 pp1 = vert[j];
                 pp2 = vert[(j + 1) % vert.Count];
                 side = float3.cross((pp2 - pp1), (the_point - pp1));
@@ -431,15 +437,19 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
             float dist = (float)Math.Abs(distu - distv);
             if (upoint != null)
             {
-                Plane plane = new Plane();
-                plane.normal = float3.normalize(float3.cross(vdir, cp));
+                Plane plane = new()
+                {
+                    normal = float3.normalize(float3.cross(vdir, cp))
+                };
                 plane.dist = -float3.dot(plane.normal, vstart);
                 upoint = PlaneLineIntersection(plane, ustart, ustart + udir);
             }
             if (vpoint != null)
             {
-                Plane plane = new Plane();
-                plane.normal = float3.normalize(float3.cross(udir, cp));
+                Plane plane = new()
+                {
+                    normal = float3.normalize(float3.cross(udir, cp))
+                };
                 plane.dist = -float3.dot(plane.normal, ustart);
                 vpoint = PlaneLineIntersection(plane, vstart, vstart + vdir);
             }
@@ -573,7 +583,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
         public static ConvexH test_btbq(float planetestepsilon)
         {
             // back to back quads
-            ConvexH convex = new ConvexH(4, 8, 2);
+            ConvexH convex = new(4, 8, 2);
             convex.vertices[0] = new float3(0, 0, 0);
             convex.vertices[1] = new float3(1, 0, 0);
             convex.vertices[2] = new float3(1, 1, 0);
@@ -595,7 +605,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 
         public static ConvexH test_cube()
         {
-            ConvexH convex = new ConvexH(8, 24, 6);
+            ConvexH convex = new(8, 24, 6);
             convex.vertices[0] = new float3(0, 0, 0);
             convex.vertices[1] = new float3(0, 0, 1);
             convex.vertices[2] = new float3(0, 1, 0);
@@ -671,8 +681,8 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
             int i;
             int vertcountunder = 0;
             int vertcountover = 0;
-            List<int> vertscoplanar = new List<int>(); // existing vertex members of convex that are coplanar
-            List<int> edgesplit = new List<int>(); // existing edges that members of convex that cross the splitplane
+            List<int> vertscoplanar = []; // existing vertex members of convex that are coplanar
+            List<int> edgesplit = []; // existing edges that members of convex that cross the splitplane
 
             Debug.Assert(convex.edges.Count < 480);
 
@@ -684,7 +694,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
             Coplanar[] coplanaredges = new Coplanar[512];
             int coplanaredges_num = 0;
 
-            List<float3> createdverts = new List<float3>();
+            List<float3> createdverts = [];
 
             // do the side-of-plane tests
             for (i = 0; i < convex.vertices.Count; i++)
@@ -975,7 +985,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
                 }
             }
 
-            ConvexH punder = new ConvexH(vertcountunder, under_edge_count + coplanaredges_num, underplanescount);
+            ConvexH punder = new(vertcountunder, under_edge_count + coplanaredges_num, underplanescount);
             ConvexH under = punder;
 
             {
@@ -1006,15 +1016,17 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
                 tmpunderedges[coplanaredges[i].ea].ea = (short)(under_edge_count + i);
             }
 
-            under.edges = new List<ConvexH.HalfEdge>(tmpunderedges);
-            under.facets = new List<Plane>(tmpunderplanes);
+            under.edges = [.. tmpunderedges];
+            under.facets = [.. tmpunderplanes];
             return punder;
         }
 
         public static ConvexH ConvexHDup(ConvexH src)
         {
-            ConvexH dst = new ConvexH(src.vertices.Count, src.edges.Count, src.facets.Count);
-            dst.vertices = new List<float3>(src.vertices.Count);
+            ConvexH dst = new(src.vertices.Count, src.edges.Count, src.facets.Count)
+            {
+                vertices = new List<float3>(src.vertices.Count)
+            };
             foreach (float3 f in src.vertices)
                 dst.vertices.Add(new float3(f));
             dst.edges = new List<ConvexH.HalfEdge>(src.edges.Count);
@@ -1219,8 +1231,8 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
             if (vlimit == 0)
                 vlimit = 1000000000;
             int j;
-            float3 bmin = new float3(verts[0]);
-            float3 bmax = new float3(verts[0]);
+            float3 bmin = new(verts[0]);
+            float3 bmax = new(verts[0]);
             byte[] isextreme = new byte[verts.Count];
             byte[] allow = new byte[verts.Count];
             for (j = 0; j < verts.Count; j++)
@@ -1237,14 +1249,22 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
                 return 0;
 
             float3 center = (verts[p[0]] + verts[p[1]] + verts[p[2]] + verts[p[3]]) / 4.0f; // a valid interior point
-            HullTriangle t0 = new HullTriangle(p[2], p[3], p[1], tris);
-            t0.n = new int3(2, 3, 1);
-            HullTriangle t1 = new HullTriangle(p[3], p[2], p[0], tris);
-            t1.n = new int3(3, 2, 0);
-            HullTriangle t2 = new HullTriangle(p[0], p[1], p[3], tris);
-            t2.n = new int3(0, 1, 3);
-            HullTriangle t3 = new HullTriangle(p[1], p[0], p[2], tris);
-            t3.n = new int3(1, 0, 2);
+            HullTriangle t0 = new(p[2], p[3], p[1], tris)
+            {
+                n = new int3(2, 3, 1)
+            };
+            HullTriangle t1 = new(p[3], p[2], p[0], tris)
+            {
+                n = new int3(3, 2, 0)
+            };
+            HullTriangle t2 = new(p[0], p[1], p[3], tris)
+            {
+                n = new int3(0, 1, 3)
+            };
+            HullTriangle t3 = new(p[1], p[0], p[2], tris)
+            {
+                n = new int3(1, 0, 2)
+            };
             isextreme[p[0]] = isextreme[p[1]] = isextreme[p[2]] = isextreme[p[3]] = 1;
             checkit(t0, tris);
             checkit(t1, tris);
@@ -1330,7 +1350,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
             int rc = calchullgen(verts, vlimit, tris);
             if (rc == 0)
                 return false;
-            List<int> ts = new List<int>();
+            List<int> ts = [];
             for (int i = 0; i < tris.Count; i++)
             {
                 if ((object)tris[i] != null)
@@ -1350,7 +1370,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
         {
             int i;
             int j;
-            planes = new List<Plane>();
+            planes = [];
             int rc = calchullgen(verts, vlimit, tris);
             if (rc == 0)
                 return 0;
@@ -1358,7 +1378,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
             {
                 if (tris[i] != null)
                 {
-                    Plane p = new Plane();
+                    Plane p = new();
                     HullTriangle t = tris[i];
                     p.normal = TriNormal(verts[(t)[0]], verts[(t)[1]], verts[(t)[2]]);
                     p.dist = -float3.dot(p.normal, verts[(t)[0]]);
@@ -1391,8 +1411,8 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
             if (verts.Count < 4)
                 return 0;
             maxplanes = Math.Min(maxplanes, planes.Count);
-            float3 bmin = new float3(verts[0]);
-            float3 bmax = new float3(verts[0]);
+            float3 bmin = new(verts[0]);
+            float3 bmax = new(verts[0]);
             for (i = 0; i < verts.Count; i++)
             {
                 bmin = float3.VectorMin(bmin, verts[i]);
@@ -1406,8 +1426,8 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
             {
                 planes[i].dist -= inflate;
             }
-            float3 emin = new float3(bmin);
-            float3 emax = new float3(bmax);
+            float3 emin = new(bmin);
+            float3 emax = new(bmax);
             float epsilon = float3.magnitude(emax - emin) * 0.025f;
             float planetestepsilon = float3.magnitude(emax - emin) * (0.001f);
             // todo: add bounding cube planes to force bevel. or try instead not adding the diameter expansion ??? must think.
@@ -1436,7 +1456,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
             Debug.Assert(AssertIntact(c, planetestepsilon));
             //return c;
             //C++ TO C# CONVERTER TODO TASK: The memory management function 'malloc' has no equivalent in C#:
-            faces_out = new List<int>(); //(int)malloc(sizeof(int) * (1 + c.facets.Count + c.edges.Count)); // new int[1+c->facets.count+c->edges.count];
+            faces_out = []; //(int)malloc(sizeof(int) * (1 + c.facets.Count + c.edges.Count)); // new int[1+c->facets.count+c->edges.count];
             int faces_count_out = 0;
             i = 0;
             faces_out[faces_count_out++] = -1;
@@ -1479,7 +1499,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 
             if (verts.Count == 0)
                 return 0;
-            List<Plane> planes = new List<Plane>();
+            List<Plane> planes = [];
             int rc = calchullpbev(verts, vlimit, out planes, bevangle, tris);
             if (rc == 0)
                 return 0;
@@ -1494,7 +1514,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 
         public static bool ComputeHull(List<float3> vertices, ref PHullResult result, int vlimit, float inflate)
         {
-            List<HullTriangle> tris = new List<HullTriangle>();
+            List<HullTriangle> tris = [];
             List<int> faces;
             List<float3> verts_out;
 
@@ -1515,7 +1535,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
                 if (ret == 0)
                     return false;
 
-                List<int3> tris2 = new List<int3>();
+                List<int3> tris2 = [];
                 int n = faces[0];
                 int k = 1;
                 for (int i = 0; i < n; i++)
@@ -1542,12 +1562,12 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 
         public static bool ComputeHull(List<float3> vertices, out List<int> indices)
         {
-            List<HullTriangle> tris = new List<HullTriangle>();
+            List<HullTriangle> tris = [];
 
             bool ret = calchull(vertices, out indices, 0, tris);
             if (ret == false)
             {
-                indices = new List<int>();
+                indices = [];
                 return false;
             }
             return true;
@@ -1557,7 +1577,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
         {
             const float EPSILON = 0.000001f;
 
-            vertices = new List<float3>();
+            vertices = [];
             scale = new float3(1f, 1f, 1f);
 
             if (svertices.Count == 0)
@@ -1567,8 +1587,8 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 
             float[] recip = new float[3];
 
-            float[] bmin = { Single.MaxValue, Single.MaxValue, Single.MaxValue };
-            float[] bmax = { Single.MinValue, Single.MinValue, Single.MinValue };
+            float[] bmin = { float.MaxValue, float.MaxValue, float.MaxValue };
+            float[] bmax = { float.MinValue, float.MinValue, float.MinValue };
 
             for (int i = 0; i < svertices.Count; i++)
             {
@@ -1587,15 +1607,16 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
             float dy = bmax[1] - bmin[1];
             float dz = bmax[2] - bmin[2];
 
-            float3 center = new float3();
-
-            center.x = dx * 0.5f + bmin[0];
-            center.y = dy * 0.5f + bmin[1];
-            center.z = dz * 0.5f + bmin[2];
+            float3 center = new()
+            {
+                x = dx * 0.5f + bmin[0],
+                y = dy * 0.5f + bmin[1],
+                z = dz * 0.5f + bmin[2]
+            };
 
             if (dx < EPSILON || dy < EPSILON || dz < EPSILON || svertices.Count < 3)
             {
-                float len = Single.MaxValue;
+                float len = float.MaxValue;
 
                 if (dx > EPSILON && dx < len)
                     len = dx;
@@ -1604,7 +1625,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
                 if (dz > EPSILON && dz < len)
                     len = dz;
 
-                if (len == Single.MaxValue)
+                if (len == float.MaxValue)
                 {
                     dx = dy = dz = 0.01f; // one centimeter
                 }
@@ -1702,7 +1723,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 
                     if (j == vcount)
                     {
-                        float3 dest = new float3(px, py, pz);
+                        float3 dest = new(px, py, pz);
                         vertices.Add(dest);
                         vcount++;
                     }
@@ -1712,8 +1733,8 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
             // ok..now make sure we didn't prune so many vertices it is now invalid.
             if (true)
             {
-                float[] bmin2 = { Single.MaxValue, Single.MaxValue, Single.MaxValue };
-                float[] bmax2 = { Single.MinValue, Single.MinValue, Single.MinValue };
+                float[] bmin2 = { float.MaxValue, float.MaxValue, float.MaxValue };
+                float[] bmax2 = { float.MinValue, float.MinValue, float.MinValue };
 
                 for (int i = 0; i < vcount; i++)
                 {
@@ -1737,7 +1758,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
                     float cy = dy2 * 0.5f + bmin2[1];
                     float cz = dz2 * 0.5f + bmin2[2];
 
-                    float len = Single.MaxValue;
+                    float len = float.MaxValue;
 
                     if (dx2 >= EPSILON && dx2 < len)
                         len = dx2;
@@ -1746,7 +1767,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
                     if (dz2 >= EPSILON && dz2 < len)
                         len = dz2;
 
-                    if (len == Single.MaxValue)
+                    if (len == float.MaxValue)
                     {
                         dx2 = dy2 = dz2 = 0.01f; // one centimeter
                     }
@@ -1792,7 +1813,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
             int[] used = new int[verts.Count];
             int ocount = 0;
 
-            overts = new List<float3>();
+            overts = [];
 
             for (int i = 0; i < indices.Count; i++)
             {
@@ -1823,14 +1844,14 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
         {
             HullError ret = HullError.QE_FAIL;
 
-            PHullResult hr = new PHullResult();
+            PHullResult hr = new();
 
             uint vcount = (uint)desc.Vertices.Count;
             if (vcount < 8)
                 vcount = 8;
 
             List<float3> vsource;
-            float3 scale = new float3();
+            float3 scale = new();
 
             bool ok = CleanupVertices(desc.Vertices, out vsource, desc.NormalEpsilon, out scale); // normalize point cloud, remove duplicates!
 
@@ -1874,7 +1895,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
                         if (true)
                         {
                             List<int> source = hr.Indices;
-                            List<int> dest = new List<int>();
+                            List<int> dest = [];
                             for (int i = 0; i < hr.Indices.Count / 3; i++)
                             {
                                 dest.Add(3);

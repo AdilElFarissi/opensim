@@ -72,7 +72,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public static readonly DetectParams[] zeroDetectParams = Array.Empty<DetectParams>();
-        private static ArrayList noScriptErrors = new();
+        private static ArrayList noScriptErrors = [];
         private static readonly string[] scriptReferencedAssemblies = Array.Empty<string>();
 
         private bool m_LateInit;
@@ -87,10 +87,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private string m_ScriptBasePath;
         private bool m_Enabled = false;
         public bool m_StartProcessing = false;
-        private Dictionary<UUID, ArrayList> m_ScriptErrors = new();
-        private Dictionary<UUID, List<UUID>> m_ObjectItemList =  new();
-        private Dictionary<UUID, XMRInstance[]> m_ObjectInstArray = new();
-        public Dictionary<string, FieldInfo> m_XMRInstanceApiCtxFieldInfos = new();
+        private Dictionary<UUID, ArrayList> m_ScriptErrors = [];
+        private Dictionary<UUID, List<UUID>> m_ObjectItemList =  [];
+        private Dictionary<UUID, XMRInstance[]> m_ObjectInstArray = [];
+        public Dictionary<string, FieldInfo> m_XMRInstanceApiCtxFieldInfos = [];
         public int m_StackSize;
         private int m_HeapSize;
         private Thread m_SleepThread = null;
@@ -111,7 +111,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         //   m_YieldQueue = instances that are ready to run right now
         //   m_SleepQueue = instances that have m_SleepUntil valid
         //                  sorted by ascending m_SleepUntil
-        private Dictionary<UUID, XMRInstance> m_InstancesDict = new();
+        private Dictionary<UUID, XMRInstance> m_InstancesDict = [];
         public Queue<ThreadStart> m_ThunkQueue = new();
         public XMRInstQueue m_StartQueue = new();
         public XMRInstQueue m_YieldQueue = new();
@@ -326,7 +326,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
             // Build list of defined APIs and their 'this' types and define a field in XMRInstanceSuperType.
             ApiManager am = new();
-            Dictionary<string, Type> apiCtxTypes = new();
+            Dictionary<string, Type> apiCtxTypes = [];
             foreach(string api in am.GetApis())
             {
                 m_log.Debug("[YEngine]: adding api " + api);
@@ -1362,7 +1362,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
                 if(!m_ObjectItemList.TryGetValue(instance.m_PartUUID, out List<UUID> itemIDList))
                 {
-                    itemIDList = new List<UUID>();
+                    itemIDList = [];
                     m_ObjectItemList[instance.m_PartUUID] = itemIDList;
                 }
                 if(!itemIDList.Contains(instance.m_ItemID))
@@ -1387,7 +1387,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private void LoadThreadWork(XMRInstance instance)
         {
             // Compile and load the script in memory.
-            ArrayList errors = new();
+            ArrayList errors = [];
             Exception initerr = null;
             try
             {
@@ -1404,7 +1404,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         itemID.ToString(), initerr.Message, instance.m_Item.AssetID.ToString());
                 Verbose("[YEngine]:\n{0}", initerr.ToString());
                 initerr = null;
-                errors = new ArrayList();
+                errors = [];
                 instance.m_ForceRecomp = true;
                 try
                 {
@@ -1433,7 +1433,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                     errors.Add(initerr.Message);
                 else
                 {
-                    foreach(Object err in errors)
+                    foreach(object err in errors)
                     {
                         if(m_ScriptDebug)
                             m_log.DebugFormat("[YEngine]:   {0}", err.ToString());
@@ -1826,8 +1826,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         deltaTS = (inst.m_SleepUntil - DateTime.UtcNow).TotalMilliseconds;
                         if(deltaTS <= 0.0)
                             break;
-                        deltaMS = Int32.MaxValue;
-                        if(deltaTS < Int32.MaxValue)
+                        deltaMS = int.MaxValue;
+                        if(deltaTS < int.MaxValue)
                             deltaMS = (int)deltaTS;
                         if(deltaMS > Watchdog.DEFAULT_WATCHDOG_TIMEOUT_MS / 2)
                             deltaMS = Watchdog.DEFAULT_WATCHDOG_TIMEOUT_MS / 2;
@@ -1946,7 +1946,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public Dictionary<uint, float> GetObjectScriptsExecutionTimes()
         {
-            Dictionary<uint, float> topScripts = new();
+            Dictionary<uint, float> topScripts = [];
             lock(m_InstancesDict)
             {
                 foreach(XMRInstance instance in m_InstancesDict.Values)
@@ -1968,7 +1968,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public ICollection<ScriptTopStatsData> GetTopObjectStats(float mintime, int minmemory, out float totaltime, out float totalmemory)
         {
-            Dictionary<uint, ScriptTopStatsData> topScripts = new();
+            Dictionary<uint, ScriptTopStatsData> topScripts = [];
             totalmemory = 0;
             totaltime = 0;
             lock (m_InstancesDict)

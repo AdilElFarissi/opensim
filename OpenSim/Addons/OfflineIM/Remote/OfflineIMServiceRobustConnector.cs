@@ -52,7 +52,7 @@ namespace OpenSim.OfflineIM
         public OfflineIMServiceRobustConnector(IConfigSource config, IHttpServer server, string configName) :
             base(config, server, configName)
         {
-            if (configName != String.Empty)
+            if (configName != string.Empty)
                 m_ConfigName = configName;
 
             m_log.DebugFormat("[OfflineIM.V2.RobustConnector]: Starting with config name {0}", m_ConfigName);
@@ -80,7 +80,7 @@ namespace OpenSim.OfflineIM
         protected override byte[] ProcessRequest(string path, Stream requestData,
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-            StreamReader sr = new StreamReader(requestData);
+            StreamReader sr = new(requestData);
             string body = sr.ReadToEnd();
             sr.Close();
             body = body.Trim();
@@ -119,7 +119,7 @@ namespace OpenSim.OfflineIM
 
         byte[] HandleStore(Dictionary<string, object> request)
         {
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
 
             GridInstantMessage im = OfflineIMDataUtils.GridInstantMessage(request);
 
@@ -139,16 +139,16 @@ namespace OpenSim.OfflineIM
 
         byte[] HandleGet(Dictionary<string, object> request)
         {
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
 
             if (!request.ContainsKey("PrincipalID"))
                 NullResult(result, "Bad network data");
             else
             {
-                UUID principalID = new UUID(request["PrincipalID"].ToString());
+                UUID principalID = new(request["PrincipalID"].ToString());
                 List<GridInstantMessage> ims = m_OfflineIMService.GetMessages(principalID);
 
-                Dictionary<string, object> dict = new Dictionary<string, object>();
+                Dictionary<string, object> dict = [];
                 int i = 0;
                 foreach (GridInstantMessage m in ims)
                     dict["im-" + i++] = OfflineIMDataUtils.GridInstantMessage(m);
@@ -170,7 +170,7 @@ namespace OpenSim.OfflineIM
             }
             else
             {
-                UUID userID = new UUID(request["UserID"].ToString());
+                UUID userID = new(request["UserID"].ToString());
                 m_OfflineIMService.DeleteMessages(userID);
 
                 return SuccessResult();
@@ -197,7 +197,7 @@ namespace OpenSim.OfflineIM
 
         private byte[] BoolResult(bool value)
         {
-            XmlDocument doc = new XmlDocument();
+            XmlDocument doc = new();
 
             XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
                     "", "");

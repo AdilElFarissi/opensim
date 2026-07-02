@@ -69,7 +69,7 @@ namespace OpenSim.Capabilities.Handlers
             httpResponse.StatusCode = (int)HttpStatusCode.OK;
 
             List<LLSDFetchInventoryDescendents> folders;
-            List<UUID> bad_folders = new List<UUID>();
+            List<UUID> bad_folders = [];
             try
             {
                 OSDArray foldersrequested = null;
@@ -97,7 +97,7 @@ namespace OpenSim.Capabilities.Handlers
                     }
                     else
                     {
-                        LLSDFetchInventoryDescendents llsdRequest = new LLSDFetchInventoryDescendents();
+                        LLSDFetchInventoryDescendents llsdRequest = new();
                         try
                         {
                             llsdRequest.folder_id = id;
@@ -278,9 +278,9 @@ namespace OpenSim.Capabilities.Handlers
             //    "[FETCH LIB DESC HANDLER]: Fetching {0} folders", fetchFolders.Count);
             // FIXME MAYBE: We're not handling sortOrder!
             int cntr = fetchFolders.Count;
-            List<InventoryCollection> result = new List<InventoryCollection>(cntr);
-            List<LLSDFetchInventoryDescendents> libFolders = new List<LLSDFetchInventoryDescendents>(cntr);
-            HashSet<UUID> libIDs = new HashSet<UUID>();
+            List<InventoryCollection> result = new(cntr);
+            List<LLSDFetchInventoryDescendents> libFolders = new(cntr);
+            HashSet<UUID> libIDs = [];
   
             // Filter folder Zero right here. Some viewers (Firestorm) send request for folder Zero, which doesn't make sense
             // and can kill the sim (all root folders have parent_id Zero)
@@ -293,7 +293,7 @@ namespace OpenSim.Capabilities.Handlers
                     if(doneZeroID)
                         continue;
                     doneZeroID = true;
-                    InventoryCollection Collection = new InventoryCollection()
+                    InventoryCollection Collection = new()
                     {
                         OwnerID = f.owner_id,
                         Version = -1,
@@ -320,7 +320,7 @@ namespace OpenSim.Capabilities.Handlers
                     InventoryFolderImpl fold = m_LibraryService.LibraryRootFolder.FindFolder(f.folder_id);
                     if (fold != null)
                     {
-                        InventoryCollection Collection = new InventoryCollection()
+                        InventoryCollection Collection = new()
                         {
                             Folders = fold.RequestListOfFolders(),
                             Items = fold.RequestListOfItems(),

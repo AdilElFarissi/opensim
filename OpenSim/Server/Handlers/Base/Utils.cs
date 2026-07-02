@@ -62,7 +62,7 @@ namespace OpenSim.Server.Handlers.Base
                     return false;
 
                 if (parts.Length >= 3)
-                    UInt64.TryParse(parts[2], out regionHandle);
+                    ulong.TryParse(parts[2], out regionHandle);
                 if (parts.Length >= 4)
                     action = parts[3];
 

@@ -72,7 +72,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 
         public float Distance(float3 a)
         {
-            float3 d = new float3(a.x - x, a.y - y, a.z - z);
+            float3 d = new(a.x - x, a.y - y, a.z - z);
             return d.Length();
         }
 
@@ -106,7 +106,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
         // in the line.  (The line is treated as infinitely long.)
         public void NearestPointInLine(float3 point, float3 line0, float3 line1)
         {
-            float3 nearestPoint = new float3();
+            float3 nearestPoint = new();
             float3 lineDelta = line1 - line0;
 
             // Handle degenerate lines
@@ -129,7 +129,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
         // in the line.  Cap the point at the endpoints of the line segment.
         public void NearestPointInLineSegment(float3 point, float3 line0, float3 line1)
         {
-            float3 nearestPoint = new float3();
+            float3 nearestPoint = new();
             float3 lineDelta = line1 - line0;
 
             // Handle degenerate lines
@@ -159,7 +159,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
         // in the triangle.  Clamp the point so it's confined to the area of the triangle.
         public void NearestPointInTriangle(float3 point, float3 triangle0, float3 triangle1, float3 triangle2)
         {
-            float3 nearestPoint = new float3();
+            float3 nearestPoint = new();
 
             float3 lineDelta0 = triangle1 - triangle0;
             float3 lineDelta1 = triangle2 - triangle0;
@@ -175,20 +175,22 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
             }
             else
             {
-                float3[] axis = new float3[3] { new float3(), new float3(), new float3() };
+                float3[] axis = new float3[3] { new(), new(), new() };
                 axis[0].NearestPointInLine(triangle0, triangle1, triangle2);
                 axis[1].NearestPointInLine(triangle1, triangle0, triangle2);
                 axis[2].NearestPointInLine(triangle2, triangle0, triangle1);
 
-                float3 axisDot = new float3();
-                axisDot.x = dot(triangle0 - axis[0], point - axis[0]);
-                axisDot.y = dot(triangle1 - axis[1], point - axis[1]);
-                axisDot.z = dot(triangle2 - axis[2], point - axis[2]);
+                float3 axisDot = new()
+                {
+                    x = dot(triangle0 - axis[0], point - axis[0]),
+                    y = dot(triangle1 - axis[1], point - axis[1]),
+                    z = dot(triangle2 - axis[2], point - axis[2])
+                };
 
                 bool bForce = true;
                 float bestMagnitude2 = 0;
                 float closeMagnitude2;
-                float3 closePoint = new float3();
+                float3 closePoint = new();
 
                 if (axisDot.x < 0f)
                 {
@@ -436,9 +438,9 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 
         public override string ToString()
         {
-            return String.Format("<{0}, {1}, {2}>", x, y, z);
+            return string.Format("<{0}, {1}, {2}>", x, y, z);
         }
 
-        public static readonly float3 Zero = new float3();
+        public static readonly float3 Zero = new();
     }
 }

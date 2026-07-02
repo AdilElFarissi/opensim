@@ -62,7 +62,7 @@ namespace OpenSim.Framework
         /// </param>
         public bool InstallPlugin(int ndx, out Dictionary<string, object> result)
         {
-            Dictionary<string, object> res = new Dictionary<string, object>();
+            Dictionary<string, object> res = [];
             if (ndx < 0 )
             {
                 MainConsole.Instance.Output("Selection out of range");
@@ -70,7 +70,7 @@ namespace OpenSim.Framework
                 return false;
             }
 
-            PackageCollection pack = new PackageCollection();
+            PackageCollection pack = [];
             PackageCollection toUninstall;
             DependencyCollection unresolved;
 
@@ -160,7 +160,7 @@ namespace OpenSim.Framework
         /// </param>
         public void ListInstalledAddins(out Dictionary<string, object> result)
         {
-            Dictionary<string, object> res = new Dictionary<string, object>();
+            Dictionary<string, object> res = [];
 
             Addin[] addins = GetSortedAddinList("RobustPlugin");
             if(addins.Count() < 1)
@@ -170,10 +170,12 @@ namespace OpenSim.Framework
             int count = 0;
             foreach (Addin addin in addins)
             {
-                Dictionary<string, object> r = new Dictionary<string, object>();
-                r["enabled"] = addin.Enabled == true ? true : false;
-                r["name"] = addin.LocalId;
-                r["version"] = addin.Version;
+                Dictionary<string, object> r = new()
+                {
+                    ["enabled"] = addin.Enabled == true ? true : false,
+                    ["name"] = addin.LocalId,
+                    ["version"] = addin.Version
+                };
 
                 res.Add(count.ToString(), r);
 
@@ -192,17 +194,19 @@ namespace OpenSim.Framework
         /// </param>
         public void ListAvailable(out Dictionary<string, object> result)
         {
-            Dictionary<string, object> res = new Dictionary<string, object>();
+            Dictionary<string, object> res = [];
 
             AddinRepositoryEntry[] addins = GetSortedAvailbleAddins();
 
             int count = 0;
             foreach (AddinRepositoryEntry addin in addins)
             {
-                Dictionary<string, object> r = new Dictionary<string, object>();
-                r["name"] = addin.Addin.Name;
-                r["version"] = addin.Addin.Version;
-                r["repository"] = addin.RepositoryName;
+                Dictionary<string, object> r = new()
+                {
+                    ["name"] = addin.Addin.Name,
+                    ["version"] = addin.Addin.Version,
+                    ["repository"] = addin.RepositoryName
+                };
 
                 res.Add(count.ToString(), r);
                 count++;
@@ -226,7 +230,7 @@ namespace OpenSim.Framework
 
             foreach (AddinRepositoryEntry entry in entries)
             {
-                Console.WriteLine(String.Format("{0}",entry.Addin.Id));
+                Console.WriteLine(string.Format("{0}",entry.Addin.Id));
             }
         }
 
@@ -363,7 +367,7 @@ namespace OpenSim.Framework
         /// </param>
         public void ListRepositories(out Dictionary<string, object> result)
         {
-            Dictionary<string, object> res = new Dictionary<string, object>();
+            Dictionary<string, object> res = [];
             result = res;
 
             AddinRepository[] reps = GetSortedAddinRepo();
@@ -376,10 +380,12 @@ namespace OpenSim.Framework
             int count = 0;
             foreach (AddinRepository rep in reps)
             {
-                Dictionary<string, object> r = new Dictionary<string, object>();
-                r["enabled"] = rep.Enabled == true ? true : false;
-                r["name"] = rep.Name;
-                r["url"] = rep.Url;
+                Dictionary<string, object> r = new()
+                {
+                    ["enabled"] = rep.Enabled == true ? true : false,
+                    ["name"] = rep.Name,
+                    ["url"] = rep.Url
+                };
 
                 res.Add(count.ToString(), r);
                 count++;
@@ -407,7 +413,7 @@ namespace OpenSim.Framework
         /// </param>
         public bool AddinInfo(int ndx, out Dictionary<string, object> result)
         {
-            Dictionary<string, object> res = new Dictionary<string, object>();
+            Dictionary<string, object> res = [];
             result = res;
 
             Addin[] addins = GetSortedAddinList("RobustPlugin");
@@ -480,7 +486,7 @@ namespace OpenSim.Framework
             // AddinManager.Registry.Update();
             if(PluginRegistry.IsAddinEnabled(addin.Id))
             {
-                ConsoleProgressStatus ps = new ConsoleProgressStatus(false);
+                ConsoleProgressStatus ps = new(false);
                 if (!AddinManager.AddinEngine.IsAddinLoaded(addin.Id))
                 {
                     MainConsole.Instance.Output("Ignore the following error...");
@@ -514,8 +520,7 @@ namespace OpenSim.Framework
         // of needing to type in the full ids
         private AddinRepositoryEntry[] GetSortedAvailbleAddins()
         {
-            ArrayList list = new ArrayList();
-            list.AddRange(Repositories.GetAvailableAddins());
+            ArrayList list = [.. Repositories.GetAvailableAddins()];
 
             AddinRepositoryEntry[] addins = list.ToArray(typeof(AddinRepositoryEntry)) as AddinRepositoryEntry[];
 
@@ -526,8 +531,7 @@ namespace OpenSim.Framework
 
         private AddinRepository[] GetSortedAddinRepo()
         {
-            ArrayList list = new ArrayList();
-            list.AddRange(Repositories.GetRepositories());
+            ArrayList list = [.. Repositories.GetRepositories()];
 
             AddinRepository[] repos = list.ToArray(typeof(AddinRepository)) as AddinRepository[];
             Array.Sort (repos,(r1,r2) => r1.Name.CompareTo(r2.Name));
@@ -538,8 +542,8 @@ namespace OpenSim.Framework
         private Addin[] GetSortedAddinList(string category)
         {
 
-            ArrayList xlist = new ArrayList();
-            ArrayList list = new ArrayList();
+            ArrayList xlist = [];
+            ArrayList list = [];
             try
             {
                 list.AddRange(PluginRegistry.GetAddins());

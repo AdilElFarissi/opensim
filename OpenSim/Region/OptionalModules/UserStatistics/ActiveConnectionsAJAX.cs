@@ -39,7 +39,7 @@ namespace OpenSim.Region.UserStatistics
 {
     public class ActiveConnectionsAJAX : IStatsController
     {
-        private Vector3 DefaultNeighborPosition = new Vector3(((int)Constants.RegionSize * 0.5f), ((int)Constants.RegionSize * 0.5f), 70);
+        private Vector3 DefaultNeighborPosition = new(((int)Constants.RegionSize * 0.5f), ((int)Constants.RegionSize * 0.5f), 70);
 
         #region IStatsController Members
 
@@ -52,8 +52,10 @@ namespace OpenSim.Region.UserStatistics
         {
             List<Scene> m_scene = (List<Scene>)pParams["Scenes"];
 
-            Hashtable nh = new Hashtable();
-            nh.Add("hdata", m_scene);
+            Hashtable nh = new()
+            {
+                { "hdata", m_scene }
+            };
 
             return nh;
         }
@@ -62,22 +64,22 @@ namespace OpenSim.Region.UserStatistics
         {
             List<Scene> all_scenes = (List<Scene>) pModelResult["hdata"];
 
-            StringBuilder output = new StringBuilder();
+            StringBuilder output = new();
             HTMLUtil.OL_O(ref output, "");
             foreach (Scene scene in all_scenes)
             {
-                HTMLUtil.LI_O(ref output, String.Empty);
+                HTMLUtil.LI_O(ref output, string.Empty);
                 output.Append(scene.RegionInfo.RegionName);
-                HTMLUtil.OL_O(ref output, String.Empty);
+                HTMLUtil.OL_O(ref output, string.Empty);
                 scene.ForEachScenePresence(delegate(ScenePresence av)
                 {
-                    Dictionary<string, string> queues = new Dictionary<string, string>();
+                    Dictionary<string, string> queues = [];
                     if (av.ControllingClient is IStatsCollector)
                     {
                         IStatsCollector isClient = (IStatsCollector)av.ControllingClient;
                         queues = decodeQueueReport(isClient.Report());
                     }
-                    HTMLUtil.LI_O(ref output, String.Empty);
+                    HTMLUtil.LI_O(ref output, string.Empty);
                     output.Append(av.Name);
                     output.Append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
                     output.Append((av.IsChildAgent ? "Child" : "Root"));
@@ -93,11 +95,11 @@ namespace OpenSim.Region.UserStatistics
                     }
                     Dictionary<string, int> throttles = DecodeClientThrottles(av.ControllingClient.GetThrottlesPacked(1));
 
-                    HTMLUtil.UL_O(ref output, String.Empty);
+                    HTMLUtil.UL_O(ref output, string.Empty);
 
                     foreach (string throttlename in throttles.Keys)
                     {
-                        HTMLUtil.LI_O(ref output, String.Empty);
+                        HTMLUtil.LI_O(ref output, string.Empty);
                         output.Append(throttlename);
                         output.Append(":");
                         output.Append(throttles[throttlename].ToString());
@@ -153,23 +155,25 @@ namespace OpenSim.Region.UserStatistics
         {
             List<Scene> all_scenes = (List<Scene>) pModelResult["hdata"];
 
-            OSDMap regionInfo = new OSDMap();
+            OSDMap regionInfo = [];
             foreach (Scene scene in all_scenes)
             {
-                OSDMap sceneInfo = new OpenMetaverse.StructuredData.OSDMap();
+                OSDMap sceneInfo = [];
                 List<ScenePresence> avatarInScene = scene.GetScenePresences();
                 foreach (ScenePresence av in avatarInScene)
                 {
-                    OSDMap presenceInfo = new OSDMap();
-                    presenceInfo.Add("Name", new OSDString(av.Name));
+                    OSDMap presenceInfo = new()
+                    {
+                        { "Name", new OSDString(av.Name) }
+                    };
 
-                    Dictionary<string,string> queues = new Dictionary<string, string>();
+                    Dictionary<string,string> queues = [];
                     if (av.ControllingClient is IStatsCollector)
                     {
                         IStatsCollector isClient = (IStatsCollector) av.ControllingClient;
                         queues = decodeQueueReport(isClient.Report());
                     }
-                    OSDMap queueInfo = new OpenMetaverse.StructuredData.OSDMap();
+                    OSDMap queueInfo = [];
                     foreach (KeyValuePair<string, string> kvp in queues) {
                         queueInfo.Add(kvp.Key, new OSDString(kvp.Value));
                     }
@@ -193,7 +197,7 @@ namespace OpenSim.Region.UserStatistics
                     }
 
                     Dictionary<string, int> throttles = DecodeClientThrottles(av.ControllingClient.GetThrottlesPacked(1));
-                    OSDMap throttleInfo = new OpenMetaverse.StructuredData.OSDMap();
+                    OSDMap throttleInfo = [];
                     foreach (string throttlename in throttles.Keys)
                     {
                         throttleInfo.Add(throttlename, new OSDString(throttles[throttlename].ToString()));
@@ -209,13 +213,13 @@ namespace OpenSim.Region.UserStatistics
 
         public Dictionary<string, int> DecodeClientThrottles(byte[] throttle)
         {
-            Dictionary<string, int> returndict = new Dictionary<string, int>();
+            Dictionary<string, int> returndict = [];
             // From mantis http://opensimulator.org/mantis/view.php?id=1374
             // it appears that sometimes we are receiving empty throttle byte arrays.
             // TODO: Investigate this behaviour
             if (throttle.Length == 0)
             {
-                return new Dictionary<string, int>();
+                return [];
             }
 
             int tResend = -1;
@@ -268,7 +272,7 @@ namespace OpenSim.Region.UserStatistics
         }
         public Dictionary<string,string> decodeQueueReport(string rep)
         {
-            Dictionary<string, string> returndic = new Dictionary<string, string>();
+            Dictionary<string, string> returndic = [];
             if (rep.Length == 79)
             {
                 int pos = 1;

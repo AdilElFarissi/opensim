@@ -239,7 +239,7 @@ namespace OpenSim.Framework.Monitoring
 
         public virtual string ToConsoleString()
         {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
 
             if(string.IsNullOrEmpty(UnitName))
             {
@@ -268,23 +268,27 @@ namespace OpenSim.Framework.Monitoring
 
         public virtual OSDMap ToBriefOSDMap()
         {
-            OSDMap ret = new OSDMap();
-            ret.Add("Value", OSD.FromReal(Value));
+            OSDMap ret = new()
+            {
+                { "Value", OSD.FromReal(Value) }
+            };
             return ret;
         }
 
         public virtual OSDMap ToOSDMap()
         {
-            OSDMap ret = new OSDMap();
-            ret.Add("StatType", "Stat");    // used by overloading classes to denote type of stat
+            OSDMap ret = new()
+            {
+                { "StatType", "Stat" },    // used by overloading classes to denote type of stat
 
-            ret.Add("Category", OSD.FromString(Category));
-            ret.Add("Container", OSD.FromString(Container));
-            ret.Add("ShortName", OSD.FromString(ShortName));
-            ret.Add("Name", OSD.FromString(Name));
-            ret.Add("Description", OSD.FromString(Description));
-            ret.Add("UnitName", OSD.FromString(UnitName));
-            ret.Add("Value", OSD.FromReal(Value));
+                { "Category", OSD.FromString(Category) },
+                { "Container", OSD.FromString(Container) },
+                { "ShortName", OSD.FromString(ShortName) },
+                { "Name", OSD.FromString(Name) },
+                { "Description", OSD.FromString(Description) },
+                { "UnitName", OSD.FromString(UnitName) },
+                { "Value", OSD.FromReal(Value) }
+            };
 
             double lastChangeOverTime, averageChangeOverTime;
             if (ComputeMeasuresOfInterest(out lastChangeOverTime, out averageChangeOverTime))

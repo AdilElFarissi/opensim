@@ -59,7 +59,7 @@ namespace OpenSim.Data.Null
 
         protected List<T> Get<T>(string field, string[] vals, List<T> inputEntities)
         {
-            List<T> entities = new List<T>();
+            List<T> entities = [];
 
             for (int i = 0; i < vals.Length; i++)
             {

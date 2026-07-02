@@ -53,16 +53,20 @@ namespace OpenSim.Services.UserAccountService
 
         public bool StoreAgentPreferences(AgentPrefs data)
         {
-            AgentPreferencesData d = new AgentPreferencesData();
-            d.Data = new Dictionary<string, string>();
-            d.Data["PrincipalID"] = data.PrincipalID.ToString();
-            d.Data["AccessPrefs"] = data.AccessPrefs;
-            d.Data["HoverHeight"] = data.HoverHeight.ToString();
-            d.Data["Language"] = data.Language;
-            d.Data["LanguageIsPublic"] = (data.LanguageIsPublic ? "1" : "0");
-            d.Data["PermEveryone"] = data.PermEveryone.ToString();
-            d.Data["PermGroup"] = data.PermGroup.ToString();
-            d.Data["PermNextOwner"] = data.PermNextOwner.ToString();
+            AgentPreferencesData d = new()
+            {
+                Data = new Dictionary<string, string>
+                {
+                    ["PrincipalID"] = data.PrincipalID.ToString(),
+                    ["AccessPrefs"] = data.AccessPrefs,
+                    ["HoverHeight"] = data.HoverHeight.ToString(),
+                    ["Language"] = data.Language,
+                    ["LanguageIsPublic"] = (data.LanguageIsPublic ? "1" : "0"),
+                    ["PermEveryone"] = data.PermEveryone.ToString(),
+                    ["PermGroup"] = data.PermGroup.ToString(),
+                    ["PermNextOwner"] = data.PermNextOwner.ToString()
+                }
+            };
             return m_Database.Store(d);
         }
 

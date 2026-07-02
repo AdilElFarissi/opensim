@@ -238,7 +238,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             return BSAPICPP.PushUpdate2(bodyu.ptr);
         }
 
-        public override bool UpdateParameter(BulletWorld world, uint localID, String parm, float value)
+        public override bool UpdateParameter(BulletWorld world, uint localID, string parm, float value)
         {
             BulletWorldUnman worldu = world as BulletWorldUnman;
             return BSAPICPP.UpdateParameter2(worldu.ptr, localID, parm, value);
@@ -1507,7 +1507,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             public static extern bool PushUpdate2(IntPtr obj);
 
             [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
-            public static extern bool UpdateParameter2(IntPtr world, uint localID, String parm, float value);
+            public static extern bool UpdateParameter2(IntPtr world, uint localID, string parm, float value);
 
             [DllImport("BulletSim", CallingConvention = CallingConvention.Cdecl), SuppressUnmanagedCodeSecurity]
             public static extern IntPtr GetVersion2();

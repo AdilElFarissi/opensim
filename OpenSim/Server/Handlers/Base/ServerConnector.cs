@@ -82,7 +82,7 @@ namespace OpenSim.Server.Handlers.Base
 
                 if (remotesource != null)
                 {
-                    IniConfigSource initialconfig = new IniConfigSource();
+                    IniConfigSource initialconfig = new();
                     initialconfig.Merge (remotesource);
                     initialconfig.Save(ConfigFile);
                 }
@@ -104,7 +104,7 @@ namespace OpenSim.Server.Handlers.Base
             source = ServerUtils.LoadInitialConfig(ConfigURL);
 
             if (source == null)
-                System.Console.WriteLine(String.Format ("Config Url: {0} Not found!", ConfigURL));
+                System.Console.WriteLine(string.Format ("Config Url: {0} Not found!", ConfigURL));
 
             return source;
         }

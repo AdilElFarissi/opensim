@@ -104,8 +104,8 @@ namespace OpenSim.Framework
 
             configBlacklistEntries = configBlacklistEntries.Select(e => e.Trim()).ToArray();
 
-            networks = new List<IPNetwork>();
-            endPoints = new List<IPEndPoint>();
+            networks = [];
+            endPoints = [];
 
             foreach (string configEntry in configBlacklistEntries)
             {
@@ -144,7 +144,7 @@ namespace OpenSim.Framework
                         {
                             //                        m_log.DebugFormat("[OUTBOUND URL FILTER]: Found address [{0}] in config", addr);
 
-                            IPEndPoint configEntryEp = new IPEndPoint(addr, configEntryUri.Port);
+                            IPEndPoint configEntryEp = new(addr, configEntryUri.Port);
                             endPoints.Add(configEntryEp);
 
                             //                        m_log.DebugFormat("[OUTBOUND URL FILTER]: Added blacklist exception [{0}]", configEntryEp);

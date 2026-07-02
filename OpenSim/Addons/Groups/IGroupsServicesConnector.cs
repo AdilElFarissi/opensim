@@ -103,7 +103,7 @@ namespace OpenSim.Groups
 
     public class GroupNoticeInfo
     {
-        public ExtendedGroupNoticeData noticeData = new ExtendedGroupNoticeData();
+        public ExtendedGroupNoticeData noticeData = new();
         public UUID GroupID = UUID.Zero;
         public string Message = string.Empty;
     }

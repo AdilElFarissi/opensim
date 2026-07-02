@@ -50,7 +50,7 @@ namespace OpenSim.Framework
         /// acquire a lock to add, remove, or enumerate entries. This
         /// synchronization object should only be locked for larger
         /// transactions</summary>
-        private object m_syncRoot = new object();
+        private object m_syncRoot = new();
         public object SyncRoot { get { return m_syncRoot; } }
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace OpenSim.Framework
         /// </summary>
         public MapAndArray()
         {
-            m_dict = new Dictionary<TKey, TValue>();
+            m_dict = [];
             m_array = null;
         }
 
@@ -156,7 +156,7 @@ namespace OpenSim.Framework
             lock (m_syncRoot)
             {
                 if(m_dict.Count > 0)
-                    m_dict = new Dictionary<TKey, TValue>();
+                    m_dict = [];
                 m_array = null;
             }
         }

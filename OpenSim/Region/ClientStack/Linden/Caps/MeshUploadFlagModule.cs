@@ -133,8 +133,10 @@ namespace OpenSim.Region.ClientStack.Linden
                 return;
             }
 
-            OSDMap data = new OSDMap();
-            data["mesh_upload_status"] = "valid";
+            OSDMap data = new()
+            {
+                ["mesh_upload_status"] = "valid"
+            };
             httpResponse.RawBuffer = Encoding.UTF8.GetBytes(OSDParser.SerializeLLSDXmlString(data));
             httpResponse.StatusCode = (int)HttpStatusCode.OK;
         }

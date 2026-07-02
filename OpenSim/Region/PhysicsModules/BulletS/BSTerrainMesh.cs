@@ -324,7 +324,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             int[] indices = new int[0];
             float[] vertices = new float[0];
 
-            HeightMapGetter hmap = new HeightMapGetter(heightMap, sizeX, sizeY);
+            HeightMapGetter hmap = new(heightMap, sizeX, sizeY);
 
             // The vertices dimension of the output mesh
             int meshX = sizeX * magnification;

@@ -153,7 +153,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 if(m_ThisGridInfo == null)
                     m_ThisGridInfo = scene.SceneGridInfo;
 
-                GridRegion r = new GridRegion(scene.RegionInfo);
+                GridRegion r = new(scene.RegionInfo);
                 m_RegionInfoCache.CacheLocal(r);
 
                 scene.EventManager.OnRegionUp += OnRegionUp;
@@ -374,7 +374,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 {
                     m_log.InfoFormat("[REMOTE GRID CONNECTOR] returned default regions {0}, ...", grinfos[0].RegionName);
                     // only return first
-                    grinfo = new List<GridRegion>() { grinfos[0] };
+                    grinfo = [grinfos[0]];
                 }
             }
             else

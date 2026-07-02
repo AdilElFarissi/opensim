@@ -50,15 +50,15 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             m_commsPlugin = m_CmdManager.m_ScriptEngine.World.RequestModuleInterface<IWorldComm>();
         }
 
-        public Object[] GetSerializationData(UUID itemID)
+        public object[] GetSerializationData(UUID itemID)
         {
             if (m_commsPlugin != null)
                 return m_commsPlugin.GetSerializationData(itemID);
             else
-                return new Object[]{};
+                return new object[]{};
         }
 
-        public void CreateFromData( UUID itemID, UUID hostID, Object[] data)
+        public void CreateFromData( UUID itemID, UUID hostID, object[] data)
         {
             if (m_commsPlugin != null)
                 m_commsPlugin.CreateFromData(itemID, hostID, data);

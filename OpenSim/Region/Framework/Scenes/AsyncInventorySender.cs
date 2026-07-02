@@ -77,8 +77,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// <summary>
         /// Queues fetch requests
         /// </summary>
-        private static ConcurrentQueue<FetchHolder> m_fetchHolder = new ConcurrentQueue<FetchHolder>();
-        static private object m_threadLock = new object();
+        private static ConcurrentQueue<FetchHolder> m_fetchHolder = new();
+        static private object m_threadLock = new();
         static private bool m_running;
 
         /// <summary>

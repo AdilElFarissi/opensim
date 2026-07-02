@@ -396,7 +396,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                         {
                                             if (uuid.IsNotZero())
                                             {
-                                                perms.AllowedOwners ??= new List<UUID>();
+                                                perms.AllowedOwners ??= [];
                                                 perms.AllowedControl |= AllowedControlFlags.OWNERUUID;
                                                 perms.AllowedOwners.Add(uuid);
                                             }
@@ -423,7 +423,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                                 {
                                     if (!uuid.IsZero())
                                     {
-                                        perms.AllowedCreators ??= new List<UUID>();
+                                        perms.AllowedCreators ??= [];
                                         perms.AllowedControl |= AllowedControlFlags.CREATORUUID;
                                         perms.AllowedCreators.Add(uuid);
                                     }
@@ -661,7 +661,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             IRestartModule restartModule = World.RequestModuleInterface<IRestartModule>();
 
-            List<int> times = new();
+            List<int> times = [];
             while (seconds > 0)
             {
                 times.Add((int)seconds);
@@ -2035,7 +2035,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 int scriptEngineNameLength = m_ScriptEngine.ScriptEngineName.Length - scriptEngineNameIndex;
 
                 // create char array then a string that is only the script engine name
-                Char[] scriptEngineNameCharArray = m_ScriptEngine.ScriptEngineName.ToCharArray(scriptEngineNameIndex, scriptEngineNameLength);
+                char[] scriptEngineNameCharArray = m_ScriptEngine.ScriptEngineName.ToCharArray(scriptEngineNameIndex, scriptEngineNameLength);
                 string scriptEngineName = new(scriptEngineNameCharArray);
 
                 return scriptEngineName;
@@ -2551,7 +2551,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             IConfig gridInfoConfig = config.Configs["GridInfo"];
 
             if (gridInfoConfig is not null)
-                url = gridInfoConfig.GetString("GridInfoURI", String.Empty);
+                url = gridInfoConfig.GetString("GridInfoURI", string.Empty);
 
             if (string.IsNullOrEmpty(url))
                 return "Configuration Error!";
@@ -2882,7 +2882,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 return LSL_Key.NullKey;
             }
 
-            string groupTitle = String.Empty;
+            string groupTitle = string.Empty;
             UUID groupID = UUID.Zero;
 
             AvatarAppearance appearance = null;
@@ -3675,8 +3675,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
 
             long pws = Util.GetPhysicalMemUse();
 
-            if (pws > Int32.MaxValue)
-                return Int32.MaxValue;
+            if (pws > int.MaxValue)
+                return int.MaxValue;
             if (pws < 0)
                 return 0;
 
@@ -3693,8 +3693,8 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 pws += 0x400L;
             pws >>= 10;
 
-            if (pws > Int32.MaxValue)
-                return Int32.MaxValue;
+            if (pws > int.MaxValue)
+                return int.MaxValue;
 
             return (int)pws;
         }
@@ -4384,7 +4384,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 }
             }
             else
-                aps = new List<int>();
+                aps = [];
 
             if(aps.Count == 0)
             {
@@ -4401,7 +4401,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
             }
             else
             {
-                attachments = new List<SceneObjectGroup>();
+                attachments = [];
                 foreach (int point in aps)
                     attachments.AddRange(target.GetAttachments((uint)point));
             }
@@ -4637,7 +4637,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.Moderate, "osRequestURL");
 
-            Hashtable opts = new();
+            Hashtable opts = [];
             for (int i = 0 ; i < options.Length ; i++)
             {
                 object opt = options.Data[i];
@@ -4655,7 +4655,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         {
             CheckThreatLevel(ThreatLevel.Moderate, "osRequestSecureURL");
 
-            Hashtable opts = new();
+            Hashtable opts = [];
             for (int i = 0 ; i < options.Length ; i++)
             {
                 object opt = options.Data[i];
@@ -5795,7 +5795,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
                 byte[] bucket = new byte[1];
                 bucket[0] = (byte)item.Type;
 
-                GridInstantMessage msg = new GridInstantMessage(World,
+                GridInstantMessage msg = new(World,
                         m_host.OwnerID, m_host.Name, destId,
                         (byte)InstantMessageDialog.TaskInventoryOffered,
                         m_host.OwnerID.Equals(m_host.GroupID), "'"+item.Name+"'. ("+m_host.Name+" is located at "+
@@ -5950,7 +5950,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api
         public void osResetAllScripts(LSL_Integer linkset)
         {
             UUID me = m_item.ItemID;
-            List<TaskInventoryItem> scripts = new();
+            List<TaskInventoryItem> scripts = [];
 
             if(linkset != 0)
             {

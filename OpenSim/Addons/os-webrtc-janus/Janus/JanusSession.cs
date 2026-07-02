@@ -208,7 +208,7 @@ namespace osWebRtcVoice
             return ret;
         }
         // ====================================================================
-        public Dictionary<string, JanusPlugin> _Plugins = new Dictionary<string, JanusPlugin>();
+        public Dictionary<string, JanusPlugin> _Plugins = [];
         public void AddPlugin(JanusPlugin pPlugin)
         {
             _Plugins.Add(pPlugin.PluginName, pPlugin);
@@ -269,7 +269,7 @@ namespace osWebRtcVoice
             JanusMessageResp ret = null;
             try
             {
-                OutstandingRequest outReq = new OutstandingRequest
+                OutstandingRequest outReq = new()
                 {
                     TransactionId = pReq.TransactionId,
                     RequestTime = DateTime.Now,
@@ -280,8 +280,10 @@ namespace osWebRtcVoice
                 string reqStr = pReq.ToJson();
 
                 HttpClient httpClient = WebUtil.GetNewGlobalHttpClient(30000);
-                HttpRequestMessage reqMsg = new(HttpMethod.Post, pURI);
-                reqMsg.Content = new StringContent(reqStr, System.Text.Encoding.UTF8, MediaTypeNames.Application.Json);
+                HttpRequestMessage reqMsg = new(HttpMethod.Post, pURI)
+                {
+                    Content = new StringContent(reqStr, System.Text.Encoding.UTF8, MediaTypeNames.Application.Json)
+                };
                 reqMsg.Headers.TryAddWithoutValidation("Accept", "application/json");
 
                 HttpResponseMessage response = await httpClient.SendAsync(reqMsg).ConfigureAwait(false);
@@ -451,7 +453,7 @@ namespace osWebRtcVoice
                 // m_log.DebugFormat("{0} GetFromJanus: URI = \"{1}\"", LogHeader, pURI);
                 //HttpClient httpClient = WebUtil.GetNewGlobalHttpClient(timeout);
                 HttpClient httpClient = WebUtil.GetGlobalNoRedirHttpClient(timeout, 1024 * 1024);
-                HttpRequestMessage reqMsg = new HttpRequestMessage(HttpMethod.Get, pURI);
+                HttpRequestMessage reqMsg = new(HttpMethod.Get, pURI);
                 reqMsg.Headers.TryAddWithoutValidation("Accept", "application/json");
                 HttpResponseMessage response = null;
                 try
@@ -564,7 +566,7 @@ namespace osWebRtcVoice
                         {
                             //_ = Task.Run(() =>
                             {
-                                EventResp eventResp = new EventResp(resp);
+                                EventResp eventResp = new(resp);
                                 switch (resp.ReturnCode)
                                 {
                                     case "keepalive":

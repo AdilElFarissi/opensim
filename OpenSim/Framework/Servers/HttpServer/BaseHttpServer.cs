@@ -52,10 +52,10 @@ namespace OpenSim.Framework.Servers.HttpServer
     public class BaseHttpServer : IHttpServer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private readonly HttpServerLogWriter httpserverlog = new HttpServerLogWriter();
+        private readonly HttpServerLogWriter httpserverlog = new();
         private static readonly Encoding UTF8NoBOM = new System.Text.UTF8Encoding(false);
         public static PollServiceRequestManager m_pollServiceManager;
-        private static readonly object m_generalLock = new object();
+        private static readonly object m_generalLock = new();
         private string HTTP404;
 
         /// <summary>
@@ -92,22 +92,22 @@ namespace OpenSim.Framework.Servers.HttpServer
         public volatile bool HTTPDRunning = false;
 
         protected tinyHTTPListener m_httpListener;
-        protected Dictionary<string, XmlRpcMethod> m_rpcHandlers        = new Dictionary<string, XmlRpcMethod>();
-        protected Dictionary<string, JsonRPCMethod> jsonRpcHandlers     = new Dictionary<string, JsonRPCMethod>();
-        protected Dictionary<string, bool> m_rpcHandlersKeepAlive       = new Dictionary<string, bool>();
+        protected Dictionary<string, XmlRpcMethod> m_rpcHandlers        = [];
+        protected Dictionary<string, JsonRPCMethod> jsonRpcHandlers     = [];
+        protected Dictionary<string, bool> m_rpcHandlersKeepAlive       = [];
         protected DefaultLLSDMethod m_defaultLlsdHandler = null; // <--   Moving away from the monolithic..  and going to /registered/
-        protected Dictionary<string, LLSDMethod> m_llsdHandlers         = new Dictionary<string, LLSDMethod>();
-        protected Dictionary<string, GenericHTTPMethod> m_HTTPHandlers  = new Dictionary<string, GenericHTTPMethod>();
+        protected Dictionary<string, LLSDMethod> m_llsdHandlers         = [];
+        protected Dictionary<string, GenericHTTPMethod> m_HTTPHandlers  = [];
         //protected Dictionary<string, IHttpAgentHandler> m_agentHandlers = new Dictionary<string, IHttpAgentHandler>();
-        protected ConcurrentDictionary<string, PollServiceEventArgs> m_pollHandlers = new ConcurrentDictionary<string, PollServiceEventArgs>();
-        protected ConcurrentDictionary<string, PollServiceEventArgs> m_pollHandlersVarPath = new ConcurrentDictionary<string, PollServiceEventArgs>();
-        protected ConcurrentDictionary<string, WebSocketRequestDelegate> m_WebSocketHandlers = new ConcurrentDictionary<string, WebSocketRequestDelegate>();
+        protected ConcurrentDictionary<string, PollServiceEventArgs> m_pollHandlers = new();
+        protected ConcurrentDictionary<string, PollServiceEventArgs> m_pollHandlersVarPath = new();
+        protected ConcurrentDictionary<string, WebSocketRequestDelegate> m_WebSocketHandlers = new();
 
-        protected ConcurrentDictionary<string, IRequestHandler> m_streamHandlers = new ConcurrentDictionary<string, IRequestHandler>();
-        protected ConcurrentDictionary<string, ISimpleStreamHandler> m_simpleStreamHandlers = new ConcurrentDictionary<string, ISimpleStreamHandler>();
-        protected ConcurrentDictionary<string, ISimpleStreamHandler> m_simpleStreamVarPath = new ConcurrentDictionary<string, ISimpleStreamHandler>();
-        protected ConcurrentDictionary<string, SimpleStreamMethod> m_indexPHPmethods = new ConcurrentDictionary<string, SimpleStreamMethod>();
-        protected ConcurrentDictionary<string, SimpleStreamMethod> m_globalMethods = new ConcurrentDictionary<string, SimpleStreamMethod>();
+        protected ConcurrentDictionary<string, IRequestHandler> m_streamHandlers = new();
+        protected ConcurrentDictionary<string, ISimpleStreamHandler> m_simpleStreamHandlers = new();
+        protected ConcurrentDictionary<string, ISimpleStreamHandler> m_simpleStreamVarPath = new();
+        protected ConcurrentDictionary<string, SimpleStreamMethod> m_indexPHPmethods = new();
+        protected ConcurrentDictionary<string, SimpleStreamMethod> m_globalMethods = new();
 
         protected IRequestHandler m_RootDefaultGET = null; // default method for root path. does override rpc xml and json, and old llsd login
 
@@ -115,8 +115,8 @@ namespace OpenSim.Framework.Servers.HttpServer
         protected bool m_ssl;
         private X509Certificate2 m_cert;
         protected string m_SSLCommonName = "";
-        protected List<string> m_certNames = new List<string>();
-        protected List<string> m_certIPs = new List<string>();
+        protected List<string> m_certNames = [];
+        protected List<string> m_certIPs = [];
         protected string m_certCN= "";
         protected RemoteCertificateValidationCallback m_certificateValidationCallback = null;
 
@@ -221,7 +221,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 X509Extension ext = m_cert.Extensions["2.5.29.17"];
                 if(ext != null)
                 {
-                    AsnEncodedData asndata = new AsnEncodedData(ext.Oid, ext.RawData);
+                    AsnEncodedData asndata = new(ext.Oid, ext.RawData);
                     string datastr = asndata.Format(true);
                     string[] lines = datastr.Split(LineSeparators);
                     foreach(string s in lines)
@@ -245,7 +245,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                                     long tmp = long.Parse(parts[1], NumberStyles.AllowHexSpecifier);
                                     tmp = IPAddress.HostToNetworkOrder(tmp);
                                     tmp = (long)((ulong) tmp >> 32);
-                                    IPAddress ia = new IPAddress(tmp);     
+                                    IPAddress ia = new(tmp);     
                                     m_certIPs.Add(ia.ToString());
                                 }
                             }
@@ -265,7 +265,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             int indx = dns.IndexOf('*');
             if (indx == -1)
-                return (String.Compare(hostname, dns, true, CultureInfo.InvariantCulture) == 0);
+                return (string.Compare(hostname, dns, true, CultureInfo.InvariantCulture) == 0);
 
             int dnslen = dns.Length;
             dnslen--;
@@ -289,7 +289,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             if (length <= 0)
                 return false;
 
-            if (String.Compare(hostname, length, end, 0, endlen, true, CultureInfo.InvariantCulture) != 0)
+            if (string.Compare(hostname, length, end, 0, endlen, true, CultureInfo.InvariantCulture) != 0)
                 return false;
 
             if (indx == 0)
@@ -299,7 +299,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
 
             string start = dns[..indx];
-            return (String.Compare(hostname, 0, start, 0, start.Length, true, CultureInfo.InvariantCulture) == 0);
+            return (string.Compare(hostname, 0, start, 0, start.Length, true, CultureInfo.InvariantCulture) == 0);
         }
 
         public bool CheckSSLCertHost(string hostname)
@@ -322,7 +322,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             {
                 foreach(string ip in m_certIPs)
                 {
-                    if (String.Compare(hostname, ip, true, CultureInfo.InvariantCulture) == 0)
+                    if (string.Compare(hostname, ip, true, CultureInfo.InvariantCulture) == 0)
                         return true;
                 }               
             }
@@ -377,24 +377,23 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public List<string> GetStreamHandlerKeys()
         {
-            return new List<string>(m_streamHandlers.Keys);
+            return [.. m_streamHandlers.Keys];
         }
 
         public List<string> GetSimpleStreamHandlerKeys()
         {
-            List<string> ssh = new List<string>(m_simpleStreamHandlers.Keys);
-            ssh.AddRange(new List<string>(m_simpleStreamVarPath.Keys));
+            List<string> ssh = [.. m_simpleStreamHandlers.Keys, .. new List<string>(m_simpleStreamVarPath.Keys)];
             return ssh;
         }
 
         public List<string> GetIndexPHPHandlerKeys()
         {
-            return new List<string>(m_indexPHPmethods.Keys);
+            return [.. m_indexPHPmethods.Keys];
         }
 
         public List<string> GetGLobalMethodsKeys()
         {
-            return new List<string>(m_globalMethods.Keys);
+            return [.. m_globalMethods.Keys];
         }
 
         private static string GetHandlerKey(string httpMethod, string path)
@@ -436,7 +435,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         public List<string> GetXmlRpcHandlerKeys()
         {
             lock (m_rpcHandlers)
-                return new List<string>(m_rpcHandlers.Keys);
+                return [.. m_rpcHandlers.Keys];
         }
 
         // JsonRPC
@@ -459,7 +458,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         public List<string> GetJsonRpcHandlerKeys()
         {
             lock (jsonRpcHandlers)
-                return new List<string>(jsonRpcHandlers.Keys);
+                return [.. jsonRpcHandlers.Keys];
         }
 
         public bool AddHTTPHandler(string methodName, GenericHTTPMethod handler)
@@ -474,7 +473,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         public List<string> GetHTTPHandlerKeys()
         {
             lock (m_HTTPHandlers)
-                return new List<string>(m_HTTPHandlers.Keys);
+                return [.. m_HTTPHandlers.Keys];
         }
 
         public bool AddPollServiceHTTPHandler(string url, PollServiceEventArgs args)
@@ -494,8 +493,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public List<string> GetPollServiceHandlerKeys()
         {
-            List<string> s = new List<string>(m_pollHandlers.Keys);
-            s.AddRange(m_pollHandlersVarPath.Keys);
+            List<string> s = [.. m_pollHandlers.Keys, .. m_pollHandlersVarPath.Keys];
             return s;
         }
 
@@ -510,7 +508,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         public List<string> GetLLSDHandlerKeys()
         {
             lock (m_llsdHandlers)
-                return new List<string>(m_llsdHandlers.Keys);
+                return [.. m_llsdHandlers.Keys];
         }
 
         public bool SetDefaultLLSDHandler(DefaultLLSDMethod handler)
@@ -562,7 +560,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             try
             {
                 IHttpRequest request = args.Request;
-                OSHttpRequest osRequest = new OSHttpRequest(request);
+                OSHttpRequest osRequest = new(request);
 
                 if(m_WebSocketHandlers.TryGetValue(osRequest.RawUrl, out WebSocketRequestDelegate dWebSocketRequestDelegate))
                 {
@@ -573,7 +571,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 if (TryGetPollServiceHTTPHandler(Util.TrimEndSlash(request.UriPath), out PollServiceEventArgs psEvArgs))
                 {
                     psEvArgs.RequestsReceived++;
-                    PollServiceHttpRequest psreq = new PollServiceHttpRequest(psEvArgs, request);
+                    PollServiceHttpRequest psreq = new(psEvArgs, request);
                     if(psEvArgs.Request is null)
                         m_pollServiceManager.Enqueue(psreq);
                     else
@@ -738,11 +736,11 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                         string requestBody;
                         Encoding encoding = Encoding.UTF8;
-                        using(StreamReader reader = new StreamReader(request.InputStream, encoding))
+                        using(StreamReader reader = new(request.InputStream, encoding))
                             requestBody = reader.ReadToEnd();
 
-                        Hashtable keysvals = new Hashtable();
-                        Hashtable headervals = new Hashtable();
+                        Hashtable keysvals = [];
+                        Hashtable headervals = [];
                         //string host = String.Empty;
 
                         string[] querystringkeys = request.QueryString.AllKeys;
@@ -773,7 +771,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     else
                     {
                         IStreamHandler streamHandler = (IStreamHandler)requestHandler;
-                        using (MemoryStream memoryStream = new MemoryStream())
+                        using (MemoryStream memoryStream = new())
                         {
                             streamHandler.Handle(path, request.InputStream, memoryStream, request, response);
                             buffer = memoryStream.ToArray();
@@ -993,7 +991,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     inputStream = new GZipStream(innerStream, System.IO.Compression.CompressionMode.Decompress);
                 }
 
-                using (StreamReader reader = new StreamReader(inputStream, Encoding.UTF8))
+                using (StreamReader reader = new(inputStream, Encoding.UTF8))
                 {
                     string output;
 
@@ -1174,7 +1172,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             XmlRpcRequest xmlRprcRequest = null;
             try
             {
-                using (StreamReader reader = new StreamReader(requestStream, Encoding.UTF8))
+                using (StreamReader reader = new(requestStream, Encoding.UTF8))
                 {
                     XmlRpcRequestDeserializer xmlDes = new();
                     xmlRprcRequest = (XmlRpcRequest)xmlDes.Deserialize(reader);
@@ -1263,12 +1261,12 @@ namespace OpenSim.Framework.Servers.HttpServer
                 // Code set in accordance with http://xmlrpc-epi.sourceforge.net/specs/rfc.fault_codes.php
                 xmlRpcResponse.SetFault(
                     XmlRpcErrorCodes.SERVER_ERROR_METHOD,
-                    String.Format("Requested method [{0}] not found", methodName));
+                    string.Format("Requested method [{0}] not found", methodName));
             }
 
-            using (MemoryStream outs = new MemoryStream(64 * 1024))
+            using (MemoryStream outs = new(64 * 1024))
             {
-                using (XmlTextWriter writer = new XmlTextWriter(outs, UTF8NoBOM))
+                using (XmlTextWriter writer = new(outs, UTF8NoBOM))
                 {
                     writer.Formatting = Formatting.None;
                     XmlRpcResponseSerializer xmlrpcSer = new();
@@ -1311,7 +1309,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             XmlRpcRequest xmlRprcRequest = null;
             try
             {
-                using (StreamReader reader = new StreamReader(requestStream, Encoding.UTF8))
+                using (StreamReader reader = new(requestStream, Encoding.UTF8))
                 {
                     XmlRpcRequestDeserializer xmlDes = new();
                     xmlRprcRequest = (XmlRpcRequest)xmlDes.Deserialize(reader);
@@ -1397,12 +1395,12 @@ namespace OpenSim.Framework.Servers.HttpServer
                 // Code set in accordance with http://xmlrpc-epi.sourceforge.net/specs/rfc.fault_codes.php
                 xmlRpcResponse.SetFault(
                     XmlRpcErrorCodes.SERVER_ERROR_METHOD,
-                    String.Format("Requested method [{0}] not found", methodName));
+                    string.Format("Requested method [{0}] not found", methodName));
             }
 
-            using (MemoryStream outs = new MemoryStream(64 * 1024))
+            using (MemoryStream outs = new(64 * 1024))
             {
-                using (XmlTextWriter writer = new XmlTextWriter(outs, UTF8NoBOM))
+                using (XmlTextWriter writer = new(outs, UTF8NoBOM))
                 {
                     writer.Formatting = Formatting.None;
                     XmlRpcResponseSerializer xmlrpcSer = new();
@@ -1422,7 +1420,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         // Batch requests not yet supported
         private void HandleJsonRpcRequests(OSHttpRequest request, OSHttpResponse response)
         {
-            JsonRpcResponse jsonRpcResponse = new JsonRpcResponse();
+            JsonRpcResponse jsonRpcResponse = new();
             OSDMap jsonRpcRequest = null;
 
             try
@@ -1755,13 +1753,13 @@ namespace OpenSim.Framework.Servers.HttpServer
             // a better way would be nifty.
 
             string requestBody;
-            using(StreamReader reader = new StreamReader(request.InputStream, Encoding.UTF8))
+            using(StreamReader reader = new(request.InputStream, Encoding.UTF8))
                 requestBody = reader.ReadToEnd();
 
-            Hashtable keysvals = new Hashtable();
-            Hashtable headervals = new Hashtable();
+            Hashtable keysvals = [];
+            Hashtable headervals = [];
 
-            Hashtable requestVars = new Hashtable();
+            Hashtable requestVars = [];
 
             string host = string.Empty;
 
@@ -1857,7 +1855,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 responsecode = 500;
                 responseString = "No response could be obtained";
                 contentType = "text/plain";
-                responsedata = new Hashtable();
+                responsedata = [];
             }
             else
             {
@@ -1876,7 +1874,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                     responsecode = 500;
                     responseString = "No response could be obtained";
                     contentType = "text/plain";
-                    responsedata = new Hashtable();
+                    responsedata = [];
                 }
             }
 

@@ -277,7 +277,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 LLSDxmlEncode2.AddEndMap(sb);
             }
             else
-                LLSDxmlEncode2.AddElem("error", String.IsNullOrEmpty(error) ? "" : error, sb);
+                LLSDxmlEncode2.AddElem("error", string.IsNullOrEmpty(error) ? "" : error, sb);
 
             Enqueue(EndEventToBytes(sb), toAgent);
         }
@@ -306,7 +306,7 @@ namespace OpenSim.Region.ClientStack.Linden
             }
             else
             {
-                List<bool> lstInProfiles = new List<bool>(data.Length);
+                List<bool> lstInProfiles = new(data.Length);
                 LLSDxmlEncode2.AddArray("GroupData", sb);
                 foreach (GroupMembershipData m in data)
                 {
@@ -424,8 +424,8 @@ namespace OpenSim.Region.ClientStack.Linden
             LLSDxmlEncode2.AddEndMapAndArray(sb);
 
             LLSDxmlEncode2.AddRawElem("<key>FolderData</key><array><map><key>FolderID</key><uuid>00000000-0000-0000-0000-000000000000</uuid><key>Name</key><string></string><key>ParentID</key><uuid>00000000-0000-0000-0000-000000000000</uuid ><key>Type</key ><integer>-1</integer></map ></array>",sb);
-            osUTF8 osName = new osUTF8(item.Name, 255);
-            osUTF8 osDesc = new osUTF8(item.Description, 255);
+            osUTF8 osName = new(item.Name, 255);
+            osUTF8 osDesc = new(item.Description, 255);
 
             LLSDxmlEncode2.AddArray("ItemData", sb);
                 LLSDxmlEncode2.AddMap(sb);
@@ -531,9 +531,11 @@ namespace OpenSim.Region.ClientStack.Linden
 
         public byte[] BuildEvent(string eventName, OSD eventBody)
         {
-            OSDMap llsdEvent = new(2);
-            llsdEvent.Add("message", new OSDString(eventName));
-            llsdEvent.Add("body", eventBody);
+            OSDMap llsdEvent = new(2)
+            {
+                { "message", new OSDString(eventName) },
+                { "body", eventBody }
+            };
 
             return Util.UTF8NBGetbytes(OSDParser.SerializeLLSDInnerXmlString(llsdEvent));
         }

@@ -80,7 +80,7 @@ namespace OpenSim.Framework
 
             #region Stream Writing
 
-            using (MemoryStream formDataStream = new MemoryStream())
+            using (MemoryStream formDataStream = new())
             {
                 foreach (var param in postParameters)
                 {
@@ -92,7 +92,7 @@ namespace OpenSim.Framework
                         string header = string.Format("--{0}\r\nContent-Disposition: form-data; name=\"{1}\"; filename=\"{2}\";\r\nContent-Type: {3}\r\n\r\n",
                             boundary,
                             file.Name,
-                            !String.IsNullOrEmpty(file.Filename) ? file.Filename : "tempfile",
+                            !string.IsNullOrEmpty(file.Filename) ? file.Filename : "tempfile",
                             file.ContentType);
 
                         formDataStream.Write(Encoding.UTF8.GetBytes(header), 0, header.Length);
@@ -129,7 +129,7 @@ namespace OpenSim.Framework
 
         private static string Boundary()
         {
-            string formDataBoundary = String.Empty;
+            string formDataBoundary = string.Empty;
 
             while (formDataBoundary.Length < 15)
                 formDataBoundary = formDataBoundary + Random.Shared.Next();

@@ -224,8 +224,8 @@ namespace OpenSim.Region.ClientStack.Linden
         {
             //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-            private Dictionary<UUID, Hashtable> responses = new Dictionary<UUID, Hashtable>();
-            private HashSet<UUID> dropedResponses = new HashSet<UUID>();
+            private Dictionary<UUID, Hashtable> responses = [];
+            private HashSet<UUID> dropedResponses = [];
 
             private WebFetchInvDescModule m_module;
 
@@ -267,21 +267,25 @@ namespace OpenSim.Region.ClientStack.Linden
 
                 Request = delegate (UUID requestID, OSHttpRequest request)
                 {
-                    APollRequest reqinfo = new APollRequest();
-                    reqinfo.thepoll = this;
-                    reqinfo.reqID = requestID;
-                    reqinfo.request = request;
+                    APollRequest reqinfo = new()
+                    {
+                        thepoll = this,
+                        reqID = requestID,
+                        request = request
+                    };
                     m_workerpool.Enqueue(reqinfo);
                     return null;
                 };
 
                 NoEvents = delegate (UUID _, UUID _)
                 {
-                    Hashtable response = new Hashtable();
-                    response["int_response_code"] = 500;
-                    response["str_response_string"] = "Script timeout";
-                    response["content_type"] = "text/plain";
-                    response["keepalive"] = false;
+                    Hashtable response = new()
+                    {
+                        ["int_response_code"] = 500,
+                        ["str_response_string"] = "Script timeout",
+                        ["content_type"] = "text/plain",
+                        ["keepalive"] = false
+                    };
 
                     return response;
                 };
@@ -303,7 +307,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     }
                 }
 
-                OSHttpResponse osresponse = new OSHttpResponse(requestinfo.request);
+                OSHttpResponse osresponse = new(requestinfo.request);
                 m_webFetchHandler.FetchInventoryDescendentsRequest(requestinfo.request, osresponse, m_module.m_badRequests);
                 requestinfo.request.InputStream.Dispose();
 
@@ -318,8 +322,10 @@ namespace OpenSim.Region.ClientStack.Linden
                         }
                     }
 
-                    Hashtable response = new Hashtable();
-                    response["h"] = osresponse;
+                    Hashtable response = new()
+                    {
+                        ["h"] = osresponse
+                    };
                     responses[requestID] = response;
                 }
                 ProcessedRequestsCount++;
@@ -332,7 +338,7 @@ namespace OpenSim.Region.ClientStack.Linden
             if (m_fetchInventoryDescendents2Url == "localhost")
             {
                 // Register this as a poll service
-                PollServiceInventoryEventArgs args = new PollServiceInventoryEventArgs(this, "/" + UUID.Random(), agentID);
+                PollServiceInventoryEventArgs args = new(this, "/" + UUID.Random(), agentID);
                 //args.Type = PollServiceEventArgs.EventType.Inventory;
 
                 caps.RegisterPollHandler("FetchInventoryDescendents2", args);

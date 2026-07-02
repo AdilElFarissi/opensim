@@ -95,7 +95,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
 
         public override Dictionary<uint,float> GetTopColliders()
         {
-            Dictionary<uint, float> returncolliders = new Dictionary<uint, float>();
+            Dictionary<uint, float> returncolliders = [];
             return returncolliders;
         }
     }

@@ -46,7 +46,7 @@ namespace OpenSim.Region.CoreModules.Framework
         private static readonly ILog m_log = LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
-        private readonly List<Scene> m_scenes = new List<Scene>();
+        private readonly List<Scene> m_scenes = [];
         private JobEngine m_processorJobEngine;
 
         #region ISharedRegionModule

@@ -46,7 +46,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private static Regex arg = new Regex(@"(?<!\\)\[[^\[\]]*(?<!\\)\]");
+        private static Regex arg = new(@"(?<!\\)\[[^\[\]]*(?<!\\)\]");
         private static int _idk_ = 0;
         private static int DEBUG_CHANNEL = 2147483647;
 
@@ -64,7 +64,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
         internal bool RelayChat = true;
         internal bool RelayPrivateChannels = false;
         internal int RelayChannel = 1;
-        internal List<int> ValidInWorldChannels = new List<int>();
+        internal List<int> ValidInWorldChannels = [];
 
         // Connector agnostic parameters. These values are NOT shared with the
         // connector and do not differentiate at an IRC level
@@ -79,16 +79,16 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
         internal int PingDelay = 15;
         internal string DefaultZone = "Sim";
 
-        internal string _accessPassword = String.Empty;
+        internal string _accessPassword = string.Empty;
         internal Regex AccessPasswordRegex = null;
-        internal List<string> ExcludeList = new List<string>();
+        internal List<string> ExcludeList = [];
         internal string AccessPassword
         {
             get { return _accessPassword; }
             set
             {
                 _accessPassword = value;
-                AccessPasswordRegex = new Regex(String.Format(@"^{0},\s*(?<avatar>[^,]+),\s*(?<message>.+)$", _accessPassword),
+                AccessPasswordRegex = new Regex(string.Format(@"^{0},\s*(?<avatar>[^,]+),\s*(?<message>.+)$", _accessPassword),
                                                 RegexOptions.Compiled);
             }
         }
@@ -103,7 +103,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
 
         // List of regions dependent upon this connection
 
-        internal List<RegionState> clientregions = new List<RegionState>();
+        internal List<RegionState> clientregions = [];
 
         // Needed by OpenChannel
 
@@ -151,7 +151,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
             // Create a new instance of a channel. This may not actually
             // get used if an equivalent channel already exists.
 
-            ChannelState cs = new ChannelState();
+            ChannelState cs = new();
 
             // Read in the configuration file and filter everything for variable
             // subsititution.
@@ -209,7 +209,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
             m_log.DebugFormat("[IRC-Channel-{0}] PingDelay : <{1}>", cs.idn, cs.PingDelay);
             cs.AccessPassword = Substitute(rs, config.GetString("access_password", cs.AccessPassword));
             m_log.DebugFormat("[IRC-Channel-{0}] AccessPassword : <{1}>", cs.idn, cs.AccessPassword);
-            string[] excludes = config.GetString("exclude_list", "").Trim().Split(new Char[] { ',' });
+            string[] excludes = config.GetString("exclude_list", "").Trim().Split(new char[] { ',' });
             cs.ExcludeList = new List<string>(excludes.Length);
             foreach (string name in excludes)
             {
@@ -219,13 +219,13 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
             // Fail if fundamental information is still missing
 
             if (cs.Server == null)
-                throw new Exception(String.Format("[IRC-Channel-{0}] Invalid configuration for region {1}: server missing", cs.idn, rs.Region));
+                throw new Exception(string.Format("[IRC-Channel-{0}] Invalid configuration for region {1}: server missing", cs.idn, rs.Region));
             else if (cs.IrcChannel == null)
-                throw new Exception(String.Format("[IRC-Channel-{0}] Invalid configuration for region {1}: channel missing", cs.idn, rs.Region));
+                throw new Exception(string.Format("[IRC-Channel-{0}] Invalid configuration for region {1}: channel missing", cs.idn, rs.Region));
             else if (cs.BaseNickname == null)
-                throw new Exception(String.Format("[IRC-Channel-{0}] Invalid configuration for region {1}: nick missing", cs.idn, rs.Region));
+                throw new Exception(string.Format("[IRC-Channel-{0}] Invalid configuration for region {1}: nick missing", cs.idn, rs.Region));
             else if (cs.User == null)
-                throw new Exception(String.Format("[IRC-Channel-{0}] Invalid configuration for region {1}: user missing", cs.idn, rs.Region));
+                throw new Exception(string.Format("[IRC-Channel-{0}] Invalid configuration for region {1}: user missing", cs.idn, rs.Region));
 
             m_log.InfoFormat("[IRC-Channel-{0}] Configuration for Region {1} is valid", cs.idn, rs.Region);
             m_log.InfoFormat("[IRC-Channel-{0}]    Server = {1}", cs.idn, cs.Server);
@@ -311,7 +311,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
                 }
                 else
                 {
-                    string txt = String.Format("[IRC-Channel-{0}] Region {1} failed to connect to channel {2} on server {3}:{4}",
+                    string txt = string.Format("[IRC-Channel-{0}] Region {1} failed to connect to channel {2} on server {3}:{4}",
                             cs.idn, rs.Region, cs.IrcChannel, cs.Server, cs.Port);
                     m_log.Error(txt);
                     throw new Exception(txt);
@@ -340,8 +340,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
         internal ChannelState UpdateServer(RegionState rs, string server)
         {
             RemoveRegion(rs);
-            ChannelState cs = new ChannelState(this);
-            cs.Server = server;
+            ChannelState cs = new(this)
+            {
+                Server = server
+            };
             cs = Integrate(rs, cs);
             cs.AddRegion(rs);
             return cs;
@@ -350,8 +352,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
         internal ChannelState UpdatePort(RegionState rs, string port)
         {
             RemoveRegion(rs);
-            ChannelState cs = new ChannelState(this);
-            cs.Port = Convert.ToUInt32(port);
+            ChannelState cs = new(this)
+            {
+                Port = Convert.ToUInt32(port)
+            };
             cs = Integrate(rs, cs);
             cs.AddRegion(rs);
             return cs;
@@ -360,8 +364,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
         internal ChannelState UpdateChannel(RegionState rs, string channel)
         {
             RemoveRegion(rs);
-            ChannelState cs = new ChannelState(this);
-            cs.IrcChannel = channel;
+            ChannelState cs = new(this)
+            {
+                IrcChannel = channel
+            };
             cs = Integrate(rs, cs);
             cs.AddRegion(rs);
             return cs;
@@ -370,8 +376,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
         internal ChannelState UpdateNickname(RegionState rs, string nickname)
         {
             RemoveRegion(rs);
-            ChannelState cs = new ChannelState(this);
-            cs.BaseNickname = nickname;
+            ChannelState cs = new(this)
+            {
+                BaseNickname = nickname
+            };
             cs = Integrate(rs, cs);
             cs.AddRegion(rs);
             return cs;
@@ -380,8 +388,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
         internal ChannelState UpdateClientReporting(RegionState rs, string cr)
         {
             RemoveRegion(rs);
-            ChannelState cs = new ChannelState(this);
-            cs.ClientReporting = Convert.ToBoolean(cr);
+            ChannelState cs = new(this)
+            {
+                ClientReporting = Convert.ToBoolean(cr)
+            };
             cs = Integrate(rs, cs);
             cs.AddRegion(rs);
             return cs;
@@ -390,8 +400,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
         internal ChannelState UpdateRelayIn(RegionState rs, string channel)
         {
             RemoveRegion(rs);
-            ChannelState cs = new ChannelState(this);
-            cs.RelayChannel = Convert.ToInt32(channel);
+            ChannelState cs = new(this)
+            {
+                RelayChannel = Convert.ToInt32(channel)
+            };
             cs = Integrate(rs, cs);
             cs.AddRegion(rs);
             return cs;
@@ -400,8 +412,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Chat
         internal ChannelState UpdateRelayOut(RegionState rs, string channel)
         {
             RemoveRegion(rs);
-            ChannelState cs = new ChannelState(this);
-            cs.RelayChannelOut = Convert.ToInt32(channel);
+            ChannelState cs = new(this)
+            {
+                RelayChannelOut = Convert.ToInt32(channel)
+            };
             cs = Integrate(rs, cs);
             cs.AddRegion(rs);
             return cs;

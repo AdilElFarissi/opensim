@@ -66,13 +66,13 @@ namespace OpenSim.Framework.Console
         public ConsoleDisplayTable()
         {
             TableSpacing = DefaultTableSpacing;
-            Columns = new List<ConsoleDisplayTableColumn>();
-            Rows = new List<ConsoleDisplayTableRow>();
+            Columns = [];
+            Rows = [];
         }
 
         public override string ToString()
         {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
             AddToStringBuilder(sb);
             return sb.ToString();
         }
@@ -105,7 +105,7 @@ namespace OpenSim.Framework.Console
         /// </summary>
         private string GetFormatString()
         {
-            StringBuilder formatSb = new StringBuilder();
+            StringBuilder formatSb = new();
 
             formatSb.Append(' ', Indent);
 
@@ -147,7 +147,7 @@ namespace OpenSim.Framework.Console
 
         public ConsoleDisplayTableRow(params object[] cells) : this()
         {
-            Cells = new List<object>(cells);
+            Cells = [.. cells];
         }
     }
 }

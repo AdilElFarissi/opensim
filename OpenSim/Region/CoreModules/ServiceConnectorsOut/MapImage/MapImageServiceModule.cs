@@ -61,7 +61,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
         private bool m_enabled = false;
         private IMapImageService m_MapService;
 
-        private Dictionary<UUID, Scene> m_scenes = new Dictionary<UUID, Scene>();
+        private Dictionary<UUID, Scene> m_scenes = [];
 
         private int m_refreshtime = 0;
         private int m_lastrefresh = 0;
@@ -106,7 +106,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
                 return;
             }
 
-            Object[] args = new Object[] { source };
+            object[] args = new object[] { source };
             m_MapService = ServerUtils.LoadPlugin<IMapImageService>(service, args);
             if (m_MapService == null)
             {
@@ -119,10 +119,12 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
             {
                 m_refreshtime = refreshminutes * 60 * 1000; // convert from minutes to ms
 
-                m_refreshTimer = new System.Timers.Timer();
-                m_refreshTimer.Enabled = true;
-                m_refreshTimer.AutoReset = true;
-                m_refreshTimer.Interval = m_refreshtime;
+                m_refreshTimer = new System.Timers.Timer
+                {
+                    Enabled = true,
+                    AutoReset = true,
+                    Interval = m_refreshtime
+                };
                 m_refreshTimer.Elapsed += new ElapsedEventHandler(HandleMaptileRefresh);
 
 
@@ -235,7 +237,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
                         // Images are addressed from the upper left corner so have to do funny
                         //     math to pick out the sub-tile since regions are numbered from
                         //     the lower left.
-                        Rectangle rect = new Rectangle(
+                        Rectangle rect = new(
                             (int)xx,
                             mapTile.Height - (int)yy - (int)Constants.RegionSize,
                             (int)Constants.RegionSize, (int)Constants.RegionSize);
@@ -285,7 +287,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.MapImage
         {
             byte[] jpgData = Utils.EmptyBytes;
 
-            using (MemoryStream stream = new MemoryStream())
+            using (MemoryStream stream = new())
             {
                 tileImage.Save(stream, ImageFormat.Jpeg);
                 jpgData = stream.ToArray();

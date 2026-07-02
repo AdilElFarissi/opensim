@@ -1024,7 +1024,7 @@ namespace OpenSim.Services.LLLoginService
             //aCircuit.BaseFolder = irrelevant
             aCircuit.CapsPath = CapsUtil.GetRandomCapsObjectPath();
             aCircuit.child = false; // the first login agent is root
-            aCircuit.ChildrenCapSeeds = new Dictionary<ulong, string>();
+            aCircuit.ChildrenCapSeeds = [];
             aCircuit.circuitcode = circuit;
             aCircuit.firstname = account.FirstName;
             //aCircuit.InventoryFolder = irrelevant
@@ -1044,7 +1044,7 @@ namespace OpenSim.Services.LLLoginService
 
         private void SetServiceURLs(AgentCircuitData aCircuit, UserAccount account)
         {
-            aCircuit.ServiceURLs = new Dictionary<string, object>();
+            aCircuit.ServiceURLs = [];
             if (account.ServiceURLs is null)
                 return;
 
@@ -1104,7 +1104,7 @@ namespace OpenSim.Services.LLLoginService
             EntityTransferContext ctx = new();
 
             if (!simConnector.QueryAccess(
-                    region, aCircuit.AgentID, null, true, aCircuit.startpos, new List<UUID>(), ctx, out reason))
+                    region, aCircuit.AgentID, null, true, aCircuit.startpos, [], ctx, out reason))
                 return false;
 
             return simConnector.CreateAgent(null, region, aCircuit, (uint)flags, ctx, out reason);
@@ -1151,7 +1151,7 @@ namespace OpenSim.Services.LLLoginService
                     //
                     if (cmd.Length > 2)
                     {
-                        if (Int32.TryParse(cmd[2], out m_MinLoginLevel))
+                        if (int.TryParse(cmd[2], out m_MinLoginLevel))
                             MainConsole.Instance.Output("Set minimum login level to {0}", m_MinLoginLevel);
                         else
                             MainConsole.Instance.Output("ERROR: {0} is not a valid login level",  cmd[2]);

@@ -163,7 +163,7 @@ namespace OpenSim.Region.CoreModules.World.Sound
         }
 
         public virtual void TriggerSound(
-            UUID soundId, UUID ownerID, UUID objectID, UUID parentID, double gain, Vector3 position, UInt64 handle)
+            UUID soundId, UUID ownerID, UUID objectID, UUID parentID, double gain, Vector3 position, ulong handle)
         {
             float radius;
             ScenePresence ssp = null;
@@ -211,7 +211,7 @@ namespace OpenSim.Region.CoreModules.World.Sound
         }
 
         public virtual void TriggerCollisionSound(
-            UUID soundId, UUID ownerID, UUID objectID, UUID parentID, double gain, Vector3 position, UInt64 handle)
+            UUID soundId, UUID ownerID, UUID objectID, UUID parentID, double gain, Vector3 position, ulong handle)
         {
             float radius;
             ScenePresence ssp = null;

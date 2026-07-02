@@ -57,7 +57,7 @@ namespace OpenSim.Server.Handlers.Friends
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             string body;
-            using(StreamReader sr = new StreamReader(requestData))
+            using(StreamReader sr = new(requestData))
                 body = sr.ReadToEnd();
             body = body.Trim();
 
@@ -133,7 +133,7 @@ namespace OpenSim.Server.Handlers.Friends
         private byte[] PackageFriends(FriendInfo[] finfos)
         {
 
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
             if ((finfos == null) || ((finfos != null) && (finfos.Length == 0)))
                 result["result"] = "null";
             else
@@ -207,7 +207,7 @@ namespace OpenSim.Server.Handlers.Friends
 
         private byte[] SuccessResult()
         {
-            XmlDocument doc = new XmlDocument();
+            XmlDocument doc = new();
 
             XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
                     "", "");
@@ -229,12 +229,12 @@ namespace OpenSim.Server.Handlers.Friends
 
         private byte[] FailureResult()
         {
-            return FailureResult(String.Empty);
+            return FailureResult(string.Empty);
         }
 
         private byte[] FailureResult(string msg)
         {
-            XmlDocument doc = new XmlDocument();
+            XmlDocument doc = new();
 
             XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
                     "", "");
@@ -269,7 +269,7 @@ namespace OpenSim.Server.Handlers.Friends
                 friend = kvp["Friend"].ToString();
             flags = 0;
             if (kvp.ContainsKey("MyFlags") && kvp["MyFlags"] != null)
-                Int32.TryParse(kvp["MyFlags"].ToString(), out flags);
+                int.TryParse(kvp["MyFlags"].ToString(), out flags);
         }
 
         #endregion

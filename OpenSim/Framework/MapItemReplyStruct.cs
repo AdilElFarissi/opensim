@@ -51,13 +51,15 @@ namespace OpenSim.Framework
 
         public OSDMap ToOSD()
         {
-            OSDMap map = new OSDMap();
-            map["X"] = OSD.FromInteger((int)x);
-            map["Y"] = OSD.FromInteger((int)y);
-            map["ID"] = OSD.FromUUID(id);
-            map["Name"] = OSD.FromString(name);
-            map["Extra"] = OSD.FromInteger(Extra);
-            map["Extra2"] = OSD.FromInteger(Extra2);
+            OSDMap map = new()
+            {
+                ["X"] = OSD.FromInteger((int)x),
+                ["Y"] = OSD.FromInteger((int)y),
+                ["ID"] = OSD.FromUUID(id),
+                ["Name"] = OSD.FromString(name),
+                ["Extra"] = OSD.FromInteger(Extra),
+                ["Extra2"] = OSD.FromInteger(Extra2)
+            };
             return map;
         }
 

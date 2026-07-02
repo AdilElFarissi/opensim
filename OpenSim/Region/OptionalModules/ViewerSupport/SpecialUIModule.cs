@@ -111,8 +111,8 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
             if (m_Helper.UserLevel(agentID) <= m_UserLevel)
             {
                 OSD extrasMap;
-                OSDMap specialUI = new OSDMap();
-                using (StreamReader s = new StreamReader(Path.Combine(VIEWER_SUPPORT_DIR, "panel_toolbar.xml")))
+                OSDMap specialUI = [];
+                using (StreamReader s = new(Path.Combine(VIEWER_SUPPORT_DIR, "panel_toolbar.xml")))
                 {
                     if (!features.TryGetValue("OpenSimExtras", out extrasMap))
                     {
@@ -127,14 +127,14 @@ namespace OpenSim.Region.OptionalModules.ViewerSupport
 
                 if (Directory.Exists(Path.Combine(VIEWER_SUPPORT_DIR, "Floaters")))
                 {
-                    OSDMap floaters = new OSDMap();
+                    OSDMap floaters = [];
                     uint n = 0;
-                    foreach (String name in Directory.GetFiles(Path.Combine(VIEWER_SUPPORT_DIR, "Floaters"), "*.xml"))
+                    foreach (string name in Directory.GetFiles(Path.Combine(VIEWER_SUPPORT_DIR, "Floaters"), "*.xml"))
                     {
-                        using (StreamReader s = new StreamReader(name))
+                        using (StreamReader s = new(name))
                         {
                             string simple_name = Path.GetFileNameWithoutExtension(name);
-                            OSDMap floater = new OSDMap();
+                            OSDMap floater = [];
                             floaters[simple_name] = OSDMap.FromString(s.ReadToEnd());
                             n++;
                         }

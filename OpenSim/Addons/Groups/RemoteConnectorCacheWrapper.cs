@@ -51,7 +51,7 @@ namespace OpenSim.Groups
         private const int GROUPS_CACHE_TIMEOUT = 1 * 60; // 1 minutes
 
         private ForeignImporter m_ForeignImporter;
-        private HashSet<string> m_ActiveRequests = new HashSet<string>();
+        private HashSet<string> m_ActiveRequests = [];
 
         // This all important cache caches objects of different types:
         // group-<GroupID> or group-<Name>          => ExtendedGroupRecord
@@ -65,7 +65,7 @@ namespace OpenSim.Groups
         // rolemembers-<RequestingAgentID>-<GroupID> => List<ExtendedGroupRoleMembersData>
         // notice-<noticeID>                        => GroupNoticeInfo
         // notices-<GroupID>                        => List<ExtendedGroupNoticeData>
-        private ExpiringCacheOS<string, object> m_Cache = new ExpiringCacheOS<string, object>(30000);
+        private ExpiringCacheOS<string, object> m_Cache = new(30000);
 
         public RemoteConnectorCacheWrapper(IUserManagement uman)
         {
@@ -394,13 +394,15 @@ namespace OpenSim.Groups
         {
             if (d())
             {
-                GroupRolesData role = new GroupRolesData();
-                role.Description = description;
-                role.Members = 0;
-                role.Name = name;
-                role.Powers = powers;
-                role.RoleID = roleID;
-                role.Title = title;
+                GroupRolesData role = new()
+                {
+                    Description = description,
+                    Members = 0,
+                    Name = name,
+                    Powers = powers,
+                    RoleID = roleID,
+                    Title = title
+                };
 
                 m_Cache.AddOrUpdate("role-" + roleID.ToString(), role, GROUPS_CACHE_TIMEOUT);
 
@@ -574,12 +576,14 @@ namespace OpenSim.Groups
                         {
                             // This may throw an exception, in which case the agentID is not a UUID but a full ID
                             // In that case, let's just remove the whoe things from the cache
-                            UUID id = new UUID(AgentID);
+                            UUID id = new(AgentID);
                             List<ExtendedGroupRoleMembersData> xx = (List<ExtendedGroupRoleMembersData>)obj;
                             List<GroupRoleMembersData> rmlist = xx.ConvertAll<GroupRoleMembersData>(m_ForeignImporter.ConvertGroupRoleMembersData);
-                            GroupRoleMembersData rm = new GroupRoleMembersData();
-                            rm.MemberID = id;
-                            rm.RoleID = RoleID;
+                            GroupRoleMembersData rm = new()
+                            {
+                                MemberID = id,
+                                RoleID = RoleID
+                            };
                             rmlist.Add(rm);
                         }
                         catch

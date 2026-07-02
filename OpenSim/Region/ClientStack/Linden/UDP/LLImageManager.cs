@@ -57,12 +57,12 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// <summary>
         /// Priority queue for determining which image to send first.
         /// </summary>
-        private C5.IntervalHeap<J2KImage> m_priorityQueue = new C5.IntervalHeap<J2KImage>(10, new J2KImageComparer());
+        private C5.IntervalHeap<J2KImage> m_priorityQueue = new(10, new J2KImageComparer());
 
         /// <summary>
         /// Used to control thread access to the priority queue.
         /// </summary>
-        private object m_syncRoot = new object();
+        private object m_syncRoot = new();
 
         /// <summary>
         /// Client served by this image manager
@@ -152,22 +152,24 @@ namespace OpenSim.Region.ClientStack.LindenUDP
                     }
                     else
                     {
-//                        m_log.DebugFormat(
-//                            "[LL IMAGE MANAGER]: Received request for {0}, start packet {1} from {2}",
-//                            newRequest.RequestedAssetID, newRequest.PacketNumber, m_client.Name);
+                        //                        m_log.DebugFormat(
+                        //                            "[LL IMAGE MANAGER]: Received request for {0}, start packet {1} from {2}",
+                        //                            newRequest.RequestedAssetID, newRequest.PacketNumber, m_client.Name);
 
                         //m_log.DebugFormat("[TEX]: (NEW) ID={0}: D={1}, S={2}, P={3}",
                         //    newRequest.RequestedAssetID, newRequest.DiscardLevel, newRequest.PacketNumber, newRequest.Priority);
 
-                        imgrequest = new J2KImage(this);
-                        imgrequest.J2KDecoder = m_j2kDecodeModule;
-                        imgrequest.AssetService = m_assetCache;
-                        imgrequest.AgentID = Client.AgentId;
-                        imgrequest.InventoryAccessModule = Client.Scene.RequestModuleInterface<IInventoryAccessModule>();
-                        imgrequest.DiscardLevel = newRequest.DiscardLevel;
-                        imgrequest.StartPacket = Math.Max(1, newRequest.PacketNumber);
-                        imgrequest.Priority = newRequest.Priority;
-                        imgrequest.TextureID = newRequest.RequestedAssetID;
+                        imgrequest = new J2KImage(this)
+                        {
+                            J2KDecoder = m_j2kDecodeModule,
+                            AssetService = m_assetCache,
+                            AgentID = Client.AgentId,
+                            InventoryAccessModule = Client.Scene.RequestModuleInterface<IInventoryAccessModule>(),
+                            DiscardLevel = newRequest.DiscardLevel,
+                            StartPacket = Math.Max(1, newRequest.PacketNumber),
+                            Priority = newRequest.Priority,
+                            TextureID = newRequest.RequestedAssetID
+                        };
                         imgrequest.Priority = newRequest.Priority;
 
                         //Add this download to the priority queue

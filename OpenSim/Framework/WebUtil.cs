@@ -871,19 +871,19 @@ namespace OpenSim.Framework
 
         public class QBasedComparer : IComparer
         {
-            public int Compare(Object x, Object y)
+            public int Compare(object x, object y)
             {
                 float qx = GetQ(x);
                 float qy = GetQ(y);
                 return qy.CompareTo(qx); // descending order
             }
 
-            private static float GetQ(Object o)
+            private static float GetQ(object o)
             {
                 // Example: image/png;q=0.9
 
                 float qvalue = 1f;
-                if (o is String mime)
+                if (o is string mime)
                 {
                     string[] parts = mime.Split(';');
                     if (parts.Length > 1)
@@ -915,7 +915,7 @@ namespace OpenSim.Framework
             string[] types = accept.Split(Util.SplitCommaArray);
             if (types.Length > 0)
             {
-                ArrayList tlist = new();
+                ArrayList tlist = [];
                 foreach(string s in types.AsSpan())
                 {
                     if(s.StartsWith("image", StringComparison.InvariantCultureIgnoreCase))
@@ -1307,7 +1307,7 @@ namespace OpenSim.Framework
             HttpResponseMessage responseMessage = null;
             HttpRequestMessage request = null;
             HttpClient client = null;
-            string respstring = String.Empty;
+            string respstring = string.Empty;
             int sendlen = 0;
             int rcvlen = 0;
             bool bodyTimedOut = false;
@@ -1750,10 +1750,10 @@ namespace OpenSim.Framework
             HttpClient client = null;
             try
             {
-                ArrayList SendParams = new()
-                {
+                ArrayList SendParams =
+                [
                     ReqParams
-                };
+                ];
 
                 XmlRpcRequest Req = new(method, SendParams);
 

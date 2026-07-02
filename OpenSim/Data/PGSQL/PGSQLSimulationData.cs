@@ -78,11 +78,11 @@ namespace OpenSim.Data.PGSQL
             m_connectionString = connectionString;
             _Database = new PGSQLManager(connectionString);
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(connectionString))
+            using (NpgsqlConnection conn = new(connectionString))
             {
                 conn.Open();
                 //New Migration settings
-                Migration m = new Migration(conn, Assembly, "RegionStore");
+                Migration m = new(conn, Assembly, "RegionStore");
                 m.Update();
             }
         }
@@ -103,8 +103,8 @@ namespace OpenSim.Data.PGSQL
         {
             UUID lastGroupID = UUID.Zero;
 
-            Dictionary<UUID, SceneObjectPart> prims = new Dictionary<UUID, SceneObjectPart>();
-            Dictionary<UUID, SceneObjectGroup> objects = new Dictionary<UUID, SceneObjectGroup>();
+            Dictionary<UUID, SceneObjectPart> prims = [];
+            Dictionary<UUID, SceneObjectGroup> objects = [];
             SceneObjectGroup grp = null;
 
             string sql = @"SELECT *,
@@ -114,8 +114,8 @@ namespace OpenSim.Data.PGSQL
                             WHERE ""RegionUUID"" = :RegionUUID
                             ORDER BY ""SceneGroupID"" asc, sort asc, ""LinkNumber"" asc";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand command = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_connectionString))
+            using (NpgsqlCommand command = new(sql, conn))
             {
                 command.Parameters.Add(_Database.CreateParameter("regionUUID", regionUUID));
                 conn.Open();
@@ -131,7 +131,7 @@ namespace OpenSim.Data.PGSQL
 
                         prims[sceneObjectPart.UUID] = sceneObjectPart;
 
-                        UUID groupID = new UUID((Guid)reader["SceneGroupID"]);
+                        UUID groupID = new((Guid)reader["SceneGroupID"]);
 
                         if (groupID != lastGroupID) // New SOG
                         {
@@ -187,10 +187,10 @@ namespace OpenSim.Data.PGSQL
             // most of which probably have no items... get a
             // list from DB of all prims which have items and
             // LoadItems only on those
-            List<SceneObjectPart> primsWithInventory = new List<SceneObjectPart>();
+            List<SceneObjectPart> primsWithInventory = [];
             string qry = "select distinct \"primID\" from primitems";
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand command = new NpgsqlCommand(qry, conn))
+            using (NpgsqlConnection conn = new(m_connectionString))
+            using (NpgsqlCommand command = new(qry, conn))
             {
                 conn.Open();
                 using (NpgsqlDataReader itemReader = command.ExecuteReader())
@@ -213,7 +213,7 @@ namespace OpenSim.Data.PGSQL
 
             _Log.DebugFormat("[REGION DB]: Loaded {0} objects using {1} prims", objects.Count, prims.Count);
 
-            return new List<SceneObjectGroup>(objects.Values);
+            return [.. objects.Values];
         }
 
         /// <summary>
@@ -223,8 +223,8 @@ namespace OpenSim.Data.PGSQL
         private void LoadItems(List<SceneObjectPart> allPrimsWithInventory)
         {
             string sql = @"SELECT * FROM primitems WHERE ""primID"" = :PrimID";
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand command = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_connectionString))
+            using (NpgsqlCommand command = new(sql, conn))
             {
                 conn.Open();
                 foreach (SceneObjectPart objectPart in allPrimsWithInventory)
@@ -232,7 +232,7 @@ namespace OpenSim.Data.PGSQL
                     command.Parameters.Clear();
                     command.Parameters.Add(_Database.CreateParameter("PrimID", objectPart.UUID));
 
-                    List<TaskInventoryItem> inventory = new List<TaskInventoryItem>();
+                    List<TaskInventoryItem> inventory = [];
 
                     using (NpgsqlDataReader reader = command.ExecuteReader())
                     {
@@ -260,7 +260,7 @@ namespace OpenSim.Data.PGSQL
         {
             //_Log.DebugFormat("[PGSQL]: Adding/Changing SceneObjectGroup: {0} to region: {1}, object has {2} prims.", obj.UUID, regionUUID, obj.Parts.Length);
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
+            using (NpgsqlConnection conn = new(m_connectionString))
             {
                 conn.Open();
                 NpgsqlTransaction transaction = conn.BeginTransaction();
@@ -457,8 +457,8 @@ namespace OpenSim.Data.PGSQL
             lock (_Database)
             {
                 //Using the non transaction mode.
-                using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-                using (NpgsqlCommand cmd = new NpgsqlCommand())
+                using (NpgsqlConnection conn = new(m_connectionString))
+                using (NpgsqlCommand cmd = new())
                 {
                     cmd.Connection = conn;
                     cmd.CommandText = sqlPrimShapes;
@@ -492,8 +492,8 @@ namespace OpenSim.Data.PGSQL
             //TODO add index on PrimID in DB, if not already exist
 
             string sql = @"delete from primitems where ""primID"" = :primID";
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_connectionString))
+            using (NpgsqlCommand cmd = new(sql, conn))
             {
                 cmd.Parameters.Add(_Database.CreateParameter("primID", primID));
                 conn.Open();
@@ -507,8 +507,8 @@ namespace OpenSim.Data.PGSQL
             VALUES (:itemID,:primID,:assetID,:parentFolderID,:invType,:assetType,:name,:description,:creationDate,:creatorID,:ownerID,
             :lastOwnerID,:groupID,:nextPermissions,:currentPermissions,:basePermissions,:everyonePermissions,:groupPermissions,:flags)";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_connectionString))
+            using (NpgsqlCommand cmd = new(sql, conn))
             {
                 conn.Open();
                 foreach (TaskInventoryItem taskItem in items)
@@ -544,9 +544,9 @@ namespace OpenSim.Data.PGSQL
             string sql = @"select ""RegionUUID"", ""Revision"", ""Heightfield"" from terrain
                             where ""RegionUUID"" = :RegionUUID order by ""Revision"" desc limit 1; ";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
+            using (NpgsqlConnection conn = new(m_connectionString))
             {
-                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+                using (NpgsqlCommand cmd = new(sql, conn))
                 {
                     // PGSqlParameter param = new PGSqlParameter();
                     cmd.Parameters.Add(_Database.CreateParameter("RegionUUID", regionID));
@@ -583,9 +583,9 @@ namespace OpenSim.Data.PGSQL
             string sql = @"select ""RegionUUID"", ""Revision"", ""Heightfield"" from bakedterrain
                             where ""RegionUUID"" = :RegionUUID; ";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
+            using (NpgsqlConnection conn = new(m_connectionString))
             {
-                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+                using (NpgsqlCommand cmd = new(sql, conn))
                 {
                     // PGSqlParameter param = new PGSqlParameter();
                     cmd.Parameters.Add(_Database.CreateParameter("RegionUUID", regionID));
@@ -624,9 +624,9 @@ namespace OpenSim.Data.PGSQL
         {
             //Delete old terrain map
             string sql = @"delete from terrain where ""RegionUUID""=:RegionUUID";
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
+            using (NpgsqlConnection conn = new(m_connectionString))
             {
-                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+                using (NpgsqlCommand cmd = new(sql, conn))
                 {
                     cmd.Parameters.Add(_Database.CreateParameter("RegionUUID", regionID));
                     conn.Open();
@@ -642,9 +642,9 @@ namespace OpenSim.Data.PGSQL
 
             sql = @"insert into terrain(""RegionUUID"", ""Revision"", ""Heightfield"") values(:RegionUUID, :Revision, :Heightfield)";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
+            using (NpgsqlConnection conn = new(m_connectionString))
             {
-                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+                using (NpgsqlCommand cmd = new(sql, conn))
                 {
                     cmd.Parameters.Add(_Database.CreateParameter("RegionUUID", regionID));
                     cmd.Parameters.Add(_Database.CreateParameter("Revision", terrainDBRevision));
@@ -668,9 +668,9 @@ namespace OpenSim.Data.PGSQL
         {
             //Delete old terrain map
             string sql = @"delete from bakedterrain where ""RegionUUID""=:RegionUUID";
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
+            using (NpgsqlConnection conn = new(m_connectionString))
             {
-                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+                using (NpgsqlCommand cmd = new(sql, conn))
                 {
                     cmd.Parameters.Add(_Database.CreateParameter("RegionUUID", regionID));
                     conn.Open();
@@ -686,9 +686,9 @@ namespace OpenSim.Data.PGSQL
 
             sql = @"insert into bakedterrain(""RegionUUID"", ""Revision"", ""Heightfield"") values(:RegionUUID, :Revision, :Heightfield)";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
+            using (NpgsqlConnection conn = new(m_connectionString))
             {
-                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+                using (NpgsqlCommand cmd = new(sql, conn))
                 {
                     cmd.Parameters.Add(_Database.CreateParameter("RegionUUID", regionID));
                     cmd.Parameters.Add(_Database.CreateParameter("Revision", terrainDBRevision));
@@ -709,13 +709,13 @@ namespace OpenSim.Data.PGSQL
         /// <returns></returns>
         public List<LandData> LoadLandObjects(UUID regionUUID)
         {
-            List<LandData> LandDataForRegion = new List<LandData>();
+            List<LandData> LandDataForRegion = [];
 
             string sql = @"select * from land where ""RegionUUID"" = :RegionUUID";
 
             //Retrieve all land data from region
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_connectionString))
+            using (NpgsqlCommand cmd = new(sql, conn))
             {
                 cmd.Parameters.Add(_Database.CreateParameter("RegionUUID", regionUUID));
                 conn.Open();
@@ -732,8 +732,8 @@ namespace OpenSim.Data.PGSQL
             foreach (LandData LandData in LandDataForRegion)
             {
                 sql = @"select * from landaccesslist where ""LandUUID"" = :LandUUID";
-                using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+                using (NpgsqlConnection conn = new(m_connectionString))
+                using (NpgsqlCommand cmd = new(sql, conn))
                 {
                     cmd.Parameters.Add(_Database.CreateParameter("LandUUID", LandData.GlobalID));
                     conn.Open();
@@ -777,8 +777,8 @@ namespace OpenSim.Data.PGSQL
                  :MediaType,:MediaDescription,:MediaWidth::text || ',' || :MediaHeight::text,:MediaLoop,:ObscureMusic,:ObscureMedia,:SeeAVs::int::smallint,
                  :AnyAVSounds::int::smallint,:GroupAVSounds::int::smallint,:environment)";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_connectionString))
+            using (NpgsqlCommand cmd = new(sql, conn))
             {
                 cmd.Parameters.AddRange(CreateLandParameters(parcel.LandData, parcel.RegionUUID));
                 conn.Open();
@@ -787,8 +787,8 @@ namespace OpenSim.Data.PGSQL
 
             sql = @"INSERT INTO landaccesslist (""LandUUID"",""AccessUUID"",""Flags"",""Expires"") VALUES (:LandUUID,:AccessUUID,:Flags,:Expires)";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_connectionString))
+            using (NpgsqlCommand cmd = new(sql, conn))
             {
                 conn.Open();
                 foreach (LandAccessEntry parcelAccessEntry in parcel.LandData.ParcelAccessList)
@@ -808,16 +808,16 @@ namespace OpenSim.Data.PGSQL
         public void RemoveLandObject(UUID globalID)
         {
             string sql = @"delete from land where ""UUID""=:UUID";
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_connectionString))
+            using (NpgsqlCommand cmd = new(sql, conn))
             {
                 cmd.Parameters.Add(_Database.CreateParameter("UUID", globalID));
                 conn.Open();
                 cmd.ExecuteNonQuery();
             }
             sql = @"delete from landaccesslist where ""LandUUID""=:UUID";
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_connectionString))
+            using (NpgsqlCommand cmd = new(sql, conn))
             {
                 cmd.Parameters.Add(_Database.CreateParameter("UUID", globalID));
                 conn.Open();
@@ -829,8 +829,8 @@ namespace OpenSim.Data.PGSQL
         public string LoadRegionEnvironmentSettings(UUID regionUUID)
         {
             string sql = "select * from regionenvironment where region_id = :region_id";
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_connectionString))
+            using (NpgsqlCommand cmd = new(sql, conn))
             {
                 cmd.Parameters.Add(_Database.CreateParameter("region_id", regionUUID));
                 conn.Open();
@@ -838,7 +838,7 @@ namespace OpenSim.Data.PGSQL
                 {
                     if (!result.Read())
                     {
-                        return String.Empty;
+                        return string.Empty;
                     }
                     else
                     {
@@ -853,8 +853,8 @@ namespace OpenSim.Data.PGSQL
             {
                 string sql = "DELETE FROM regionenvironment WHERE region_id = :region_id ;";
 
-                using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+                using (NpgsqlConnection conn = new(m_connectionString))
+                using (NpgsqlCommand cmd = new(sql, conn))
                 {
                     cmd.Parameters.Add(_Database.CreateParameter("region_id", regionUUID));
                     conn.Open();
@@ -863,8 +863,8 @@ namespace OpenSim.Data.PGSQL
 
                 sql = "INSERT INTO regionenvironment (region_id, llsd_settings) VALUES (:region_id, :llsd_settings) ;";
 
-                using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+                using (NpgsqlConnection conn = new(m_connectionString))
+                using (NpgsqlCommand cmd = new(sql, conn))
                 {
                     cmd.Parameters.Add(_Database.CreateParameter("region_id", regionUUID));
                     cmd.Parameters.Add(_Database.CreateParameter("llsd_settings", settings));
@@ -878,8 +878,8 @@ namespace OpenSim.Data.PGSQL
         public void RemoveRegionEnvironmentSettings(UUID regionUUID)
         {
             string sql = "delete from regionenvironment where region_id = :region_id ;";
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_connectionString))
+            using (NpgsqlCommand cmd = new(sql, conn))
             {
                 cmd.Parameters.Add(_Database.CreateParameter("region_id", regionUUID));
 
@@ -898,8 +898,8 @@ namespace OpenSim.Data.PGSQL
         {
             string sql = @"select * from regionsettings where ""regionUUID"" = :regionUUID";
             RegionSettings regionSettings = null;
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_connectionString))
+            using (NpgsqlCommand cmd = new(sql, conn))
             {
                 cmd.Parameters.Add(_Database.CreateParameter("regionUUID", regionUUID));
                 conn.Open();
@@ -919,8 +919,10 @@ namespace OpenSim.Data.PGSQL
             }
 
             //If we reach this point then there are new region settings for that region
-            regionSettings = new RegionSettings();
-            regionSettings.RegionUUID = regionUUID;
+            regionSettings = new RegionSettings
+            {
+                RegionUUID = regionUUID
+            };
             regionSettings.OnSave += StoreRegionSettings;
 
             //Store new values
@@ -981,7 +983,7 @@ namespace OpenSim.Data.PGSQL
             using (NpgsqlConnection connection = new(m_connectionString))
             {
                 connection.Open();
-                NpgsqlCommand command = new NpgsqlCommand(queryString, connection, connection.BeginTransaction());
+                NpgsqlCommand command = new(queryString, connection, connection.BeginTransaction());
                 using (command)
                 {
                     try
@@ -1016,54 +1018,55 @@ namespace OpenSim.Data.PGSQL
         private static RegionSettings BuildRegionSettings(IDataRecord row)
         {
             //TODO change this is some more generic code so we doesnt have to change it every time a new field is added?
-            RegionSettings newSettings = new RegionSettings();
-
-            newSettings.RegionUUID = new UUID((Guid)row["regionUUID"]);
-            newSettings.BlockTerraform = Convert.ToBoolean(row["block_terraform"]);
-            newSettings.AllowDamage = Convert.ToBoolean(row["allow_damage"]);
-            newSettings.BlockFly = Convert.ToBoolean(row["block_fly"]);
-            newSettings.RestrictPushing = Convert.ToBoolean(row["restrict_pushing"]);
-            newSettings.AllowLandResell = Convert.ToBoolean(row["allow_land_resell"]);
-            newSettings.AllowLandJoinDivide = Convert.ToBoolean(row["allow_land_join_divide"]);
-            newSettings.BlockShowInSearch = Convert.ToBoolean(row["block_show_in_search"]);
-            newSettings.AgentLimit = Convert.ToInt32(row["agent_limit"]);
-            newSettings.ObjectBonus = Convert.ToDouble(row["object_bonus"]);
-            newSettings.Maturity = Convert.ToInt32(row["maturity"]);
-            newSettings.DisableScripts = Convert.ToBoolean(row["disable_scripts"]);
-            newSettings.DisableCollisions = Convert.ToBoolean(row["disable_collisions"]);
-            newSettings.DisablePhysics = Convert.ToBoolean(row["disable_physics"]);
-            newSettings.TerrainTexture1 = new UUID((Guid)row["terrain_texture_1"]);
-            newSettings.TerrainTexture2 = new UUID((Guid)row["terrain_texture_2"]);
-            newSettings.TerrainTexture3 = new UUID((Guid)row["terrain_texture_3"]);
-            newSettings.TerrainTexture4 = new UUID((Guid)row["terrain_texture_4"]);
-            newSettings.Elevation1NW = Convert.ToDouble(row["elevation_1_nw"]);
-            newSettings.Elevation2NW = Convert.ToDouble(row["elevation_2_nw"]);
-            newSettings.Elevation1NE = Convert.ToDouble(row["elevation_1_ne"]);
-            newSettings.Elevation2NE = Convert.ToDouble(row["elevation_2_ne"]);
-            newSettings.Elevation1SE = Convert.ToDouble(row["elevation_1_se"]);
-            newSettings.Elevation2SE = Convert.ToDouble(row["elevation_2_se"]);
-            newSettings.Elevation1SW = Convert.ToDouble(row["elevation_1_sw"]);
-            newSettings.Elevation2SW = Convert.ToDouble(row["elevation_2_sw"]);
-            newSettings.WaterHeight = Convert.ToDouble(row["water_height"]);
-            newSettings.TerrainRaiseLimit = Convert.ToDouble(row["terrain_raise_limit"]);
-            newSettings.TerrainLowerLimit = Convert.ToDouble(row["terrain_lower_limit"]);
-            newSettings.UseEstateSun = Convert.ToBoolean(row["use_estate_sun"]);
-            newSettings.Sandbox = Convert.ToBoolean(row["Sandbox"]);
-            newSettings.FixedSun = Convert.ToBoolean(row["fixed_sun"]);
-            newSettings.SunPosition = Convert.ToDouble(row["sun_position"]);
-            newSettings.SunVector = new Vector3(
-                                                 Convert.ToSingle(row["sunvectorx"]),
-                                                 Convert.ToSingle(row["sunvectory"]),
-                                                 Convert.ToSingle(row["sunvectorz"])
-                                                 );
-            newSettings.Covenant = new UUID((Guid)row["covenant"]);
-            newSettings.CovenantChangedDateTime = Convert.ToInt32(row["covenant_datetime"]);
-            newSettings.LoadedCreationDateTime = Convert.ToInt32(row["loaded_creation_datetime"]);
+            RegionSettings newSettings = new()
+            {
+                RegionUUID = new UUID((Guid)row["regionUUID"]),
+                BlockTerraform = Convert.ToBoolean(row["block_terraform"]),
+                AllowDamage = Convert.ToBoolean(row["allow_damage"]),
+                BlockFly = Convert.ToBoolean(row["block_fly"]),
+                RestrictPushing = Convert.ToBoolean(row["restrict_pushing"]),
+                AllowLandResell = Convert.ToBoolean(row["allow_land_resell"]),
+                AllowLandJoinDivide = Convert.ToBoolean(row["allow_land_join_divide"]),
+                BlockShowInSearch = Convert.ToBoolean(row["block_show_in_search"]),
+                AgentLimit = Convert.ToInt32(row["agent_limit"]),
+                ObjectBonus = Convert.ToDouble(row["object_bonus"]),
+                Maturity = Convert.ToInt32(row["maturity"]),
+                DisableScripts = Convert.ToBoolean(row["disable_scripts"]),
+                DisableCollisions = Convert.ToBoolean(row["disable_collisions"]),
+                DisablePhysics = Convert.ToBoolean(row["disable_physics"]),
+                TerrainTexture1 = new UUID((Guid)row["terrain_texture_1"]),
+                TerrainTexture2 = new UUID((Guid)row["terrain_texture_2"]),
+                TerrainTexture3 = new UUID((Guid)row["terrain_texture_3"]),
+                TerrainTexture4 = new UUID((Guid)row["terrain_texture_4"]),
+                Elevation1NW = Convert.ToDouble(row["elevation_1_nw"]),
+                Elevation2NW = Convert.ToDouble(row["elevation_2_nw"]),
+                Elevation1NE = Convert.ToDouble(row["elevation_1_ne"]),
+                Elevation2NE = Convert.ToDouble(row["elevation_2_ne"]),
+                Elevation1SE = Convert.ToDouble(row["elevation_1_se"]),
+                Elevation2SE = Convert.ToDouble(row["elevation_2_se"]),
+                Elevation1SW = Convert.ToDouble(row["elevation_1_sw"]),
+                Elevation2SW = Convert.ToDouble(row["elevation_2_sw"]),
+                WaterHeight = Convert.ToDouble(row["water_height"]),
+                TerrainRaiseLimit = Convert.ToDouble(row["terrain_raise_limit"]),
+                TerrainLowerLimit = Convert.ToDouble(row["terrain_lower_limit"]),
+                UseEstateSun = Convert.ToBoolean(row["use_estate_sun"]),
+                Sandbox = Convert.ToBoolean(row["Sandbox"]),
+                FixedSun = Convert.ToBoolean(row["fixed_sun"]),
+                SunPosition = Convert.ToDouble(row["sun_position"]),
+                SunVector = new Vector3(
+                                                     Convert.ToSingle(row["sunvectorx"]),
+                                                     Convert.ToSingle(row["sunvectory"]),
+                                                     Convert.ToSingle(row["sunvectorz"])
+                                                     ),
+                Covenant = new UUID((Guid)row["covenant"]),
+                CovenantChangedDateTime = Convert.ToInt32(row["covenant_datetime"]),
+                LoadedCreationDateTime = Convert.ToInt32(row["loaded_creation_datetime"])
+            };
 
             if (row["loaded_creation_id"] is DBNull)
                 newSettings.LoadedCreationID = "";
             else
-                newSettings.LoadedCreationID = (String)row["loaded_creation_id"];
+                newSettings.LoadedCreationID = (string)row["loaded_creation_id"];
 
             newSettings.TerrainImageID = new UUID((string)row["map_tile_ID"]);
             newSettings.ParcelImageID = new UUID((Guid)row["parcel_tile_ID"]);
@@ -1087,50 +1090,51 @@ namespace OpenSim.Data.PGSQL
         /// <returns></returns>
         private static LandData BuildLandData(IDataRecord row)
         {
-            LandData newData = new LandData();
+            LandData newData = new()
+            {
+                GlobalID = new UUID((Guid)row["UUID"]),
+                LocalID = Convert.ToInt32(row["LocalLandID"]),
 
-            newData.GlobalID = new UUID((Guid)row["UUID"]);
-            newData.LocalID = Convert.ToInt32(row["LocalLandID"]);
+                // Bitmap is a byte[512]
+                Bitmap = (byte[])row["Bitmap"],
 
-            // Bitmap is a byte[512]
-            newData.Bitmap = (Byte[])row["Bitmap"];
+                Name = (string)row["Name"],
+                Description = (string)row["Description"],
+                OwnerID = new UUID((Guid)row["OwnerUUID"]),
+                IsGroupOwned = Convert.ToBoolean(row["IsGroupOwned"]),
+                Area = Convert.ToInt32(row["Area"]),
+                AuctionID = Convert.ToUInt32(row["AuctionID"]), //Unemplemented
+                Category = (ParcelCategory)Convert.ToInt32(row["Category"]),
+                //Enum libsecondlife.Parcel.ParcelCategory
+                ClaimDate = Convert.ToInt32(row["ClaimDate"]),
+                ClaimPrice = Convert.ToInt32(row["ClaimPrice"]),
+                GroupID = new UUID((Guid)row["GroupUUID"]),
+                SalePrice = Convert.ToInt32(row["SalePrice"]),
+                Status = (ParcelStatus)Convert.ToInt32(row["LandStatus"]),
+                //Enum. libsecondlife.Parcel.ParcelStatus
+                Flags = Convert.ToUInt32(row["LandFlags"]),
+                LandingType = Convert.ToByte(row["LandingType"]),
+                MediaAutoScale = Convert.ToByte(row["MediaAutoScale"]),
+                MediaID = new UUID((Guid)row["MediaTextureUUID"]),
+                MediaURL = (string)row["MediaURL"],
+                MusicURL = (string)row["MusicURL"],
+                PassHours = Convert.ToSingle(row["PassHours"]),
+                PassPrice = Convert.ToInt32(row["PassPrice"]),
 
-            newData.Name = (string)row["Name"];
-            newData.Description = (string)row["Description"];
-            newData.OwnerID = new UUID((Guid)row["OwnerUUID"]);
-            newData.IsGroupOwned = Convert.ToBoolean(row["IsGroupOwned"]);
-            newData.Area = Convert.ToInt32(row["Area"]);
-            newData.AuctionID = Convert.ToUInt32(row["AuctionID"]); //Unemplemented
-            newData.Category = (ParcelCategory)Convert.ToInt32(row["Category"]);
-            //Enum libsecondlife.Parcel.ParcelCategory
-            newData.ClaimDate = Convert.ToInt32(row["ClaimDate"]);
-            newData.ClaimPrice = Convert.ToInt32(row["ClaimPrice"]);
-            newData.GroupID = new UUID((Guid)row["GroupUUID"]);
-            newData.SalePrice = Convert.ToInt32(row["SalePrice"]);
-            newData.Status = (ParcelStatus)Convert.ToInt32(row["LandStatus"]);
-            //Enum. libsecondlife.Parcel.ParcelStatus
-            newData.Flags = Convert.ToUInt32(row["LandFlags"]);
-            newData.LandingType = Convert.ToByte(row["LandingType"]);
-            newData.MediaAutoScale = Convert.ToByte(row["MediaAutoScale"]);
-            newData.MediaID = new UUID((Guid)row["MediaTextureUUID"]);
-            newData.MediaURL = (string)row["MediaURL"];
-            newData.MusicURL = (string)row["MusicURL"];
-            newData.PassHours = Convert.ToSingle(row["PassHours"]);
-            newData.PassPrice = Convert.ToInt32(row["PassPrice"]);
+                //            UUID authedbuyer;
+                //            UUID snapshotID;
+                //
+                //            if (UUID.TryParse((string)row["AuthBuyerID"], out authedbuyer))
+                //                newData.AuthBuyerID = authedbuyer;
+                //
+                //            if (UUID.TryParse((string)row["SnapshotUUID"], out snapshotID))
+                //                newData.SnapshotID = snapshotID;
+                AuthBuyerID = new UUID((Guid)row["AuthBuyerID"]),
+                SnapshotID = new UUID((Guid)row["SnapshotUUID"]),
 
-            //            UUID authedbuyer;
-            //            UUID snapshotID;
-            //
-            //            if (UUID.TryParse((string)row["AuthBuyerID"], out authedbuyer))
-            //                newData.AuthBuyerID = authedbuyer;
-            //
-            //            if (UUID.TryParse((string)row["SnapshotUUID"], out snapshotID))
-            //                newData.SnapshotID = snapshotID;
-            newData.AuthBuyerID = new UUID((Guid)row["AuthBuyerID"]);
-            newData.SnapshotID = new UUID((Guid)row["SnapshotUUID"]);
-
-            newData.OtherCleanTime = Convert.ToInt32(row["OtherCleanTime"]);
-            newData.Dwell = Convert.ToSingle(row["Dwell"]);
+                OtherCleanTime = Convert.ToInt32(row["OtherCleanTime"]),
+                Dwell = Convert.ToSingle(row["Dwell"])
+            };
 
             try
             {
@@ -1148,7 +1152,7 @@ namespace OpenSim.Data.PGSQL
                 _Log.ErrorFormat("[PARCEL]: unable to get parcel telehub settings for {1}", newData.Name);
             }
 
-            newData.ParcelAccessList = new List<LandAccessEntry>();
+            newData.ParcelAccessList = [];
             newData.MediaDescription = (string)row["MediaDescription"];
             newData.MediaType = (string)row["MediaType"];
             string[] sizes = ((string)row["MediaSize"]).Split(',');
@@ -1204,10 +1208,12 @@ namespace OpenSim.Data.PGSQL
         /// <returns></returns>
         private static LandAccessEntry BuildLandAccessData(IDataRecord row)
         {
-            LandAccessEntry entry = new LandAccessEntry();
-            entry.AgentID = new UUID((Guid)row["AccessUUID"]);
-            entry.Flags = (AccessList)Convert.ToInt32(row["Flags"]);
-            entry.Expires = Convert.ToInt32(row["Expires"]);
+            LandAccessEntry entry = new()
+            {
+                AgentID = new UUID((Guid)row["AccessUUID"]),
+                Flags = (AccessList)Convert.ToInt32(row["Flags"]),
+                Expires = Convert.ToInt32(row["Expires"])
+            };
             return entry;
         }
 
@@ -1218,30 +1224,31 @@ namespace OpenSim.Data.PGSQL
         /// <returns></returns>
         private static SceneObjectPart BuildPrim(IDataRecord primRow)
         {
-            SceneObjectPart prim = new SceneObjectPart();
+            SceneObjectPart prim = new()
+            {
+                UUID = new UUID((Guid)primRow["UUID"]),
+                // explicit conversion of integers is required, which sort
+                // of sucks.  No idea if there is a shortcut here or not.
+                CreationDate = Convert.ToInt32(primRow["CreationDate"]),
+                Name = (string)primRow["Name"],
+                // various text fields
+                Text = (string)primRow["Text"],
+                Color = Color.FromArgb(Convert.ToInt32(primRow["ColorA"]),
+                                            Convert.ToInt32(primRow["ColorR"]),
+                                            Convert.ToInt32(primRow["ColorG"]),
+                                            Convert.ToInt32(primRow["ColorB"])),
+                Description = (string)primRow["Description"],
+                SitName = (string)primRow["SitName"],
+                TouchName = (string)primRow["TouchName"],
+                // permissions
+                Flags = (PrimFlags)Convert.ToUInt32(primRow["ObjectFlags"]),
+                //prim.creatorID = new UUID((Guid)primRow["creatorID"]);
+                CreatorIdentification = (string)primRow["CreatorID"].ToString(),
+                OwnerID = new UUID((Guid)primRow["OwnerID"]),
+                GroupID = new UUID((Guid)primRow["GroupID"]),
+                LastOwnerID = new UUID((Guid)primRow["LastOwnerID"])
+            };
 
-            prim.UUID = new UUID((Guid)primRow["UUID"]);
-            // explicit conversion of integers is required, which sort
-            // of sucks.  No idea if there is a shortcut here or not.
-            prim.CreationDate = Convert.ToInt32(primRow["CreationDate"]);
-            prim.Name = (string)primRow["Name"];
-            // various text fields
-            prim.Text = (string)primRow["Text"];
-            prim.Color = Color.FromArgb(Convert.ToInt32(primRow["ColorA"]),
-                                        Convert.ToInt32(primRow["ColorR"]),
-                                        Convert.ToInt32(primRow["ColorG"]),
-                                        Convert.ToInt32(primRow["ColorB"]));
-            prim.Description = (string)primRow["Description"];
-            prim.SitName = (string)primRow["SitName"];
-            prim.TouchName = (string)primRow["TouchName"];
-            // permissions
-            prim.Flags = (PrimFlags)Convert.ToUInt32(primRow["ObjectFlags"]);
-            //prim.creatorID = new UUID((Guid)primRow["creatorID"]);
-            prim.CreatorIdentification = (string)primRow["CreatorID"].ToString();
-            prim.OwnerID = new UUID((Guid)primRow["OwnerID"]);
-            prim.GroupID = new UUID((Guid)primRow["GroupID"]);
-            prim.LastOwnerID = new UUID((Guid)primRow["LastOwnerID"]);
-            
             if (primRow["RezzerID"] != DBNull.Value)
                 prim.RezzerID = new UUID((Guid)primRow["RezzerID"]);
             else
@@ -1318,9 +1325,9 @@ namespace OpenSim.Data.PGSQL
                 prim.SoundFlags = 1; // If it's persisted at all, it's looped
 
             if (!(primRow["TextureAnimation"] is DBNull))
-                prim.TextureAnimation = (Byte[])primRow["TextureAnimation"];
+                prim.TextureAnimation = (byte[])primRow["TextureAnimation"];
             if (!(primRow["ParticleSystem"] is DBNull))
-                prim.ParticleSystem = (Byte[])primRow["ParticleSystem"];
+                prim.ParticleSystem = (byte[])primRow["ParticleSystem"];
 
             prim.SetCameraEyeOffset(new Vector3(
                                         Convert.ToSingle(primRow["CameraEyeOffsetX"]),
@@ -1414,34 +1421,35 @@ namespace OpenSim.Data.PGSQL
         /// <returns></returns>
         private static PrimitiveBaseShape BuildShape(IDataRecord shapeRow)
         {
-            PrimitiveBaseShape baseShape = new PrimitiveBaseShape();
+            PrimitiveBaseShape baseShape = new()
+            {
+                Scale = new Vector3(
+                            (float)Convert.ToDouble(shapeRow["ScaleX"]),
+                            (float)Convert.ToDouble(shapeRow["ScaleY"]),
+                            (float)Convert.ToDouble(shapeRow["ScaleZ"])),
 
-            baseShape.Scale = new Vector3(
-                        (float)Convert.ToDouble(shapeRow["ScaleX"]),
-                        (float)Convert.ToDouble(shapeRow["ScaleY"]),
-                        (float)Convert.ToDouble(shapeRow["ScaleZ"]));
-
-            // paths
-            baseShape.PCode = Convert.ToByte(shapeRow["PCode"]);
-            baseShape.PathBegin = Convert.ToUInt16(shapeRow["PathBegin"]);
-            baseShape.PathEnd = Convert.ToUInt16(shapeRow["PathEnd"]);
-            baseShape.PathScaleX = Convert.ToByte(shapeRow["PathScaleX"]);
-            baseShape.PathScaleY = Convert.ToByte(shapeRow["PathScaleY"]);
-            baseShape.PathShearX = Convert.ToByte(shapeRow["PathShearX"]);
-            baseShape.PathShearY = Convert.ToByte(shapeRow["PathShearY"]);
-            baseShape.PathSkew = Convert.ToSByte(shapeRow["PathSkew"]);
-            baseShape.PathCurve = Convert.ToByte(shapeRow["PathCurve"]);
-            baseShape.PathRadiusOffset = Convert.ToSByte(shapeRow["PathRadiusOffset"]);
-            baseShape.PathRevolutions = Convert.ToByte(shapeRow["PathRevolutions"]);
-            baseShape.PathTaperX = Convert.ToSByte(shapeRow["PathTaperX"]);
-            baseShape.PathTaperY = Convert.ToSByte(shapeRow["PathTaperY"]);
-            baseShape.PathTwist = Convert.ToSByte(shapeRow["PathTwist"]);
-            baseShape.PathTwistBegin = Convert.ToSByte(shapeRow["PathTwistBegin"]);
-            // profile
-            baseShape.ProfileBegin = Convert.ToUInt16(shapeRow["ProfileBegin"]);
-            baseShape.ProfileEnd = Convert.ToUInt16(shapeRow["ProfileEnd"]);
-            baseShape.ProfileCurve = Convert.ToByte(shapeRow["ProfileCurve"]);
-            baseShape.ProfileHollow = Convert.ToUInt16(shapeRow["ProfileHollow"]);
+                // paths
+                PCode = Convert.ToByte(shapeRow["PCode"]),
+                PathBegin = Convert.ToUInt16(shapeRow["PathBegin"]),
+                PathEnd = Convert.ToUInt16(shapeRow["PathEnd"]),
+                PathScaleX = Convert.ToByte(shapeRow["PathScaleX"]),
+                PathScaleY = Convert.ToByte(shapeRow["PathScaleY"]),
+                PathShearX = Convert.ToByte(shapeRow["PathShearX"]),
+                PathShearY = Convert.ToByte(shapeRow["PathShearY"]),
+                PathSkew = Convert.ToSByte(shapeRow["PathSkew"]),
+                PathCurve = Convert.ToByte(shapeRow["PathCurve"]),
+                PathRadiusOffset = Convert.ToSByte(shapeRow["PathRadiusOffset"]),
+                PathRevolutions = Convert.ToByte(shapeRow["PathRevolutions"]),
+                PathTaperX = Convert.ToSByte(shapeRow["PathTaperX"]),
+                PathTaperY = Convert.ToSByte(shapeRow["PathTaperY"]),
+                PathTwist = Convert.ToSByte(shapeRow["PathTwist"]),
+                PathTwistBegin = Convert.ToSByte(shapeRow["PathTwistBegin"]),
+                // profile
+                ProfileBegin = Convert.ToUInt16(shapeRow["ProfileBegin"]),
+                ProfileEnd = Convert.ToUInt16(shapeRow["ProfileEnd"]),
+                ProfileCurve = Convert.ToByte(shapeRow["ProfileCurve"]),
+                ProfileHollow = Convert.ToUInt16(shapeRow["ProfileHollow"])
+            };
 
             byte[] textureEntry = (byte[])shapeRow["Texture"];
             baseShape.TextureEntry = textureEntry;
@@ -1476,31 +1484,32 @@ namespace OpenSim.Data.PGSQL
         /// <returns></returns>
         private static TaskInventoryItem BuildItem(IDataRecord inventoryRow)
         {
-            TaskInventoryItem taskItem = new TaskInventoryItem();
+            TaskInventoryItem taskItem = new()
+            {
+                ItemID = new UUID((Guid)inventoryRow["itemID"]),
+                ParentPartID = new UUID((Guid)inventoryRow["primID"]),
+                AssetID = new UUID((Guid)inventoryRow["assetID"]),
+                ParentID = new UUID((Guid)inventoryRow["parentFolderID"]),
 
-            taskItem.ItemID = new UUID((Guid)inventoryRow["itemID"]);
-            taskItem.ParentPartID = new UUID((Guid)inventoryRow["primID"]);
-            taskItem.AssetID = new UUID((Guid)inventoryRow["assetID"]);
-            taskItem.ParentID = new UUID((Guid)inventoryRow["parentFolderID"]);
+                InvType = Convert.ToInt32(inventoryRow["invType"]),
+                Type = Convert.ToInt32(inventoryRow["assetType"]),
 
-            taskItem.InvType = Convert.ToInt32(inventoryRow["invType"]);
-            taskItem.Type = Convert.ToInt32(inventoryRow["assetType"]);
+                Name = (string)inventoryRow["name"],
+                Description = (string)inventoryRow["description"],
+                CreationDate = Convert.ToUInt32(inventoryRow["creationDate"]),
+                //taskItem.creatorID = new UUID((Guid)inventoryRow["creatorID"]);
+                CreatorIdentification = (string)inventoryRow["creatorID"].ToString(),
+                OwnerID = new UUID((Guid)inventoryRow["ownerID"]),
+                LastOwnerID = new UUID((Guid)inventoryRow["lastOwnerID"]),
+                GroupID = new UUID((Guid)inventoryRow["groupID"]),
 
-            taskItem.Name = (string)inventoryRow["name"];
-            taskItem.Description = (string)inventoryRow["description"];
-            taskItem.CreationDate = Convert.ToUInt32(inventoryRow["creationDate"]);
-            //taskItem.creatorID = new UUID((Guid)inventoryRow["creatorID"]);
-            taskItem.CreatorIdentification = (string)inventoryRow["creatorID"].ToString();
-            taskItem.OwnerID = new UUID((Guid)inventoryRow["ownerID"]);
-            taskItem.LastOwnerID = new UUID((Guid)inventoryRow["lastOwnerID"]);
-            taskItem.GroupID = new UUID((Guid)inventoryRow["groupID"]);
-
-            taskItem.NextPermissions = Convert.ToUInt32(inventoryRow["nextPermissions"]);
-            taskItem.CurrentPermissions = Convert.ToUInt32(inventoryRow["currentPermissions"]);
-            taskItem.BasePermissions = Convert.ToUInt32(inventoryRow["basePermissions"]);
-            taskItem.EveryonePermissions = Convert.ToUInt32(inventoryRow["everyonePermissions"]);
-            taskItem.GroupPermissions = Convert.ToUInt32(inventoryRow["groupPermissions"]);
-            taskItem.Flags = Convert.ToUInt32(inventoryRow["flags"]);
+                NextPermissions = Convert.ToUInt32(inventoryRow["nextPermissions"]),
+                CurrentPermissions = Convert.ToUInt32(inventoryRow["currentPermissions"]),
+                BasePermissions = Convert.ToUInt32(inventoryRow["basePermissions"]),
+                EveryonePermissions = Convert.ToUInt32(inventoryRow["everyonePermissions"]),
+                GroupPermissions = Convert.ToUInt32(inventoryRow["groupPermissions"]),
+                Flags = Convert.ToUInt32(inventoryRow["flags"])
+            };
 
             return taskItem;
         }
@@ -1516,28 +1525,28 @@ namespace OpenSim.Data.PGSQL
         /// <returns></returns>
         private NpgsqlParameter[] CreatePrimInventoryParameters(TaskInventoryItem taskItem)
         {
-            List<NpgsqlParameter> parameters = new List<NpgsqlParameter>();
-
-            parameters.Add(_Database.CreateParameter("itemID", taskItem.ItemID));
-            parameters.Add(_Database.CreateParameter("primID", taskItem.ParentPartID));
-            parameters.Add(_Database.CreateParameter("assetID", taskItem.AssetID));
-            parameters.Add(_Database.CreateParameter("parentFolderID", taskItem.ParentID));
-            parameters.Add(_Database.CreateParameter("invType", taskItem.InvType));
-            parameters.Add(_Database.CreateParameter("assetType", taskItem.Type));
-
-            parameters.Add(_Database.CreateParameter("name", taskItem.Name));
-            parameters.Add(_Database.CreateParameter("description", taskItem.Description));
-            parameters.Add(_Database.CreateParameter("creationDate", taskItem.CreationDate));
-            parameters.Add(_Database.CreateParameter("creatorID", taskItem.CreatorID));
-            parameters.Add(_Database.CreateParameter("ownerID", taskItem.OwnerID));
-            parameters.Add(_Database.CreateParameter("lastOwnerID", taskItem.LastOwnerID));
-            parameters.Add(_Database.CreateParameter("groupID", taskItem.GroupID));
-            parameters.Add(_Database.CreateParameter("nextPermissions", taskItem.NextPermissions));
-            parameters.Add(_Database.CreateParameter("currentPermissions", taskItem.CurrentPermissions));
-            parameters.Add(_Database.CreateParameter("basePermissions", taskItem.BasePermissions));
-            parameters.Add(_Database.CreateParameter("everyonePermissions", taskItem.EveryonePermissions));
-            parameters.Add(_Database.CreateParameter("groupPermissions", taskItem.GroupPermissions));
-            parameters.Add(_Database.CreateParameter("flags", taskItem.Flags));
+            List<NpgsqlParameter> parameters =
+            [
+                _Database.CreateParameter("itemID", taskItem.ItemID),
+                _Database.CreateParameter("primID", taskItem.ParentPartID),
+                _Database.CreateParameter("assetID", taskItem.AssetID),
+                _Database.CreateParameter("parentFolderID", taskItem.ParentID),
+                _Database.CreateParameter("invType", taskItem.InvType),
+                _Database.CreateParameter("assetType", taskItem.Type),
+                _Database.CreateParameter("name", taskItem.Name),
+                _Database.CreateParameter("description", taskItem.Description),
+                _Database.CreateParameter("creationDate", taskItem.CreationDate),
+                _Database.CreateParameter("creatorID", taskItem.CreatorID),
+                _Database.CreateParameter("ownerID", taskItem.OwnerID),
+                _Database.CreateParameter("lastOwnerID", taskItem.LastOwnerID),
+                _Database.CreateParameter("groupID", taskItem.GroupID),
+                _Database.CreateParameter("nextPermissions", taskItem.NextPermissions),
+                _Database.CreateParameter("currentPermissions", taskItem.CurrentPermissions),
+                _Database.CreateParameter("basePermissions", taskItem.BasePermissions),
+                _Database.CreateParameter("everyonePermissions", taskItem.EveryonePermissions),
+                _Database.CreateParameter("groupPermissions", taskItem.GroupPermissions),
+                _Database.CreateParameter("flags", taskItem.Flags),
+            ];
 
             return parameters.ToArray();
         }
@@ -1614,55 +1623,54 @@ namespace OpenSim.Data.PGSQL
         /// <returns></returns>
         private NpgsqlParameter[] CreateLandParameters(LandData land, UUID regionUUID)
         {
-            List<NpgsqlParameter> parameters = new List<NpgsqlParameter>();
-
-            parameters.Add(_Database.CreateParameter("UUID", land.GlobalID));
-            parameters.Add(_Database.CreateParameter("RegionUUID", regionUUID));
-            parameters.Add(_Database.CreateParameter("LocalLandID", land.LocalID));
-
-            // Bitmap is a byte[512]
-            parameters.Add(_Database.CreateParameter("Bitmap", land.Bitmap));
-
-            parameters.Add(_Database.CreateParameter("Name", land.Name));
-            parameters.Add(_Database.CreateParameter("Description", land.Description));
-            parameters.Add(_Database.CreateParameter("OwnerUUID", land.OwnerID));
-            parameters.Add(_Database.CreateParameter("IsGroupOwned", land.IsGroupOwned));
-            parameters.Add(_Database.CreateParameter("Area", land.Area));
-            parameters.Add(_Database.CreateParameter("AuctionID", land.AuctionID)); //Unemplemented
-            parameters.Add(_Database.CreateParameter("Category", (int)land.Category)); //Enum libsecondlife.Parcel.ParcelCategory
-            parameters.Add(_Database.CreateParameter("ClaimDate", land.ClaimDate));
-            parameters.Add(_Database.CreateParameter("ClaimPrice", land.ClaimPrice));
-            parameters.Add(_Database.CreateParameter("GroupUUID", land.GroupID));
-            parameters.Add(_Database.CreateParameter("SalePrice", land.SalePrice));
-            parameters.Add(_Database.CreateParameter("LandStatus", (int)land.Status)); //Enum. libsecondlife.Parcel.ParcelStatus
-            parameters.Add(_Database.CreateParameter("LandFlags", land.Flags));
-            parameters.Add(_Database.CreateParameter("LandingType", Convert.ToInt32( land.LandingType) ));
-            parameters.Add(_Database.CreateParameter("MediaAutoScale", Convert.ToInt32( land.MediaAutoScale )));
-            parameters.Add(_Database.CreateParameter("MediaTextureUUID", land.MediaID));
-            parameters.Add(_Database.CreateParameter("MediaURL", land.MediaURL));
-            parameters.Add(_Database.CreateParameter("MusicURL", land.MusicURL));
-            parameters.Add(_Database.CreateParameter("PassHours", land.PassHours));
-            parameters.Add(_Database.CreateParameter("PassPrice", land.PassPrice));
-            parameters.Add(_Database.CreateParameter("SnapshotUUID", land.SnapshotID));
-            parameters.Add(_Database.CreateParameter("UserLocationX", land.UserLocation.X));
-            parameters.Add(_Database.CreateParameter("UserLocationY", land.UserLocation.Y));
-            parameters.Add(_Database.CreateParameter("UserLocationZ", land.UserLocation.Z));
-            parameters.Add(_Database.CreateParameter("UserLookAtX", land.UserLookAt.X));
-            parameters.Add(_Database.CreateParameter("UserLookAtY", land.UserLookAt.Y));
-            parameters.Add(_Database.CreateParameter("UserLookAtZ", land.UserLookAt.Z));
-            parameters.Add(_Database.CreateParameter("AuthBuyerID", land.AuthBuyerID));
-            parameters.Add(_Database.CreateParameter("OtherCleanTime", land.OtherCleanTime));
-            parameters.Add(_Database.CreateParameter("Dwell", land.Dwell));
-            parameters.Add(_Database.CreateParameter("MediaDescription", land.MediaDescription));
-            parameters.Add(_Database.CreateParameter("MediaType", land.MediaType));
-            parameters.Add(_Database.CreateParameter("MediaWidth", land.MediaWidth));
-            parameters.Add(_Database.CreateParameter("MediaHeight", land.MediaHeight));
-            parameters.Add(_Database.CreateParameter("MediaLoop", land.MediaLoop));
-            parameters.Add(_Database.CreateParameter("ObscureMusic", land.ObscureMusic));
-            parameters.Add(_Database.CreateParameter("ObscureMedia", land.ObscureMedia));
-            parameters.Add(_Database.CreateParameter("SeeAVs", land.SeeAVs));
-            parameters.Add(_Database.CreateParameter("AnyAVSounds", land.AnyAVSounds));
-            parameters.Add(_Database.CreateParameter("GroupAVSounds", land.GroupAVSounds));
+            List<NpgsqlParameter> parameters =
+            [
+                _Database.CreateParameter("UUID", land.GlobalID),
+                _Database.CreateParameter("RegionUUID", regionUUID),
+                _Database.CreateParameter("LocalLandID", land.LocalID),
+                // Bitmap is a byte[512]
+                _Database.CreateParameter("Bitmap", land.Bitmap),
+                _Database.CreateParameter("Name", land.Name),
+                _Database.CreateParameter("Description", land.Description),
+                _Database.CreateParameter("OwnerUUID", land.OwnerID),
+                _Database.CreateParameter("IsGroupOwned", land.IsGroupOwned),
+                _Database.CreateParameter("Area", land.Area),
+                _Database.CreateParameter("AuctionID", land.AuctionID), //Unemplemented
+                _Database.CreateParameter("Category", (int)land.Category), //Enum libsecondlife.Parcel.ParcelCategory
+                _Database.CreateParameter("ClaimDate", land.ClaimDate),
+                _Database.CreateParameter("ClaimPrice", land.ClaimPrice),
+                _Database.CreateParameter("GroupUUID", land.GroupID),
+                _Database.CreateParameter("SalePrice", land.SalePrice),
+                _Database.CreateParameter("LandStatus", (int)land.Status), //Enum. libsecondlife.Parcel.ParcelStatus
+                _Database.CreateParameter("LandFlags", land.Flags),
+                _Database.CreateParameter("LandingType", Convert.ToInt32( land.LandingType) ),
+                _Database.CreateParameter("MediaAutoScale", Convert.ToInt32( land.MediaAutoScale )),
+                _Database.CreateParameter("MediaTextureUUID", land.MediaID),
+                _Database.CreateParameter("MediaURL", land.MediaURL),
+                _Database.CreateParameter("MusicURL", land.MusicURL),
+                _Database.CreateParameter("PassHours", land.PassHours),
+                _Database.CreateParameter("PassPrice", land.PassPrice),
+                _Database.CreateParameter("SnapshotUUID", land.SnapshotID),
+                _Database.CreateParameter("UserLocationX", land.UserLocation.X),
+                _Database.CreateParameter("UserLocationY", land.UserLocation.Y),
+                _Database.CreateParameter("UserLocationZ", land.UserLocation.Z),
+                _Database.CreateParameter("UserLookAtX", land.UserLookAt.X),
+                _Database.CreateParameter("UserLookAtY", land.UserLookAt.Y),
+                _Database.CreateParameter("UserLookAtZ", land.UserLookAt.Z),
+                _Database.CreateParameter("AuthBuyerID", land.AuthBuyerID),
+                _Database.CreateParameter("OtherCleanTime", land.OtherCleanTime),
+                _Database.CreateParameter("Dwell", land.Dwell),
+                _Database.CreateParameter("MediaDescription", land.MediaDescription),
+                _Database.CreateParameter("MediaType", land.MediaType),
+                _Database.CreateParameter("MediaWidth", land.MediaWidth),
+                _Database.CreateParameter("MediaHeight", land.MediaHeight),
+                _Database.CreateParameter("MediaLoop", land.MediaLoop),
+                _Database.CreateParameter("ObscureMusic", land.ObscureMusic),
+                _Database.CreateParameter("ObscureMedia", land.ObscureMedia),
+                _Database.CreateParameter("SeeAVs", land.SeeAVs),
+                _Database.CreateParameter("AnyAVSounds", land.AnyAVSounds),
+                _Database.CreateParameter("GroupAVSounds", land.GroupAVSounds),
+            ];
 
             if (land.Environment == null)
                 parameters.Add(_Database.CreateParameter("environment", ""));
@@ -1689,12 +1697,13 @@ namespace OpenSim.Data.PGSQL
         /// <returns></returns>
         private NpgsqlParameter[] CreateLandAccessParameters(LandAccessEntry parcelAccessEntry, UUID parcelID)
         {
-            List<NpgsqlParameter> parameters = new List<NpgsqlParameter>();
-
-            parameters.Add(_Database.CreateParameter("LandUUID", parcelID));
-            parameters.Add(_Database.CreateParameter("AccessUUID", parcelAccessEntry.AgentID));
-            parameters.Add(_Database.CreateParameter("Flags", parcelAccessEntry.Flags));
-            parameters.Add(_Database.CreateParameter("Expires", parcelAccessEntry.Expires));
+            List<NpgsqlParameter> parameters =
+            [
+                _Database.CreateParameter("LandUUID", parcelID),
+                _Database.CreateParameter("AccessUUID", parcelAccessEntry.AgentID),
+                _Database.CreateParameter("Flags", parcelAccessEntry.Flags),
+                _Database.CreateParameter("Expires", parcelAccessEntry.Expires),
+            ];
 
             return parameters.ToArray();
         }
@@ -1708,56 +1717,57 @@ namespace OpenSim.Data.PGSQL
         /// <returns></returns>
         private NpgsqlParameter[] CreatePrimParameters(SceneObjectPart prim, UUID sceneGroupID, UUID regionUUID)
         {
-            List<NpgsqlParameter> parameters = new List<NpgsqlParameter>();
-
-            parameters.Add(_Database.CreateParameter("UUID", prim.UUID));
-            parameters.Add(_Database.CreateParameter("RegionUUID", regionUUID));
-            parameters.Add(_Database.CreateParameter("CreationDate", prim.CreationDate));
-            parameters.Add(_Database.CreateParameter("Name", prim.Name));
-            parameters.Add(_Database.CreateParameter("SceneGroupID", sceneGroupID));
-            // the UUID of the root part for this SceneObjectGroup
-            // various text fields
-            parameters.Add(_Database.CreateParameter("Text", prim.Text));
-            parameters.Add(_Database.CreateParameter("ColorR", prim.Color.R));
-            parameters.Add(_Database.CreateParameter("ColorG", prim.Color.G));
-            parameters.Add(_Database.CreateParameter("ColorB", prim.Color.B));
-            parameters.Add(_Database.CreateParameter("ColorA", prim.Color.A));
-            parameters.Add(_Database.CreateParameter("Description", prim.Description));
-            parameters.Add(_Database.CreateParameter("SitName", prim.SitName));
-            parameters.Add(_Database.CreateParameter("TouchName", prim.TouchName));
-            // permissions
-            parameters.Add(_Database.CreateParameter("ObjectFlags", (uint)prim.Flags));
-            parameters.Add(_Database.CreateParameter("CreatorID", prim.CreatorID));
-            parameters.Add(_Database.CreateParameter("OwnerID", prim.OwnerID));
-            parameters.Add(_Database.CreateParameter("GroupID", prim.GroupID));
-            parameters.Add(_Database.CreateParameter("LastOwnerID", prim.LastOwnerID));
-            parameters.Add(_Database.CreateParameter("RezzerID", prim.RezzerID));
-            parameters.Add(_Database.CreateParameter("OwnerMask", prim.OwnerMask));
-            parameters.Add(_Database.CreateParameter("NextOwnerMask", prim.NextOwnerMask));
-            parameters.Add(_Database.CreateParameter("GroupMask", prim.GroupMask));
-            parameters.Add(_Database.CreateParameter("EveryoneMask", prim.EveryoneMask));
-            parameters.Add(_Database.CreateParameter("BaseMask", prim.BaseMask));
-            // vectors
-            parameters.Add(_Database.CreateParameter("PositionX", prim.OffsetPosition.X));
-            parameters.Add(_Database.CreateParameter("PositionY", prim.OffsetPosition.Y));
-            parameters.Add(_Database.CreateParameter("PositionZ", prim.OffsetPosition.Z));
-            parameters.Add(_Database.CreateParameter("GroupPositionX", prim.GroupPosition.X));
-            parameters.Add(_Database.CreateParameter("GroupPositionY", prim.GroupPosition.Y));
-            parameters.Add(_Database.CreateParameter("GroupPositionZ", prim.GroupPosition.Z));
-            parameters.Add(_Database.CreateParameter("VelocityX", prim.Velocity.X));
-            parameters.Add(_Database.CreateParameter("VelocityY", prim.Velocity.Y));
-            parameters.Add(_Database.CreateParameter("VelocityZ", prim.Velocity.Z));
-            parameters.Add(_Database.CreateParameter("AngularVelocityX", prim.AngularVelocity.X));
-            parameters.Add(_Database.CreateParameter("AngularVelocityY", prim.AngularVelocity.Y));
-            parameters.Add(_Database.CreateParameter("AngularVelocityZ", prim.AngularVelocity.Z));
-            parameters.Add(_Database.CreateParameter("AccelerationX", prim.Acceleration.X));
-            parameters.Add(_Database.CreateParameter("AccelerationY", prim.Acceleration.Y));
-            parameters.Add(_Database.CreateParameter("AccelerationZ", prim.Acceleration.Z));
-            // quaternions
-            parameters.Add(_Database.CreateParameter("RotationX", prim.RotationOffset.X));
-            parameters.Add(_Database.CreateParameter("RotationY", prim.RotationOffset.Y));
-            parameters.Add(_Database.CreateParameter("RotationZ", prim.RotationOffset.Z));
-            parameters.Add(_Database.CreateParameter("RotationW", prim.RotationOffset.W));
+            List<NpgsqlParameter> parameters =
+            [
+                _Database.CreateParameter("UUID", prim.UUID),
+                _Database.CreateParameter("RegionUUID", regionUUID),
+                _Database.CreateParameter("CreationDate", prim.CreationDate),
+                _Database.CreateParameter("Name", prim.Name),
+                _Database.CreateParameter("SceneGroupID", sceneGroupID),
+                // the UUID of the root part for this SceneObjectGroup
+                // various text fields
+                _Database.CreateParameter("Text", prim.Text),
+                _Database.CreateParameter("ColorR", prim.Color.R),
+                _Database.CreateParameter("ColorG", prim.Color.G),
+                _Database.CreateParameter("ColorB", prim.Color.B),
+                _Database.CreateParameter("ColorA", prim.Color.A),
+                _Database.CreateParameter("Description", prim.Description),
+                _Database.CreateParameter("SitName", prim.SitName),
+                _Database.CreateParameter("TouchName", prim.TouchName),
+                // permissions
+                _Database.CreateParameter("ObjectFlags", (uint)prim.Flags),
+                _Database.CreateParameter("CreatorID", prim.CreatorID),
+                _Database.CreateParameter("OwnerID", prim.OwnerID),
+                _Database.CreateParameter("GroupID", prim.GroupID),
+                _Database.CreateParameter("LastOwnerID", prim.LastOwnerID),
+                _Database.CreateParameter("RezzerID", prim.RezzerID),
+                _Database.CreateParameter("OwnerMask", prim.OwnerMask),
+                _Database.CreateParameter("NextOwnerMask", prim.NextOwnerMask),
+                _Database.CreateParameter("GroupMask", prim.GroupMask),
+                _Database.CreateParameter("EveryoneMask", prim.EveryoneMask),
+                _Database.CreateParameter("BaseMask", prim.BaseMask),
+                // vectors
+                _Database.CreateParameter("PositionX", prim.OffsetPosition.X),
+                _Database.CreateParameter("PositionY", prim.OffsetPosition.Y),
+                _Database.CreateParameter("PositionZ", prim.OffsetPosition.Z),
+                _Database.CreateParameter("GroupPositionX", prim.GroupPosition.X),
+                _Database.CreateParameter("GroupPositionY", prim.GroupPosition.Y),
+                _Database.CreateParameter("GroupPositionZ", prim.GroupPosition.Z),
+                _Database.CreateParameter("VelocityX", prim.Velocity.X),
+                _Database.CreateParameter("VelocityY", prim.Velocity.Y),
+                _Database.CreateParameter("VelocityZ", prim.Velocity.Z),
+                _Database.CreateParameter("AngularVelocityX", prim.AngularVelocity.X),
+                _Database.CreateParameter("AngularVelocityY", prim.AngularVelocity.Y),
+                _Database.CreateParameter("AngularVelocityZ", prim.AngularVelocity.Z),
+                _Database.CreateParameter("AccelerationX", prim.Acceleration.X),
+                _Database.CreateParameter("AccelerationY", prim.Acceleration.Y),
+                _Database.CreateParameter("AccelerationZ", prim.Acceleration.Z),
+                // quaternions
+                _Database.CreateParameter("RotationX", prim.RotationOffset.X),
+                _Database.CreateParameter("RotationY", prim.RotationOffset.Y),
+                _Database.CreateParameter("RotationZ", prim.RotationOffset.Z),
+                _Database.CreateParameter("RotationW", prim.RotationOffset.W),
+            ];
 
             // Sit target
             Vector3 sitTargetPos = prim.SitTargetPositionLL;
@@ -1901,7 +1911,7 @@ namespace OpenSim.Data.PGSQL
         /// <returns></returns>
         private NpgsqlParameter[] CreatePrimShapeParameters(SceneObjectPart prim, UUID sceneGroupID, UUID regionUUID)
         {
-            List<NpgsqlParameter> parameters = new List<NpgsqlParameter>();
+            List<NpgsqlParameter> parameters = [];
 
             PrimitiveBaseShape s = prim.Shape;
             parameters.Add(_Database.CreateParameter("UUID", prim.UUID));
@@ -1972,8 +1982,8 @@ namespace OpenSim.Data.PGSQL
 
             string sql = @"SELECT ""Yaw"", ""Pitch"", ""Distance"" FROM spawn_points WHERE ""RegionUUID"" = :RegionUUID";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_connectionString))
+            using (NpgsqlCommand cmd = new(sql, conn))
             {
                 cmd.Parameters.Add(_Database.CreateParameter("RegionUUID", rs.RegionUUID));
                 conn.Open();
@@ -1996,8 +2006,8 @@ namespace OpenSim.Data.PGSQL
         private void SaveSpawnPoints(RegionSettings rs)
         {
             string sql = @"DELETE FROM spawn_points WHERE ""RegionUUID"" = :RegionUUID";
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_connectionString))
+            using (NpgsqlCommand cmd = new(sql, conn))
             {
                 cmd.Parameters.Add(_Database.CreateParameter("RegionUUID", rs.RegionUUID));
                 conn.Open();
@@ -2006,8 +2016,8 @@ namespace OpenSim.Data.PGSQL
             foreach (SpawnPoint p in rs.SpawnPoints())
             {
                 sql = @"INSERT INTO spawn_points (""RegionUUID"", ""Yaw"", ""Pitch"", ""Distance"") VALUES (:RegionUUID, :Yaw, :Pitch, :Distance)";
-                using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+                using (NpgsqlConnection conn = new(m_connectionString))
+                using (NpgsqlCommand cmd = new(sql, conn))
                 {
                     cmd.Parameters.Add(_Database.CreateParameter("RegionUUID", rs.RegionUUID));
                     cmd.Parameters.Add(_Database.CreateParameter("Yaw", p.Yaw));
@@ -2071,12 +2081,12 @@ namespace OpenSim.Data.PGSQL
         public Dictionary<string, string> GetExtra(UUID regionID)
         {
             const string queryString = """SELECT * FROM regionextra WHERE "RegionID" = :RegionID""";
-            using NpgsqlConnection conn = new NpgsqlConnection(m_connectionString);
-            using NpgsqlCommand cmd = new NpgsqlCommand(queryString, conn);
+            using NpgsqlConnection conn = new(m_connectionString);
+            using NpgsqlCommand cmd = new(queryString, conn);
             cmd.Parameters.Add(_Database.CreateParameter("RegionID", regionID.ToString()));
             conn.Open();
             using NpgsqlDataReader reader = cmd.ExecuteReader();
-            Dictionary<string, string> extraSettings = new Dictionary<string, string>();
+            Dictionary<string, string> extraSettings = [];
             while (reader.Read())
             {
                 extraSettings.Add(reader["Name"].ToString(), reader["value"].ToString());

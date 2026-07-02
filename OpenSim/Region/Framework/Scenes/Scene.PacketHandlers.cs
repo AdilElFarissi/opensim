@@ -52,7 +52,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void SimChat(string message, ChatTypeEnum type, int channel, Vector3 fromPos, string fromName,
                                UUID fromID, UUID targetID, bool fromAgent, bool broadcast)
         {
-            OSChatMessage args = new OSChatMessage
+            OSChatMessage args = new()
             {
                 Message = message,
                 Channel = channel,
@@ -293,7 +293,7 @@ namespace OpenSim.Region.Framework.Scenes
         public virtual void ProcessMoneyTransferRequest(UUID source, UUID destination, int amount,
                                                         int transactiontype, string description)
         {
-            EventManager.MoneyTransferArgs args = new EventManager.MoneyTransferArgs(source, destination, amount,
+            EventManager.MoneyTransferArgs args = new(source, destination, amount,
                                                                                      transactiontype, description);
 
             EventManager.TriggerMoneyTransfer(this, args);
@@ -302,7 +302,7 @@ namespace OpenSim.Region.Framework.Scenes
         public virtual void ProcessParcelBuy(UUID agentId, UUID groupId, bool final, bool groupOwned,
                 bool removeContribution, int parcelLocalID, int parcelArea, int parcelPrice, bool authenticated)
         {
-            EventManager.LandBuyArgs args = new EventManager.LandBuyArgs(agentId, groupId, final, groupOwned,
+            EventManager.LandBuyArgs args = new(agentId, groupId, final, groupOwned,
                                                                          removeContribution, parcelLocalID, parcelArea,
                                                                          parcelPrice, authenticated);
 
@@ -498,13 +498,15 @@ namespace OpenSim.Region.Framework.Scenes
             ViewerEffectPacket.EffectBlock[] effectBlockArray = new ViewerEffectPacket.EffectBlock[args.Count];
             for (int i = 0; i < args.Count; i++)
             {
-                ViewerEffectPacket.EffectBlock effect = new ViewerEffectPacket.EffectBlock();
-                effect.AgentID = args[i].AgentID;
-                effect.Color = args[i].Color;
-                effect.Duration = args[i].Duration;
-                effect.ID = args[i].ID;
-                effect.Type = args[i].Type;
-                effect.TypeData = args[i].TypeData;
+                ViewerEffectPacket.EffectBlock effect = new()
+                {
+                    AgentID = args[i].AgentID,
+                    Color = args[i].Color,
+                    Duration = args[i].Duration,
+                    ID = args[i].ID,
+                    Type = args[i].Type,
+                    TypeData = args[i].TypeData
+                };
                 effectBlockArray[i] = effect;
 
                 if ((EffectType)effect.Type != EffectType.LookAt && (EffectType)effect.Type != EffectType.Beam)
@@ -544,8 +546,8 @@ namespace OpenSim.Region.Framework.Scenes
             //public int SortOrder;
         }
 
-        static private ConcurrentQueue<DescendentsRequestData> m_descendentsRequestQueue = new ConcurrentQueue<DescendentsRequestData>();
-        static private Object m_descendentsRequestLock = new Object();
+        static private ConcurrentQueue<DescendentsRequestData> m_descendentsRequestQueue = new();
+        static private object m_descendentsRequestLock = new();
         static private bool m_descendentsRequestProcessing = false;
 
         /// <summary>
@@ -586,12 +588,14 @@ namespace OpenSim.Region.Framework.Scenes
                 }
             }
 
-            DescendentsRequestData req = new DescendentsRequestData();
-            req.RemoteClient = remoteClient;
-            req.FolderID = folderID;
-            //req.OwnerID = ownerID;
-            req.FetchFolders = fetchFolders;
-            req.FetchItems = fetchItems;
+            DescendentsRequestData req = new()
+            {
+                RemoteClient = remoteClient,
+                FolderID = folderID,
+                //req.OwnerID = ownerID;
+                FetchFolders = fetchFolders,
+                FetchItems = fetchItems
+            };
             //req.SortOrder = sortOrder;
 
             m_descendentsRequestQueue.Enqueue(req);
@@ -640,7 +644,7 @@ namespace OpenSim.Region.Framework.Scenes
         public void HandleCreateInventoryFolder(IClientAPI remoteClient, UUID folderID, ushort folderType,
                                                 string folderName, UUID parentID)
         {
-            InventoryFolderBase folder = new InventoryFolderBase(folderID, folderName, remoteClient.AgentId, (short)folderType, parentID, 1);
+            InventoryFolderBase folder = new(folderID, folderName, remoteClient.AgentId, (short)folderType, parentID, 1);
             if (!InventoryService.AddFolder(folder))
             {
                 m_log.WarnFormat(
@@ -720,7 +724,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private void PurgeFolderAsync(UUID userID, UUID folderID)
         {
-            InventoryFolderBase folder = new InventoryFolderBase(folderID, userID);
+            InventoryFolderBase folder = new(folderID, userID);
 
            try
             {

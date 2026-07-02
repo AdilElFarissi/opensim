@@ -44,7 +44,7 @@ namespace OpenSim.Data.MySQL
         private string m_connectionString;
 
         private FieldInfo[] m_Fields;
-        private Dictionary<string, FieldInfo> m_FieldMap = new();
+        private Dictionary<string, FieldInfo> m_FieldMap = [];
 
         protected virtual Assembly Assembly
         {
@@ -73,11 +73,11 @@ namespace OpenSim.Data.MySQL
                 m_log.Debug("Exception: password not found in connection string\n" + e.ToString());
             }
 
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            using (MySqlConnection dbcon = new(m_connectionString))
             {
                 dbcon.Open();
 
-                Migration m = new Migration(dbcon, Assembly, "EstateStore");
+                Migration m = new(dbcon, Assembly, "EstateStore");
                 m.Update();
                 dbcon.Close();
 
@@ -101,10 +101,10 @@ namespace OpenSim.Data.MySQL
 
         public EstateSettings LoadEstateSettings(UUID regionID, bool create)
         {
-            string sql = "select estate_settings." + String.Join(",estate_settings.", FieldList) +
+            string sql = "select estate_settings." + string.Join(",estate_settings.", FieldList) +
                 " from estate_map left join estate_settings on estate_map.EstateID = estate_settings.EstateID where estate_settings.EstateID is not null and RegionID = ?RegionID";
 
-            using (MySqlCommand cmd = new MySqlCommand())
+            using (MySqlCommand cmd = new())
             {
                 cmd.CommandText = sql;
                 cmd.Parameters.AddWithValue("?RegionID", regionID.ToString());
@@ -119,7 +119,7 @@ namespace OpenSim.Data.MySQL
 
         public EstateSettings CreateNewEstate(int estateID)
         {
-            EstateSettings es = new EstateSettings();
+            EstateSettings es = new();
 
             es.OnSave += StoreEstateSettings;
             es.EstateID = Convert.ToUInt32(estateID);
@@ -137,10 +137,10 @@ namespace OpenSim.Data.MySQL
 
         private EstateSettings DoLoad(MySqlCommand cmd, UUID regionID, bool create)
         {
-            EstateSettings es = new EstateSettings();
+            EstateSettings es = new();
             es.OnSave += StoreEstateSettings;
 
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            using (MySqlConnection dbcon = new(m_connectionString))
             {
                 dbcon.Open();
                 cmd.Connection = dbcon;
@@ -190,15 +190,15 @@ namespace OpenSim.Data.MySQL
         private void DoCreate(EstateSettings es)
         {
             // Migration case
-            List<string> names = new List<string>(FieldList);
+            List<string> names = [.. FieldList];
 
             // Remove EstateID and use AutoIncrement
             if (es.EstateID < 100)
                 names.Remove("EstateID");
 
-            string sql = "insert into estate_settings (" + String.Join(",", names.ToArray()) + ") values ( ?" + String.Join(", ?", names.ToArray()) + ")";
+            string sql = "insert into estate_settings (" + string.Join(",", names.ToArray()) + ") values ( ?" + string.Join(", ?", names.ToArray()) + ")";
 
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            using (MySqlConnection dbcon = new(m_connectionString))
             {
                 dbcon.Open();
                 using (MySqlCommand cmd2 = dbcon.CreateCommand())
@@ -244,9 +244,9 @@ namespace OpenSim.Data.MySQL
 
         public void StoreEstateSettings(EstateSettings es)
         {
-            string sql = "replace into estate_settings (" + String.Join(",", FieldList) + ") values ( ?" + String.Join(", ?", FieldList) + ")";
+            string sql = "replace into estate_settings (" + string.Join(",", FieldList) + ") values ( ?" + string.Join(", ?", FieldList) + ")";
 
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            using (MySqlConnection dbcon = new(m_connectionString))
             {
                 dbcon.Open();
 
@@ -284,7 +284,7 @@ namespace OpenSim.Data.MySQL
         {
             es.ClearBans();
 
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            using (MySqlConnection dbcon = new(m_connectionString))
             {
                 dbcon.Open();
 
@@ -297,12 +297,14 @@ namespace OpenSim.Data.MySQL
                     {
                         while (r.Read())
                         {
-                            EstateBan eb = new EstateBan();
-                            eb.BannedUserID = DBGuid.FromDB(r["bannedUUID"]);
-                            eb.BannedHostAddress = "0.0.0.0";
-                            eb.BannedHostIPMask = "0.0.0.0";
-                            eb.BanningUserID = DBGuid.FromDB(r["banningUUID"]);
-                            eb.BanTime = Convert.ToInt32(r["banTime"]);
+                            EstateBan eb = new()
+                            {
+                                BannedUserID = DBGuid.FromDB(r["bannedUUID"]),
+                                BannedHostAddress = "0.0.0.0",
+                                BannedHostIPMask = "0.0.0.0",
+                                BanningUserID = DBGuid.FromDB(r["banningUUID"]),
+                                BanTime = Convert.ToInt32(r["banTime"])
+                            };
                             es.AddBan(eb);
                         }
                     }
@@ -313,7 +315,7 @@ namespace OpenSim.Data.MySQL
 
         private void SaveBanList(EstateSettings es)
         {
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            using (MySqlConnection dbcon = new(m_connectionString))
             {
                 dbcon.Open();
 
@@ -345,7 +347,7 @@ namespace OpenSim.Data.MySQL
 
         void SaveUUIDList(uint EstateID, string table, UUID[] data)
         {
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            using (MySqlConnection dbcon = new(m_connectionString))
             {
                 dbcon.Open();
 
@@ -375,9 +377,9 @@ namespace OpenSim.Data.MySQL
 
         UUID[] LoadUUIDList(uint EstateID, string table)
         {
-            List<UUID> uuids = new List<UUID>();
+            List<UUID> uuids = [];
 
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            using (MySqlConnection dbcon = new(m_connectionString))
             {
                 dbcon.Open();
 
@@ -403,9 +405,9 @@ namespace OpenSim.Data.MySQL
 
         public EstateSettings LoadEstateSettings(int estateID)
         {
-            using (MySqlCommand cmd = new MySqlCommand())
+            using (MySqlCommand cmd = new())
             {
-                string sql = "select estate_settings." + String.Join(",estate_settings.", FieldList) + " from estate_settings where EstateID = ?EstateID";
+                string sql = "select estate_settings." + string.Join(",estate_settings.", FieldList) + " from estate_settings where EstateID = ?EstateID";
 
                 cmd.CommandText = sql;
                 cmd.Parameters.AddWithValue("?EstateID", estateID);
@@ -419,7 +421,7 @@ namespace OpenSim.Data.MySQL
 
         public List<EstateSettings> LoadEstateSettingsAll()
         {
-            List<EstateSettings> allEstateSettings = new List<EstateSettings>();
+            List<EstateSettings> allEstateSettings = [];
 
             List<int> allEstateIds = GetEstatesAll();
 
@@ -431,9 +433,9 @@ namespace OpenSim.Data.MySQL
 
         public List<int> GetEstatesAll()
         {
-            List<int> result = new List<int>();
+            List<int> result = [];
 
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            using (MySqlConnection dbcon = new(m_connectionString))
             {
                 dbcon.Open();
 
@@ -458,9 +460,9 @@ namespace OpenSim.Data.MySQL
 
         public List<int> GetEstates(string search)
         {
-            List<int> result = new List<int>();
+            List<int> result = [];
 
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            using (MySqlConnection dbcon = new(m_connectionString))
             {
                 dbcon.Open();
 
@@ -486,9 +488,9 @@ namespace OpenSim.Data.MySQL
 
         public List<int> GetEstatesByOwner(UUID ownerID)
         {
-            List<int> result = new List<int>();
+            List<int> result = [];
 
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            using (MySqlConnection dbcon = new(m_connectionString))
             {
                 dbcon.Open();
 
@@ -515,7 +517,7 @@ namespace OpenSim.Data.MySQL
 
         public bool LinkRegion(UUID regionID, int estateID)
         {
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            using (MySqlConnection dbcon = new(m_connectionString))
             {
                 dbcon.Open();
                 MySqlTransaction transaction = dbcon.BeginTransaction();
@@ -565,9 +567,9 @@ namespace OpenSim.Data.MySQL
 
         public List<UUID> GetRegions(int estateID)
         {
-            List<UUID> result = new List<UUID>();
+            List<UUID> result = [];
 
-            using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+            using (MySqlConnection dbcon = new(m_connectionString))
             {
                 dbcon.Open();
 

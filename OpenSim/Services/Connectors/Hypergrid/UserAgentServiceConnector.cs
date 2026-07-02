@@ -57,11 +57,11 @@ namespace OpenSim.Services.Connectors.Hypergrid
 
         public UserAgentServiceConnector(IConfigSource config)
         {
-            GridInfo tmp = new GridInfo(config);
+            GridInfo tmp = new(config);
 
             string serviceURI = tmp.HomeURL;
 
-            if (String.IsNullOrWhiteSpace(serviceURI))
+            if (string.IsNullOrWhiteSpace(serviceURI))
             {
                 m_log.Error("[USER AGENT CONNECTOR]: No Home URI named in configuration");
                 throw new Exception("UserAgent connector init error");
@@ -79,7 +79,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
             url = url.ToLower();
             try
             {
-                Uri tmpuri = new Uri(url);
+                Uri tmpuri = new(url);
             }
             catch (Exception e)
             {
@@ -104,7 +104,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
         // Either way, this is verified by the handler
         public bool LoginAgentToGrid(GridRegion source, AgentCircuitData aCircuit, GridRegion gatekeeper, GridRegion destination, bool fromLogin, out string reason)
         {
-            reason = String.Empty;
+            reason = string.Empty;
 
             if (destination == null)
             {
@@ -113,7 +113,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
                 return false;
             }
 
-            GridRegion home = new GridRegion()
+            GridRegion home = new()
             {
                 ServerURI = m_ServerURL,
                 RegionID = destination.RegionID,
@@ -152,10 +152,12 @@ namespace OpenSim.Services.Connectors.Hypergrid
 
         private Hashtable CallServer(string methodName, Hashtable hash)
         {
-            IList paramList = new ArrayList();
-            paramList.Add(hash);
+            IList paramList = new ArrayList
+            {
+                hash
+            };
 
-            XmlRpcRequest request = new XmlRpcRequest(methodName, paramList);
+            XmlRpcRequest request = new(methodName, paramList);
 
             // Send and get reply
             XmlRpcResponse response = null;
@@ -187,41 +189,43 @@ namespace OpenSim.Services.Connectors.Hypergrid
         {
             position = Vector3.UnitY; lookAt = Vector3.UnitY;
 
-            Hashtable hash = new Hashtable();
-            hash["userID"] = userID.ToString();
+            Hashtable hash = new()
+            {
+                ["userID"] = userID.ToString()
+            };
 
             hash = CallServer("get_home_region", hash);
 
             bool success;
-            if (!Boolean.TryParse((string)hash["result"], out success) || !success)
+            if (!bool.TryParse((string)hash["result"], out success) || !success)
                 return null;
 
-            GridRegion region = new GridRegion();
+            GridRegion region = new();
 
             UUID.TryParse((string)hash["uuid"], out region.RegionID);
             //m_log.Debug(">> HERE, uuid: " + region.RegionID);
             int n = 0;
             if (hash["x"] != null)
             {
-                Int32.TryParse((string)hash["x"], out n);
+                int.TryParse((string)hash["x"], out n);
                 region.RegionLocX = n;
                 //m_log.Debug(">> HERE, x: " + region.RegionLocX);
             }
             if (hash["y"] != null)
             {
-                Int32.TryParse((string)hash["y"], out n);
+                int.TryParse((string)hash["y"], out n);
                 region.RegionLocY = n;
                 //m_log.Debug(">> HERE, y: " + region.RegionLocY);
             }
             if (hash["size_x"] != null)
             {
-                Int32.TryParse((string)hash["size_x"], out n);
+                int.TryParse((string)hash["size_x"], out n);
                 region.RegionSizeX = n;
                 //m_log.Debug(">> HERE, x: " + region.RegionLocX);
             }
             if (hash["size_y"] != null)
             {
-                Int32.TryParse((string)hash["size_y"], out n);
+                int.TryParse((string)hash["size_y"], out n);
                 region.RegionSizeY = n;
                 //m_log.Debug(">> HERE, y: " + region.RegionLocY);
             }
@@ -235,7 +239,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
             if (hash["http_port"] != null)
             {
                 uint p = 0;
-                UInt32.TryParse((string)hash["http_port"], out p);
+                uint.TryParse((string)hash["http_port"], out p);
                 region.HttpPort = p;
             }
             if (hash.ContainsKey("server_uri") && hash["server_uri"] != null)
@@ -244,7 +248,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
             if (hash["internal_port"] != null)
             {
                 int p = 0;
-                Int32.TryParse((string)hash["internal_port"], out p);
+                int.TryParse((string)hash["internal_port"], out p);
                 region.InternalEndPoint = new IPEndPoint(IPAddress.Parse("0.0.0.0"), p);
             }
             if (hash["position"] != null)
@@ -258,56 +262,72 @@ namespace OpenSim.Services.Connectors.Hypergrid
 
         public bool IsAgentComingHome(UUID sessionID, string thisGridExternalName)
         {
-            Hashtable hash = new Hashtable();
-            hash["sessionID"] = sessionID.ToString();
-            hash["externalName"] = thisGridExternalName;
+            Hashtable hash = new()
+            {
+                ["sessionID"] = sessionID.ToString(),
+                ["externalName"] = thisGridExternalName
+            };
 
-            IList paramList = new ArrayList();
-            paramList.Add(hash);
+            IList paramList = new ArrayList
+            {
+                hash
+            };
 
-            XmlRpcRequest request = new XmlRpcRequest("agent_is_coming_home", paramList);
+            XmlRpcRequest request = new("agent_is_coming_home", paramList);
             string reason = string.Empty;
             return GetBoolResponse(request, out reason);
         }
 
         public bool VerifyAgent(UUID sessionID, string token)
         {
-            Hashtable hash = new Hashtable();
-            hash["sessionID"] = sessionID.ToString();
-            hash["token"] = token;
+            Hashtable hash = new()
+            {
+                ["sessionID"] = sessionID.ToString(),
+                ["token"] = token
+            };
 
-            IList paramList = new ArrayList();
-            paramList.Add(hash);
+            IList paramList = new ArrayList
+            {
+                hash
+            };
 
-            XmlRpcRequest request = new XmlRpcRequest("verify_agent", paramList);
+            XmlRpcRequest request = new("verify_agent", paramList);
             string reason = string.Empty;
             return GetBoolResponse(request, out reason);
         }
 
         public bool VerifyClient(UUID sessionID, string token)
         {
-            Hashtable hash = new Hashtable();
-            hash["sessionID"] = sessionID.ToString();
-            hash["token"] = token;
+            Hashtable hash = new()
+            {
+                ["sessionID"] = sessionID.ToString(),
+                ["token"] = token
+            };
 
-            IList paramList = new ArrayList();
-            paramList.Add(hash);
+            IList paramList = new ArrayList
+            {
+                hash
+            };
 
-            XmlRpcRequest request = new XmlRpcRequest("verify_client", paramList);
+            XmlRpcRequest request = new("verify_client", paramList);
             string reason = string.Empty;
             return GetBoolResponse(request, out reason);
         }
 
         public void LogoutAgent(UUID userID, UUID sessionID)
         {
-            Hashtable hash = new Hashtable();
-            hash["sessionID"] = sessionID.ToString();
-            hash["userID"] = userID.ToString();
+            Hashtable hash = new()
+            {
+                ["sessionID"] = sessionID.ToString(),
+                ["userID"] = userID.ToString()
+            };
 
-            IList paramList = new ArrayList();
-            paramList.Add(hash);
+            IList paramList = new ArrayList
+            {
+                hash
+            };
 
-            XmlRpcRequest request = new XmlRpcRequest("logout_agent", paramList);
+            XmlRpcRequest request = new("logout_agent", paramList);
             string reason = string.Empty;
             GetBoolResponse(request, out reason);
         }
@@ -315,9 +335,11 @@ namespace OpenSim.Services.Connectors.Hypergrid
         [Obsolete]
         public List<UUID> StatusNotification(List<string> friends, UUID userID, bool online)
         {
-            Hashtable hash = new Hashtable();
-            hash["userID"] = userID.ToString();
-            hash["online"] = online.ToString();
+            Hashtable hash = new()
+            {
+                ["userID"] = userID.ToString(),
+                ["online"] = online.ToString()
+            };
             int i = 0;
             foreach (string s in friends)
             {
@@ -325,14 +347,16 @@ namespace OpenSim.Services.Connectors.Hypergrid
                 i++;
             }
 
-            IList paramList = new ArrayList();
-            paramList.Add(hash);
+            IList paramList = new ArrayList
+            {
+                hash
+            };
 
-            XmlRpcRequest request = new XmlRpcRequest("status_notification", paramList);
+            XmlRpcRequest request = new("status_notification", paramList);
 //            string reason = string.Empty;
 
             // Send and get reply
-            List<UUID> friendsOnline = new List<UUID>();
+            List<UUID> friendsOnline = [];
             XmlRpcResponse response = null;
             try
             {
@@ -389,8 +413,10 @@ namespace OpenSim.Services.Connectors.Hypergrid
         [Obsolete]
         public List<UUID> GetOnlineFriends(UUID userID, List<string> friends)
         {
-            Hashtable hash = new Hashtable();
-            hash["userID"] = userID.ToString();
+            Hashtable hash = new()
+            {
+                ["userID"] = userID.ToString()
+            };
             int i = 0;
             foreach (string s in friends)
             {
@@ -398,14 +424,16 @@ namespace OpenSim.Services.Connectors.Hypergrid
                 i++;
             }
 
-            IList paramList = new ArrayList();
-            paramList.Add(hash);
+            IList paramList = new ArrayList
+            {
+                hash
+            };
 
-            XmlRpcRequest request = new XmlRpcRequest("get_online_friends", paramList);
+            XmlRpcRequest request = new("get_online_friends", paramList);
 //            string reason = string.Empty;
 
             // Send and get reply
-            List<UUID> online = new List<UUID>();
+            List<UUID> online = [];
             XmlRpcResponse response = null;
             try
             {
@@ -461,12 +489,14 @@ namespace OpenSim.Services.Connectors.Hypergrid
 
         public Dictionary<string,object> GetUserInfo (UUID userID)
         {
-            Hashtable hash = new Hashtable();
-            hash["userID"] = userID.ToString();
+            Hashtable hash = new()
+            {
+                ["userID"] = userID.ToString()
+            };
 
             hash = CallServer("get_user_info", hash);
 
-            Dictionary<string, object> info = new Dictionary<string, object>();
+            Dictionary<string, object> info = [];
 
             foreach (object key in hash.Keys)
             {
@@ -481,12 +511,14 @@ namespace OpenSim.Services.Connectors.Hypergrid
 
         public Dictionary<string, object> GetServerURLs(UUID userID)
         {
-            Hashtable hash = new Hashtable();
-            hash["userID"] = userID.ToString();
+            Hashtable hash = new()
+            {
+                ["userID"] = userID.ToString()
+            };
 
             hash = CallServer("get_server_urls", hash);
 
-            Dictionary<string, object> serverURLs = new Dictionary<string, object>();
+            Dictionary<string, object> serverURLs = [];
             foreach (object key in hash.Keys)
             {
                 if (key is string && ((string)key).StartsWith("SRV_") && hash[key] != null)
@@ -501,8 +533,10 @@ namespace OpenSim.Services.Connectors.Hypergrid
 
         public string LocateUser(UUID userID)
         {
-            Hashtable hash = new Hashtable();
-            hash["userID"] = userID.ToString();
+            Hashtable hash = new()
+            {
+                ["userID"] = userID.ToString()
+            };
 
             hash = CallServer("locate_user", hash);
 
@@ -517,9 +551,11 @@ namespace OpenSim.Services.Connectors.Hypergrid
 
         public string GetUUI(UUID userID, UUID targetUserID)
         {
-            Hashtable hash = new Hashtable();
-            hash["userID"] = userID.ToString();
-            hash["targetUserID"] = targetUserID.ToString();
+            Hashtable hash = new()
+            {
+                ["userID"] = userID.ToString(),
+                ["targetUserID"] = targetUserID.ToString()
+            };
 
             hash = CallServer("get_uui", hash);
 
@@ -532,11 +568,13 @@ namespace OpenSim.Services.Connectors.Hypergrid
             return uui;
         }
 
-        public UUID GetUUID(String first, String last)
+        public UUID GetUUID(string first, string last)
         {
-            Hashtable hash = new Hashtable();
-            hash["first"] = first;
-            hash["last"] = last;
+            Hashtable hash = new()
+            {
+                ["first"] = first,
+                ["last"] = last
+            };
 
             hash = CallServer("get_uuid", hash);
 
@@ -591,7 +629,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
                 bool success = false;
                 reason = string.Empty;
                 if (hash.ContainsKey("result"))
-                    Boolean.TryParse((string)hash["result"], out success);
+                    bool.TryParse((string)hash["result"], out success);
                 else
                 {
                     reason = "Internal error 2";

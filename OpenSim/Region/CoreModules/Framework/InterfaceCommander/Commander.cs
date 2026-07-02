@@ -57,7 +57,7 @@ namespace OpenSim.Region.CoreModules.Framework.InterfaceCommander
         {
             get
             {
-                StringBuilder sb = new StringBuilder();
+                StringBuilder sb = new();
 
                 sb.AppendLine("=== " + m_name + " ===");
 
@@ -87,7 +87,7 @@ namespace OpenSim.Region.CoreModules.Framework.InterfaceCommander
         {
             get { return m_commands; }
         }
-        private Dictionary<string, ICommand> m_commands = new Dictionary<string, ICommand>();
+        private Dictionary<string, ICommand> m_commands = [];
 
         #region ICommander Members
 
@@ -173,7 +173,7 @@ namespace OpenSim.Region.CoreModules.Framework.InterfaceCommander
         private string EscapeRuntimeAPICommand(string command)
         {
             command = command.Replace('-', '_');
-            StringBuilder tmp = new StringBuilder(command);
+            StringBuilder tmp = new(command);
             tmp[0] = tmp[0].ToString().ToUpper().ToCharArray()[0];
 
             return tmp.ToString();

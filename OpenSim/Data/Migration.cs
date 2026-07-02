@@ -110,7 +110,7 @@ namespace OpenSim.Data
             _conn = conn;
             _assem = assem;
             _match_old = new Regex(subtype + @"\.(\d\d\d)_" + _type + @"\.sql");
-            string s = String.IsNullOrEmpty(subtype) ? _type : _type + @"\." + subtype;
+            string s = string.IsNullOrEmpty(subtype) ? _type : _type + @"\." + subtype;
             _match_new = new Regex(@"\." + s + @"\.migrations(?:\.(?<ver>\d+)$|.*)");
         }
 
@@ -284,7 +284,7 @@ namespace OpenSim.Data
         /// <returns>A list of string arrays, representing the scripts.</returns>
         private SortedList<int, string[]> GetMigrationsAfter(int after)
         {
-            SortedList<int, string[]> migrations = new SortedList<int, string[]>();
+            SortedList<int, string[]> migrations = [];
 
             string[] names = _assem.GetManifestResourceNames();
             if (names.Length == 0)     // should never happen
@@ -296,7 +296,7 @@ namespace OpenSim.Data
             Match m = null;
             string sFile = Array.FindLast(names, nm => { m = _match_new.Match(nm); return m.Success; });  // ; nm.StartsWith(sPrefix, StringComparison.InvariantCultureIgnoreCase
 
-            if ((m != null) && !String.IsNullOrEmpty(sFile))
+            if ((m != null) && !string.IsNullOrEmpty(sFile))
             {
                 /* The filename should be '<StoreName>.migrations[.NNN]' where NNN
                  * is the last version number defined in the file. If the '.NNN' part is recognized, the code can skip
@@ -315,10 +315,10 @@ namespace OpenSim.Data
                         goto scan_old_style;
                 }
 
-                System.Text.StringBuilder sb = new System.Text.StringBuilder(4096);
+                System.Text.StringBuilder sb = new(4096);
                 int nVersion = -1;
 
-                List<string> script = new List<string>();
+                List<string> script = [];
 
                 FlushProc flush = delegate()
                 {
@@ -336,7 +336,7 @@ namespace OpenSim.Data
                 };
 
                 using (Stream resource = _assem.GetManifestResourceStream(sFile))
-                using (StreamReader resourceReader = new StreamReader(resource))
+                using (StreamReader resourceReader = new(resource))
                 {
                     int nLineNo = 0;
                     while (!resourceReader.EndOfStream)
@@ -344,7 +344,7 @@ namespace OpenSim.Data
                         string sLine = resourceReader.ReadLine();
                         nLineNo++;
 
-                        if (String.IsNullOrEmpty(sLine) || sLine.StartsWith("#"))  // ignore a comment or empty line
+                        if (string.IsNullOrEmpty(sLine) || sLine.StartsWith("#"))  // ignore a comment or empty line
                             continue;
 
                         if (sLine.Trim().Equals(":GO", StringComparison.InvariantCultureIgnoreCase))
@@ -395,7 +395,7 @@ scan_old_style:
                     {
                         using (Stream resource = _assem.GetManifestResourceStream(s))
                         {
-                            using (StreamReader resourceReader = new StreamReader(resource))
+                            using (StreamReader resourceReader = new(resource))
                             {
                                 string sql = resourceReader.ReadToEnd();
                                 migrations.Add(version, new string[]{sql});

@@ -33,7 +33,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
     public class HullResult
     {
         public bool Polygons = true; // true if indices represents polygons, false indices are triangles
-        public List<float3> OutputVertices = new List<float3>();
+        public List<float3> OutputVertices = [];
         public List<int> Indices;
 
         // If triangles, then indices are array indexes into the vertex list.
@@ -42,8 +42,8 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 
     public class PHullResult
     {
-        public List<float3> Vertices = new List<float3>();
-        public List<int> Indices = new List<int>();
+        public List<float3> Vertices = [];
+        public List<int> Indices = [];
     }
 
     [Flags]
@@ -72,7 +72,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
         public HullDesc()
         {
             Flags = HullFlag.QF_DEFAULT;
-            Vertices = new List<float3>();
+            Vertices = [];
             NormalEpsilon = 0.001f;
             MaxVertices = 4096;
             MaxFaces = 4096;
@@ -82,7 +82,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
         public HullDesc(HullFlag flags, List<float3> vertices)
         {
             Flags = flags;
-            Vertices = new List<float3>(vertices);
+            Vertices = [.. vertices];
             NormalEpsilon = 0.001f;
             MaxVertices = 4096;
             MaxFaces = 4096;
@@ -128,9 +128,9 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
             }
         }
 
-        public List<float3> vertices = new List<float3>();
-        public List<HalfEdge> edges = new List<HalfEdge>();
-        public List<Plane> facets = new List<Plane>();
+        public List<float3> vertices = [];
+        public List<HalfEdge> edges = [];
+        public List<Plane> facets = [];
 
         public ConvexH(int vertices_size, int edges_size, int facets_size)
         {

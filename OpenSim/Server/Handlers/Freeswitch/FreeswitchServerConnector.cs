@@ -49,34 +49,36 @@ namespace OpenSim.Server.Handlers.Freeswitch
         public FreeswitchServerConnector(IConfigSource config, IHttpServer server, string configName) :
                 base(config, server, configName)
         {
-            if (configName != String.Empty)
+            if (configName != string.Empty)
                 m_ConfigName = configName;
 
             IConfig serverConfig = config.Configs[m_ConfigName];
             if (serverConfig == null)
-                throw new Exception(String.Format("No section '{0}' in config file", m_ConfigName));
+                throw new Exception(string.Format("No section '{0}' in config file", m_ConfigName));
 
             string freeswitchService = serverConfig.GetString("LocalServiceModule",
-                    String.Empty);
+                    string.Empty);
 
             if (freeswitchService.Length == 0)
                 throw new Exception("No LocalServiceModule in config file");
 
-            Object[] args = new Object[] { config };
+            object[] args = new object[] { config };
             m_FreeswitchService =
                     ServerUtils.LoadPlugin<IFreeswitchService>(freeswitchService, args);
 
-            server.AddHTTPHandler(String.Format("{0}/freeswitch-config", m_freeSwitchAPIPrefix), FreeSwitchConfigHTTPHandler);
-            server.AddHTTPHandler(String.Format("{0}/region-config", m_freeSwitchAPIPrefix), RegionConfigHTTPHandler);
+            server.AddHTTPHandler(string.Format("{0}/freeswitch-config", m_freeSwitchAPIPrefix), FreeSwitchConfigHTTPHandler);
+            server.AddHTTPHandler(string.Format("{0}/region-config", m_freeSwitchAPIPrefix), RegionConfigHTTPHandler);
         }
 
         public Hashtable FreeSwitchConfigHTTPHandler(Hashtable request)
         {
-            Hashtable response = new Hashtable();
-            response["str_response_string"] = string.Empty;
-            response["content_type"] = "text/plain";
-            response["keepalive"] = false;
-            response["int_response_code"] = 500;
+            Hashtable response = new()
+            {
+                ["str_response_string"] = string.Empty,
+                ["content_type"] = "text/plain",
+                ["keepalive"] = false,
+                ["int_response_code"] = 500
+            };
 
             Hashtable requestBody = ParseRequestBody((string) request["body"]);
 
@@ -94,15 +96,15 @@ namespace OpenSim.Server.Handlers.Freeswitch
 
         private Hashtable ParseRequestBody(string body)
         {
-            Hashtable bodyParams = new Hashtable();
+            Hashtable bodyParams = [];
             // split string
-            string [] nvps = body.Split(new Char [] {'&'});
+            string [] nvps = body.Split(new char[] {'&'});
 
             foreach (string s in nvps)
             {
                 if (s.Trim() != "")
                 {
-                    string [] nvp = s.Split(new Char [] {'='});
+                    string [] nvp = s.Split(new char[] {'='});
                     bodyParams.Add(HttpUtility.UrlDecode(nvp[0]), HttpUtility.UrlDecode(nvp[1]));
                 }
             }
@@ -112,12 +114,14 @@ namespace OpenSim.Server.Handlers.Freeswitch
 
         public Hashtable RegionConfigHTTPHandler(Hashtable request)
         {
-            Hashtable response = new Hashtable();
-            response["content_type"] = "text/json";
-            response["keepalive"] = false;
-            response["int_response_code"] = 200;
+            Hashtable response = new()
+            {
+                ["content_type"] = "text/json",
+                ["keepalive"] = false,
+                ["int_response_code"] = 200,
 
-            response["str_response_string"] = m_FreeswitchService.GetJsonConfig();
+                ["str_response_string"] = m_FreeswitchService.GetJsonConfig()
+            };
 
             return response;
         }

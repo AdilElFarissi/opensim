@@ -125,7 +125,7 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap
         {
             if (original.Shape.Media != null)
             {
-                PrimitiveBaseShape.MediaList dupeMedia = new PrimitiveBaseShape.MediaList();
+                PrimitiveBaseShape.MediaList dupeMedia = [];
                 lock (original.Shape.Media)
                 {
                     foreach (MediaEntry me in original.Shape.Media)
@@ -189,7 +189,7 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap
                 if (me == null)
                     return;
                 else
-                    part.Shape.Media = new PrimitiveBaseShape.MediaList(new MediaEntry[part.GetNumberOfSides()]);
+                    part.Shape.Media = [.. new MediaEntry[part.GetNumberOfSides()]];
             }
 
             lock (part.Shape.Media)
@@ -241,7 +241,7 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap
             try
             {
                 OSDMap osd = (OSDMap)OSDParser.DeserializeLLSDXml(httpRequest.InputStream);
-                ObjectMediaMessage omm = new ObjectMediaMessage();
+                ObjectMediaMessage omm = new();
                 omm.Deserialize(osd);
 
                 if (omm.Request is ObjectMediaRequest)
@@ -327,10 +327,12 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap
                 currentML = new MediaEntry[nsides];
             }
 
-            ObjectMediaResponse resp = new ObjectMediaResponse();
-            resp.PrimID = primId;
+            ObjectMediaResponse resp = new()
+            {
+                PrimID = primId,
 
-            resp.FaceMedia = currentML;
+                FaceMedia = currentML
+            };
             if (string.IsNullOrEmpty(part.MediaUrl))
                 resp.Version = "x-mv:0000000000/00000000-0000-0000-0000-000000000000";
             else
@@ -384,7 +386,7 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap
             if (null == media)
             {
 //                m_log.DebugFormat("[MOAP]: Setting all new media list for {0}", part.Name);
-                part.Shape.Media = new PrimitiveBaseShape.MediaList(omu.FaceMedia);
+                part.Shape.Media = [.. omu.FaceMedia];
 
                 for (int i = 0; i < omu.FaceMedia.Length; i++)
                 {
@@ -468,7 +470,7 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap
             try
             {
                 OSDMap osd = (OSDMap)OSDParser.DeserializeLLSDXml(httpRequest.InputStream);
-                ObjectMediaNavigateMessage omn = new ObjectMediaNavigateMessage();
+                ObjectMediaNavigateMessage omn = new();
                 omn.Deserialize(osd);
 
                 UUID primId = omn.PrimID;
@@ -594,7 +596,7 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap
             if (whitelist == null)
                 return false;
 
-            Uri url = new Uri(rawUrl);
+            Uri url = new(rawUrl);
 
             foreach (string origWlUrl in whitelist)
             {

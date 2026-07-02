@@ -53,7 +53,7 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected Dictionary<UUID, Scene> m_scenes = new();
+        protected Dictionary<UUID, Scene> m_scenes = [];
 
         public string Name { get { return "Linden UDP Module"; } }
 
@@ -142,7 +142,7 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
             string firstName = cmd[3];
             string lastName = cmd[4];
 
-            List<ScenePresence> foundAgents = new();
+            List<ScenePresence> foundAgents = [];
 
             lock (m_scenes)
             {
@@ -269,7 +269,7 @@ namespace OpenSim.Region.OptionalModules.UDP.Linden
 
             bool showChildAgents = showParams.Length == 6;
 
-            List<ScenePresence> foundAgents = new();
+            List<ScenePresence> foundAgents = [];
 
             lock (m_scenes)
             {

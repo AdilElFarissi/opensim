@@ -83,7 +83,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         /// <summary>
         /// Scenes by Region Handle
         /// </summary>
-        private Dictionary<ulong, Scene> m_scenes = new Dictionary<ulong, Scene>();
+        private Dictionary<ulong, Scene> m_scenes = [];
 
         // private int m_stipend = 1000;
 
@@ -143,11 +143,13 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
                     if (m_scenes.Count == 0)
                     {
                         m_localEconomyURL = scene.RegionInfo.ServerURI;
-                        m_rpcHandlers = new Dictionary<string, XmlRpcMethod>();
-                        m_rpcHandlers.Add("getCurrencyQuote", quote_func);
-                        m_rpcHandlers.Add("buyCurrency", buy_func);
-                        m_rpcHandlers.Add("preflightBuyLandPrep", preflightBuyLandPrep_func);
-                        m_rpcHandlers.Add("buyLandPrep", landBuy_func);
+                        m_rpcHandlers = new Dictionary<string, XmlRpcMethod>
+                        {
+                            { "getCurrencyQuote", quote_func },
+                            { "buyCurrency", buy_func },
+                            { "preflightBuyLandPrep", preflightBuyLandPrep_func },
+                            { "buyLandPrep", landBuy_func }
+                        };
 
                         // add php
                         MainServer.Instance.AddSimpleStreamHandler(new SimpleStreamHandler("/currency.php", processPHP));
@@ -215,8 +217,8 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
 
         public bool ObjectGiveMoney(UUID objectID, UUID fromID, UUID toID, int amount, UUID txn, out string result)
         {
-            result = String.Empty;
-            string description = String.Format("Object {0} pays {1}", resolveObjectName(objectID), resolveAgentName(toID));
+            result = string.Empty;
+            string description = string.Format("Object {0} pays {1}", resolveObjectName(objectID), resolveAgentName(toID));
 
             bool give_result = doMoneyTransfer(fromID, toID, amount, 2, description);
 
@@ -267,7 +269,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
                 if(economyConfig != null)
                 {
                     mmodule = economyConfig.GetString("economymodule", "");
-                    if (String.IsNullOrEmpty(mmodule))
+                    if (string.IsNullOrEmpty(mmodule))
                         mmodule = economyConfig.GetString("EconomyModule", "");
                 }
             }
@@ -356,7 +358,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
                     client.SendAlertMessage(e.Message + " ");
                 }
 
-                client.SendMoneyBalance(TransactionID, true, Array.Empty<byte>(), returnfunds, 0, UUID.Zero, false, UUID.Zero, false, 0, String.Empty);
+                client.SendMoneyBalance(TransactionID, true, Array.Empty<byte>(), returnfunds, 0, UUID.Zero, false, UUID.Zero, false, 0, string.Empty);
             }
             else
             {
@@ -387,7 +389,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
             {
                 return part.Name;
             }
-            return String.Empty;
+            return string.Empty;
         }
 
         private string resolveAgentName(UUID agentID)
@@ -407,7 +409,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
                     agentID);
             }
 
-            return String.Empty;
+            return string.Empty;
         }
 
         private void BalanceUpdate(UUID senderID, UUID receiverID, bool transactionresult, string description)
@@ -419,12 +421,12 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
             {
                 if (sender != null)
                 {
-                    sender.SendMoneyBalance(UUID.Random(), transactionresult, Utils.StringToBytes(description), GetFundsForAgentID(senderID), 0, UUID.Zero, false, UUID.Zero, false, 0, String.Empty);
+                    sender.SendMoneyBalance(UUID.Random(), transactionresult, Utils.StringToBytes(description), GetFundsForAgentID(senderID), 0, UUID.Zero, false, UUID.Zero, false, 0, string.Empty);
                 }
 
                 if (receiver != null)
                 {
-                    receiver.SendMoneyBalance(UUID.Random(), transactionresult, Utils.StringToBytes(description), GetFundsForAgentID(receiverID), 0, UUID.Zero, false, UUID.Zero, false, 0, String.Empty);
+                    receiver.SendMoneyBalance(UUID.Random(), transactionresult, Utils.StringToBytes(description), GetFundsForAgentID(receiverID), 0, UUID.Zero, false, UUID.Zero, false, 0, string.Empty);
                 }
             }
         }
@@ -434,8 +436,8 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         /// </summary>
         public XmlRpcResponse UserAlert(XmlRpcRequest request, IPEndPoint remoteClient)
         {
-            XmlRpcResponse ret = new XmlRpcResponse();
-            Hashtable retparam = new Hashtable();
+            XmlRpcResponse ret = new();
+            Hashtable retparam = [];
             Hashtable requestData = (Hashtable) request.Params[0];
 
             UUID agentId;
@@ -493,22 +495,28 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
             }
             catch{ }
 
-            Hashtable currencyResponse = new Hashtable();
-            currencyResponse.Add("estimatedCost", 0);
-            //currencyResponse.Add("estimatedLocalCost", " 0 Euros");
+            Hashtable currencyResponse = new()
+            {
+                { "estimatedCost", 0 },
+                //currencyResponse.Add("estimatedLocalCost", " 0 Euros");
 
-            currencyResponse.Add("currencyBuy", amount);
+                { "currencyBuy", amount }
+            };
 
-            Hashtable quoteResponse = new Hashtable();
-            quoteResponse.Add("success", true);
-            quoteResponse.Add("currency", currencyResponse);
-            quoteResponse.Add("confirm", "asdfad9fj39ma9fj");
+            Hashtable quoteResponse = new()
+            {
+                { "success", true },
+                { "currency", currencyResponse },
+                { "confirm", "asdfad9fj39ma9fj" }
+            };
 
             //quoteResponse.Add("success", false);
             //quoteResponse.Add("errorMessage", "There is currency");
             //quoteResponse.Add("errorURI", "http://opensimulator.org");
-            XmlRpcResponse returnval = new XmlRpcResponse();
-            returnval.Value = quoteResponse;
+            XmlRpcResponse returnval = new()
+            {
+                Value = quoteResponse
+            };
             return returnval;
         }
 
@@ -518,33 +526,41 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
             // UUID agentId = UUID.Zero;
             // int amount = 0;
 
-            XmlRpcResponse returnval = new XmlRpcResponse();
-            Hashtable returnresp = new Hashtable();
-            returnresp.Add("success", true);
+            XmlRpcResponse returnval = new();
+            Hashtable returnresp = new()
+            {
+                { "success", true }
+            };
             returnval.Value = returnresp;
             return returnval;
         }
 
         public XmlRpcResponse preflightBuyLandPrep_func(XmlRpcRequest request, IPEndPoint remoteClient)
         {
-            XmlRpcResponse ret = new XmlRpcResponse();
-            Hashtable retparam = new Hashtable();
-            Hashtable membershiplevels = new Hashtable();
-            ArrayList levels = new ArrayList();
-            Hashtable level = new Hashtable();
-            level.Add("id", "00000000-0000-0000-0000-000000000000");
-            level.Add("description", "some level");
+            XmlRpcResponse ret = new();
+            Hashtable retparam = [];
+            Hashtable membershiplevels = [];
+            ArrayList levels = [];
+            Hashtable level = new()
+            {
+                { "id", "00000000-0000-0000-0000-000000000000" },
+                { "description", "some level" }
+            };
             levels.Add(level);
             //membershiplevels.Add("levels",levels);
 
-            Hashtable landuse = new Hashtable();
-            landuse.Add("upgrade", false);
-            landuse.Add("action", "http://invaliddomaininvalid.com/");
+            Hashtable landuse = new()
+            {
+                { "upgrade", false },
+                { "action", "http://invaliddomaininvalid.com/" }
+            };
 
-            Hashtable currency = new Hashtable();
-            currency.Add("estimatedCost", 0);
+            Hashtable currency = new()
+            {
+                { "estimatedCost", 0 }
+            };
 
-            Hashtable membership = new Hashtable();
+            Hashtable membership = [];
             membershiplevels.Add("upgrade", false);
             membershiplevels.Add("action", "http://invaliddomaininvalid.com/");
             membershiplevels.Add("levels", membershiplevels);
@@ -562,14 +578,16 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
 
         public XmlRpcResponse landBuy_func(XmlRpcRequest request, IPEndPoint remoteClient)
         {
-            XmlRpcResponse ret = new XmlRpcResponse();
-            Hashtable retparam = new Hashtable();
-            // Hashtable requestData = (Hashtable) request.Params[0];
+            XmlRpcResponse ret = new();
+            Hashtable retparam = new()
+            {
+                // Hashtable requestData = (Hashtable) request.Params[0];
 
-            // UUID agentId = UUID.Zero;
-            // int amount = 0;
+                // UUID agentId = UUID.Zero;
+                // int amount = 0;
 
-            retparam.Add("success", true);
+                { "success", true }
+            };
             ret.Value = retparam;
 
             return ret;
@@ -722,7 +740,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
                                  TeleportMinPrice, TeleportPriceExponent);
         }
 
-        private void ValidateLandBuy(Object osender, EventManager.LandBuyArgs e)
+        private void ValidateLandBuy(object osender, EventManager.LandBuyArgs e)
         {
 
 
@@ -734,7 +752,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
 
         }
 
-        private void processLandBuy(Object osender, EventManager.LandBuyArgs e)
+        private void processLandBuy(object osender, EventManager.LandBuyArgs e)
         {
 
         }
@@ -744,7 +762,7 @@ namespace OpenSim.Region.OptionalModules.World.MoneyModule
         /// </summary>
         /// <param name="osender"></param>
         /// <param name="e"></param>
-        private void MoneyTransferAction(Object osender, EventManager.MoneyTransferArgs e)
+        private void MoneyTransferAction(object osender, EventManager.MoneyTransferArgs e)
         {
 
         }

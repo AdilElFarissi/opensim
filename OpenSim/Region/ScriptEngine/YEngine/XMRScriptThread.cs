@@ -36,9 +36,9 @@ namespace OpenSim.Region.ScriptEngine.Yengine
     public partial class Yengine
     {
         private int m_WakeUpOne = 0;
-        public object m_WakeUpLock = new object();
+        public object m_WakeUpLock = new();
 
-        private Dictionary<int, XMRInstance> m_RunningInstances = new Dictionary<int, XMRInstance>();
+        private Dictionary<int, XMRInstance> m_RunningInstances = [];
 
         private bool m_SuspendScriptThreadFlag = false;
         private bool m_WakeUpThis = false;

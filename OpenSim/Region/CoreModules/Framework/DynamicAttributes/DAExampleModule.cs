@@ -91,7 +91,7 @@ namespace OpenSim.Region.CoreModules.Framework.DynamicAttributes.DAExampleModule
                 return true;
 
             if (!sop.DynAttrs.TryGetStore(Namespace, StoreName, out attrs))
-                attrs = new OSDMap();
+                attrs = [];
 
             OSDInteger newValue;
 

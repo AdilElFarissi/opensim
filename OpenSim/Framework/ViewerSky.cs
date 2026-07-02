@@ -230,7 +230,7 @@ namespace OpenSim.Framework
 
         public OSD ToWLOSD()
         {
-            OSDMap map = new();
+            OSDMap map = [];
 
             ViewerEnvironment.convertToAngles(this, out float sun_angle, out float east_angle, out Vector4 lightnorm);
             map["ambient"] = new Vector4(ambient.X, ambient.Y, ambient.Z, 1);

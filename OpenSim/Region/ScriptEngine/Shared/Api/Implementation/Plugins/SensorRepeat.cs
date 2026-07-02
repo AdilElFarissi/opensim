@@ -125,7 +125,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
         /// <remarks>
         /// Always lock SenseRepeatListLock when updating this list.
         /// </remarks>
-        private List<SensorInfo> SenseRepeaters = new();
+        private List<SensorInfo> SenseRepeaters = [];
         private readonly object SenseRepeatListLock = new();
 
         public void SetSenseRepeatEvent(uint m_localID, UUID m_itemID,
@@ -231,7 +231,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             if (ts.host is null)
                 return;
 
-            List<SensedEntity> sensedEntities = new();
+            List<SensedEntity> sensedEntities = [];
 
             // Is the sensor type is AGENT and not SCRIPTED then include agents
             if ((ts.type & (AGENT | AGENT_BY_USERNAME | NPC)) != 0 && (ts.type & SCRIPTED) == 0)
@@ -261,7 +261,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                     sensedEntities.Sort();
                     int count = sensedEntities.Count;
                     int idx;
-                    List<DetectParams> detected = new();
+                    List<DetectParams> detected = [];
                     for (idx = 0; idx < count; idx++)
                     {
                         try
@@ -295,7 +295,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                     {
                         m_CmdManager.m_ScriptEngine.PostScriptEvent(ts.itemID,
                                 new EventParams("sensor",
-                                new Object[] {new LSL_Types.LSLInteger(detected.Count) },
+                                new object[] {new LSL_Types.LSLInteger(detected.Count) },
                                 detected.ToArray()));
                     }
                 }
@@ -305,7 +305,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
         private List<SensedEntity> doObjectSensor(SensorInfo ts)
         {
             List<EntityBase> Entities;
-            List<SensedEntity> sensedEntities = new();
+            List<SensedEntity> sensedEntities = [];
 
             // If this is an object sense by key try to get it directly
             // rather than getting a list to scan through
@@ -314,11 +314,11 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 m_CmdManager.m_ScriptEngine.World.Entities.TryGetValue(ts.keyID, out EntityBase e);
                 if (e is null)
                     return sensedEntities;
-                Entities = new List<EntityBase> { e };
+                Entities = [e];
             }
             else
             {
-                Entities = new List<EntityBase>(m_CmdManager.m_ScriptEngine.World.GetEntities());
+                Entities = [.. m_CmdManager.m_ScriptEngine.World.GetEntities()];
             }
 
             SceneObjectPart sensorPart = ts.host;
@@ -449,7 +449,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
         private List<SensedEntity> doAgentSensor(SensorInfo ts)
         {
-            List<SensedEntity> sensedEntities = new();
+            List<SensedEntity> sensedEntities = [];
 
             // If nobody about quit fast
             if (m_CmdManager.m_ScriptEngine.World.GetRootAgentCount() == 0)
@@ -631,9 +631,9 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             return sensedEntities;
         }
 
-        public Object[] GetSerializationData(UUID itemID)
+        public object[] GetSerializationData(UUID itemID)
         {
-            List<Object> data = new();
+            List<object> data = [];
 
             foreach (SensorInfo ts in SenseRepeaters)
             {
@@ -686,7 +686,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
         public List<SensorInfo> GetSensorInfo()
         {
-            List<SensorInfo> retList = new();
+            List<SensorInfo> retList = [];
 
             lock (SenseRepeatListLock)
             {

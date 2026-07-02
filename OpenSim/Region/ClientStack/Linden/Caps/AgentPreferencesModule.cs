@@ -47,7 +47,7 @@ namespace OpenSim.Region.ClientStack.LindenCaps
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private List<Scene> m_scenes = new List<Scene>();
+        private List<Scene> m_scenes = [];
 
         public void Initialise(IConfigSource source)
         {
@@ -175,15 +175,19 @@ namespace OpenSim.Region.ClientStack.LindenCaps
             IAvatarFactoryModule afm = m_scenes[0].RequestModuleInterface<IAvatarFactoryModule>();
             afm?.SetPreferencesHoverZ(agent, (float)data.HoverHeight);
 
-            OSDMap resp = new OSDMap();
-            OSDMap respAccessPrefs = new OSDMap();
-            respAccessPrefs["max"] = data.AccessPrefs;
+            OSDMap resp = [];
+            OSDMap respAccessPrefs = new()
+            {
+                ["max"] = data.AccessPrefs
+            };
             resp["access_prefs"] = respAccessPrefs;
 
-            OSDMap respDefaultPerms = new OSDMap();
-            respDefaultPerms["Everyone"] = data.PermEveryone;
-            respDefaultPerms["Group"] = data.PermGroup;
-            respDefaultPerms["NextOwner"] = data.PermNextOwner;
+            OSDMap respDefaultPerms = new()
+            {
+                ["Everyone"] = data.PermEveryone,
+                ["Group"] = data.PermGroup,
+                ["NextOwner"] = data.PermNextOwner
+            };
 
             resp["default_object_perm_masks"] = respDefaultPerms;
             resp["god_level"] = 0; // *TODO: Add this

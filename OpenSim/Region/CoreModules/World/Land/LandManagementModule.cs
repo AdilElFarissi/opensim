@@ -88,9 +88,9 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// Land objects keyed by local id
         /// </value>
 
-        private readonly Dictionary<int, ILandObject> m_landList = new();
-        private readonly Dictionary<UUID, int> m_landGlobalIDs = new();
-        private readonly Dictionary<UUID, int> m_landFakeIDs = new();
+        private readonly Dictionary<int, ILandObject> m_landList = [];
+        private readonly Dictionary<UUID, int> m_landGlobalIDs = [];
+        private readonly Dictionary<UUID, int> m_landFakeIDs = [];
 
         private int m_lastLandLocalID = LandChannel.START_LAND_LOCAL_ID - 1;
 
@@ -106,7 +106,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         /// <summary>
         /// Record positions that avatar's are currently being forced to move to due to parcel entry restrictions.
         /// </summary>
-        private readonly HashSet<UUID> forcedPosition = new();
+        private readonly HashSet<UUID> forcedPosition = [];
 
         // Enables limiting parcel layer info transmission when doing simple updates
         private bool shouldLimitParcelLayerInfoToViewDistance { get; set; }
@@ -333,13 +333,13 @@ namespace OpenSim.Region.CoreModules.World.Land
         {
             lock (m_landList)
             {
-                return new List<ILandObject>(m_landList.Values);
+                return [.. m_landList.Values];
             }
         }
 
         public List<ILandObject> ParcelsNearPoint(Vector3 position)
         {
-            List<ILandObject> parcelsNear = new();
+            List<ILandObject> parcelsNear = [];
             for (int x = -8; x <= 8; x += 4)
             {
                 for (int y = -8; y <= 8; y += 4)
@@ -650,7 +650,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                         return;
                     }
 
-                    string payDescription = String.Format("Parcel '{0}' at region '{1} {2:0.###} hours access pass", ldata.Name, regionName, ldata.PassHours);
+                    string payDescription = string.Format("Parcel '{0}' at region '{1} {2:0.###} hours access pass", ldata.Name, regionName, ldata.PassHours);
 
                     if(!mm.MoveMoney(remote_client.AgentId, ldata.OwnerID, cost,MoneyTransactionType.LandPassSale, payDescription))
                     {
@@ -1144,14 +1144,14 @@ namespace OpenSim.Region.CoreModules.World.Land
         private void FinalizeLandPrimCountUpdate()
         {
             //Get Simwide prim count for owner
-            Dictionary<UUID, List<LandObject>> landOwnersAndParcels = new();
+            Dictionary<UUID, List<LandObject>> landOwnersAndParcels = [];
             lock (m_landList)
             {
                 foreach (LandObject p in m_landList.Values)
                 {
                     if (!landOwnersAndParcels.TryGetValue(p.LandData.OwnerID, out List<LandObject> ownerlist))
                     {
-                        ownerlist = new(){ p };
+                        ownerlist = [p];
                         landOwnersAndParcels.Add(p.LandData.OwnerID, ownerlist);
                     }
                     else
@@ -1315,7 +1315,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             int maxindex = -1;
             int maxArea = 0;
 
-            List<ILandObject> selectedLandObjects = new();
+            List<ILandObject> selectedLandObjects = [];
             for (int x = start_x; x < end_x; x += 4)
             {
                 for (int y = start_y; y < end_y; y += 4)
@@ -1557,7 +1557,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             end_y /= Constants.LandUnit;
 
             //Get the land objects within the bounds
-            Dictionary<int, ILandObject> temp = new();
+            Dictionary<int, ILandObject> temp = [];
             for (int x = start_x; x < end_x; ++x)
             {
                 for (int y = start_y; y < end_y; ++y)
@@ -1737,7 +1737,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         // and land has been validated as well, this method transfers
         // the land ownership
 
-        public void EventManagerOnLandBuy(Object o, EventManager.LandBuyArgs e)
+        public void EventManagerOnLandBuy(object o, EventManager.LandBuyArgs e)
         {
             if (e.economyValidated && e.landValidated)
             {
@@ -1758,7 +1758,7 @@ namespace OpenSim.Region.CoreModules.World.Land
         // be validated. This method validates the right to buy the
         // parcel
 
-        public void EventManagerOnValidateLandBuy(Object o, EventManager.LandBuyArgs e)
+        public void EventManagerOnValidateLandBuy(object o, EventManager.LandBuyArgs e)
         {
             if (e.landValidated == false)
             {
@@ -1908,7 +1908,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                 // We get here when the user returns objects from the list of Top Colliders or Top Scripts.
                 // In that case we receive specific object UUID's, but no parcel ID.
 
-                Dictionary<UUID, HashSet<SceneObjectGroup>> returns = new();
+                Dictionary<UUID, HashSet<SceneObjectGroup>> returns = [];
                 foreach (UUID groupID in taskIDs)
                 {
                     SceneObjectGroup obj = m_scene.GetSceneObjectGroup(groupID);
@@ -1916,7 +1916,7 @@ namespace OpenSim.Region.CoreModules.World.Land
                     {
                         if (!returns.TryGetValue(obj.OwnerID, out HashSet<SceneObjectGroup> howner))
                         {
-                            howner = new HashSet<SceneObjectGroup>();
+                            howner = [];
                             returns[obj.OwnerID] = howner;
                         }
                         howner.Add(obj);
@@ -1934,7 +1934,7 @@ namespace OpenSim.Region.CoreModules.World.Land
 
                 foreach (HashSet<SceneObjectGroup> objs in returns.Values)
                 {
-                    List<SceneObjectGroup> objs2 = new(objs);
+                    List<SceneObjectGroup> objs2 = [.. objs];
                     if (m_scene.Permissions.CanReturnObjects(null, remoteClient, objs2))
                     {
                         m_scene.returnObjects(objs2.ToArray(), remoteClient);
@@ -2349,7 +2349,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             land.LandData.ObscureMedia = false;
             land.LandData.ObscureMusic = false;
             land.LandData.OtherCleanTime = 0;
-            land.LandData.ParcelAccessList = new List<LandAccessEntry>();
+            land.LandData.ParcelAccessList = [];
             land.LandData.PassHours = 0;
             land.LandData.PassPrice = 0;
             land.LandData.SalePrice = 0;
@@ -2385,7 +2385,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             if(!((Scene)client.Scene).TryGetScenePresence(client.AgentId, out ScenePresence sp))
                 return;
 
-            List<SceneObjectGroup> returns = new();
+            List<SceneObjectGroup> returns = [];
             if (sp.GodController.UserLevel != 0)
             {
                 if (flags == 0) //All parcels, scripted or not
@@ -2441,7 +2441,7 @@ namespace OpenSim.Region.CoreModules.World.Land
             ((Scene)client.Scene).returnObjects(objs, client);
         }
 
-        private readonly Dictionary<UUID, System.Threading.Timer> Timers = new();
+        private readonly Dictionary<UUID, System.Threading.Timer> Timers = [];
 
         public void ClientOnParcelFreezeUser(IClientAPI client, UUID parcelowner, uint flags, UUID target)
         {

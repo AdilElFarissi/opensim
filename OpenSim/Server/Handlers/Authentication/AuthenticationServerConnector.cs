@@ -43,20 +43,20 @@ namespace OpenSim.Server.Handlers.Authentication
         public AuthenticationServiceConnector(IConfigSource config, IHttpServer server, string configName) :
                 base(config, server, configName)
         {
-            if (configName != String.Empty)
+            if (configName != string.Empty)
                 m_ConfigName = configName;
 
             IConfig serverConfig = config.Configs[m_ConfigName];
             if (serverConfig == null)
-                throw new Exception(String.Format("No section '{0}' in config file", m_ConfigName));
+                throw new Exception(string.Format("No section '{0}' in config file", m_ConfigName));
 
             string authenticationService = serverConfig.GetString("LocalServiceModule",
-                    String.Empty);
+                    string.Empty);
 
             if (authenticationService.Length == 0)
                 throw new Exception("No AuthenticationService in config file");
 
-            Object[] args = new Object[] { config };
+            object[] args = new object[] { config };
             m_AuthenticationService = ServerUtils.LoadPlugin<IAuthenticationService>(authenticationService, args);
 
             IServiceAuth auth = ServiceAuth.Create(config, m_ConfigName);

@@ -77,12 +77,14 @@ namespace OpenSim.Region.CoreModules.World.Vegetation
         public SceneObjectGroup AddTree(
             UUID uuid, UUID groupID, Vector3 scale, Quaternion rotation, Vector3 position, Tree treeType, bool newTree)
         {
-            PrimitiveBaseShape treeShape = new PrimitiveBaseShape();
-            treeShape.PathCurve = 16;
-            treeShape.PathEnd = 49900;
-            treeShape.PCode = newTree ? (byte)PCode.NewTree : (byte)PCode.Tree;
-            treeShape.Scale = scale;
-            treeShape.State = (byte)treeType;
+            PrimitiveBaseShape treeShape = new()
+            {
+                PathCurve = 16,
+                PathEnd = 49900,
+                PCode = newTree ? (byte)PCode.NewTree : (byte)PCode.Tree,
+                Scale = scale,
+                State = (byte)treeType
+            };
 
             return m_scene.AddNewPrim(uuid, groupID, position, rotation, treeShape);
         }
@@ -96,7 +98,7 @@ namespace OpenSim.Region.CoreModules.World.Vegetation
                 return null;
             }
 
-            SceneObjectGroup sceneObject = new SceneObjectGroup(ownerID, pos, rot, shape);
+            SceneObjectGroup sceneObject = new(ownerID, pos, rot, shape);
             SceneObjectPart rootPart = sceneObject.GetPart(sceneObject.UUID);
 
             // if grass or tree, make phantom

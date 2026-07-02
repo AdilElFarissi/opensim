@@ -65,7 +65,7 @@ namespace OpenSim.Data.Null
         /// <returns>A list of inventory folders</returns>
         public List<InventoryFolderBase> getFolderHierarchy(UUID parentID)
         {
-            return new List<InventoryFolderBase>();
+            return [];
         }
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace OpenSim.Data.Null
         /// <returns>A List of InventoryItemBase items</returns>
         public List<InventoryItemBase> getInventoryInFolder(UUID folderID)
         {
-            return new List<InventoryItemBase>();
+            return [];
         }
 
         /// <summary>
@@ -85,7 +85,7 @@ namespace OpenSim.Data.Null
         /// <returns>A list of folder objects</returns>
         public List<InventoryFolderBase> getUserRootFolders(UUID user)
         {
-            return new List<InventoryFolderBase>();
+            return [];
         }
 
         /// <summary>
@@ -105,7 +105,7 @@ namespace OpenSim.Data.Null
         /// <returns>A list of inventory folders</returns>
         public List<InventoryFolderBase> getInventoryFolders(UUID parentID)
         {
-            return new List<InventoryFolderBase>();
+            return [];
         }
 
         /// <summary>
@@ -213,7 +213,7 @@ namespace OpenSim.Data.Null
         /// </returns>
         public List<InventoryItemBase> fetchActiveGestures(UUID avatarID)
         {
-            return new List<InventoryItemBase>();
+            return [];
         }
     }
 }

@@ -46,7 +46,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
      */
     public class StackDepth: List<Type>
     {
-        public List<bool> isBoxeds = new List<bool>();
+        public List<bool> isBoxeds = [];
 
         /**
          * @brief Clear both stacks.
@@ -376,7 +376,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             if(DEBUG)
             {
-                StringBuilder sb = new StringBuilder("ChainLin*:");
+                StringBuilder sb = new("ChainLin*:");
                 sb.Append(coll.stackDepth.Count.ToString("D2"));
                 sb.Append(' ');
                 this.DebString(sb);
@@ -429,7 +429,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public abstract void DebString(StringBuilder sb);
         public override string ToString()
         {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
             this.DebString(sb);
             return sb.ToString();
         }
@@ -595,8 +595,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
      */
     public abstract class GraphNodeBlock: GraphNode
     {
-        public List<ScriptMyLocal> localsWrittenBeforeRead = new List<ScriptMyLocal>();
-        public List<ScriptMyLocal> localsReadBeforeWritten = new List<ScriptMyLocal>();
+        public List<ScriptMyLocal> localsWrittenBeforeRead = [];
+        public List<ScriptMyLocal> localsReadBeforeWritten = [];
         public int hasBeenResolved;
         public GraphNodeBlock(ScriptCollector coll) : base(coll) { }
     }
@@ -808,7 +808,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         // The endfinally enumerator assumes that it is always possible 
         // for it to jump to the next outer finally (as would happen for
         // an uncaught exception), so no need to do anything special.
-        public List<GraphNodeBlock> leaveTargets = new List<GraphNodeBlock>();
+        public List<GraphNodeBlock> leaveTargets = [];
 
         public GraphNodeBeginFinallyBlock(ScriptCollector coll) : base(coll)
         {
@@ -2304,15 +2304,15 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private bool resolvedSomething;
         private int resolveSequence;
         private int excBlkSeqNos;
-        public StackDepth stackDepth = new StackDepth();
+        public StackDepth stackDepth = [];
 
         public GraphNodeBeginExceptionBlock curTryBlock = null;  // pushed at beginning of try
                                                                  // popped at BEGINNING of catch/finally
         public GraphNodeBeginExceptionBlock curExcBlock = null;  // pushed at beginning of try
                                                                  // popped at END of catch/finally
 
-        private List<ScriptMyLocal> declaredLocals = new List<ScriptMyLocal>();
-        private List<ScriptMyLabel> definedLabels = new List<ScriptMyLabel>();
+        private List<ScriptMyLocal> declaredLocals = [];
+        private List<ScriptMyLabel> definedLabels = [];
 
         public string methName
         {
@@ -2329,33 +2329,37 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public ScriptCollector(ScriptObjWriter wrapped)
         {
             this.wrapped = wrapped;
-            GraphNodeBegin gnb = new GraphNodeBegin(this);
+            GraphNodeBegin gnb = new(this);
             this.firstLin = gnb;
             this.lastLin = gnb;
         }
 
         public ScriptMyLocal DeclareLocal(Type type, string name)
         {
-            ScriptMyLocal loc = new ScriptMyLocal();
-            loc.name = name;
-            loc.type = type;
-            loc.number = wrapped.localNumber++;
+            ScriptMyLocal loc = new()
+            {
+                name = name,
+                type = type,
+                number = wrapped.localNumber++
+            };
             declaredLocals.Add(loc);
             return loc;
         }
 
         public ScriptMyLabel DefineLabel(string name)
         {
-            ScriptMyLabel lbl = new ScriptMyLabel();
-            lbl.name = name;
-            lbl.number = wrapped.labelNumber++;
+            ScriptMyLabel lbl = new()
+            {
+                name = name,
+                number = wrapped.labelNumber++
+            };
             definedLabels.Add(lbl);
             return lbl;
         }
 
         public void BeginExceptionBlock()
         {
-            GraphNodeBeginExceptionBlock tryBlock = new GraphNodeBeginExceptionBlock(this);
+            GraphNodeBeginExceptionBlock tryBlock = new(this);
             tryBlock.ChainLin();
             tryBlock.excBlkSeqNo = ++this.excBlkSeqNos;
             this.curExcBlock = tryBlock;
@@ -2364,7 +2368,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public void BeginCatchBlock(Type excType)
         {
-            GraphNodeBeginCatchBlock catchBlock = new GraphNodeBeginCatchBlock(this, excType);
+            GraphNodeBeginCatchBlock catchBlock = new(this, excType);
             catchBlock.ChainLin();
             if(curExcBlock.catchFinallyBlock != null)
                 throw new Exception("only one catch/finally allowed per try");
@@ -2374,7 +2378,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public void BeginFinallyBlock()
         {
-            GraphNodeBeginFinallyBlock finallyBlock = new GraphNodeBeginFinallyBlock(this);
+            GraphNodeBeginFinallyBlock finallyBlock = new(this);
             finallyBlock.ChainLin();
             if(curExcBlock.catchFinallyBlock != null)
                 throw new Exception("only one catch/finally allowed per try");
@@ -2384,7 +2388,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         public void EndExceptionBlock()
         {
-            GraphNodeEndExceptionBlock endExcBlock = new GraphNodeEndExceptionBlock(this);
+            GraphNodeEndExceptionBlock endExcBlock = new(this);
             endExcBlock.ChainLin();
             curExcBlock.endExcBlock = endExcBlock;
             curTryBlock = curExcBlock.tryBlock;
@@ -2806,9 +2810,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         {
                             if(IsLocalNeededAfterThis(ldloc, ldloc.myLocal))
                             {
-                                GraphNodeEmitNull dup = new GraphNodeEmitNull(this, stloc.errorAt, OpCodes.Dup);
-                                dup.nextLin = stloc;
-                                dup.prevLin = stloc.prevLin;
+                                GraphNodeEmitNull dup = new(this, stloc.errorAt, OpCodes.Dup)
+                                {
+                                    nextLin = stloc,
+                                    prevLin = stloc.prevLin
+                                };
                                 stloc.nextLin = ldloc.nextLin;
                                 stloc.prevLin = dup;
                                 dup.prevLin.nextLin = dup;
@@ -2843,9 +2849,11 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                         {
                             throw new Exception("expecting stloc");
                         }
-                        GraphNodeEmitNull pop = new GraphNodeEmitNull(this, ((GraphNodeEmit)gn).errorAt, OpCodes.Pop);
-                        pop.nextLin = gn.nextLin;
-                        pop.prevLin = gn.prevLin;
+                        GraphNodeEmitNull pop = new(this, ((GraphNodeEmit)gn).errorAt, OpCodes.Pop)
+                        {
+                            nextLin = gn.nextLin,
+                            prevLin = gn.prevLin
+                        };
                         gn.nextLin.prevLin = pop;
                         gn.prevLin.nextLin = pop;
                         gn = pop;
@@ -2902,7 +2910,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
             for(GraphNode gn = firstLin; gn != null; gn = gn.nextLin)
             {
-                StringBuilder sb = new StringBuilder();
+                StringBuilder sb = new();
                 gn.DebStringExt(sb);
                 Console.WriteLine(sb.ToString());
                 if(gn is GraphNodeBlock)
@@ -2932,7 +2940,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             currentBlock.hasBeenResolved = resolveSequence;
 
             // Assume we haven't written any locals yet.
-            List<ScriptMyLocal> localsWrittenSoFar = new List<ScriptMyLocal>();
+            List<ScriptMyLocal> localsWrittenSoFar = [];
 
             // Scan through the instructions in this block.
             for(GraphNode gn = currentBlock; gn != null;)

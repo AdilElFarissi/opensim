@@ -78,7 +78,7 @@ namespace OpenSim.Data.Null
 
         #region Environment Settings
 
-        private Dictionary<UUID, string> EnvironmentSettings = new Dictionary<UUID, string>();
+        private Dictionary<UUID, string> EnvironmentSettings = [];
 
         public string LoadRegionEnvironmentSettings(UUID regionUUID)
         {
@@ -105,8 +105,10 @@ namespace OpenSim.Data.Null
 
         public RegionSettings LoadRegionSettings(UUID regionUUID)
         {
-            RegionSettings rs = new RegionSettings();
-            rs.RegionUUID = regionUUID;
+            RegionSettings rs = new()
+            {
+                RegionUUID = regionUUID
+            };
             return rs;
         }
 
@@ -124,11 +126,11 @@ namespace OpenSim.Data.Null
 
         public List<SceneObjectGroup> LoadObjects(UUID regionUUID)
         {
-            return new List<SceneObjectGroup>();
+            return [];
         }
 
-        Dictionary<UUID, TerrainData> m_terrains = new Dictionary<UUID, TerrainData>();
-        Dictionary<UUID, TerrainData> m_bakedterrains = new Dictionary<UUID, TerrainData>();
+        Dictionary<UUID, TerrainData> m_terrains = [];
+        Dictionary<UUID, TerrainData> m_bakedterrains = [];
         public void StoreTerrain(TerrainData ter, UUID regionID)
         {
             m_terrains[regionID] = ter;
@@ -142,7 +144,7 @@ namespace OpenSim.Data.Null
         // Legacy. Just don't do this.
         public void StoreTerrain(double[,] ter, UUID regionID)
         {
-            TerrainData terrData = new TerrainData(ter);
+            TerrainData terrData = new(ter);
             StoreTerrain(terrData, regionID);
         }
 
@@ -173,7 +175,7 @@ namespace OpenSim.Data.Null
 
         public List<LandData> LoadLandObjects(UUID regionUUID)
         {
-            return new List<LandData>();
+            return [];
         }
 
         public void Shutdown()

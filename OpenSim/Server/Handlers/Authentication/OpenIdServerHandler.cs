@@ -53,19 +53,21 @@ namespace OpenSim.Server.Handlers.Authentication
             public byte[] PrivateData;
         }
 
-        Dictionary<string, AssociationItem> m_store = new Dictionary<string, AssociationItem>();
-        SortedList<DateTime, AssociationItem> m_sortedStore = new SortedList<DateTime, AssociationItem>();
-        object m_syncRoot = new object();
+        Dictionary<string, AssociationItem> m_store = [];
+        SortedList<DateTime, AssociationItem> m_sortedStore = [];
+        object m_syncRoot = new();
 
         #region IAssociationStore<AssociationRelyingPartyType> Members
 
         public void StoreAssociation(AssociationRelyingPartyType distinguishingFactor, Association assoc)
         {
-            AssociationItem item = new AssociationItem();
-            item.DistinguishingFactor = distinguishingFactor;
-            item.Handle = assoc.Handle;
-            item.Expires = assoc.Expires.ToLocalTime();
-            item.PrivateData = assoc.SerializePrivateData();
+            AssociationItem item = new()
+            {
+                DistinguishingFactor = distinguishingFactor,
+                Handle = assoc.Handle,
+                Expires = assoc.Expires.ToLocalTime(),
+                PrivateData = assoc.SerializePrivateData()
+            };
 
             lock (m_syncRoot)
             {
@@ -125,7 +127,7 @@ namespace OpenSim.Server.Handlers.Authentication
         {
             lock (m_syncRoot)
             {
-                List<AssociationItem> itemsCopy = new List<AssociationItem>(m_sortedStore.Values);
+                List<AssociationItem> itemsCopy = [.. m_sortedStore.Values];
                 DateTime now = DateTime.Now;
 
                 for (int i = 0; i < itemsCopy.Count; i++)
@@ -190,7 +192,7 @@ For more information, see <a href='http://openid.net/'>http://openid.net/</a>.
 
         IAuthenticationService m_authenticationService;
         IUserAccountService m_userAccountService;
-        ProviderMemoryStore m_openidStore = new ProviderMemoryStore();
+        ProviderMemoryStore m_openidStore = new();
 
         public override string ContentType { get { return "text/html"; } }
 
@@ -212,7 +214,7 @@ For more information, see <a href='http://openid.net/'>http://openid.net/</a>.
         protected override void ProcessRequest(
             string path, Stream request, Stream response, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-            Uri providerEndpoint = new Uri(String.Format("{0}://{1}{2}", httpRequest.Url.Scheme, httpRequest.Url.Authority, httpRequest.Url.AbsolutePath));
+            Uri providerEndpoint = new(string.Format("{0}://{1}{2}", httpRequest.Url.Scheme, httpRequest.Url.Authority, httpRequest.Url.AbsolutePath));
 
             // Defult to returning HTML content
             httpResponse.ContentType = ContentType;
@@ -220,13 +222,13 @@ For more information, see <a href='http://openid.net/'>http://openid.net/</a>.
             try
             {
                 string forPost;
-                using(StreamReader sr = new StreamReader(httpRequest.InputStream))
+                using(StreamReader sr = new(httpRequest.InputStream))
                     forPost = sr.ReadToEnd();
                 NameValueCollection postQuery = HttpUtility.ParseQueryString(forPost);
                 NameValueCollection getQuery = HttpUtility.ParseQueryString(httpRequest.Url.Query);
                 NameValueCollection openIdQuery = (postQuery.GetValues("openid.mode") != null ? postQuery : getQuery);
 
-                OpenIdProvider provider = new OpenIdProvider(m_openidStore, providerEndpoint, httpRequest.Url, openIdQuery);
+                OpenIdProvider provider = new(m_openidStore, providerEndpoint, httpRequest.Url, openIdQuery);
 
                 if (provider.Request != null)
                 {
@@ -250,8 +252,8 @@ For more information, see <a href='http://openid.net/'>http://openid.net/</a>.
                             else
                             {
                                 // Authentication was requested, send the client a login form
-                                using (StreamWriter writer = new StreamWriter(response))
-                                    writer.Write(String.Format(LOGIN_PAGE, account.FirstName, account.LastName));
+                                using (StreamWriter writer = new(response))
+                                    writer.Write(string.Format(LOGIN_PAGE, account.FirstName, account.LastName));
                                 return;
                             }
                         }
@@ -278,7 +280,7 @@ For more information, see <a href='http://openid.net/'>http://openid.net/</a>.
                 else if (httpRequest.Url.AbsolutePath.Contains("/openid/server"))
                 {
                     // Standard HTTP GET was made on the OpenID endpoint, send the client the default error page
-                    using (StreamWriter writer = new StreamWriter(response))
+                    using (StreamWriter writer = new(response))
                         writer.Write(ENDPOINT_PAGE);
                 }
                 else
@@ -287,17 +289,17 @@ For more information, see <a href='http://openid.net/'>http://openid.net/</a>.
                     UserAccount account;
                     if (TryGetAccount(httpRequest.Url, out account))
                     {
-                        using (StreamWriter writer = new StreamWriter(response))
+                        using (StreamWriter writer = new(response))
                         {
                             // TODO: Print out a full profile page for this avatar
-                            writer.Write(String.Format(OPENID_PAGE, httpRequest.Url.Scheme,
+                            writer.Write(string.Format(OPENID_PAGE, httpRequest.Url.Scheme,
                                 httpRequest.Url.Authority, account.FirstName, account.LastName));
                         }
                     }
                     else
                     {
                         // Couldn't parse an avatar name, or couldn't find the avatar in the user server
-                        using (StreamWriter writer = new StreamWriter(response))
+                        using (StreamWriter writer = new(response))
                             writer.Write(INVALID_OPENID_PAGE);
                     }
                 }
@@ -305,7 +307,7 @@ For more information, see <a href='http://openid.net/'>http://openid.net/</a>.
             catch (Exception ex)
             {
                 httpResponse.StatusCode = (int)HttpStatusCode.InternalServerError;
-                using (StreamWriter writer = new StreamWriter(response))
+                using (StreamWriter writer = new(response))
                     writer.Write(ex.Message);
             }
         }

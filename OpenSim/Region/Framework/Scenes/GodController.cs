@@ -224,7 +224,7 @@ namespace OpenSim.Region.Framework.Scenes
 
        public OSD State()
         {
-            OSDMap godMap = new OSDMap(2);
+            OSDMap godMap = new(2);
             bool m_viewerUiIsGod = m_viewergodlevel >= 200;
             godMap.Add("ViewerUiIsGod", OSD.FromBoolean(m_viewerUiIsGod));
 

@@ -61,26 +61,26 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         protected List<TakeValueCallbackClass> m_ReadStore;
 
         // add separators for quoted paths and array references
-        protected static Regex m_ParsePassOne = new Regex("({[^}]+}|\\[[0-9]+\\]|\\[\\+\\])");
+        protected static Regex m_ParsePassOne = new("({[^}]+}|\\[[0-9]+\\]|\\[\\+\\])");
 
         // add quotes to bare identifiers which are limited to alphabetic characters
-        protected static Regex m_ParsePassThree = new Regex("(?<!{[^}]*)\\.([a-zA-Z]+)(?=\\.)");
+        protected static Regex m_ParsePassThree = new("(?<!{[^}]*)\\.([a-zA-Z]+)(?=\\.)");
 
         // remove extra separator characters
-        protected static Regex m_ParsePassFour = new Regex("\\.+");
+        protected static Regex m_ParsePassFour = new("\\.+");
 
         // expression used to validate the full path, this is canonical representation
-        protected static Regex m_ValidatePath = new Regex("^\\.(({[^}]+}|\\[[0-9]+\\]|\\[\\+\\])\\.)*$");
+        protected static Regex m_ValidatePath = new("^\\.(({[^}]+}|\\[[0-9]+\\]|\\[\\+\\])\\.)*$");
 
         // expression used to match path components
-        protected static Regex m_PathComponent = new Regex("\\.({[^}]+}|\\[[0-9]+\\]|\\[\\+\\])");
+        protected static Regex m_PathComponent = new("\\.({[^}]+}|\\[[0-9]+\\]|\\[\\+\\])");
 
         // extract the internals of an array reference
-        protected static Regex m_SimpleArrayPattern = new Regex("^\\[([0-9]+)\\]$");
-        protected static Regex m_ArrayPattern = new Regex("^\\[([0-9]+|\\+)\\]$");
+        protected static Regex m_SimpleArrayPattern = new("^\\[([0-9]+)\\]$");
+        protected static Regex m_ArrayPattern = new("^\\[([0-9]+|\\+)\\]$");
 
         // extract the internals of a has reference
-        protected static Regex m_HashPattern = new Regex("^{([^}]+)}$");
+        protected static Regex m_HashPattern = new("^{([^}]+)}$");
 
         // -----------------------------------------------------------------
         /// <summary>
@@ -117,8 +117,8 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         public JsonStore()
         {
             StringSpace = 0;
-            m_TakeStore = new List<TakeValueCallbackClass>();
-            m_ReadStore = new List<TakeValueCallbackClass>();
+            m_TakeStore = [];
+            m_ReadStore = [];
         }
 
         public JsonStore(string value) : this()
@@ -126,7 +126,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             // This is going to throw an exception if the value is not
             // a valid JSON chunk. Calling routines should catch the
             // exception and handle it appropriately
-            if (String.IsNullOrEmpty(value))
+            if (string.IsNullOrEmpty(value))
                 ValueStore = new OSDMap();
             else
                 ValueStore = OSDParser.DeserializeJson(value);
@@ -308,7 +308,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 return false;
             }
 
-            string value = String.Empty;
+            string value = string.Empty;
             if (! ConvertOutputValue(result,out value,useJson))
             {
                 // the structure does not match the request so i guess we'll wait
@@ -342,7 +342,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 return false;
             }
 
-            string value = String.Empty;
+            string value = string.Empty;
             if (! ConvertOutputValue(result,out value,useJson))
             {
                 // the structure does not match the request so i guess we'll wait
@@ -399,7 +399,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
 
                 if (akey == "+")
                 {
-                    string npkey = String.Format("[{0}]",amap.Count);
+                    string npkey = string.Format("[{0}]",amap.Count);
 
                     if (ovalue != null)
                     {
@@ -616,7 +616,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         // -----------------------------------------------------------------
         protected static bool ConvertOutputValue(OSD result, out string value, bool useJson)
         {
-            value = String.Empty;
+            value = string.Empty;
 
             // If we couldn't process the path
             if (result == null)

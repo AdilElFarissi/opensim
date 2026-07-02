@@ -100,7 +100,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         /// </summary>
         public ValidateHandshake HandshakeValidateMethodOverride = null;
 
-        private ManualResetEvent _receiveDone = new ManualResetEvent(false);
+        private ManualResetEvent _receiveDone = new(false);
 
         private OSHttpRequest _request;
         private HTTPNetworkContext _networkContext;
@@ -309,7 +309,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         private void SendUpgradeSuccess(string pHandshakeResponse)
         {
             // Create a new websocket state so we can keep track of data in between network reads.
-            WebSocketState socketState = new WebSocketState() { ReceivedBytes = new List<byte>(), Header = WebsocketFrameHeader.HeaderDefault(), FrameComplete = true};
+            WebSocketState socketState = new() { ReceivedBytes = [], Header = WebsocketFrameHeader.HeaderDefault(), FrameComplete = true};
 
             byte[] bhandshakeResponse = Encoding.UTF8.GetBytes(pHandshakeResponse);
 
@@ -529,7 +529,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 _initialMsgTimeout = 0;
             }
             byte[] messagedata = Encoding.UTF8.GetBytes(message);
-            WebSocketFrame textMessageFrame = new WebSocketFrame() { Header = WebsocketFrameHeader.HeaderDefault(), WebSocketPayload = messagedata };
+            WebSocketFrame textMessageFrame = new() { Header = WebsocketFrameHeader.HeaderDefault(), WebSocketPayload = messagedata };
             textMessageFrame.Header.Opcode = WebSocketReader.OpCode.Text;
             textMessageFrame.Header.IsEnd = true;
             SendSocket(textMessageFrame.ToBytes());
@@ -543,7 +543,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 _receiveDone.Set();
                 _initialMsgTimeout = 0;
             }
-            WebSocketFrame dataMessageFrame = new WebSocketFrame() { Header = WebsocketFrameHeader.HeaderDefault(), WebSocketPayload = data};
+            WebSocketFrame dataMessageFrame = new() { Header = WebsocketFrameHeader.HeaderDefault(), WebSocketPayload = data};
             dataMessageFrame.Header.IsEnd = true;
             dataMessageFrame.Header.Opcode = WebSocketReader.OpCode.Binary;
             SendSocket(dataMessageFrame.ToBytes());
@@ -580,7 +580,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 _receiveDone.Set();
                 _initialMsgTimeout = 0;
             }
-            WebSocketFrame pingFrame = new WebSocketFrame() { Header = WebsocketFrameHeader.HeaderDefault(), WebSocketPayload = Array.Empty<byte>()
+            WebSocketFrame pingFrame = new() { Header = WebsocketFrameHeader.HeaderDefault(), WebSocketPayload = Array.Empty<byte>()
         };
             pingFrame.Header.Opcode = WebSocketReader.OpCode.Ping;
             pingFrame.Header.IsEnd = true;
@@ -606,7 +606,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                 if (_networkContext.Stream.CanWrite)
             {
                 byte[] messagedata = Encoding.UTF8.GetBytes(message);
-                WebSocketFrame closeResponseFrame = new WebSocketFrame()
+                WebSocketFrame closeResponseFrame = new()
                                                         {
                                                             Header = WebsocketFrameHeader.HeaderDefault(),
                                                             WebSocketPayload = messagedata
@@ -636,7 +636,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             {
                 byte[] unmask = psocketState.ReceivedBytes.ToArray();
                 WebSocketReader.Mask(psocketState.Header.Mask, unmask);
-                psocketState.ReceivedBytes = new List<byte>(unmask);
+                psocketState.ReceivedBytes = [.. unmask];
             }
             if (psocketState.Header.Opcode != WebSocketReader.OpCode.Continue  && _initialMsgTimeout > 0)
             {
@@ -652,7 +652,7 @@ namespace OpenSim.Framework.Servers.HttpServer
                         pingD(this, new PingEventArgs());
                     }
 
-                    WebSocketFrame pongFrame = new WebSocketFrame(){Header = WebsocketFrameHeader.HeaderDefault(),WebSocketPayload = Array.Empty<byte>()};
+                    WebSocketFrame pongFrame = new(){Header = WebsocketFrameHeader.HeaderDefault(),WebSocketPayload = Array.Empty<byte>()};
                     pongFrame.Header.Opcode = WebSocketReader.OpCode.Pong;
                     pongFrame.Header.IsEnd = true;
                     SendSocket(pongFrame.ToBytes());
@@ -961,7 +961,7 @@ dec   0                   1                   2                   3
          *   When reading these, the frames are possibly fragmented and interleaved with control frames
          *   the fragmented frames are not interleaved with data frames.  Just control frames
          */
-        public static readonly WebSocketFrame DefaultFrame = new WebSocketFrame(){Header = new WebsocketFrameHeader(),WebSocketPayload = Array.Empty<byte>()};
+        public static readonly WebSocketFrame DefaultFrame = new(){Header = new WebsocketFrameHeader(),WebSocketPayload = Array.Empty<byte>()};
         public WebsocketFrameHeader Header;
         public byte[] WebSocketPayload;
 
@@ -1001,7 +1001,7 @@ byt   0               1               2               3
 
         public WebSocketReader.OpCode Opcode;
 
-        public UInt64 PayloadLen;
+        public ulong PayloadLen;
         //public UInt64 PayloadLeft;
         // Payload is X + Y
         //public UInt64 ExtensionDataLength;
@@ -1031,10 +1031,11 @@ byt   0               1               2               3
         /// <returns>Returns a byte array representing the frame header</returns>
         public byte[] ToBytes(byte[] payload)
         {
-            List<byte> result = new List<byte>();
-
-            // Squeeze in our opcode and our ending bit.
-            result.Add((byte)((byte)Opcode | (IsEnd?0x80:0x00) ));
+            List<byte> result =
+            [
+                // Squeeze in our opcode and our ending bit.
+                (byte)((byte)Opcode | (IsEnd?0x80:0x00) ),
+            ];
 
             // Again with the three different byte interpretations of size..
 

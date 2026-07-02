@@ -60,7 +60,7 @@ namespace OpenSim.Server.Handlers.Land
 
             byte regionAccess;
             LandData landData = m_LocalService.GetLandData(UUID.Zero, regionHandle, x, y, out regionAccess);
-            Hashtable hash = new Hashtable();
+            Hashtable hash = [];
             if (landData != null)
             {
                 // for now, only push out the data we need for answering a ParcelInfoReqeust
@@ -80,8 +80,10 @@ namespace OpenSim.Server.Handlers.Land
                 hash["Dwell"] = landData.Dwell.ToString();
             }
 
-            XmlRpcResponse response = new XmlRpcResponse();
-            response.Value = hash;
+            XmlRpcResponse response = new()
+            {
+                Value = hash
+            };
             return response;
         }
     }

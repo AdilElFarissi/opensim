@@ -138,7 +138,7 @@ namespace osWebRtcVoice
             try
             {
                 JanusMessageResp listRoomsRespRaw = await _AudioBridge.SendPluginMsg(new AudioBridgeListRoomsReq()).ConfigureAwait(false);
-                AudioBridgeResp listRoomsResp = new AudioBridgeResp(listRoomsRespRaw);
+                AudioBridgeResp listRoomsResp = new(listRoomsRespRaw);
                 if (listRoomsResp?.PluginRespData is null ||
                     !listRoomsResp.PluginRespData.TryGetValue("list", out OSD roomListNode) ||
                     roomListNode is not OSDArray roomList)
@@ -157,7 +157,7 @@ namespace osWebRtcVoice
 //                        continue;
 
                     JanusMessageResp listParticipantsRespRaw = await _AudioBridge.SendPluginMsg(new AudioBridgeListParticipantsReq(roomId)).ConfigureAwait(false);
-                    AudioBridgeResp listParticipantsResp = new AudioBridgeResp(listParticipantsRespRaw);
+                    AudioBridgeResp listParticipantsResp = new(listParticipantsRespRaw);
                     if (listParticipantsResp?.PluginRespData is null ||
                         !listParticipantsResp.PluginRespData.TryGetValue("participants", out OSD participantsNode) ||
                         participantsNode is not OSDArray participants)

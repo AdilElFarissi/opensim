@@ -57,15 +57,15 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 {
                      // Create a corresponding TokenDeclVar struct.
                     System.Reflection.ParameterInfo[] parameters = ifaceMethod.GetParameters();
-                    TokenArgDecl argDecl = new TokenArgDecl(null);
+                    TokenArgDecl argDecl = new(null);
                     for(int i = 0; i < parameters.Length; i++)
                     {
                         System.Reflection.ParameterInfo param = parameters[i];
                         TokenType type = TokenType.FromSysType(null, param.ParameterType);
-                        TokenName name = new TokenName(null, param.Name);
+                        TokenName name = new(null, param.Name);
                         argDecl.AddArg(type, name);
                     }
-                    TokenDeclVar declFunc = new TokenDeclVar(null, null, null)
+                    TokenDeclVar declFunc = new(null, null, null)
                     {
                         name = new TokenName(null, key),
                         retType = TokenType.FromSysType(null, ifaceMethod.ReturnType),

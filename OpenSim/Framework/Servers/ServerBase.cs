@@ -343,7 +343,7 @@ namespace OpenSim.Framework.Servers
             calls.Sort((kvp1, kvp2) => kvp2.Value.CompareTo(kvp1.Value));
             int namedCalls = 0;
 
-            ConsoleDisplayList cdl = new ConsoleDisplayList();
+            ConsoleDisplayList cdl = new();
             foreach (KeyValuePair<string, int> kvp in calls)
             {
                 if (kvp.Value > 0)
@@ -372,7 +372,7 @@ namespace OpenSim.Framework.Servers
             calls.Sort((kvp1, kvp2) => kvp2.Value.CompareTo(kvp1.Value));
             int namedCallsMade = 0;
 
-            ConsoleDisplayList cdl = new ConsoleDisplayList();
+            ConsoleDisplayList cdl = new();
             foreach (KeyValuePair<string, int> kvp in calls)
             {
                 cdl.AddRow(kvp.Key, kvp.Value);
@@ -561,7 +561,7 @@ namespace OpenSim.Framework.Servers
                             c = source.AddConfig(cmd[2]);
                             if (c != null)
                             {
-                                string _value = String.Join(" ", cmd, 4, cmd.Length - 4);
+                                string _value = string.Join(" ", cmd, 4, cmd.Length - 4);
                                 c.Set(cmd[3], _value);
                                 Config.Merge(source);
 
@@ -728,7 +728,7 @@ namespace OpenSim.Framework.Servers
         /// <returns></returns>
         protected string GetUptimeReport()
         {
-            StringBuilder sb = new StringBuilder(512);
+            StringBuilder sb = new(512);
             sb.AppendFormat("Time now is {0}\n", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
             sb.AppendFormat("Server has been running since {0}, {1}\n", m_startuptime.DayOfWeek, m_startuptime.ToString("yyyy-MM-dd HH:mm:ss"));
             sb.AppendFormat("That is an elapsed time of {0}\n", DateTime.Now - m_startuptime);
@@ -740,7 +740,7 @@ namespace OpenSim.Framework.Servers
             Notice(GetVersionText());
             Notice("Startup directory: " + m_startupDirectory);
             if (null != m_consoleAppender)
-                Notice(String.Format("Console log level: {0}", m_consoleAppender.Threshold));
+                Notice(string.Format("Console log level: {0}", m_consoleAppender.Threshold));
         }
 
         /// <summary>
@@ -810,12 +810,12 @@ namespace OpenSim.Framework.Servers
             // This should be a constant field.
             string reportFormat = "{0,6}   {1,35}   {2,16}   {3,13}   {4,10}   {5,30}";
 
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
             Watchdog.ThreadWatchdogInfo[] threads = Watchdog.GetThreadsInfo();
 
             sb.Append(threads.Length + " threads are being tracked:" + Environment.NewLine);
 
-            int timeNow = Environment.TickCount & Int32.MaxValue;
+            int timeNow = Environment.TickCount & int.MaxValue;
 
             sb.AppendFormat(reportFormat, "ID", "NAME", "LAST UPDATE (MS)", "LIFETIME (MS)", "PRIORITY", "STATE");
             sb.Append(Environment.NewLine);
@@ -853,7 +853,7 @@ namespace OpenSim.Framework.Servers
         public static string GetThreadPoolReport()
         {
 
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
 
             // framework pool is alwasy active
             int maxWorkers;

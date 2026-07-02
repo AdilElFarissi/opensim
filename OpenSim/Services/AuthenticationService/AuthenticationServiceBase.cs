@@ -59,8 +59,8 @@ namespace OpenSim.Services.AuthenticationService
 
         public AuthenticationServiceBase(IConfigSource config) : base(config)
         {
-            string dllName = String.Empty;
-            string connString = String.Empty;
+            string dllName = string.Empty;
+            string connString = string.Empty;
             string realm = "auth";
 
             //
@@ -81,9 +81,9 @@ namespace OpenSim.Services.AuthenticationService
             if (dbConfig != null)
             {
                 if (dllName.Length == 0)
-                    dllName = dbConfig.GetString("StorageProvider", String.Empty);
+                    dllName = dbConfig.GetString("StorageProvider", string.Empty);
                 if (connString.Length == 0)
-                    connString = dbConfig.GetString("ConnectionString", String.Empty);
+                    connString = dbConfig.GetString("ConnectionString", string.Empty);
             }
 
             //
@@ -93,7 +93,7 @@ namespace OpenSim.Services.AuthenticationService
                 throw new Exception("No StorageProvider configured");
 
             m_Database = LoadPlugin<IAuthenticationData>(dllName,
-                    new Object[] {connString, realm});
+                    new object[] {connString, realm});
             if (m_Database == null)
                 throw new Exception(string.Format("Could not find a storage interface in module {0}", dllName));
         }
@@ -116,11 +116,15 @@ namespace OpenSim.Services.AuthenticationService
             AuthenticationData auth = m_Database.Get(principalID);
             if (auth == null)
             {
-                auth = new AuthenticationData();
-                auth.PrincipalID = principalID;
-                auth.Data = new System.Collections.Generic.Dictionary<string, object>();
-                auth.Data["accountType"] = "UserAccount";
-                auth.Data["webLoginKey"] = UUID.Zero.ToString();
+                auth = new AuthenticationData
+                {
+                    PrincipalID = principalID,
+                    Data = new System.Collections.Generic.Dictionary<string, object>
+                    {
+                        ["accountType"] = "UserAccount",
+                        ["webLoginKey"] = UUID.Zero.ToString()
+                    }
+                };
             }
             auth.Data["passwordHash"] = md5PasswdHash;
             auth.Data["passwordSalt"] = passwordSalt;
@@ -145,7 +149,7 @@ namespace OpenSim.Services.AuthenticationService
             else
             {
                 AuthInfo info
-                    = new AuthInfo()
+                    = new()
                         {
                             PrincipalID = data.PrincipalID,
                             AccountType = data.Data["accountType"] as string,
@@ -160,13 +164,17 @@ namespace OpenSim.Services.AuthenticationService
 
         public virtual bool SetAuthInfo(AuthInfo info)
         {
-            AuthenticationData auth = new AuthenticationData();
-            auth.PrincipalID = info.PrincipalID;
-            auth.Data = new System.Collections.Generic.Dictionary<string, object>();
-            auth.Data["accountType"] = info.AccountType;
-            auth.Data["webLoginKey"] = info.WebLoginKey;
-            auth.Data["passwordHash"] = info.PasswordHash;
-            auth.Data["passwordSalt"] = info.PasswordSalt;
+            AuthenticationData auth = new()
+            {
+                PrincipalID = info.PrincipalID,
+                Data = new System.Collections.Generic.Dictionary<string, object>
+                {
+                    ["accountType"] = info.AccountType,
+                    ["webLoginKey"] = info.WebLoginKey,
+                    ["passwordHash"] = info.PasswordHash,
+                    ["passwordSalt"] = info.PasswordSalt
+                }
+            };
 
             if (!m_Database.Store(auth))
             {
@@ -185,7 +193,7 @@ namespace OpenSim.Services.AuthenticationService
             if (m_Database.SetToken(principalID, token.ToString(), lifetime))
                 return token.ToString();
 
-            return String.Empty;
+            return string.Empty;
         }
 
     }

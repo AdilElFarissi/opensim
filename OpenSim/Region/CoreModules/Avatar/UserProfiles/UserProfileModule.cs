@@ -503,12 +503,12 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         /// <param name='args'>
         /// Arguments.
         /// </param>
-        public void ClassifiedsRequest(Object sender, string method, List<String> args)
+        public void ClassifiedsRequest(object sender, string method, List<string> args)
         {
             if (sender is not IClientAPI remoteClient)
                 return;
 
-            Dictionary<UUID, string> classifieds = new();
+            Dictionary<UUID, string> classifieds = [];
 
             if (!UUID.TryParse(args[0], out UUID targetID) || targetID.IsZero())
                 return;
@@ -678,7 +678,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             {
                 if(!m_profilesCache.TryGetValue(target, out uce) || uce is null)
                     uce = new UserProfileCacheEntry();
-                uce.classifieds ??= new Dictionary<UUID, UserClassifiedAdd>();
+                uce.classifieds ??= [];
                 uce.classifieds[ad.ClassifiedId] = ad;
 
                 m_profilesCache.AddOrUpdate(target, uce, PROFILECACHEEXPIRE);
@@ -879,7 +879,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         /// <param name='args'>
         /// Arguments.
         /// </param>
-        public void PicksRequest(Object sender, string method, List<String> args)
+        public void PicksRequest(object sender, string method, List<string> args)
         {
             if (sender is not IClientAPI remoteClient)
                 return;
@@ -887,7 +887,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             if(!UUID.TryParse(args[0], out UUID targetId))
                 return;
 
-            Dictionary<UUID, string> picks = new();
+            Dictionary<UUID, string> picks = [];
 
             if (targetId.Equals(Constants.m_MrOpenSimID))
             {
@@ -963,7 +963,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
 
         public Dictionary<UUID, string> GetPicks(UUID targetId)
         { 
-            Dictionary<UUID, string> picks = new();
+            Dictionary<UUID, string> picks = [];
 
             UserProfileCacheEntry uce = null;
             lock(m_profilesCache)
@@ -1024,7 +1024,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         /// <param name='args'>
         /// Arguments.
         /// </param>
-        public void PickInfoRequest(Object sender, string method, List<String> args)
+        public void PickInfoRequest(object sender, string method, List<string> args)
         {
             if (sender is not IClientAPI)
                 return;
@@ -1118,7 +1118,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             {
                 if(!m_profilesCache.TryGetValue(targetID, out uce) || uce is null)
                     uce = new UserProfileCacheEntry();
-                uce.picks ??= new Dictionary<UUID, UserProfilePick>();
+                uce.picks ??= [];
                 uce.picks[pick.PickId] = pick;
 
                 m_profilesCache.AddOrUpdate(targetID, uce, PROFILECACHEEXPIRE);
@@ -1330,8 +1330,8 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             {
                 if(!m_profilesCache.TryGetValue(creatorID, out uce) || uce is null)
                     uce = new UserProfileCacheEntry();
-                uce.picks ??= new Dictionary<UUID, UserProfilePick>();
-                uce.picksList ??= new Dictionary<UUID, string>();
+                uce.picks ??= [];
+                uce.picksList ??= [];
                 uce.picks[pick.PickId] = pick;
                 uce.picksList[pick.PickId] = pick.Name;
                 m_profilesCache.AddOrUpdate(creatorID, uce, PROFILECACHEEXPIRE);
@@ -1385,7 +1385,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
             if(uce is not null && uce.picksList is not null)
                 remoteClient.SendAvatarPicksReply(remoteClient.AgentId, uce.picksList);
             else
-                remoteClient.SendAvatarPicksReply(remoteClient.AgentId, new Dictionary<UUID, string>());
+                remoteClient.SendAvatarPicksReply(remoteClient.AgentId, []);
         }
         #endregion Picks
 
@@ -1402,7 +1402,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
         /// <param name='args'>
         /// Arguments.
         /// </param>
-        public void NotesRequest(Object sender, string method, List<String> args)
+        public void NotesRequest(object sender, string method, List<string> args)
         {
             if (sender is not IClientAPI remoteClient)
                 return;
@@ -1653,7 +1653,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                     else
                     {
                         if(uce.ClientsWaitingProps == null)
-                            uce.ClientsWaitingProps = new HashSet<IClientAPI>();
+                            uce.ClientsWaitingProps = [];
                         else if(uce.ClientsWaitingProps.Contains(remoteClient))
                             return;
                         uce.ClientsWaitingProps.Add(remoteClient);
@@ -1661,7 +1661,7 @@ namespace OpenSim.Region.CoreModules.Avatar.UserProfiles
                 }
                 else
                 {
-                    uce = new UserProfileCacheEntry { ClientsWaitingProps = new HashSet<IClientAPI>() };
+                    uce = new UserProfileCacheEntry { ClientsWaitingProps = [] };
                     uce.ClientsWaitingProps.Add(remoteClient);
                     m_profilesCache.AddOrUpdate(avatarID, uce, PROFILECACHEEXPIRE);
                 }

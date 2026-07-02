@@ -39,7 +39,7 @@ namespace OpenSim.Framework.Servers
 
         private static BaseHttpServer instance = null;
         private static BaseHttpServer unsecureinstance = null;
-        private static Dictionary<uint, BaseHttpServer> m_Servers = new Dictionary<uint, BaseHttpServer>();
+        private static Dictionary<uint, BaseHttpServer> m_Servers = [];
 
         /// <summary>
         /// Control the printing of certain debug messages.
@@ -228,7 +228,7 @@ namespace OpenSim.Framework.Servers
                 return;
             }
 
-            StringBuilder handlers = new StringBuilder();
+            StringBuilder handlers = new();
 
             lock (m_Servers)
             {

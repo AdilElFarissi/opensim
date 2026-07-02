@@ -47,7 +47,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private List<Scene> m_sceneList = new List<Scene>();
+        private List<Scene> m_sceneList = [];
         private IPresenceService m_presenceService;
 
         private IMessageTransferModule m_msgTransferModule = null;
@@ -295,12 +295,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 }
 
                 attemptDeliveryUuidSet
-                    = new HashSet<string>(Array.ConvertAll<PresenceInfo, string>(onlineAgents, pi => pi.UserID));
+                    = [.. Array.ConvertAll<PresenceInfo, string>(onlineAgents, pi => pi.UserID)];
             }
             else
             {
                 attemptDeliveryUuidSet
-                    = new HashSet<string>(groupMembers.ConvertAll<string>(gmd => gmd.AgentID.ToString()));
+                    = [.. groupMembers.ConvertAll<string>(gmd => gmd.AgentID.ToString())];
 
                 if (m_debugEnabled)
                     m_log.DebugFormat(
@@ -333,22 +333,24 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 }
 
                 // Copy Message
-                GridInstantMessage msg = new GridInstantMessage();
-                msg.imSessionID = im.imSessionID;
-                msg.fromAgentName = im.fromAgentName;
-                msg.message = im.message;
-                msg.dialog = im.dialog;
-                msg.offline = im.offline;
-                msg.ParentEstateID = im.ParentEstateID;
-                msg.Position = im.Position;
-                msg.RegionID = im.RegionID;
-                msg.binaryBucket = im.binaryBucket;
-                msg.timestamp = (uint)Util.UnixTimeSinceEpoch();
+                GridInstantMessage msg = new()
+                {
+                    imSessionID = im.imSessionID,
+                    fromAgentName = im.fromAgentName,
+                    message = im.message,
+                    dialog = im.dialog,
+                    offline = im.offline,
+                    ParentEstateID = im.ParentEstateID,
+                    Position = im.Position,
+                    RegionID = im.RegionID,
+                    binaryBucket = im.binaryBucket,
+                    timestamp = (uint)Util.UnixTimeSinceEpoch(),
 
-                msg.fromAgentID = im.fromAgentID;
-                msg.fromGroup = true;
+                    fromAgentID = im.fromAgentID,
+                    fromGroup = true,
 
-                msg.toAgentID = member.AgentID.Guid;
+                    toAgentID = member.AgentID.Guid
+                };
 
                 if (attemptDeliveryUuidSet.Contains(member.AgentID.ToString()))
                 {
@@ -455,8 +457,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                     "[GROUPS-MESSAGING]: Session message from {0} going to agent {1}, sessionID {2}, type {3}",
                     msg.fromAgentName, msg.toAgentID, msg.imSessionID, (InstantMessageDialog)msg.dialog);
 
-            UUID fromAgentID = new UUID(msg.fromAgentID);
-            UUID GroupID = new UUID(msg.imSessionID);
+            UUID fromAgentID = new(msg.fromAgentID);
+            UUID GroupID = new(msg.imSessionID);
             IEventQueue eq = client.Scene.RequestModuleInterface<IEventQueue>();
 
             switch (msg.dialog)
@@ -547,8 +549,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
                 DebugGridInstantMessage(im);
             }
 
-            UUID GroupID = new UUID(im.imSessionID);
-            UUID AgentID = new UUID(im.fromAgentID);
+            UUID GroupID = new(im.imSessionID);
+            UUID AgentID = new(im.fromAgentID);
 
             // Start group IM session
             if ((im.dialog == (byte)InstantMessageDialog.SessionGroupStart))
@@ -598,20 +600,26 @@ namespace OpenSim.Region.OptionalModules.Avatar.XmlRpcGroups
         {
             if (m_debugEnabled) m_log.DebugFormat("[GROUPS-MESSAGING]: {0} called", System.Reflection.MethodBase.GetCurrentMethod().Name);
 
-            OSDMap moderatedMap = new OSDMap(4);
-            moderatedMap.Add("voice", OSD.FromBoolean(false));
+            OSDMap moderatedMap = new(4)
+            {
+                { "voice", OSD.FromBoolean(false) }
+            };
 
-            OSDMap sessionMap = new OSDMap(4);
-            sessionMap.Add("moderated_mode", moderatedMap);
-            sessionMap.Add("session_name", OSD.FromString(groupName));
-            sessionMap.Add("type", OSD.FromInteger(0));
-            sessionMap.Add("voice_enabled", OSD.FromBoolean(false));
+            OSDMap sessionMap = new(4)
+            {
+                { "moderated_mode", moderatedMap },
+                { "session_name", OSD.FromString(groupName) },
+                { "type", OSD.FromInteger(0) },
+                { "voice_enabled", OSD.FromBoolean(false) }
+            };
 
-            OSDMap bodyMap = new OSDMap(4);
-            bodyMap.Add("session_id", OSD.FromUUID(groupID));
-            bodyMap.Add("temp_session_id", OSD.FromUUID(groupID));
-            bodyMap.Add("success", OSD.FromBoolean(true));
-            bodyMap.Add("session_info", sessionMap);
+            OSDMap bodyMap = new(4)
+            {
+                { "session_id", OSD.FromUUID(groupID) },
+                { "temp_session_id", OSD.FromUUID(groupID) },
+                { "success", OSD.FromBoolean(true) },
+                { "session_info", sessionMap }
+            };
 
             IEventQueue queue = remoteClient.Scene.RequestModuleInterface<IEventQueue>();
             queue?.Enqueue(queue.BuildEvent("ChatterBoxSessionStartReply", bodyMap), remoteClient.AgentId);

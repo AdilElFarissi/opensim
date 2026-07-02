@@ -80,16 +80,18 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             Attributes = new MaterialAttributes[(int)MaterialAttributes.Material.NumberOfTypes * 2];
 
             // Map of name to type code.
-            MaterialMap = new Dictionary<string, MaterialAttributes.Material>();
-            MaterialMap.Add("Stone", MaterialAttributes.Material.Stone);
-            MaterialMap.Add("Metal", MaterialAttributes.Material.Metal);
-            MaterialMap.Add("Glass", MaterialAttributes.Material.Glass);
-            MaterialMap.Add("Wood", MaterialAttributes.Material.Wood);
-            MaterialMap.Add("Flesh", MaterialAttributes.Material.Flesh);
-            MaterialMap.Add("Plastic", MaterialAttributes.Material.Plastic);
-            MaterialMap.Add("Rubber", MaterialAttributes.Material.Rubber);
-            MaterialMap.Add("Light", MaterialAttributes.Material.Light);
-            MaterialMap.Add("Avatar", MaterialAttributes.Material.Avatar);
+            MaterialMap = new Dictionary<string, MaterialAttributes.Material>
+            {
+                { "Stone", MaterialAttributes.Material.Stone },
+                { "Metal", MaterialAttributes.Material.Metal },
+                { "Glass", MaterialAttributes.Material.Glass },
+                { "Wood", MaterialAttributes.Material.Wood },
+                { "Flesh", MaterialAttributes.Material.Flesh },
+                { "Plastic", MaterialAttributes.Material.Plastic },
+                { "Rubber", MaterialAttributes.Material.Rubber },
+                { "Light", MaterialAttributes.Material.Light },
+                { "Avatar", MaterialAttributes.Material.Avatar }
+            };
         }
 
         // This is where all the default material attributes are defined.

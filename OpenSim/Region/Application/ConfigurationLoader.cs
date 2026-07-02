@@ -80,12 +80,12 @@ namespace OpenSim
 
             IConfig startupConfig = argvSource.Configs["Startup"];
 
-            List<string> sources = new List<string>();
+            List<string> sources = [];
 
             string masterFileName = startupConfig.GetString("inimaster", "OpenSimDefaults.ini");
 
             if (masterFileName == "none")
-                masterFileName = String.Empty;
+                masterFileName = string.Empty;
 
             if (IsUri(masterFileName))
             {
@@ -97,7 +97,7 @@ namespace OpenSim
                 string masterFilePath = Path.GetFullPath(
                         Path.Combine(Util.configDir(), masterFileName));
 
-                if (masterFileName != String.Empty)
+                if (masterFileName != string.Empty)
                 {
                     if (File.Exists(masterFilePath))
                     {
@@ -138,8 +138,10 @@ namespace OpenSim
                 }
             }
 
-            m_config = new OpenSimConfigSource();
-            m_config.Source = new IniConfigSource();
+            m_config = new OpenSimConfigSource
+            {
+                Source = new IniConfigSource()
+            };
 
             m_log.Info("[CONFIG]: Reading configuration settings");
 
@@ -159,7 +161,7 @@ namespace OpenSim
             if (Directory.Exists(iniDirPath))
             {
                 m_log.InfoFormat("[CONFIG]: Searching folder {0} for config ini files", iniDirPath);
-                List<string> overrideSources = new List<string>();
+                List<string> overrideSources = [];
 
                 string[] fileEntries = Directory.GetFiles(iniDirName);
                 foreach (string filePath in fileEntries)
@@ -178,8 +180,10 @@ namespace OpenSim
 
                 if (overrideSources.Count > 0)
                 {
-                    OpenSimConfigSource overrideConfig = new OpenSimConfigSource();
-                    overrideConfig.Source = new IniConfigSource();
+                    OpenSimConfigSource overrideConfig = new()
+                    {
+                        Source = new IniConfigSource()
+                    };
 
                     for (int i = 0 ; i < overrideSources.Count ; i++)
                     {

@@ -64,7 +64,7 @@ namespace OpenSim.Server.Base
             m_Arguments = args;
 
             // Read command line
-            ArgvConfigSource argvConfig = new ArgvConfigSource(args);
+            ArgvConfigSource argvConfig = new(args);
 
             argvConfig.AddSwitch("Startup", "console", "c");
             argvConfig.AddSwitch("Startup", "logfile", "l");
@@ -94,8 +94,7 @@ namespace OpenSim.Server.Base
 
             Config = ReadConfigSource(iniFile);
 
-            List<string> sources = new List<string>();
-            sources.Add(iniFile);
+            List<string> sources = [iniFile];
 
             int sourceIndex = 1;
 
@@ -164,7 +163,7 @@ namespace OpenSim.Server.Base
 
             if (!string.IsNullOrEmpty(logConfig))
             {
-                FileInfo cfg = new FileInfo(logConfig);
+                FileInfo cfg = new(logConfig);
                 XmlConfigurator.Configure(cfg);
             }
             else

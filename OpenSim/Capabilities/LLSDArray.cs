@@ -32,7 +32,7 @@ namespace OpenSim.Framework.Capabilities
     [LLSDType("ARRAY")]
     public class OSDArray
     {
-        public ArrayList Array = new ArrayList();
+        public ArrayList Array = [];
 
         public OSDArray()
         {

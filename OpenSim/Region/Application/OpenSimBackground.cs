@@ -39,7 +39,7 @@ namespace OpenSim
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private ManualResetEvent WorldHasComeToAnEnd = new ManualResetEvent(false);
+        private ManualResetEvent WorldHasComeToAnEnd = new(false);
 
         public OpenSimBackground(IConfigSource configSource) : base(configSource)
         {

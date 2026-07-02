@@ -40,12 +40,12 @@ namespace OpenSim.Framework
         /// <summary>
         /// Items that are contained in this folder
         /// </summary>
-        public Dictionary<UUID, InventoryItemBase> Items = new Dictionary<UUID, InventoryItemBase>();
+        public Dictionary<UUID, InventoryItemBase> Items = [];
 
         /// <summary>
         /// Child folders that are contained in this folder
         /// </summary>
-        protected Dictionary<UUID, InventoryFolderImpl> m_childFolders = new Dictionary<UUID, InventoryFolderImpl>();
+        protected Dictionary<UUID, InventoryFolderImpl> m_childFolders = [];
 
         // Constructors
         public InventoryFolderImpl(InventoryFolderBase folderbase)
@@ -75,7 +75,7 @@ namespace OpenSim.Framework
             {
                 if (!m_childFolders.ContainsKey(folderID))
                 {
-                    InventoryFolderImpl subFold = new InventoryFolderImpl()
+                    InventoryFolderImpl subFold = new()
                     {
                         Name = folderName,
                         ID = folderID,
@@ -370,7 +370,7 @@ namespace OpenSim.Framework
         /// </summary>
         public List<InventoryItemBase> RequestListOfItems()
         {
-            List<InventoryItemBase> itemList = new List<InventoryItemBase>();
+            List<InventoryItemBase> itemList = [];
 
             lock (Items)
             {
@@ -394,7 +394,7 @@ namespace OpenSim.Framework
         /// </summary>
         public List<InventoryFolderBase> RequestListOfFolders()
         {
-            List<InventoryFolderBase> folderList = new List<InventoryFolderBase>(m_childFolders.Count);
+            List<InventoryFolderBase> folderList = new(m_childFolders.Count);
 
             lock (m_childFolders)
             {
@@ -409,7 +409,7 @@ namespace OpenSim.Framework
 
         public List<InventoryFolderImpl> RequestListOfFolderImpls()
         {
-            List<InventoryFolderImpl> folderList = new List<InventoryFolderImpl>(m_childFolders.Count);
+            List<InventoryFolderImpl> folderList = new(m_childFolders.Count);
 
             lock (m_childFolders)
             {

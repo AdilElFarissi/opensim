@@ -44,7 +44,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
     public class CallingCardModule : ISharedRegionModule, ICallingCardModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        protected List<Scene> m_Scenes = new List<Scene>();
+        protected List<Scene> m_Scenes = [];
         protected bool m_Enabled = true;
 
         public void Initialise(IConfigSource source)
@@ -141,7 +141,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                         client.Scene, client.AgentId,
                         client.FirstName+" "+client.LastName,
                         destID, (byte)211, false,
-                        String.Empty,
+                        string.Empty,
                         transactionID, false, new Vector3(), Array.Empty<byte>(), true),
                         delegate(bool success) {} );
             }
@@ -191,10 +191,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
             m_log.DebugFormat("[XCALLINGCARD]: Creating calling card for {0} in inventory of {1}", info.Name, userID);
 
-            InventoryItemBase item = new InventoryItemBase();
-            item.AssetID = UUID.Zero;
-            item.AssetType = (int)AssetType.CallingCard;
-            item.BasePermissions = (uint)(PermissionMask.Copy | PermissionMask.Modify);
+            InventoryItemBase item = new()
+            {
+                AssetID = UUID.Zero,
+                AssetType = (int)AssetType.CallingCard,
+                BasePermissions = (uint)(PermissionMask.Copy | PermissionMask.Modify)
+            };
             if (isGod)
                 item.BasePermissions = (uint)(PermissionMask.Copy | PermissionMask.Modify | PermissionMask.Transfer | PermissionMask.Move);
 
@@ -244,8 +246,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             if (item != null && trashFolder != null)
             {
                 item.Folder = trashFolder.ID;
-                List<UUID> uuids = new List<UUID>();
-                uuids.Add(item.ID);
+                List<UUID> uuids = [item.ID];
                 invService.DeleteItems(item.Owner, uuids);
                 m_Scenes[0].AddInventoryItem(client, item);
             }

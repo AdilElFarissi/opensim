@@ -41,8 +41,8 @@ namespace OpenSim.Framework.Capabilities
     /// </summary>
     public class CapsHandlers
     {
-        private readonly Dictionary<string, IRequestHandler> m_capsHandlers = new Dictionary<string, IRequestHandler>();
-        private readonly ConcurrentDictionary<string, ISimpleStreamHandler> m_capsSimpleHandlers = new ConcurrentDictionary<string, ISimpleStreamHandler>();
+        private readonly Dictionary<string, IRequestHandler> m_capsHandlers = [];
+        private readonly ConcurrentDictionary<string, ISimpleStreamHandler> m_capsSimpleHandlers = new();
         private IHttpServer m_httpListener;
         private string m_httpListenerHostName;
         private uint m_httpListenerPort;
@@ -171,7 +171,7 @@ namespace OpenSim.Framework.Capabilities
         /// <param name="excludeSeed">If true, then exclude the seed cap.</param>
         public Hashtable GetCapsDetails(bool excludeSeed, List<string> requestedCaps)
         {
-            Hashtable caps = new Hashtable();
+            Hashtable caps = [];
 
             if (requestedCaps == null)
             {
@@ -210,7 +210,7 @@ namespace OpenSim.Framework.Capabilities
 
         public Dictionary<string, string> GetCapsLocalPaths()
         {
-            Dictionary<string, string> caps = new();
+            Dictionary<string, string> caps = [];
             lock (m_capsHandlers)
             {
                 foreach (KeyValuePair<string, ISimpleStreamHandler> kvp in m_capsSimpleHandlers)

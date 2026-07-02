@@ -65,10 +65,12 @@ namespace OpenSim.Framework.Servers.HttpServer
     {
         public static TResponse BeginPostObject(string verb, string requestUrl, TRequest obj, string sid, string aid)
         {
-            RestSessionObject<TRequest> sobj = new RestSessionObject<TRequest>();
-            sobj.SessionID = sid;
-            sobj.AvatarID = aid;
-            sobj.Body = obj;
+            RestSessionObject<TRequest> sobj = new()
+            {
+                SessionID = sid,
+                AvatarID = aid,
+                Body = obj
+            };
 
             Type type = typeof(RestSessionObject<TRequest>);
 
@@ -77,7 +79,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             request.ContentType = "text/xml";
             request.Timeout = 20000;
 
-            using (MemoryStream buffer = new MemoryStream())
+            using (MemoryStream buffer = new())
             {
                 XmlWriterSettings settings = new()
                 {
@@ -86,7 +88,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
                 using (XmlWriter writer = XmlWriter.Create(buffer, settings))
                 {
-                    XmlSerializer serializer = new XmlSerializer(type);
+                    XmlSerializer serializer = new(type);
                     serializer.Serialize(writer, sobj);
                     writer.Flush();
                 }
@@ -101,7 +103,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             TResponse deserial = default(TResponse);
             using (WebResponse resp = request.GetResponse())
             {
-                XmlSerializer deserializer = new XmlSerializer(typeof(TResponse));
+                XmlSerializer deserializer = new(typeof(TResponse));
 
                 using (Stream respStream = resp.GetResponseStream())
                     deserial = (TResponse)deserializer.Deserialize(respStream);
@@ -122,10 +124,12 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public void BeginPostObject(string verb, string requestUrl, TRequest obj, string sid, string aid)
         {
-            RestSessionObject<TRequest> sobj = new RestSessionObject<TRequest>();
-            sobj.SessionID = sid;
-            sobj.AvatarID = aid;
-            sobj.Body = obj;
+            RestSessionObject<TRequest> sobj = new()
+            {
+                SessionID = sid,
+                AvatarID = aid,
+                Body = obj
+            };
 
             Type type = typeof(RestSessionObject<TRequest>);
 
@@ -134,13 +138,13 @@ namespace OpenSim.Framework.Servers.HttpServer
             request.ContentType = "text/xml";
             request.Timeout = 10000;
 
-            using (MemoryStream buffer = new MemoryStream())
+            using (MemoryStream buffer = new())
             {
                 XmlWriterSettings settings = new() { Encoding = Encoding.UTF8 };
 
                 using (XmlWriter writer = XmlWriter.Create(buffer, settings))
                 {
-                    XmlSerializer serializer = new XmlSerializer(type);
+                    XmlSerializer serializer = new(type);
                     serializer.Serialize(writer, sobj);
                     writer.Flush();
                 }
@@ -162,7 +166,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             using (WebResponse resp = request.EndGetResponse(result))
             {
                 TResponse deserial;
-                XmlSerializer deserializer = new XmlSerializer(typeof(TResponse));
+                XmlSerializer deserializer = new(typeof(TResponse));
                 Stream stream = resp.GetResponseStream();
 
                 // This is currently a bad debug stanza since it gobbles us the response...
@@ -206,12 +210,12 @@ namespace OpenSim.Framework.Servers.HttpServer
             RestSessionObject<TRequest> deserial = default(RestSessionObject<TRequest>);
             bool fail = false;
 
-            using (XmlTextReader xmlReader = new XmlTextReader(request))
+            using (XmlTextReader xmlReader = new(request))
             {
                 try
                 {
                     xmlReader.DtdProcessing = DtdProcessing.Ignore;
-                    XmlSerializer deserializer = new XmlSerializer(typeof(RestSessionObject<TRequest>));
+                    XmlSerializer deserializer = new(typeof(RestSessionObject<TRequest>));
                     deserial = (RestSessionObject<TRequest>)deserializer.Deserialize(xmlReader);
                 }
                 catch (Exception e)
@@ -229,7 +233,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             using (XmlWriter xmlWriter = XmlTextWriter.Create(responseStream))
             {
-                XmlSerializer serializer = new XmlSerializer(typeof(TResponse));
+                XmlSerializer serializer = new(typeof(TResponse));
                 serializer.Serialize(xmlWriter, response);
             }
         }
@@ -266,12 +270,12 @@ namespace OpenSim.Framework.Servers.HttpServer
             TRequest deserial = default(TRequest);
             bool fail = false;
 
-            using (XmlTextReader xmlReader = new XmlTextReader(request))
+            using (XmlTextReader xmlReader = new(request))
             {
                 try
                 {
                     xmlReader.DtdProcessing = DtdProcessing.Ignore;
-                    XmlSerializer deserializer = new XmlSerializer(typeof(TRequest));
+                    XmlSerializer deserializer = new(typeof(TRequest));
                     deserial = (TRequest)deserializer.Deserialize(xmlReader);
                 }
                 catch (Exception e)
@@ -289,7 +293,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             using (XmlWriter xmlWriter = XmlTextWriter.Create(responseStream))
             {
-                XmlSerializer serializer = new XmlSerializer(typeof(TResponse));
+                XmlSerializer serializer = new(typeof(TResponse));
                 serializer.Serialize(xmlWriter, response);
             }
         }

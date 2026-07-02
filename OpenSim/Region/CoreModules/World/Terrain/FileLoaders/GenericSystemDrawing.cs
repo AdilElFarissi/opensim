@@ -64,13 +64,13 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
         /// <returns>A terrain channel generated from the image.</returns>
         public virtual ITerrainChannel LoadFile(string filename)
         {
-            using(Bitmap b = new Bitmap(filename))
+            using(Bitmap b = new(filename))
                 return LoadBitmap(b);
         }
 
         public virtual ITerrainChannel LoadFile(string filename, int offsetX, int offsetY, int fileWidth, int fileHeight, int w, int h)
         {
-            using (Bitmap bitmap = new Bitmap(filename))
+            using (Bitmap bitmap = new(filename))
             {
                 ITerrainChannel retval = new TerrainChannel(w, h);
 
@@ -88,7 +88,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
 
         public virtual ITerrainChannel LoadStream(Stream stream)
         {
-            using (Bitmap b = new Bitmap(stream))
+            using (Bitmap b = new(stream))
                 return LoadBitmap(b);
         }
 
@@ -222,7 +222,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
         protected static Bitmap CreateGrayscaleBitmapFromMap(ITerrainChannel map)
         {
             //            Bitmap bmp = new Bitmap(map.Width, map.Height, PixelFormat.Format24bppRgb);
-            Bitmap bmp = new Bitmap(map.Width, map.Height);
+            Bitmap bmp = new(map.Width, map.Height);
 
 
             const int pallete = 256;

@@ -34,7 +34,7 @@ namespace OpenSim.Data.Null
     {
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private Dictionary<UUID, XGroup> m_groups = new Dictionary<UUID, XGroup>();
+        private Dictionary<UUID, XGroup> m_groups = [];
 
         public NullXGroupData(string connectionString, string realm) {}
 
@@ -60,7 +60,7 @@ namespace OpenSim.Data.Null
 
         public Dictionary<UUID, XGroup> GetGroups()
         {
-            Dictionary<UUID, XGroup> groupsClone = new Dictionary<UUID, XGroup>();
+            Dictionary<UUID, XGroup> groupsClone = [];
 
             lock (m_groups)
                 foreach (XGroup group in m_groups.Values)

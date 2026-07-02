@@ -361,7 +361,7 @@ namespace OSHttpServer
         /// <param name="newValue"></param>
         /// <param name="prevValue"></param>
         /// <returns>subtraction of passed prevValue from current Environment.TickCount</returns>
-        public static int EnvironmentTickCountSubtract(Int32 newValue, Int32 prevValue)
+        public static int EnvironmentTickCountSubtract(int newValue, int prevValue)
         {
             int diff = newValue - prevValue;
             return (diff >= 0) ? diff : (diff + EnvironmentTickCountMask + 1);
@@ -375,7 +375,7 @@ namespace OSHttpServer
         /// <param name="newValue"></param>
         /// <param name="prevValue"></param>
         /// <returns>subtraction of passed prevValue from current Environment.TickCount</returns>
-        public static int EnvironmentTickCountAdd(Int32 newValue, Int32 prevValue)
+        public static int EnvironmentTickCountAdd(int newValue, int prevValue)
         {
             int ret = newValue + prevValue;
             return (ret >= 0) ? ret : (ret + EnvironmentTickCountMask + 1);

@@ -48,7 +48,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Simulation
         /// <summary>
         /// Map region ID to scene.
         /// </summary>
-        private Dictionary<UUID, Scene> m_scenes = new Dictionary<UUID, Scene>();
+        private Dictionary<UUID, Scene> m_scenes = [];
 
         /// <summary>
         /// Is this module enabled?

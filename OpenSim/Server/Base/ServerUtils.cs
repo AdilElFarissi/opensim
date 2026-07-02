@@ -93,7 +93,7 @@ namespace OpenSim.Server.Base
             AddinManager.Initialize(registryPath);
             //suppress_console_output_(false);
             AddinManager.Registry.Update();
-            CommandManager commandmanager = new CommandManager(Registry);
+            CommandManager commandmanager = new(Registry);
             AddinManager.AddExtensionNodeHandler("/Robust/Connector", OnExtensionChanged);
         }
 
@@ -196,8 +196,8 @@ namespace OpenSim.Server.Base
 
         public static byte[] SerializeResult(XmlSerializer xs, object data)
         {
-            using (MemoryStream ms = new MemoryStream())
-            using (XmlTextWriter xw = new XmlTextWriter(ms, Util.UTF8))
+            using (MemoryStream ms = new())
+            using (XmlTextWriter xw = new(ms, Util.UTF8))
             {
                 xw.Formatting = Formatting.Indented;
                 xs.Serialize(xw, data);
@@ -216,7 +216,7 @@ namespace OpenSim.Server.Base
         /// <param name="dllName"></param>
         /// <param name="args">The arguments which control which constructor is invoked on the plugin</param>
         /// <returns></returns>
-        public static T LoadPlugin<T>(string dllName, Object[] args) where T : class
+        public static T LoadPlugin<T>(string dllName, object[] args) where T : class
         {
             // This is good to debug configuration problems
             //if (dllName.Length == 0)
@@ -247,7 +247,7 @@ namespace OpenSim.Server.Base
             {
                 string[] dllNameParts = dllName.Split('@');
                 dllName = dllNameParts[dllNameParts.Length - 1];
-                List<Object> argList = new List<Object>(args);
+                List<object> argList = [.. args];
                 for (int i = 0; i < dllNameParts.Length - 1; ++i)
                     argList.Add(dllNameParts[i]);
 
@@ -264,7 +264,7 @@ namespace OpenSim.Server.Base
         /// <param name="className"></param>
         /// <param name="args">The arguments which control which constructor is invoked on the plugin</param>
         /// <returns></returns>
-        public static T LoadPlugin<T>(string dllName, string className, Object[] args) where T : class
+        public static T LoadPlugin<T>(string dllName, string className, object[] args) where T : class
         {
             string interfaceName = typeof(T).ToString();
 
@@ -276,7 +276,7 @@ namespace OpenSim.Server.Base
                 {
                     if (pluginType.IsPublic)
                     {
-                        if (className != String.Empty
+                        if (className != string.Empty
                             && pluginType.ToString() != pluginType.Namespace + "." + className)
                             continue;
 
@@ -314,7 +314,7 @@ namespace OpenSim.Server.Base
             catch (ReflectionTypeLoadException rtle)
             {
                 m_log.Error(string.Format("[SERVER UTILS]: Error loading plugin from {0}:\n{1}", dllName,
-                    String.Join("\n", Array.ConvertAll(rtle.LoaderExceptions, e => e.ToString()))),
+                    string.Join("\n", Array.ConvertAll(rtle.LoaderExceptions, e => e.ToString()))),
                     rtle);
                 return null;
             }
@@ -391,7 +391,7 @@ namespace OpenSim.Server.Base
         {
             // this is not conform to html url encoding
             // can only be used on Body of POST or PUT
-            StringBuilder sb = new StringBuilder(4096);
+            StringBuilder sb = new(4096);
 
             string pvalue;
 
@@ -450,7 +450,7 @@ namespace OpenSim.Server.Base
 
         public static string BuildXmlResponse(Dictionary<string, object> data)
         {
-            XmlDocument doc = new XmlDocument();
+            XmlDocument doc = new();
 
             XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration, "", "");
 
@@ -493,7 +493,7 @@ namespace OpenSim.Server.Base
 
         private static Dictionary<string, object> ScanXmlResponse(XmlReader xr)
         {
-            Dictionary<string, object> ret = new Dictionary<string, object>();
+            Dictionary<string, object> ret = [];
             xr.Read();
             while (!xr.EOF && xr.NodeType != XmlNodeType.EndElement)
             {
@@ -574,7 +574,7 @@ namespace OpenSim.Server.Base
                 ParseXmlStreamResponseXmlReaderSettings, ParseXmlResponseXmlParserContext);
             if (xr.ReadToFollowing("ServerResponse"))
                 return ScanXmlResponse(xr);
-            return new Dictionary<string, object>();
+            return [];
         }
 
         public static IConfig GetConfig(string configFile, string configName)

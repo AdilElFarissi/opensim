@@ -56,7 +56,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         private IScriptModuleComms m_comms;
         private IJsonStoreModule m_store;
 
-        private Dictionary<UUID,HashSet<UUID>> m_scriptStores = new Dictionary<UUID,HashSet<UUID>>();
+        private Dictionary<UUID,HashSet<UUID>> m_scriptStores = [];
 
 #region Region Module interface
 
@@ -275,7 +275,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             lock (m_scriptStores)
             {
                 if (! m_scriptStores.ContainsKey(scriptID))
-                    m_scriptStores[scriptID] = new HashSet<UUID>();
+                    m_scriptStores[scriptID] = [];
 
                 m_scriptStores[scriptID].Add(uuid);
             }
@@ -441,7 +441,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         [ScriptInvocation]
         public string JsonGetValue(UUID hostID, UUID scriptID, UUID storeID, string path)
         {
-            string value = String.Empty;
+            string value = string.Empty;
             m_store.GetValue(storeID,path,false,out value);
             return value;
         }
@@ -449,7 +449,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         [ScriptInvocation]
         public string JsonGetJson(UUID hostID, UUID scriptID, UUID storeID, string path)
         {
-            string value = String.Empty;
+            string value = string.Empty;
             m_store.GetValue(storeID,path,true, out value);
             return value;
         }
@@ -540,7 +540,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 m_log.InfoFormat("[JsonStoreScripts]: unable to retrieve value; {0}",e.ToString());
             }
 
-            DispatchValue(scriptID,reqID,String.Empty);
+            DispatchValue(scriptID,reqID, string.Empty);
         }
 
 
@@ -561,7 +561,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 m_log.InfoFormat("[JsonStoreScripts]: unable to retrieve value; {0}",e.ToString());
             }
 
-            DispatchValue(scriptID,reqID,String.Empty);
+            DispatchValue(scriptID,reqID, string.Empty);
         }
 
         // -----------------------------------------------------------------
@@ -582,10 +582,10 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
 
             AssetBase a = m_scene.AssetService.Get(assetID.ToString());
             if (a == null)
-                GenerateRuntimeError(String.Format("Unable to find notecard asset {0}", assetID));
+                GenerateRuntimeError(string.Format("Unable to find notecard asset {0}", assetID));
 
             if (a.Type != (sbyte)AssetType.Notecard)
-                GenerateRuntimeError(String.Format("Invalid notecard asset {0}", assetID));
+                GenerateRuntimeError(string.Format("Invalid notecard asset {0}", assetID));
 
             m_log.DebugFormat("[JsonStoreScripts]: read notecard in context {0}",storeID);
 
@@ -597,7 +597,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                     result = m_store.SetValue(storeID, path, string.Empty, true) ? 1 : 0;
                 else
                 {
-                    StringBuilder sb = new StringBuilder(256);
+                    StringBuilder sb = new(256);
                     for(int i = 0; i < data.Length; ++i)
                         sb.AppendLine(data[i]);
                     result = m_store.SetValue(storeID, path, sb.ToString(),true) ? 1 : 0;
@@ -610,7 +610,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
                 m_log.WarnFormat("[JsonStoreScripts]: Json parsing failed; {0}", e.Message);
             }
 
-            GenerateRuntimeError(String.Format("Json parsing failed for {0}", assetID));
+            GenerateRuntimeError(string.Format("Json parsing failed for {0}", assetID));
             m_comms.DispatchReply(scriptID, 0, "", reqID.ToString());
         }
 
@@ -632,8 +632,10 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
 
             // Create new asset
             UUID assetID = UUID.Random();
-            AssetBase asset = new AssetBase(assetID, name, (sbyte)AssetType.Notecard, host.OwnerID.ToString());
-            asset.Description = "Json store";
+            AssetBase asset = new(assetID, name, (sbyte)AssetType.Notecard, host.OwnerID.ToString())
+            {
+                Description = "Json store"
+            };
 
             int textLength = data.Length;
             data = "Linden text version 2\n{\nLLEmbeddedItems version 1\n{\ncount 0\n}\nText length "
@@ -643,7 +645,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             m_scene.AssetService.Store(asset);
 
             // Create Task Entry
-            TaskInventoryItem taskItem = new TaskInventoryItem();
+            TaskInventoryItem taskItem = new();
 
             taskItem.ResetIDs(host.UUID);
             taskItem.ParentID = host.UUID;
@@ -675,7 +677,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         /// Convert a list of values that are path components to a single string path
         /// </summary>
         // -----------------------------------------------------------------
-        protected static Regex m_ArrayPattern = new Regex("^([0-9]+|\\+)$");
+        protected static Regex m_ArrayPattern = new("^([0-9]+|\\+)$");
         private string ConvertList2Path(object[] pathlist)
         {
             string path = "";
@@ -714,7 +716,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
         // -----------------------------------------------------------------
         private void DoJsonRezObject(UUID hostID, UUID scriptID, UUID reqID, string name, Vector3 pos, Vector3 vel, Quaternion rot, string param)
         {
-            if (Double.IsNaN(rot.X) || Double.IsNaN(rot.Y) || Double.IsNaN(rot.Z) || Double.IsNaN(rot.W))
+            if (double.IsNaN(rot.X) || double.IsNaN(rot.Y) || double.IsNaN(rot.Z) || double.IsNaN(rot.W))
             {
                 GenerateRuntimeError("Invalid rez rotation");
                 return;
@@ -723,7 +725,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             SceneObjectGroup host = m_scene.GetSceneObjectGroup(hostID);
             if (host == null)
             {
-                GenerateRuntimeError(String.Format("Unable to find rezzing host '{0}'",hostID));
+                GenerateRuntimeError(string.Format("Unable to find rezzing host '{0}'",hostID));
                 return;
             }
 
@@ -735,7 +737,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             TaskInventoryItem item = host.RootPart.Inventory.GetInventoryItem(name);
             if (item == null)
             {
-                GenerateRuntimeError(String.Format("Unable to find object to rez '{0}'",name));
+                GenerateRuntimeError(string.Format("Unable to find object to rez '{0}'",name));
                 return;
             }
 
@@ -748,7 +750,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.JsonStore
             List<SceneObjectGroup> objlist;
             List<Vector3> veclist;
 
-            Vector3 bbox = new Vector3();
+            Vector3 bbox = new();
             float offsetHeight;
             bool success = host.RootPart.Inventory.GetRezReadySceneObjects(item, out objlist, out veclist, out bbox, out offsetHeight);
             if (! success)

@@ -56,7 +56,7 @@ namespace OpenSim.Server.Handlers.GridUser
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             string body;
-            using(StreamReader sr = new StreamReader(requestData))
+            using(StreamReader sr = new(requestData))
                 body = sr.ReadToEnd();
             body = body.Trim();
 
@@ -100,7 +100,7 @@ namespace OpenSim.Server.Handlers.GridUser
 
         byte[] LoggedIn(Dictionary<string, object> request)
         {
-            string user = String.Empty;
+            string user = string.Empty;
 
             if (!request.ContainsKey("UserID"))
                 return FailureResult();
@@ -109,8 +109,10 @@ namespace OpenSim.Server.Handlers.GridUser
 
             GridUserInfo guinfo = m_GridUserService.LoggedIn(user);
 
-            Dictionary<string, object> result = new Dictionary<string, object>();
-            result["result"] = guinfo.ToKeyValuePairs();
+            Dictionary<string, object> result = new()
+            {
+                ["result"] = guinfo.ToKeyValuePairs()
+            };
 
             string xmlString = ServerUtils.BuildXmlResponse(result);
 
@@ -138,7 +140,7 @@ namespace OpenSim.Server.Handlers.GridUser
         {
             string user = string.Empty;
             UUID region = UUID.Zero;
-            Vector3 position = new Vector3(128, 128, 70);
+            Vector3 position = new(128, 128, 70);
             Vector3 look = Vector3.Zero;
 
             if (!UnpackArgs(request, out user, out region, out position, out look))
@@ -154,7 +156,7 @@ namespace OpenSim.Server.Handlers.GridUser
         {
             string user = string.Empty;
             UUID region = UUID.Zero;
-            Vector3 position = new Vector3(128, 128, 70);
+            Vector3 position = new(128, 128, 70);
             Vector3 look = Vector3.Zero;
 
             if (!request.ContainsKey("UserID") || !request.ContainsKey("RegionID"))
@@ -171,7 +173,7 @@ namespace OpenSim.Server.Handlers.GridUser
 
         byte[] GetGridUserInfo(Dictionary<string, object> request)
         {
-            string user = String.Empty;
+            string user = string.Empty;
 
             if (!request.ContainsKey("UserID"))
                 return FailureResult();
@@ -183,7 +185,7 @@ namespace OpenSim.Server.Handlers.GridUser
             if (guinfo == null)
                 return FailureResult();
 
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
             if (guinfo != null)
                 result["result"] = guinfo.ToKeyValuePairs();
             else
@@ -215,7 +217,7 @@ namespace OpenSim.Server.Handlers.GridUser
 
             GridUserInfo[] pinfos = m_GridUserService.GetGridUserInfo(userIDs);
 
-            Dictionary<string, object> result = new Dictionary<string, object>();
+            Dictionary<string, object> result = [];
             if ((pinfos == null) || ((pinfos != null) && (pinfos.Length == 0)))
                 result["result"] = "null";
             else
@@ -262,7 +264,7 @@ namespace OpenSim.Server.Handlers.GridUser
 
         private byte[] SuccessResult()
         {
-            XmlDocument doc = new XmlDocument();
+            XmlDocument doc = new();
 
             XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
                     "", "");
@@ -284,7 +286,7 @@ namespace OpenSim.Server.Handlers.GridUser
 
         private byte[] FailureResult()
         {
-            XmlDocument doc = new XmlDocument();
+            XmlDocument doc = new();
 
             XmlNode xmlnode = doc.CreateNode(XmlNodeType.XmlDeclaration,
                     "", "");

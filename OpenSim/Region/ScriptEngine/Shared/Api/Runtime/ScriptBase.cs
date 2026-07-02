@@ -34,7 +34,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
 {
     public partial class ScriptBaseClass : IScript
     {
-        private Dictionary<string, MethodInfo> inits = new Dictionary<string, MethodInfo>();
+        private Dictionary<string, MethodInfo> inits = [];
         public ScriptBaseClass()
         {
             MethodInfo[] myArrayMethodInfo = GetType().GetMethods(BindingFlags.Public | BindingFlags.Instance);
@@ -43,7 +43,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase
                 var name = mi.Name.AsSpan();
                 if (name.StartsWith("ApiType"))
                 {
-                    string type = new string(name[7..]);
+                    string type = new(name[7..]);
                     inits[type] = mi;
                 }
             }

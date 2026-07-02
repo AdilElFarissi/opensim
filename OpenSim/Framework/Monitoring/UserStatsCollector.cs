@@ -36,7 +36,7 @@ namespace OpenSim.Framework.Monitoring
     /// </summary>
     public class UserStatsCollector : BaseStatsCollector
     {
-        private Timer ageStatsTimer = new Timer(24 * 60 * 60 * 1000);
+        private Timer ageStatsTimer = new(24 * 60 * 60 * 1000);
 
         private int successfulLoginsToday;
         public int SuccessfulLoginsToday { get { return successfulLoginsToday; } }
@@ -98,11 +98,13 @@ namespace OpenSim.Framework.Monitoring
 
         public override OSDMap OReport(string uptime, string version)
         {
-            OSDMap ret = new OSDMap();
-            ret.Add("SuccessfulLogins", OSD.FromInteger(SuccessfulLogins));
-            ret.Add("SuccessfulLoginsToday", OSD.FromInteger(SuccessfulLoginsToday));
-            ret.Add("SuccessfulLoginsYesterday", OSD.FromInteger(SuccessfulLoginsYesterday));
-            ret.Add("Logouts", OSD.FromInteger(Logouts));
+            OSDMap ret = new()
+            {
+                { "SuccessfulLogins", OSD.FromInteger(SuccessfulLogins) },
+                { "SuccessfulLoginsToday", OSD.FromInteger(SuccessfulLoginsToday) },
+                { "SuccessfulLoginsYesterday", OSD.FromInteger(SuccessfulLoginsYesterday) },
+                { "Logouts", OSD.FromInteger(Logouts) }
+            };
 
             return ret;
         }

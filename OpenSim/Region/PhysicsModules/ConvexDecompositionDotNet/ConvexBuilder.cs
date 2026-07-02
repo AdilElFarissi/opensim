@@ -148,7 +148,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 
     public class ConvexBuilder
     {
-        public List<CHull> mChulls = new List<CHull>();
+        public List<CHull> mChulls = [];
         private ConvexDecompositionCallback mCallback;
 
         private int MAXDEPTH = 8;
@@ -217,9 +217,9 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
             // ok..we are going to combine both meshes into a single mesh
             // and then we are going to compute the concavity...
 
-            VertexPool vc = new VertexPool();
+            VertexPool vc = new();
 
-            List<int> indices = new List<int>();
+            List<int> indices = [];
 
             getMesh(a.mResult, vc, indices);
             getMesh(b.mResult, vc, indices);
@@ -235,8 +235,8 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
                 return null;
             }
 
-            HullResult hresult = new HullResult();
-            HullDesc desc = new HullDesc();
+            HullResult hresult = new();
+            HullDesc desc = new();
 
             desc.SetHullFlag(HullFlag.QF_TRIANGLES);
             desc.Vertices = vertices;
@@ -251,7 +251,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
                 float percent = (sumVolume * 100) / combineVolume;
                 if (percent >= (100.0f - MERGE_PERCENT))
                 {
-                    ConvexResult cr = new ConvexResult(hresult.OutputVertices, hresult.Indices);
+                    ConvexResult cr = new(hresult.OutputVertices, hresult.Indices);
                     ret = new CHull(cr);
                 }
             }
@@ -266,7 +266,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 
             sortChulls(mChulls); // sort the convex hulls, largest volume to least...
 
-            List<CHull> output = new List<CHull>(); // the output hulls...
+            List<CHull> output = []; // the output hulls...
 
             int i;
             for (i = 0; i < mChulls.Count && !combine; ++i)
@@ -349,8 +349,8 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 
                 ConvexResult c = cr.mResult; // the high resolution hull...
 
-                HullResult result = new HullResult();
-                HullDesc hdesc = new HullDesc();
+                HullResult result = new();
+                HullDesc hdesc = new();
 
                 hdesc.SetHullFlag(HullFlag.QF_TRIANGLES);
 
@@ -367,9 +367,10 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 
                 if (ret2 == HullError.QE_OK)
                 {
-                    ConvexResult r = new ConvexResult(result.OutputVertices, result.Indices);
-
-                    r.mHullVolume = Concavity.computeMeshVolume(result.OutputVertices, result.Indices); // the volume of the hull.
+                    ConvexResult r = new(result.OutputVertices, result.Indices)
+                    {
+                        mHullVolume = Concavity.computeMeshVolume(result.OutputVertices, result.Indices) // the volume of the hull.
+                    };
 
                     // compute the best fit OBB
                     //computeBestFitOBB(result.mNumOutputVertices, result.mOutputVertices, sizeof(float) * 3, r.mOBBSides, r.mOBBTransform);
@@ -399,7 +400,7 @@ namespace OpenSim.Region.PhysicsModules.ConvexDecompositionDotNet
 
         public void ConvexDecompResult(ConvexResult result)
         {
-            CHull ch = new CHull(result);
+            CHull ch = new(result);
             mChulls.Add(ch);
         }
 

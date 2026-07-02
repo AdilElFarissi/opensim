@@ -127,9 +127,9 @@ namespace OpenSim.Region.OptionalModules.Asset
             if (!ConsoleUtil.CheckFileDoesNotExist(MainConsole.Instance, fileName))
                 return;
 
-            using (FileStream fs = new FileStream(fileName, FileMode.CreateNew))
+            using (FileStream fs = new(fileName, FileMode.CreateNew))
             {
-                using (BinaryWriter bw = new BinaryWriter(fs))
+                using (BinaryWriter bw = new(fs))
                 {
                     bw.Write(asset.Data);
                 }
@@ -177,7 +177,7 @@ namespace OpenSim.Region.OptionalModules.Asset
                 Array.Copy(asset.Data, off, line, 0, len);
 
                 string text = BitConverter.ToString(line);
-                MainConsole.Instance.Output(String.Format("{0:x4}: {1}", off, text));
+                MainConsole.Instance.Output(string.Format("{0:x4}: {1}", off, text));
             }
         }
     }

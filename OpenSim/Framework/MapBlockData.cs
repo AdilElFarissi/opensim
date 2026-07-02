@@ -36,7 +36,7 @@ namespace OpenSim.Framework
         public byte Access;
         public byte Agents;
         public UUID MapImageId;
-        public String Name;
+        public string Name;
         public uint RegionFlags;
         public byte WaterHeight;
         public ushort X;
@@ -50,16 +50,18 @@ namespace OpenSim.Framework
 
         public OSDMap ToOSD()
         {
-            OSDMap map = new OSDMap();
-            map["X"] = X;
-            map["Y"] = Y;
-            map["SizeX"] = SizeX;
-            map["SizeY"] = SizeY;
-            map["Name"] = Name;
-            map["Access"] = Access;
-            map["RegionFlags"] = RegionFlags;
-            map["WaterHeight"] = WaterHeight;
-            map["MapImageID"] = MapImageId;
+            OSDMap map = new()
+            {
+                ["X"] = X,
+                ["Y"] = Y,
+                ["SizeX"] = SizeX,
+                ["SizeY"] = SizeY,
+                ["Name"] = Name,
+                ["Access"] = Access,
+                ["RegionFlags"] = RegionFlags,
+                ["WaterHeight"] = WaterHeight,
+                ["MapImageID"] = MapImageId
+            };
             return map;
         }
     }

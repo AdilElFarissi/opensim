@@ -61,12 +61,14 @@ namespace OpenSim.Framework.Serialization.External
         /// <exception cref="System.Xml.XmlException"></exception>
         public static RegionSettings Deserialize(string serializedSettings, out ViewerEnvironment regionEnv, EstateSettings estateSettings)
         {
-            RegionSettings settings = new RegionSettings();
+            RegionSettings settings = new();
             regionEnv = null;
 
-            StringReader sr = new StringReader(serializedSettings);
-            XmlTextReader xtr = new XmlTextReader(sr);
-            xtr.DtdProcessing = DtdProcessing.Ignore;
+            StringReader sr = new(serializedSettings);
+            XmlTextReader xtr = new(sr)
+            {
+                DtdProcessing = DtdProcessing.Ignore
+            };
 
             xtr.ReadStartElement("RegionSettings");
 
@@ -282,9 +284,11 @@ namespace OpenSim.Framework.Serialization.External
 
         public static string Serialize(RegionSettings settings, ViewerEnvironment RegionEnv, EstateSettings estateSettings)
         {
-            StringWriter sw = new StringWriter();
-            XmlTextWriter xtw = new XmlTextWriter(sw);
-            xtw.Formatting = Formatting.Indented;
+            StringWriter sw = new();
+            XmlTextWriter xtw = new(sw)
+            {
+                Formatting = Formatting.Indented
+            };
             xtw.WriteStartDocument();
 
             xtw.WriteStartElement("RegionSettings");

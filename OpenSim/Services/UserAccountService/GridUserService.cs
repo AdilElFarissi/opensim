@@ -83,7 +83,7 @@ namespace OpenSim.Services.UserAccountService
 
             foreach (GridUserData gu in data)
             {
-                ConsoleDisplayList cdl = new ConsoleDisplayList();
+                ConsoleDisplayList cdl = new();
 
                 cdl.AddRow("User ID", gu.UserID);
 
@@ -125,7 +125,7 @@ namespace OpenSim.Services.UserAccountService
             MainConsole.Instance.Output("Users online: {0}", onlineRecentlyCount);
         }
 
-        private static ExpiringCacheOS<string, GridUserData> cache = new ExpiringCacheOS<string, GridUserData>(100000);
+        private static ExpiringCacheOS<string, GridUserData> cache = new(100000);
         private GridUserData GetGridUserData(string userID)
         {
             if (userID.Length > 36)
@@ -173,7 +173,7 @@ namespace OpenSim.Services.UserAccountService
 
         private GridUserInfo ToInfo(GridUserData d)
         {
-            GridUserInfo info = new GridUserInfo() { UserID = d.UserID };
+            GridUserInfo info = new() { UserID = d.UserID };
 
             string tmpstr;
             Dictionary<string, string> kvp = d.Data;
@@ -199,12 +199,12 @@ namespace OpenSim.Services.UserAccountService
             if (kvp.TryGetValue("Online", out tmpstr))
                 bool.TryParse(tmpstr, out info.Online);
 
-            if (kvp.TryGetValue("Login", out tmpstr) && Int32.TryParse(tmpstr, out int login))
+            if (kvp.TryGetValue("Login", out tmpstr) && int.TryParse(tmpstr, out int login))
                 info.Login = Util.ToDateTime(login);
             else
                 info.Login = Util.UnixEpoch;
 
-            if (kvp.TryGetValue("Logout", out tmpstr) && Int32.TryParse(tmpstr, out int logout))
+            if (kvp.TryGetValue("Logout", out tmpstr) && int.TryParse(tmpstr, out int logout))
                 info.Logout = Util.ToDateTime(logout);
             else
                 info.Logout = Util.UnixEpoch;
@@ -224,7 +224,7 @@ namespace OpenSim.Services.UserAccountService
 
         public virtual GridUserInfo[] GetGridUserInfo(string[] userIDs)
         {
-            List<GridUserInfo> ret = new List<GridUserInfo>();
+            List<GridUserInfo> ret = [];
 
             foreach (string id in userIDs)
                 ret.Add(GetGridUserInfo(id));
@@ -240,8 +240,10 @@ namespace OpenSim.Services.UserAccountService
 
             if (d == null)
             {
-                d = new GridUserData();
-                d.UserID = userID;
+                d = new GridUserData
+                {
+                    UserID = userID
+                };
             }
 
             d.Data["Online"] = true.ToString();
@@ -262,8 +264,10 @@ namespace OpenSim.Services.UserAccountService
 
             if (d == null)
             {
-                d = new GridUserData();
-                d.UserID = userID;
+                d = new GridUserData
+                {
+                    UserID = userID
+                };
             }
 
             d.Data["Online"] = false.ToString();
@@ -287,8 +291,10 @@ namespace OpenSim.Services.UserAccountService
 
             if (d == null)
             {
-                d = new GridUserData();
-                d.UserID = userID;
+                d = new GridUserData
+                {
+                    UserID = userID
+                };
             }
 
             d.Data["HomeRegionID"] = homeID.ToString();
@@ -312,8 +318,10 @@ namespace OpenSim.Services.UserAccountService
 
             if (d == null)
             {
-                d = new GridUserData();
-                d.UserID = userID;
+                d = new GridUserData
+                {
+                    UserID = userID
+                };
             }
 
             d.Data["LastRegionID"] = regionID.ToString();

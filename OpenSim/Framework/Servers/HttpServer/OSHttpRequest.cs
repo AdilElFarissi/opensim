@@ -223,7 +223,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get { return _whiteboard; }
         }
-        private Dictionary<string, object> _whiteboard = new Dictionary<string, object>();
+        private Dictionary<string, object> _whiteboard = [];
 
         public OSHttpRequest() {}
 
@@ -259,8 +259,8 @@ namespace OpenSim.Framework.Servers.HttpServer
         private void BuildQueryDictionary()
         {
             NameValueCollection q = m_request.QueryString;
-            _queryAsDictionay = new Dictionary<string, string>();
-            m_queryFlags = new HashSet<string>();
+            _queryAsDictionay = [];
+            m_queryFlags = [];
             for(int i = 0; i < q.Count; ++i)
             {
                 try
@@ -278,8 +278,8 @@ namespace OpenSim.Framework.Servers.HttpServer
         private void BuildQueryHashtable()
         {
             NameValueCollection q = m_request.QueryString;
-            m_queryAsHashtable = new Hashtable();
-            m_queryFlags = new HashSet<string>();
+            m_queryAsHashtable = [];
+            m_queryFlags = [];
             for (int i = 0; i < q.Count; ++i)
             {
                 try
@@ -296,7 +296,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
         public override string ToString()
         {
-            StringBuilder me = new StringBuilder();
+            StringBuilder me = new();
             me.Append($"OSHttpRequest: {HttpMethod} {RawUrl}\n");
             foreach (string k in Headers.AllKeys)
             {

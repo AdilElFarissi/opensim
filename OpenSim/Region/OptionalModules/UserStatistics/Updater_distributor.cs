@@ -42,10 +42,10 @@ namespace OpenSim.Region.UserStatistics
 
         public Hashtable ProcessModel(Hashtable pParams)
         {
-            Hashtable pResult = new Hashtable();
+            Hashtable pResult = [];
             if (updaterjs.Length == 0)
             {
-                StreamReader fs = new StreamReader(new FileStream(Util.dataDir() + "/data/updater.js", FileMode.Open));
+                StreamReader fs = new(new FileStream(Util.dataDir() + "/data/updater.js", FileMode.Open));
                 updaterjs = fs.ReadToEnd();
                 fs.Close();
                 fs.Dispose();

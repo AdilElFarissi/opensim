@@ -37,7 +37,7 @@ namespace OpenSim.Data.MySQL
     {
         private static readonly log4net.ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected string m_connectionString = String.Empty;
+        protected string m_connectionString = string.Empty;
         protected MySqlTransaction m_trans = null;
 
         // Constructor using a connection string. Instances constructed
@@ -64,7 +64,7 @@ namespace OpenSim.Data.MySQL
         {
             if (m_trans == null)
             {
-                using (MySqlConnection dbcon = new MySqlConnection(m_connectionString))
+                using (MySqlConnection dbcon = new(m_connectionString))
                 {
                     dbcon.Open();
                     int ret = ExecuteNonQueryWithConnection(cmd, dbcon);

@@ -43,8 +43,8 @@ namespace OpenSim.Services.PresenceService
 
         protected bool m_allowDuplicatePresences = false;
         const int EXPIREMS = 300000;
-        static ExpiringCacheOS<UUID, PresenceData> BySessionCache = new ExpiringCacheOS<UUID, PresenceData>(60000);
-        static ExpiringCacheOS<string, PresenceData> ByUserCache = new ExpiringCacheOS<string, PresenceData>(60000);
+        static ExpiringCacheOS<UUID, PresenceData> BySessionCache = new(60000);
+        static ExpiringCacheOS<string, PresenceData> ByUserCache = new(60000);
 
         public PresenceService(IConfigSource config)
             : base(config)
@@ -78,13 +78,16 @@ namespace OpenSim.Services.PresenceService
                 }
             }
 
-            PresenceData data = new PresenceData();
-
-            data.UserID = userID;
-            data.RegionID = UUID.Zero;
-            data.SessionID = sessionID;
-            data.Data = new Dictionary<string, string>();
-            data.Data["SecureSessionID"] = secureSessionID.ToString();
+            PresenceData data = new()
+            {
+                UserID = userID,
+                RegionID = UUID.Zero,
+                SessionID = sessionID,
+                Data = new Dictionary<string, string>
+                {
+                    ["SecureSessionID"] = secureSessionID.ToString()
+                }
+            };
 
             m_Database.Store(data);
             BySessionCache.Add(sessionID, data, EXPIREMS);

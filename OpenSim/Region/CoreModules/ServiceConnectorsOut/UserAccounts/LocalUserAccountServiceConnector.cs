@@ -84,7 +84,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
                         return;
                     }
 
-                    string serviceDll = userConfig.GetString("LocalServiceModule", String.Empty);
+                    string serviceDll = userConfig.GetString("LocalServiceModule", string.Empty);
 
                     if (serviceDll.Length == 0)
                     {
@@ -92,7 +92,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
                         return;
                     }
 
-                    Object[] args = new Object[] { source };
+                    object[] args = new object[] { source };
                     UserAccountService = ServerUtils.LoadPlugin<IUserAccountService>(serviceDll, args);
 
                     if (UserAccountService == null)
@@ -186,8 +186,8 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.UserAccounts
 
         public List<UserAccount> GetUserAccounts(UUID scopeID, List<string> IDs)
         {
-            List<UserAccount> ret = new List<UserAccount>();
-            List<string> missing = new List<string>();
+            List<UserAccount> ret = [];
+            List<string> missing = [];
 
             // still another cache..
             bool inCache = false;

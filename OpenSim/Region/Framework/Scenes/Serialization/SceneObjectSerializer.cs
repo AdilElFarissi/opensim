@@ -281,7 +281,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         protected static void ToXmlFormat(SceneObjectPart part, XmlTextWriter writer)
         {
-            SOPToXml2(writer, part, new Dictionary<string, object>());
+            SOPToXml2(writer, part, []);
         }
 
         public static SceneObjectGroup FromXml2Format(string xmlData)
@@ -373,7 +373,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
             {
                 using (XmlTextWriter writer = new(sw))
                 {
-                    SOGToXml2(writer, sceneObject, new Dictionary<string,object>());
+                    SOGToXml2(writer, sceneObject, []);
                 }
 
                 return sw.ToString();
@@ -396,7 +396,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
         /// <returns>The new serialized object's data, or null if an error occurred</returns>
         public static byte[] ModifySerializedObject(UUID assetId, byte[] data, SceneObjectModifier modifier)
         {
-            List<SceneObjectGroup> sceneObjects = new();
+            List<SceneObjectGroup> sceneObjects = [];
 
             string xmlData = ExternalRepresentationUtils.SanitizeXml(Utils.BytesToString(data));
             if (CoalescedSceneObjectsSerializer.TryFromXml(xmlData, out CoalescedSceneObjects coa))
@@ -1522,7 +1522,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             if (sog.RootPart.KeyframeMotion != null)
             {
-                Byte[] data = sog.RootPart.KeyframeMotion.Serialize();
+                byte[] data = sog.RootPart.KeyframeMotion.Serialize();
 
                 writer.WriteStartElement(string.Empty, "KeyframeMotion", string.Empty);
                 writer.WriteBase64(data, 0, data.Length);
@@ -1684,7 +1684,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
             if (sop.Animations != null)
             {
-                Byte[] data = sop.SerializeAnimations();
+                byte[] data = sop.SerializeAnimations();
                 if(data != null && data.Length > 0)
                     writer.WriteElementString("SOPAnims", Convert.ToBase64String(data));
             }
@@ -1922,7 +1922,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
 
         public static TaskInventoryDictionary ReadTaskInventory(XmlReader reader, string name)
         {
-            TaskInventoryDictionary tinv = new();
+            TaskInventoryDictionary tinv = [];
 
             reader.ReadStartElement(name, string.Empty);
 
@@ -1978,7 +1978,7 @@ namespace OpenSim.Region.Framework.Scenes.Serialization
                     m_log.Debug(string.Format("[SceneObjectSerializer]: Error while parsing element {0} in Shape property of object {1} {2} ",
                         nodeName, obj.Name, obj.UUID), e);
 
-                    internalErrorNodeNames ??= new List<string>();
+                    internalErrorNodeNames ??= [];
                     internalErrorNodeNames.Add(nodeName);
                 });
 

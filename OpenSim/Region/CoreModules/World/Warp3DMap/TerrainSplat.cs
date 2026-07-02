@@ -42,10 +42,10 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
     {
         #region Constants
 
-        private static readonly UUID DIRT_DETAIL = new UUID("0bc58228-74a0-7e83-89bc-5c23464bcec5");
-        private static readonly UUID GRASS_DETAIL = new UUID("63338ede-0037-c4fd-855b-015d77112fc8");
-        private static readonly UUID MOUNTAIN_DETAIL = new UUID("303cd381-8560-7579-23f1-f0a880799740");
-        private static readonly UUID ROCK_DETAIL = new UUID("53a2f406-4895-1d13-d541-d2e3b86bc19c");
+        private static readonly UUID DIRT_DETAIL = new("0bc58228-74a0-7e83-89bc-5c23464bcec5");
+        private static readonly UUID GRASS_DETAIL = new("63338ede-0037-c4fd-855b-015d77112fc8");
+        private static readonly UUID MOUNTAIN_DETAIL = new("303cd381-8560-7579-23f1-f0a880799740");
+        private static readonly UUID ROCK_DETAIL = new("53a2f406-4895-1d13-d541-d2e3b86bc19c");
 
         private static readonly UUID[] DEFAULT_TERRAIN_DETAIL = new UUID[]
         {
@@ -63,7 +63,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             Color.FromArgb(255, 125, 128, 130)
         };
 
-        private static readonly UUID TERRAIN_CACHE_MAGIC = new UUID("2c0c7ef2-56be-4eb8-aacb-76712c535b4b");
+        private static readonly UUID TERRAIN_CACHE_MAGIC = new("2c0c7ef2-56be-4eb8-aacb-76712c535b4b");
 
         #endregion Constants
 
@@ -120,7 +120,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                         {
                             try
                             {
-                                using(MemoryStream stream = new MemoryStream(asset.Data))
+                                using(MemoryStream stream = new(asset.Data))
                                     detailTexture[i] = (Bitmap)Image.FromStream(stream);
 
                                 if(detailTexture[i].PixelFormat != PixelFormat.Format24bppRgb ||
@@ -166,13 +166,13 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
                                 // Save the decoded and resized texture to the cache
                                 byte[] data;
-                                using(MemoryStream stream = new MemoryStream())
+                                using(MemoryStream stream = new())
                                 {
                                     detailTexture[i].Save(stream, ImageFormat.Png);
                                     data = stream.ToArray();
                                 }
                                 // Cache a PNG copy of this terrain texture
-                                AssetBase newAsset = new AssetBase
+                                AssetBase newAsset = new()
                                 {
                                     Data = data,
                                     Description = "PNG",
@@ -180,7 +180,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                                     FullID = UUID.Zero,
                                     ID = cacheName,
                                     Local = true,
-                                    Name = String.Empty,
+                                    Name = string.Empty,
                                     Temporary = true,
                                     Type = (sbyte)AssetType.Unknown
                                 };
@@ -250,7 +250,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                             detailTexture[i] = new Bitmap(16, 16, PixelFormat.Format24bppRgb);
                             using(Graphics gfx = Graphics.FromImage(detailTexture[i]))
                             {
-                                using(SolidBrush brush = new SolidBrush(DEFAULT_TERRAIN_COLOR[i]))
+                                using(SolidBrush brush = new(DEFAULT_TERRAIN_COLOR[i]))
                                     gfx.FillRectangle(brush, 0, 0, 16, 16);
                             }
                         }
@@ -285,7 +285,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
 
             #region Texture Compositing
 
-            Bitmap output = new Bitmap(twidth, theight, PixelFormat.Format24bppRgb);
+            Bitmap output = new(twidth, theight, PixelFormat.Format24bppRgb);
             BitmapData outputData = output.LockBits(new Rectangle(0, 0, twidth, theight), ImageLockMode.WriteOnly, PixelFormat.Format24bppRgb);
 
             // Unsafe work as we lock down the source textures for quicker access and access the

@@ -56,7 +56,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         private static Dictionary<string, ScriptConst> Init()
         {
-            Dictionary<string, ScriptConst> sc = new();
+            Dictionary<string, ScriptConst> sc = [];
 
              // For every event code, define XMREVENTCODE_<eventname> and XMREVENTMASKn_<eventname> symbols.
             for(int i = 0; i < 64; i++)

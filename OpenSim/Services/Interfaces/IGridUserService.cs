@@ -76,26 +76,28 @@ namespace OpenSim.Services.Interfaces
             if (kvp.ContainsKey("Logout"))
                 DateTime.TryParse(kvp["Logout"].ToString(), out Logout);
             if (kvp.ContainsKey("Online"))
-                Boolean.TryParse(kvp["Online"].ToString(), out Online);
+                bool.TryParse(kvp["Online"].ToString(), out Online);
 
         }
 
         public virtual Dictionary<string, object> ToKeyValuePairs()
         {
-            Dictionary<string, object> result = new Dictionary<string, object>();
-            result["UserID"] = UserID;
+            Dictionary<string, object> result = new()
+            {
+                ["UserID"] = UserID,
 
-            result["HomeRegionID"] = HomeRegionID.ToString();
-            result["HomePosition"] = HomePosition.ToString();
-            result["HomeLookAt"] = HomeLookAt.ToString();
+                ["HomeRegionID"] = HomeRegionID.ToString(),
+                ["HomePosition"] = HomePosition.ToString(),
+                ["HomeLookAt"] = HomeLookAt.ToString(),
 
-            result["LastRegionID"] = LastRegionID.ToString();
-            result["LastPosition"] = LastPosition.ToString();
-            result["LastLookAt"] = LastLookAt.ToString();
+                ["LastRegionID"] = LastRegionID.ToString(),
+                ["LastPosition"] = LastPosition.ToString(),
+                ["LastLookAt"] = LastLookAt.ToString(),
 
-            result["Online"] = Online.ToString();
-            result["Login"] = Login.ToString();
-            result["Logout"] = Logout.ToString();
+                ["Online"] = Online.ToString(),
+                ["Login"] = Login.ToString(),
+                ["Logout"] = Logout.ToString()
+            };
 
             return result;
         }

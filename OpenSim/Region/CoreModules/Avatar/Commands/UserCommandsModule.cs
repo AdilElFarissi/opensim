@@ -48,12 +48,12 @@ namespace OpenSim.Region.CoreModules.Avatars.Commands
         public const string TeleportUserCommandSyntax = "teleport user <first-name> <last-name> <destination>";
 
         public static Regex InterRegionDestinationRegex
-            = new Regex(@"^(?<regionName>.+)/(?<x>\d+)/(?<y>\d+)/(?<z>\d+)$", RegexOptions.Compiled);
+            = new(@"^(?<regionName>.+)/(?<x>\d+)/(?<y>\d+)/(?<z>\d+)$", RegexOptions.Compiled);
 
         public static Regex WithinRegionDestinationRegex
-            = new Regex(@"^(?<x>\d+)/(?<y>\d+)/(?<z>\d+)$", RegexOptions.Compiled);
+            = new(@"^(?<x>\d+)/(?<y>\d+)/(?<z>\d+)$", RegexOptions.Compiled);
 
-        private Dictionary<UUID, Scene> m_scenes = new Dictionary<UUID, Scene>();
+        private Dictionary<UUID, Scene> m_scenes = [];
 
         public string Name { get { return "User Commands Module"; } }
 

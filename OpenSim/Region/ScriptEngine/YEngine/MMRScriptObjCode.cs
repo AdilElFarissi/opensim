@@ -46,7 +46,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
     public class ScriptObjCode
     {
         public string sourceHash;         // source text hash code
-        public XMRInstArSizes glblSizes = new XMRInstArSizes();
+        public XMRInstArSizes glblSizes = new();
         // number of global variables of various types
 
         public string[] stateNames;       // convert state number to corresponding string
@@ -74,7 +74,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         public int refCount;              // used by engine to keep track of number of 
                                           // instances that are using this object code
 
-        public Dictionary<string, Dictionary<int, string>> globalVarNames = new Dictionary<string, Dictionary<int, string>>();
+        public Dictionary<string, Dictionary<int, string>> globalVarNames = [];
 
         /**
          * @brief Fill in ScriptObjCode from an YEngine object file.
@@ -87,7 +87,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         {
              // Check version number to make sure we know how to process file contents.
             char[] ocm = objFileReader.ReadChars(ScriptCodeGen.OBJECT_CODE_MAGIC.Length);
-            if(new String(ocm) != ScriptCodeGen.OBJECT_CODE_MAGIC)
+            if(new string(ocm) != ScriptCodeGen.OBJECT_CODE_MAGIC)
                 throw new CVVMismatchException("Not an Yengine object file (bad magic)");
 
             int cvv = objFileReader.ReadInt32();
@@ -118,7 +118,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
                 Dictionary<int, string> names;
                 if(!globalVarNames.TryGetValue(gblType, out names))
                 {
-                    names = new Dictionary<int, string>();
+                    names = [];
                     globalVarNames.Add(gblType, names);
                 }
                 names.Add(gblIndex, gblName);
@@ -127,8 +127,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
             }
 
             // Read in script-defined types.
-            sdObjTypesName = new Dictionary<string, TokenDeclSDType>();
-            sdDelTypes = new Dictionary<Type, string>();
+            sdObjTypesName = [];
+            sdDelTypes = [];
             int maxIndex = -1;
             while((gblName = objFileReader.ReadString()) != "")
             {
@@ -146,8 +146,8 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
             // Now fill in the methods (the hard part).
             scriptEventHandlerTable = new ScriptEventHandler[nStates, (int)ScriptEventCode.Size];
-            dynamicMethods = new Dictionary<string, DynamicMethod>();
-            scriptSrcLocss = new Dictionary<string, KeyValuePair<int, ScriptSrcLoc>[]>();
+            dynamicMethods = [];
+            scriptSrcLocss = [];
 
             ObjectTokens objectTokens = null;
             if(asmFileWriter != null)
@@ -220,7 +220,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          * @brief Called once for every method found in objFileReader file.
          *        It enters the method in the ScriptObjCode object table so it can be called.
          */
-        private static EndMethodWrapper endMethodWrapper = new EndMethodWrapper();
+        private static EndMethodWrapper endMethodWrapper = new();
         private class EndMethodWrapper: System.Collections.IComparer
         {
             public int Compare(object x, object y)

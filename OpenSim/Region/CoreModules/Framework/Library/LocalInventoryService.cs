@@ -63,16 +63,18 @@ namespace OpenSim.Region.CoreModules.Framework.Library
         public InventoryCollection GetFolderContent(UUID userID, UUID folderID)
         {
             InventoryFolderImpl folder = null;
-            InventoryCollection inv = new InventoryCollection();
-            inv.OwnerID = m_Library.Owner;
+            InventoryCollection inv = new()
+            {
+                OwnerID = m_Library.Owner
+            };
 
             if (folderID != m_Library.ID)
             {
                 folder = m_Library.FindFolder(folderID);
                 if (folder == null)
                 {
-                    inv.Folders = new List<InventoryFolderBase>();
-                    inv.Items = new List<InventoryItemBase>();
+                    inv.Folders = [];
+                    inv.Items = [];
                     return inv;
                 }
             }

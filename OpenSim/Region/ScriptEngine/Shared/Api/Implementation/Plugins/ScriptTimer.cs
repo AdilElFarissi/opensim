@@ -70,7 +70,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             return localID.ToString() + itemID.ToString();
         }
 
-        private readonly Dictionary<string,TimerInfo> Timers = new();
+        private readonly Dictionary<string,TimerInfo> Timers = [];
         private readonly object TimerListLock = new();
         private List<TimerInfo> TimersCache = null;
 
@@ -128,7 +128,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             {
                 if (Timers.Count == 0)
                     return;
-                tvals = TimersCache ?? new List<TimerInfo>(Timers.Values);
+                tvals = TimersCache ?? [.. Timers.Values];
             }
 
             long now = DateTime.UtcNow.Ticks;
@@ -139,7 +139,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
                 {
                     // Add it to queue
                     m_CmdManager.m_ScriptEngine.PostScriptEvent(ts.itemID,
-                            new EventParams("timer", new Object[0],
+                            new EventParams("timer", new object[0],
                             new DetectParams[0]));
                     // set next interval
                     ts.next = now + ts.interval;
@@ -147,16 +147,16 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             }
         }
 
-        public Object[] GetSerializationData(UUID itemID)
+        public object[] GetSerializationData(UUID itemID)
         {
-            List<Object> data = new();
+            List<object> data = [];
 
             List<TimerInfo> tvals;
             lock (TimerListLock)
             {
                 if (Timers.Count == 0)
                     return new object[0];
-                tvals = TimersCache ?? new List<TimerInfo>(Timers.Values);
+                tvals = TimersCache ?? [.. Timers.Values];
             }
 
             long now = DateTime.UtcNow.Ticks;
@@ -172,7 +172,7 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
             return data.ToArray();
         }
 
-        public void CreateFromData(uint localID, UUID itemID, UUID objectID, Object[] data)
+        public void CreateFromData(uint localID, UUID itemID, UUID objectID, object[] data)
         {
             int idx = 0;
             long now = DateTime.UtcNow.Ticks;
@@ -199,13 +199,13 @@ namespace OpenSim.Region.ScriptEngine.Shared.Api.Plugins
 
         public List<TimerInfo> GetTimersInfo()
         {
-            List<TimerInfo> retList = new();
+            List<TimerInfo> retList = [];
             List<TimerInfo> tvals;
             lock (TimerListLock)
             {
                 if (Timers.Count == 0)
                     return retList;
-                tvals = TimersCache ?? new List<TimerInfo>(Timers.Values);
+                tvals = TimersCache ?? [.. Timers.Values];
             }
 
             foreach (TimerInfo i in tvals)

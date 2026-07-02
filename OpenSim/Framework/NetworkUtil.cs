@@ -57,7 +57,7 @@ namespace OpenSim.Framework
         }
 
         // IPv4Address, Subnet
-        static readonly Dictionary<IPAddress,IPAddress> m_subnets = new Dictionary<IPAddress, IPAddress>();
+        static readonly Dictionary<IPAddress,IPAddress> m_subnets = [];
 
         public static IPAddress GetIPFor(IPAddress user, IPAddress simulator)
         {

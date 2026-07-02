@@ -43,7 +43,7 @@ public class EventHistogram
     private int m_lastBucket;
     private int m_totalHistogramMilliseconds;
     private long[] m_histogram;
-    private object histoLock = new object();
+    private object histoLock = new();
 
     public EventHistogram(int numberOfBuckets, int millisecondsPerBucket)
     {
@@ -124,11 +124,12 @@ public class EventHistogram
 
     public OSDMap GetHistogramAsOSDMap()
     {
-        OSDMap ret = new OSDMap();
-
-        ret.Add("Buckets", OSD.FromInteger(m_numBuckets));
-        ret.Add("BucketMilliseconds", OSD.FromInteger(m_bucketMilliseconds));
-        ret.Add("TotalMilliseconds", OSD.FromInteger(m_totalHistogramMilliseconds));
+        OSDMap ret = new()
+        {
+            { "Buckets", OSD.FromInteger(m_numBuckets) },
+            { "BucketMilliseconds", OSD.FromInteger(m_bucketMilliseconds) },
+            { "TotalMilliseconds", OSD.FromInteger(m_totalHistogramMilliseconds) }
+        };
 
         // Compute a number for the first bucket in the histogram.
         // This will allow readers to know how this histogram relates to any previously read histogram.
@@ -142,7 +143,7 @@ public class EventHistogram
     // Get a copy of the current histogram
     public OSDArray GetHistogramAsOSDArray()
     {
-        OSDArray ret = new OSDArray(m_numBuckets);
+        OSDArray ret = new(m_numBuckets);
         lock (histoLock)
         {
             int indx = m_lastBucket + 1;

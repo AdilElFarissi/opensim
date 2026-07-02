@@ -83,7 +83,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
         // Infrastructure
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private static readonly Object vlock  = new Object();
+        private static readonly object vlock  = new();
 
         // Control info, e.g. vivox server, admin user, admin password
         private static bool   m_pluginEnabled  = false;
@@ -94,7 +94,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
         private static string m_vivoxVoiceAccountApi;
         private static string m_vivoxAdminUser;
         private static string m_vivoxAdminPassword;
-        private static string m_authToken = String.Empty;
+        private static string m_authToken = string.Empty;
 
         private static int    m_vivoxChannelDistanceModel;
         private static double m_vivoxChannelRollOff;
@@ -103,7 +103,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
         private static string m_vivoxChannelType;
         private static int    m_vivoxChannelClampingDistance;
 
-        private static Dictionary<string,string> m_parents = new Dictionary<string,string>();
+        private static Dictionary<string,string> m_parents = [];
         private static bool m_dumpXml;
 
         private IConfig m_config;
@@ -127,10 +127,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
             try
             {
                 // retrieve configuration variables
-                m_vivoxServer = m_config.GetString("vivox_server", String.Empty);
-                m_vivoxSipUri = m_config.GetString("vivox_sip_uri", String.Empty);
-                m_vivoxAdminUser = m_config.GetString("vivox_admin_user", String.Empty);
-                m_vivoxAdminPassword = m_config.GetString("vivox_admin_password", String.Empty);
+                m_vivoxServer = m_config.GetString("vivox_server", string.Empty);
+                m_vivoxSipUri = m_config.GetString("vivox_sip_uri", string.Empty);
+                m_vivoxAdminUser = m_config.GetString("vivox_admin_user", string.Empty);
+                m_vivoxAdminPassword = m_config.GetString("vivox_admin_password", string.Empty);
 
                 m_vivoxChannelDistanceModel = m_config.GetInt("vivox_channel_distance_model", CHAN_DIST_DEFAULT);
                 m_vivoxChannelRollOff = m_config.GetDouble("vivox_channel_roll_off", CHAN_ROLL_OFF_DEFAULT);
@@ -190,10 +190,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
 
 
                 // Admin interface required values
-                if (String.IsNullOrEmpty(m_vivoxServer) ||
-                    String.IsNullOrEmpty(m_vivoxSipUri) ||
-                    String.IsNullOrEmpty(m_vivoxAdminUser) ||
-                    String.IsNullOrEmpty(m_vivoxAdminPassword))
+                if (string.IsNullOrEmpty(m_vivoxServer) ||
+                    string.IsNullOrEmpty(m_vivoxSipUri) ||
+                    string.IsNullOrEmpty(m_vivoxAdminUser) ||
+                    string.IsNullOrEmpty(m_vivoxAdminPassword))
                 {
                     m_log.Error("[VivoxVoice] plugin mis-configured");
                     m_log.Info("[VivoxVoice] plugin disabled: incomplete configuration");
@@ -201,7 +201,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                 }
 
                 //m_vivoxVoiceAccountApi = String.Format("https://{0}:443/api2", m_vivoxServer);
-                m_vivoxVoiceAccountApi = String.Format("http://{0}/api2", m_vivoxServer); // fs <6.3 seems to not like https here
+                m_vivoxVoiceAccountApi = string.Format("http://{0}/api2", m_vivoxServer); // fs <6.3 seems to not like https here
                 if (!Uri.TryCreate(m_vivoxVoiceAccountApi, UriKind.Absolute, out Uri accoutURI))
                 {
                     m_log.Error("[VivoxVoice] invalid vivox server");
@@ -238,7 +238,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
             {
                 lock (vlock)
                 {
-                    string channelId = String.Empty;
+                    string channelId = string.Empty;
 
                     string sceneUUID  = scene.RegionInfo.RegionID.ToString();
                     string sceneName  = scene.RegionInfo.RegionName;
@@ -510,7 +510,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                 bool          retry = false;
                 string        agentname = "x" + Convert.ToBase64String(agentID.GetBytes());
                 string        password  = new UUID(Guid.NewGuid()).ToString().Replace('-','Z').Substring(0,16);
-                string        code = String.Empty;
+                string        code = string.Empty;
 
                 agentname = agentname.Replace('+', '-').Replace('/', '_');
 
@@ -692,13 +692,13 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                 {
                     //m_log.DebugFormat("[VivoxVoice][PARCELVOICE]: region \"{0}\": voice not enabled in estate settings",
                     //                  scene.RegionInfo.RegionName);
-                    channel_uri = String.Empty;
+                    channel_uri = string.Empty;
                 }
                 else if (!scene.RegionInfo.EstateSettings.TaxFree && (land.Flags & (uint)ParcelFlags.AllowVoiceChat) == 0)
                 {
                     //m_log.DebugFormat("[VivoxVoice][PARCELVOICE]: region \"{0}\": Parcel \"{1}\" ({2}): avatar \"{3}\": voice not enabled for parcel",
                     //                  scene.RegionInfo.RegionName, land.Name, land.LocalID, avatarName);
-                    channel_uri = String.Empty;
+                    channel_uri = string.Empty;
                 }
                 else
                 {
@@ -773,14 +773,14 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
             // as the directory ID. Otherwise, it reflects the parcel's ID.
             if ((land.Flags & (uint)ParcelFlags.UseEstateVoiceChan) == 0)
             {
-                landName = String.Format("{0}:{1}", scene.RegionInfo.RegionName, land.Name);
+                landName = string.Format("{0}:{1}", scene.RegionInfo.RegionName, land.Name);
                 landUUID = land.GlobalID.ToString();
                 m_log.DebugFormat("[VivoxVoice]: Region:Parcel \"{0}\": parcel id {1}: using channel name {2}",
                                   landName, land.LocalID, landUUID);
             }
             else
             {
-                landName = String.Format("{0}:{1}", scene.RegionInfo.RegionName, scene.RegionInfo.RegionName);
+                landName = string.Format("{0}:{1}", scene.RegionInfo.RegionName, scene.RegionInfo.RegionName);
                 landUUID = scene.RegionInfo.RegionID.ToString();
                 m_log.DebugFormat("[VivoxVoice]: Region:Parcel \"{0}\": parcel id {1}: using channel name {2}",
                                   landName, land.LocalID, landUUID);
@@ -811,7 +811,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
         /// </summary>
         private XmlElement VivoxLogin(string name, string password)
         {
-            string requrl = String.Format(m_vivoxLoginPath, m_vivoxServer, name, password);
+            string requrl = string.Format(m_vivoxLoginPath, m_vivoxServer, name, password);
             return VivoxCall(requrl, false);
         }
 
@@ -822,7 +822,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
         /// </summary>
         private XmlElement VivoxLogout()
         {
-            string requrl = String.Format(m_vivoxLogoutPath, m_vivoxServer, m_authToken);
+            string requrl = string.Format(m_vivoxLogoutPath, m_vivoxServer, m_authToken);
             return VivoxCall(requrl, false);
         }
 
@@ -835,7 +835,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
         /// </summary>
         private XmlElement VivoxGetAccountInfo(string user)
         {
-            string requrl = String.Format(m_vivoxGetAccountPath, m_vivoxServer, m_authToken, user);
+            string requrl = string.Format(m_vivoxGetAccountPath, m_vivoxServer, m_authToken, user);
             return VivoxCall(requrl, true);
         }
 
@@ -850,7 +850,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
         /// </summary>
         private XmlElement VivoxCreateAccount(string user, string password)
         {
-            string requrl = String.Format(m_vivoxNewAccountPath, m_vivoxServer, user, password, m_authToken);
+            string requrl = string.Format(m_vivoxNewAccountPath, m_vivoxServer, user, password, m_authToken);
             return VivoxCall(requrl, true);
         }
 
@@ -862,7 +862,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
         /// </summary>
         private XmlElement VivoxPassword(string user, string password)
         {
-            string requrl = String.Format(m_vivoxPasswordPath, m_vivoxServer, user, password, m_authToken);
+            string requrl = string.Format(m_vivoxPasswordPath, m_vivoxServer, user, password, m_authToken);
             return VivoxCall(requrl, true);
         }
 
@@ -883,29 +883,29 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
         /// </summary>
         private bool VivoxTryCreateChannel(string parent, string channelId, string description, out string channelUri)
         {
-            string requrl = String.Format(m_vivoxChannelPath, m_vivoxServer, "create", channelId, m_authToken);
+            string requrl = string.Format(m_vivoxChannelPath, m_vivoxServer, "create", channelId, m_authToken);
 
             if (!string.IsNullOrEmpty(parent))
             {
-                requrl = String.Format("{0}&chan_parent={1}", requrl, parent);
+                requrl = string.Format("{0}&chan_parent={1}", requrl, parent);
             }
             if (!string.IsNullOrEmpty(description))
             {
-                requrl = String.Format("{0}&chan_desc={1}", requrl, description);
+                requrl = string.Format("{0}&chan_desc={1}", requrl, description);
             }
 
-            requrl = String.Format("{0}&chan_type={1}",              requrl, m_vivoxChannelType);
-            requrl = String.Format("{0}&chan_mode={1}",              requrl, m_vivoxChannelMode);
-            requrl = String.Format("{0}&chan_roll_off={1}",          requrl, m_vivoxChannelRollOff);
-            requrl = String.Format("{0}&chan_dist_model={1}",        requrl, m_vivoxChannelDistanceModel);
-            requrl = String.Format("{0}&chan_max_range={1}",         requrl, m_vivoxChannelMaximumRange);
-            requrl = String.Format("{0}&chan_clamping_distance={1}", requrl, m_vivoxChannelClampingDistance);
+            requrl = string.Format("{0}&chan_type={1}",              requrl, m_vivoxChannelType);
+            requrl = string.Format("{0}&chan_mode={1}",              requrl, m_vivoxChannelMode);
+            requrl = string.Format("{0}&chan_roll_off={1}",          requrl, m_vivoxChannelRollOff);
+            requrl = string.Format("{0}&chan_dist_model={1}",        requrl, m_vivoxChannelDistanceModel);
+            requrl = string.Format("{0}&chan_max_range={1}",         requrl, m_vivoxChannelMaximumRange);
+            requrl = string.Format("{0}&chan_clamping_distance={1}", requrl, m_vivoxChannelClampingDistance);
 
             XmlElement resp = VivoxCall(requrl, true);
             if (XmlFind(resp, "response.level0.body.chan_uri", out channelUri))
                 return true;
 
-            channelUri = String.Empty;
+            channelUri = string.Empty;
             return false;
         }
 
@@ -937,7 +937,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
             if (IsOK(resp) && XmlFind(resp, "response.level0.body.chan_id", out channelId))
                 return true;
             */
-            channelId = String.Empty;
+            channelId = string.Empty;
             return false;
         }
 
@@ -959,7 +959,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
         {
             string count;
 
-            string requrl = String.Format(m_vivoxChannelSearchPath, m_vivoxServer, channelName, m_authToken);
+            string requrl = string.Format(m_vivoxChannelSearchPath, m_vivoxServer, channelName, m_authToken);
             XmlElement resp = VivoxCall(requrl, true);
 
             if (XmlFind(resp, "response.level0.channel-search.count", out count))
@@ -1036,8 +1036,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                 m_log.Debug("[VivoxVoice] No count element?");
             }
 
-            channelId = String.Empty;
-            channelUri = String.Empty;
+            channelId = string.Empty;
+            channelUri = string.Empty;
 
             // Useful incase something goes wrong.
             //m_log.Debug("[VivoxVoice] Could not find channel in XMLRESP: " + resp.InnerXml);
@@ -1049,7 +1049,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
         {
             string count;
 
-            string requrl = String.Format(m_vivoxChannelSearchPath, m_vivoxServer, directoryName, m_authToken);
+            string requrl = string.Format(m_vivoxChannelSearchPath, m_vivoxServer, directoryName, m_authToken);
             XmlElement resp = VivoxCall(requrl, true);
 
             if (XmlFind(resp, "response.level0.channel-search.count", out count))
@@ -1080,7 +1080,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                 }
             }
 
-            directoryId = String.Empty;
+            directoryId = string.Empty;
             return false;
         }
 
@@ -1112,10 +1112,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
 
         private XmlElement VivoxDeleteChannel(string parent, string channelid)
         {
-            string requrl = String.Format(m_vivoxChannelDel, m_vivoxServer, "delete", channelid, m_authToken);
+            string requrl = string.Format(m_vivoxChannelDel, m_vivoxServer, "delete", channelid, m_authToken);
             if (!string.IsNullOrEmpty(parent))
             {
-                requrl = String.Format("{0}&chan_parent={1}", requrl, parent);
+                requrl = string.Format("{0}&chan_parent={1}", requrl, parent);
             }
             return VivoxCall(requrl, true);
         }
@@ -1128,7 +1128,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
 
         private XmlElement VivoxListChildren(string channelid)
         {
-            string requrl = String.Format(m_vivoxChannelSearch, m_vivoxServer, channelid, m_authToken);
+            string requrl = string.Format(m_vivoxChannelSearch, m_vivoxServer, channelid, m_authToken);
             return VivoxCall(requrl, true);
         }
 
@@ -1202,7 +1202,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                     // Send request and retrieve the response
                     using (HttpWebResponse rsp = (HttpWebResponse)req.GetResponse())
                     using (Stream s = rsp.GetResponseStream())
-                    using (XmlTextReader rdr = new XmlTextReader(s))
+                    using (XmlTextReader rdr = new(s))
                     {
                         rdr.DtdProcessing = DtdProcessing.Ignore;
                         doc.Load(rdr);
@@ -1323,7 +1323,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
         {
             if (root == null || string.IsNullOrEmpty(tag))
             {
-                result = String.Empty;
+                result = string.Empty;
                 return false;
             }
             return XmlSearch(root,tag.Split(C_POINT),0, ref nth, out result);
@@ -1334,7 +1334,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
             int nth = 0;
             if (root == null || string.IsNullOrEmpty(tag))
             {
-                result = String.Empty;
+                result = string.Empty;
                 return false;
             }
             return XmlSearch(root,tag.Split(C_POINT),0, ref nth, out result);
@@ -1355,7 +1355,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
         {
             if (index == tags.Length || e.Name != tags[index])
             {
-                result = String.Empty;
+                result = string.Empty;
                 return false;
             }
 
@@ -1369,7 +1369,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                 else
                 {
                     nth--;
-                    result = String.Empty;
+                    result = string.Empty;
                     return false;
                 }
             }
@@ -1392,7 +1392,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Voice.VivoxVoice
                 }
             }
 
-            result = String.Empty;
+            result = string.Empty;
             return false;
         }
 

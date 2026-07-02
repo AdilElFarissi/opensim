@@ -112,7 +112,7 @@ namespace OpenSim.Data.PGSQL
         public List<InventoryFolderBase> getUserRootFolders(UUID user)
         {
             if (user.IsZero())
-                return new List<InventoryFolderBase>();
+                return [];
 
             return getInventoryFolders(UUID.Zero, user);
         }
@@ -159,8 +159,8 @@ namespace OpenSim.Data.PGSQL
         public InventoryFolderBase getInventoryFolder(UUID folderID)
         {
             string sql = "SELECT * FROM inventoryfolders WHERE \"folderID\" = :folderID";
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_connectionString))
+            using (NpgsqlCommand cmd = new(sql, conn))
             {
                 cmd.Parameters.Add(database.CreateParameter("folderID", folderID));
                 conn.Open();
@@ -195,20 +195,20 @@ namespace OpenSim.Data.PGSQL
              * be used, so check for that and return an empty list.
              */
 
-            List<InventoryFolderBase> folders = new List<InventoryFolderBase>();
+            List<InventoryFolderBase> folders = [];
 
             if (parentID.IsZero())
                 return folders;
 
             string sql = "SELECT * FROM inventoryfolders WHERE \"parentFolderID\" = :parentID";
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_connectionString))
+            using (NpgsqlCommand cmd = new(sql, conn))
             {
                 cmd.Parameters.Add(database.CreateParameter("parentID", parentID));
                 conn.Open();
                 folders.AddRange(getInventoryFolders(cmd));
 
-                List<InventoryFolderBase> tempFolders = new List<InventoryFolderBase>();
+                List<InventoryFolderBase> tempFolders = [];
 
                 foreach (InventoryFolderBase folderBase in folders)
                 {
@@ -237,8 +237,8 @@ namespace OpenSim.Data.PGSQL
                 folderName = folderName.Substring(0, 64);
                 m_log.Warn("[INVENTORY DB]: Name field truncated from " + folder.Name.Length.ToString() + " to " + folderName.Length + " characters on add");
             }
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_connectionString))
+            using (NpgsqlCommand cmd = new(sql, conn))
             {
                 cmd.Parameters.Add(database.CreateParameter("folderID", folder.ID));
                 cmd.Parameters.Add(database.CreateParameter("agentID", folder.Owner));
@@ -277,8 +277,8 @@ namespace OpenSim.Data.PGSQL
                 folderName = folderName.Substring(0, 64);
                 m_log.Warn("[INVENTORY DB]: Name field truncated from " + folder.Name.Length.ToString() + " to " + folderName.Length + " characters on update");
             }
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_connectionString))
+            using (NpgsqlCommand cmd = new(sql, conn))
             {
                 cmd.Parameters.Add(database.CreateParameter("folderID", folder.ID));
                 cmd.Parameters.Add(database.CreateParameter("agentID", folder.Owner));
@@ -305,8 +305,8 @@ namespace OpenSim.Data.PGSQL
         public void moveInventoryFolder(InventoryFolderBase folder)
         {
             string sql = @"UPDATE inventoryfolders SET ""parentFolderID"" = :parentFolderID WHERE ""folderID"" = :folderID";
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_connectionString))
+            using (NpgsqlCommand cmd = new(sql, conn))
             {
                 cmd.Parameters.Add(database.CreateParameter("parentFolderID", folder.ParentID));
                 cmd.Parameters.Add(database.CreateParameter("folderID", folder.ID));
@@ -330,8 +330,8 @@ namespace OpenSim.Data.PGSQL
         {
             string sql = @"SELECT * FROM inventoryfolders WHERE ""parentFolderID"" = :parentID";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_connectionString))
+            using (NpgsqlCommand cmd = new(sql, conn))
             {
                 List<InventoryFolderBase> subFolders;
                 cmd.Parameters.Add(database.CreateParameter("parentID", UUID.Zero));
@@ -364,12 +364,12 @@ namespace OpenSim.Data.PGSQL
         public List<InventoryItemBase> getInventoryInFolder(UUID folderID)
         {
             string sql = @"SELECT * FROM inventoryitems WHERE ""parentFolderID"" = :parentFolderID";
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_connectionString))
+            using (NpgsqlCommand cmd = new(sql, conn))
             {
                 cmd.Parameters.Add(database.CreateParameter("parentFolderID", folderID));
                 conn.Open();
-                List<InventoryItemBase> items = new List<InventoryItemBase>();
+                List<InventoryItemBase> items = [];
 
                 using (NpgsqlDataReader reader = cmd.ExecuteReader())
                 {
@@ -390,8 +390,8 @@ namespace OpenSim.Data.PGSQL
         public InventoryItemBase getInventoryItem(UUID itemID)
         {
             string sql = @"SELECT * FROM inventoryitems WHERE ""inventoryID"" = :inventoryID";
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_connectionString))
+            using (NpgsqlCommand cmd = new(sql, conn))
             {
                 cmd.Parameters.Add(database.CreateParameter("inventoryID", itemID));
                 conn.Open();
@@ -445,8 +445,8 @@ namespace OpenSim.Data.PGSQL
                 m_log.Warn("[INVENTORY DB]: Description field truncated from " + item.Description.Length.ToString() + " to " + itemDesc.Length.ToString() + " characters");
             }
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand command = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_connectionString))
+            using (NpgsqlCommand command = new(sql, conn))
             {
                 command.Parameters.Add(database.CreateParameter("inventoryID", item.ID));
                 command.Parameters.Add(database.CreateParameter("assetID", item.AssetID));
@@ -480,8 +480,8 @@ namespace OpenSim.Data.PGSQL
             }
 
             sql = @"UPDATE inventoryfolders SET version = version + 1 WHERE ""folderID"" = @folderID";
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand command = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_connectionString))
+            using (NpgsqlCommand command = new(sql, conn))
             {
                 command.Parameters.Add(database.CreateParameter("folderID", item.Folder.ToString()));
                 conn.Open();
@@ -537,8 +537,8 @@ namespace OpenSim.Data.PGSQL
                 m_log.Warn("[INVENTORY DB]: Description field truncated from " + item.Description.Length.ToString() + " to " + itemDesc.Length.ToString() + " characters on update");
             }
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand command = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_connectionString))
+            using (NpgsqlCommand command = new(sql, conn))
             {
                 command.Parameters.Add(database.CreateParameter("inventoryID", item.ID));
                 command.Parameters.Add(database.CreateParameter("assetID", item.AssetID));
@@ -581,8 +581,8 @@ namespace OpenSim.Data.PGSQL
         public void deleteInventoryItem(UUID itemID)
         {
             string sql = @"DELETE FROM inventoryitems WHERE ""inventoryID""=:inventoryID";
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_connectionString))
+            using (NpgsqlCommand cmd = new(sql, conn))
             {
                 cmd.Parameters.Add(database.CreateParameter("inventoryID", itemID));
                 try
@@ -617,15 +617,15 @@ namespace OpenSim.Data.PGSQL
         public List<InventoryItemBase> fetchActiveGestures(UUID avatarID)
         {
             string sql = @"SELECT * FROM inventoryitems WHERE ""avatarID"" = :uuid AND ""assetType"" = :assetType and flags = 1";
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_connectionString))
+            using (NpgsqlCommand cmd = new(sql, conn))
             {
                 cmd.Parameters.Add(database.CreateParameter("uuid", avatarID));
                 cmd.Parameters.Add(database.CreateParameter("assetType", (int)AssetType.Gesture));
                 conn.Open();
                 using (NpgsqlDataReader reader = cmd.ExecuteReader())
                 {
-                    List<InventoryItemBase> gestureList = new List<InventoryItemBase>();
+                    List<InventoryItemBase> gestureList = [];
                     while (reader.Read())
                     {
                         gestureList.Add(readInventoryItem(reader));
@@ -646,7 +646,7 @@ namespace OpenSim.Data.PGSQL
         /// <param name="connection">connection to the database</param>
         private void DeleteItemsInFolder(UUID folderID, NpgsqlConnection connection)
         {
-            using (NpgsqlCommand command = new NpgsqlCommand(@"DELETE FROM inventoryitems WHERE ""folderID""=:folderID", connection))
+            using (NpgsqlCommand command = new(@"DELETE FROM inventoryitems WHERE ""folderID""=:folderID", connection))
             {
                 command.Parameters.Add(database.CreateParameter("folderID", folderID));
 
@@ -675,7 +675,7 @@ namespace OpenSim.Data.PGSQL
 
             if (folders.Count > 0)
             {
-                List<InventoryFolderBase> tempFolders = new List<InventoryFolderBase>();
+                List<InventoryFolderBase> tempFolders = [];
 
                 foreach (InventoryFolderBase folderBase in folders)
                 {
@@ -699,8 +699,8 @@ namespace OpenSim.Data.PGSQL
         private List<InventoryFolderBase> getInventoryFolders(UUID parentID, UUID user)
         {
             string sql = @"SELECT * FROM inventoryfolders WHERE ""parentFolderID"" = :parentID AND ""agentID"" = :uuid";
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_connectionString))
-            using (NpgsqlCommand command = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_connectionString))
+            using (NpgsqlCommand command = new(sql, conn))
             {
                 if (user.IsZero())
                 {
@@ -726,7 +726,7 @@ namespace OpenSim.Data.PGSQL
             using (NpgsqlDataReader reader = command.ExecuteReader())
             {
 
-                List<InventoryFolderBase> items = new List<InventoryFolderBase>();
+                List<InventoryFolderBase> items = [];
                 while (reader.Read())
                 {
                     items.Add(readInventoryFolder(reader));
@@ -744,13 +744,15 @@ namespace OpenSim.Data.PGSQL
         {
             try
             {
-                InventoryFolderBase folder = new InventoryFolderBase();
-                folder.Owner = DBGuid.FromDB(reader["agentID"]);
-                folder.ParentID = DBGuid.FromDB(reader["parentFolderID"]);
-                folder.ID = DBGuid.FromDB(reader["folderID"]);
-                folder.Name = (string)reader["folderName"];
-                folder.Type = (short)reader["type"];
-                folder.Version = Convert.ToUInt16(reader["version"]);
+                InventoryFolderBase folder = new()
+                {
+                    Owner = DBGuid.FromDB(reader["agentID"]),
+                    ParentID = DBGuid.FromDB(reader["parentFolderID"]),
+                    ID = DBGuid.FromDB(reader["folderID"]),
+                    Name = (string)reader["folderName"],
+                    Type = (short)reader["type"],
+                    Version = Convert.ToUInt16(reader["version"])
+                };
 
                 return folder;
             }
@@ -771,28 +773,29 @@ namespace OpenSim.Data.PGSQL
         {
             try
             {
-                InventoryItemBase item = new InventoryItemBase();
-
-                item.ID = DBGuid.FromDB(reader["inventoryID"]);
-                item.AssetID = DBGuid.FromDB(reader["assetID"]);
-                item.AssetType = Convert.ToInt32(reader["assetType"].ToString());
-                item.Folder = DBGuid.FromDB(reader["parentFolderID"]);
-                item.Owner = DBGuid.FromDB(reader["avatarID"]);
-                item.Name = reader["inventoryName"].ToString();
-                item.Description = reader["inventoryDescription"].ToString();
-                item.NextPermissions = Convert.ToUInt32(reader["inventoryNextPermissions"]);
-                item.CurrentPermissions = Convert.ToUInt32(reader["inventoryCurrentPermissions"]);
-                item.InvType = Convert.ToInt32(reader["invType"].ToString());
-                item.CreatorId = reader["creatorID"].ToString();
-                item.BasePermissions = Convert.ToUInt32(reader["inventoryBasePermissions"]);
-                item.EveryOnePermissions = Convert.ToUInt32(reader["inventoryEveryOnePermissions"]);
-                item.GroupPermissions = Convert.ToUInt32(reader["inventoryGroupPermissions"]);
-                item.SalePrice = Convert.ToInt32(reader["salePrice"]);
-                item.SaleType = Convert.ToByte(reader["saleType"]);
-                item.CreationDate = Convert.ToInt32(reader["creationDate"]);
-                item.GroupID = DBGuid.FromDB(reader["groupID"]);
-                item.GroupOwned = Convert.ToBoolean(reader["groupOwned"]);
-                item.Flags = Convert.ToUInt32(reader["flags"]);
+                InventoryItemBase item = new()
+                {
+                    ID = DBGuid.FromDB(reader["inventoryID"]),
+                    AssetID = DBGuid.FromDB(reader["assetID"]),
+                    AssetType = Convert.ToInt32(reader["assetType"].ToString()),
+                    Folder = DBGuid.FromDB(reader["parentFolderID"]),
+                    Owner = DBGuid.FromDB(reader["avatarID"]),
+                    Name = reader["inventoryName"].ToString(),
+                    Description = reader["inventoryDescription"].ToString(),
+                    NextPermissions = Convert.ToUInt32(reader["inventoryNextPermissions"]),
+                    CurrentPermissions = Convert.ToUInt32(reader["inventoryCurrentPermissions"]),
+                    InvType = Convert.ToInt32(reader["invType"].ToString()),
+                    CreatorId = reader["creatorID"].ToString(),
+                    BasePermissions = Convert.ToUInt32(reader["inventoryBasePermissions"]),
+                    EveryOnePermissions = Convert.ToUInt32(reader["inventoryEveryOnePermissions"]),
+                    GroupPermissions = Convert.ToUInt32(reader["inventoryGroupPermissions"]),
+                    SalePrice = Convert.ToInt32(reader["salePrice"]),
+                    SaleType = Convert.ToByte(reader["saleType"]),
+                    CreationDate = Convert.ToInt32(reader["creationDate"]),
+                    GroupID = DBGuid.FromDB(reader["groupID"]),
+                    GroupOwned = Convert.ToBoolean(reader["groupOwned"]),
+                    Flags = Convert.ToUInt32(reader["flags"])
+                };
 
                 return item;
             }
@@ -813,7 +816,7 @@ namespace OpenSim.Data.PGSQL
         {
             try
             {
-                using (NpgsqlCommand command = new NpgsqlCommand(@"DELETE FROM inventoryfolders WHERE ""folderID""=:folderID and type=-1", connection))
+                using (NpgsqlCommand command = new(@"DELETE FROM inventoryfolders WHERE ""folderID""=:folderID and type=-1", connection))
                 {
                     command.Parameters.Add(database.CreateParameter("folderID", folderID));
 

@@ -48,7 +48,7 @@ namespace OpenSim.Region.CoreModules.Avatar.InstantMessage
         /// </value>
         protected bool m_enabled = false;
 
-        protected readonly List<Scene> m_scenes = new List<Scene>();
+        protected readonly List<Scene> m_scenes = [];
 
         #region Region Module interface
 

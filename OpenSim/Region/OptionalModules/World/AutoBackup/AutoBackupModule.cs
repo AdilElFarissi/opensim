@@ -97,14 +97,14 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
     {
         private static readonly ILog m_log =
             LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private readonly AutoBackupModuleState m_defaultState = new AutoBackupModuleState();
+        private readonly AutoBackupModuleState m_defaultState = new();
         private readonly Dictionary<IScene, AutoBackupModuleState> m_states =
-            new Dictionary<IScene, AutoBackupModuleState>(1);
+            new(1);
 
         private delegate T DefaultGetter<T>(string settingName, T defaultValue);
         private bool m_enabled;
         private ICommandConsole m_console;
-        private List<Scene> m_Scenes = new List<Scene> ();
+        private List<Scene> m_Scenes = [];
         private Timer m_masterTimer;
         private bool m_busy;
         private int m_KeepFilesForDays = -1;
@@ -167,8 +167,10 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
             m_log.Debug(m_defaultState.ToString());
 
             m_log.Info("[AUTO BACKUP]: AutoBackupModule enabled");
-            m_masterTimer = new Timer();
-            m_masterTimer.Interval = m_baseInterval;
+            m_masterTimer = new Timer
+            {
+                Interval = m_baseInterval
+            };
             m_masterTimer.Elapsed += HandleElapsed;
             m_masterTimer.AutoReset = false;
 
@@ -339,7 +341,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
             {
                 try
                 {
-                DirectoryInfo dirinfo = new DirectoryInfo(backupDir);
+                DirectoryInfo dirinfo = new(backupDir);
                 if (!dirinfo.Exists)
                     dirinfo.Create();
                 }
@@ -406,12 +408,13 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
             if (regionConfig == null)
                 return null;
 
-            state = new AutoBackupModuleState();
+            state = new AutoBackupModuleState
+            {
+                Enabled = regionConfig.GetBoolean("AutoBackup", m_defaultState.Enabled),
 
-            state.Enabled = regionConfig.GetBoolean("AutoBackup", m_defaultState.Enabled);
-
-            // Included Option To Skip Assets
-            state.SkipAssets = regionConfig.GetBoolean("AutoBackupSkipAssets", m_defaultState.SkipAssets);
+                // Included Option To Skip Assets
+                SkipAssets = regionConfig.GetBoolean("AutoBackupSkipAssets", m_defaultState.SkipAssets)
+            };
 
             // Set file naming algorithm
             string stmpNamingType = regionConfig.GetString("AutoBackupNaming", m_defaultState.NamingType.ToString());
@@ -505,7 +508,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
             m_log.Info("[AUTO BACKUP]: Backing up region " + scene.RegionInfo.RegionName);
 
             // Must pass options, even if dictionary is empty!
-            Dictionary<string, object> options = new Dictionary<string, object>();
+            Dictionary<string, object> options = [];
 
             if (state.SkipAssets)
                 options["noassets"] = true;
@@ -534,7 +537,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
             {
                 try
                 {
-                    FileInfo fi = new FileInfo(file);
+                    FileInfo fi = new(file);
                     if (fi.CreationTime < CuttOffDate)
                         fi.Delete();
                 }
@@ -550,7 +553,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
         /// Sequential numbers, right? We support those, too!</summary>
         private static string GetTimeString()
         {
-            StringWriter sw = new StringWriter();
+            StringWriter sw = new();
             sw.Write("_");
             DateTime now = DateTime.Now;
             sw.Write(now.Year);
@@ -588,12 +591,14 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
 
             try
             {
-                FileInfo fi = new FileInfo(scriptName);
+                FileInfo fi = new(scriptName);
                 if (fi.Exists)
                 {
-                    ProcessStartInfo psi = new ProcessStartInfo(scriptName);
-                    psi.Arguments = savePath;
-                    psi.CreateNoWindow = true;
+                    ProcessStartInfo psi = new(scriptName)
+                    {
+                        Arguments = savePath,
+                        CreateNoWindow = true
+                    };
                     Process proc = Process.Start(psi);
                     proc.ErrorDataReceived += HandleProcErrorDataReceived;
                 }
@@ -676,7 +681,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
         {
             long retval = 1;
 
-            DirectoryInfo di = new DirectoryInfo(dirName);
+            DirectoryInfo di = new(dirName);
             FileInfo[] fi = di.GetFiles(regionName, SearchOption.TopDirectoryOnly);
             Array.Sort(fi, (f1, f2) => StringComparer.CurrentCultureIgnoreCase.Compare(f1.Name, f2.Name));
 
@@ -684,7 +689,7 @@ namespace OpenSim.Region.OptionalModules.World.AutoBackup
             {
                 long subtract = 1L;
                 bool worked = false;
-                Regex reg = new Regex(regionName + "_([0-9])+" + ".oar");
+                Regex reg = new(regionName + "_([0-9])+" + ".oar");
 
                 while (!worked && subtract <= fi.LongLength)
                 {

@@ -81,7 +81,7 @@ namespace OpenSim.Framework.Serialization
         /// <returns>the data for the entry.  Returns null if there are no more entries</returns>
         public byte[] ReadEntry(out string filePath, out TarEntryType entryType)
         {
-            filePath = String.Empty;
+            filePath = string.Empty;
             entryType = TarEntryType.TYPE_UNKNOWN;
             TarHeader header = ReadHeader();
 
@@ -110,7 +110,7 @@ namespace OpenSim.Framework.Serialization
             if (header[0] == 0)
                 return null;
 
-            TarHeader tarHeader = new TarHeader();
+            TarHeader tarHeader = new();
 
             // If we're looking at a GNU tar long link then extract the long name and pull up the next header
             if (header[156] == (byte)'L')

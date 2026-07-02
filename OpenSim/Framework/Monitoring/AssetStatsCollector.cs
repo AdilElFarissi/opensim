@@ -37,7 +37,7 @@ namespace OpenSim.Framework.Monitoring
     /// </summary>
     public class AssetStatsCollector : BaseStatsCollector
     {
-        private Timer ageStatsTimer = new Timer(24 * 60 * 60 * 1000);
+        private Timer ageStatsTimer = new(24 * 60 * 60 * 1000);
         private DateTime startTime = DateTime.Now;
 
         private long assetRequestsToday;
@@ -116,13 +116,15 @@ Asset requests yesterday : {3}  ({4} per hour)  of which {5} were not found",
             long assetRequestsTodayPerHour = (long)Math.Round(AssetRequestsToday / elapsedHours);
             long assetRequestsYesterdayPerHour = (long)Math.Round(AssetRequestsYesterday / 24.0);
 
-            OSDMap ret = new OSDMap();
-            ret.Add("AssetRequestsToday", OSD.FromLong(AssetRequestsToday));
-            ret.Add("AssetRequestsTodayPerHour", OSD.FromLong(assetRequestsTodayPerHour));
-            ret.Add("AssetRequestsNotFoundToday", OSD.FromLong(AssetRequestsNotFoundToday));
-            ret.Add("AssetRequestsYesterday", OSD.FromLong(AssetRequestsYesterday));
-            ret.Add("AssetRequestsYesterdayPerHour", OSD.FromLong(assetRequestsYesterdayPerHour));
-            ret.Add("AssetRequestsNotFoundYesterday", OSD.FromLong(assetRequestsNotFoundYesterday));
+            OSDMap ret = new()
+            {
+                { "AssetRequestsToday", OSD.FromLong(AssetRequestsToday) },
+                { "AssetRequestsTodayPerHour", OSD.FromLong(assetRequestsTodayPerHour) },
+                { "AssetRequestsNotFoundToday", OSD.FromLong(AssetRequestsNotFoundToday) },
+                { "AssetRequestsYesterday", OSD.FromLong(AssetRequestsYesterday) },
+                { "AssetRequestsYesterdayPerHour", OSD.FromLong(assetRequestsYesterdayPerHour) },
+                { "AssetRequestsNotFoundYesterday", OSD.FromLong(assetRequestsNotFoundYesterday) }
+            };
 
             return ret;
         }

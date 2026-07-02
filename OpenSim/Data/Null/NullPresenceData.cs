@@ -36,7 +36,7 @@ namespace OpenSim.Data.Null
 
         public static NullPresenceData Instance;
 
-        Dictionary<UUID, PresenceData> m_presenceData = new Dictionary<UUID, PresenceData>();
+        Dictionary<UUID, PresenceData> m_presenceData = [];
 
         public NullPresenceData(string connectionString, string realm)
         {
@@ -76,7 +76,7 @@ namespace OpenSim.Data.Null
                 return;
             }
 
-            List<UUID> toBeDeleted = new List<UUID>();
+            List<UUID> toBeDeleted = [];
             foreach (KeyValuePair<UUID, PresenceData> kvp in m_presenceData)
                 if (kvp.Value.RegionID == regionID)
                     toBeDeleted.Add(kvp.Key);
@@ -107,7 +107,7 @@ namespace OpenSim.Data.Null
 //            m_log.DebugFormat(
 //                "[NULL PRESENCE DATA]: Getting presence data for field {0} with parameter {1}", field, data);
 
-            List<PresenceData> presences = new List<PresenceData>();
+            List<PresenceData> presences = [];
             if (field == "UserID")
             {
                 foreach (PresenceData p in m_presenceData.Values)
@@ -164,7 +164,7 @@ namespace OpenSim.Data.Null
             if (Instance != this)
                 return Instance.Delete(field, data);
 
-            List<UUID> presences = new List<UUID>();
+            List<UUID> presences = [];
             if (field == "UserID")
             {
                 foreach (KeyValuePair<UUID, PresenceData> p in m_presenceData)

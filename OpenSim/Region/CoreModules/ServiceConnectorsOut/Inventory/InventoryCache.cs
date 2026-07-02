@@ -38,9 +38,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
     {
         private const int CACHE_EXPIRATION = 60000; // 1 minute
 
-        private static ExpiringCacheOS<UUID, InventoryFolderBase> m_RootFolders = new ExpiringCacheOS<UUID, InventoryFolderBase>();
-        private static ExpiringCacheOS<UUID, Dictionary<FolderType, InventoryFolderBase>> m_FolderTypes = new ExpiringCacheOS<UUID, Dictionary<FolderType, InventoryFolderBase>>();
-        private static ExpiringCacheOS<UUID, InventoryCollection> m_Inventories = new ExpiringCacheOS<UUID, InventoryCollection>();
+        private static ExpiringCacheOS<UUID, InventoryFolderBase> m_RootFolders = new();
+        private static ExpiringCacheOS<UUID, Dictionary<FolderType, InventoryFolderBase>> m_FolderTypes = new();
+        private static ExpiringCacheOS<UUID, InventoryCollection> m_Inventories = new();
 
         public void RemoveAll(UUID userID)
         {
@@ -66,7 +66,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
         {
             if (!m_FolderTypes.TryGetValue(userID, out Dictionary<FolderType, InventoryFolderBase> ff))
             {
-                ff = new Dictionary<FolderType, InventoryFolderBase>();
+                ff = [];
                 m_FolderTypes.Add(userID, ff, CACHE_EXPIRATION);
             }
 
@@ -104,17 +104,19 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Inventory
             InventoryCollection c;
             if (m_Inventories.TryGetValue(userID, out InventoryCollection inv))
             {
-                c = new InventoryCollection();
-                c.OwnerID = userID;
+                c = new InventoryCollection
+                {
+                    OwnerID = userID,
 
-                c.Folders = inv.Folders.FindAll(delegate(InventoryFolderBase f)
-                {
-                    return f.ParentID == folderID;
-                });
-                c.Items = inv.Items.FindAll(delegate(InventoryItemBase i)
-                {
-                    return i.Folder == folderID;
-                });
+                    Folders = inv.Folders.FindAll(delegate (InventoryFolderBase f)
+                        {
+                            return f.ParentID == folderID;
+                        }),
+                    Items = inv.Items.FindAll(delegate (InventoryItemBase i)
+                        {
+                            return i.Folder == folderID;
+                        })
+                };
                 return c;
             }
             return null;

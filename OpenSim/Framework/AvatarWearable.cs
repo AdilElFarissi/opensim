@@ -76,32 +76,32 @@ namespace OpenSim.Framework
         public static int MAX_WEARABLES = 17;
 
 
-        public static readonly UUID DEFAULT_BODY_ITEM = new UUID("66c41e39-38f9-f75a-024e-585989bfaba9");
-        public static readonly UUID DEFAULT_BODY_ASSET = new UUID("66c41e39-38f9-f75a-024e-585989bfab73");
+        public static readonly UUID DEFAULT_BODY_ITEM = new("66c41e39-38f9-f75a-024e-585989bfaba9");
+        public static readonly UUID DEFAULT_BODY_ASSET = new("66c41e39-38f9-f75a-024e-585989bfab73");
 
-        public static readonly UUID DEFAULT_HAIR_ITEM = new UUID("d342e6c1-b9d2-11dc-95ff-0800200c9a66");
-        public static readonly UUID DEFAULT_HAIR_ASSET = new UUID("d342e6c0-b9d2-11dc-95ff-0800200c9a66");
+        public static readonly UUID DEFAULT_HAIR_ITEM = new("d342e6c1-b9d2-11dc-95ff-0800200c9a66");
+        public static readonly UUID DEFAULT_HAIR_ASSET = new("d342e6c0-b9d2-11dc-95ff-0800200c9a66");
 
-        public static readonly UUID DEFAULT_SKIN_ITEM = new UUID("77c41e39-38f9-f75a-024e-585989bfabc9");
-        public static readonly UUID DEFAULT_SKIN_ASSET = new UUID("77c41e39-38f9-f75a-024e-585989bbabbb");
+        public static readonly UUID DEFAULT_SKIN_ITEM = new("77c41e39-38f9-f75a-024e-585989bfabc9");
+        public static readonly UUID DEFAULT_SKIN_ASSET = new("77c41e39-38f9-f75a-024e-585989bbabbb");
 
-        public static readonly UUID DEFAULT_EYES_ITEM = new UUID("cdc31054-eed8-4021-994f-4e0c6e861b50");
-        public static readonly UUID DEFAULT_EYES_ASSET = new UUID("4bb6fa4d-1cd2-498a-a84c-95c1a0e745a7");
+        public static readonly UUID DEFAULT_EYES_ITEM = new("cdc31054-eed8-4021-994f-4e0c6e861b50");
+        public static readonly UUID DEFAULT_EYES_ASSET = new("4bb6fa4d-1cd2-498a-a84c-95c1a0e745a7");
 
-        public static readonly UUID DEFAULT_SHIRT_ITEM = new UUID("77c41e39-38f9-f75a-0000-585989bf0000");
-        public static readonly UUID DEFAULT_SHIRT_ASSET = new UUID("00000000-38f9-1111-024e-222222111110");
+        public static readonly UUID DEFAULT_SHIRT_ITEM = new("77c41e39-38f9-f75a-0000-585989bf0000");
+        public static readonly UUID DEFAULT_SHIRT_ASSET = new("00000000-38f9-1111-024e-222222111110");
 
-        public static readonly UUID DEFAULT_PANTS_ITEM = new UUID("77c41e39-38f9-f75a-0000-5859892f1111");
-        public static readonly UUID DEFAULT_PANTS_ASSET = new UUID("00000000-38f9-1111-024e-222222111120");
+        public static readonly UUID DEFAULT_PANTS_ITEM = new("77c41e39-38f9-f75a-0000-5859892f1111");
+        public static readonly UUID DEFAULT_PANTS_ASSET = new("00000000-38f9-1111-024e-222222111120");
 
-        public static readonly UUID DEFAULT_ALPHA_ITEM = new UUID("bfb9923c-4838-4d2d-bf07-608c5b1165c8");
-        public static readonly UUID DEFAULT_ALPHA_ASSET = new UUID("1578a2b1-5179-4b53-b618-fe00ca5a5594");
+        public static readonly UUID DEFAULT_ALPHA_ITEM = new("bfb9923c-4838-4d2d-bf07-608c5b1165c8");
+        public static readonly UUID DEFAULT_ALPHA_ASSET = new("1578a2b1-5179-4b53-b618-fe00ca5a5594");
 
-        public static readonly UUID DEFAULT_TATTOO_ITEM = new UUID("c47e22bd-3021-4ba4-82aa-2b5cb34d35e1");
-        public static readonly UUID DEFAULT_TATTOO_ASSET = new UUID("00000000-0000-2222-3333-100000001007");
+        public static readonly UUID DEFAULT_TATTOO_ITEM = new("c47e22bd-3021-4ba4-82aa-2b5cb34d35e1");
+        public static readonly UUID DEFAULT_TATTOO_ASSET = new("00000000-0000-2222-3333-100000001007");
 
-        protected Dictionary<UUID, UUID> m_items = new Dictionary<UUID, UUID>();
-        protected List<UUID> m_ids = new List<UUID>();
+        protected Dictionary<UUID, UUID> m_items = [];
+        protected List<UUID> m_ids = [];
 
         public AvatarWearable()
         {
@@ -119,13 +119,15 @@ namespace OpenSim.Framework
 
         public OSD Pack()
         {
-            OSDArray wearlist = new OSDArray();
+            OSDArray wearlist = [];
 
             foreach (UUID id in m_ids)
             {
-                OSDMap weardata = new OSDMap();
-                weardata["item"] = OSD.FromUUID(id);
-                weardata["asset"] = OSD.FromUUID(m_items[id]);
+                OSDMap weardata = new()
+                {
+                    ["item"] = OSD.FromUUID(id),
+                    ["asset"] = OSD.FromUUID(m_items[id])
+                };
                 wearlist.Add(weardata);
             }
 

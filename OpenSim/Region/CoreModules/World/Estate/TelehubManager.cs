@@ -72,7 +72,7 @@ namespace OpenSim.Region.CoreModules.World.Estate
             if (grp == null)
                 return;
 
-            SpawnPoint sp = new SpawnPoint();
+            SpawnPoint sp = new();
             sp.SetLocation(grp.AbsolutePosition, grp.GroupRotation, point);
             m_Scene.RegionInfo.RegionSettings.AddSpawnPoint(sp);
             m_Scene.RegionInfo.RegionSettings.Save();

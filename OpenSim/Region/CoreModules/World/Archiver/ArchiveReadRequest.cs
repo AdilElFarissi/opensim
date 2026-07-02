@@ -69,9 +69,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             public DearchiveContext(Scene scene)
             {
                 Scene = scene;
-                SerialisedSceneObjects = new List<string>();
-                SerialisedParcels = new List<string>();
-                SceneObjects = new List<SceneObjectGroup>();
+                SerialisedSceneObjects = [];
+                SerialisedParcels = [];
+                SceneObjects = [];
             }
         }
 
@@ -156,7 +156,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <summary>
         /// Used to cache lookups for valid uuids.
         /// </summary>
-        private readonly Dictionary<UUID, bool> m_validUserUuids = new();
+        private readonly Dictionary<UUID, bool> m_validUserUuids = [];
 
         private IUserManagement m_UserMan;
         private IUserManagement UserManager
@@ -171,7 +171,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         /// <summary>
         /// Used to cache lookups for valid groups.
         /// </summary>
-        private readonly Dictionary<UUID, bool> m_validGroupUuids = new();
+        private readonly Dictionary<UUID, bool> m_validGroupUuids = [];
 
         private readonly IGroupsModule m_groupsModule;
 
@@ -207,7 +207,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 m_log.Error(e);
             }
 
-            m_errorMessage = String.Empty;
+            m_errorMessage = string.Empty;
 
             m_merge = options.ContainsKey("merge");
             m_mergeReplaceObjects = options.ContainsKey("mReplaceObjects");
@@ -411,7 +411,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             // We dearchive all the scenes at once, because the files in the TAR archive might be mixed.
             // Therefore, we have to keep track of the dearchive context of all the scenes.
-            Dictionary<UUID, DearchiveContext> sceneContexts = new();
+            Dictionary<UUID, DearchiveContext> sceneContexts = [];
 
             string fullPath = "NONE";
             TarArchiveReader archive = null;
@@ -500,7 +500,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             {
                 m_log.Error($"[ARCHIVER]: Aborting load with error in archive file {fullPath}: {e.Message}");
                 m_errorMessage += e.Message;
-                m_rootScene.EventManager.TriggerOarFileLoaded(m_requestId, new List<UUID>(), m_errorMessage);
+                m_rootScene.EventManager.TriggerOarFileLoaded(m_requestId, [], m_errorMessage);
                 return;
             }
             finally
@@ -546,7 +546,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 {
                     m_log.Error($"[ARCHIVER]: Error loading parcels or objects :{e.Message}");
                     m_errorMessage += e.Message;
-                    m_rootScene.EventManager.TriggerOarFileLoaded(m_requestId, new List<UUID>(), m_errorMessage);
+                    m_rootScene.EventManager.TriggerOarFileLoaded(m_requestId, [], m_errorMessage);
                     return;
                 }
             }
@@ -865,7 +865,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             // Reload serialized parcels
             m_log.Info($"[ARCHIVER]: Loading {serialisedParcels.Count} parcels.  Please wait.");
-            List<LandData> landData = new();
+            List<LandData> landData = [];
             ILandObject landObject;
             List<ILandObject> parcels;
             Vector2 displacement = new(m_displacement.X, m_displacement.Y);
@@ -966,7 +966,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                         parcel.OwnerID = m_rootScene.RegionInfo.EstateSettings.EstateOwner;
                 }
 
-                List<LandAccessEntry> accessList = new();
+                List<LandAccessEntry> accessList = [];
                 foreach (LandAccessEntry entry in parcel.ParcelAccessList)
                 {
                     if (ResolveUserUuid(scene, entry.AgentID))
@@ -1243,7 +1243,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                     }
                     else if (xtr.Name.ToString() == "datetime")
                     {
-                        if (Int32.TryParse(xtr.ReadElementContentAsString(), out int value))
+                        if (int.TryParse(xtr.ReadElementContentAsString(), out int value))
                             dearchivedScenes.LoadedCreationDateTime = value;
                     }
                     else if (xtr.Name.ToString() == "row")

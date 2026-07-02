@@ -52,7 +52,7 @@ namespace OpenSim.Region.OptionalModules.Framework.Monitoring
         protected Scene m_scene;
         protected IEtcdClient m_client;
         protected bool m_enabled = false;
-        protected string m_etcdBasePath = String.Empty;
+        protected string m_etcdBasePath = string.Empty;
         protected bool m_appendRegionID = true;
 
         public string Name
@@ -72,7 +72,7 @@ namespace OpenSim.Region.OptionalModules.Framework.Monitoring
 
             IConfig etcdConfig = source.Configs["Etcd"];
 
-            string etcdUrls = etcdConfig.GetString("EtcdUrls", String.Empty);
+            string etcdUrls = etcdConfig.GetString("EtcdUrls", string.Empty);
             if (etcdUrls.Length == 0)
                 return;
 
@@ -85,7 +85,7 @@ namespace OpenSim.Region.OptionalModules.Framework.Monitoring
             try
             {
                 string[] endpoints = etcdUrls.Split(new char[] {','});
-                List<Uri> uris = new List<Uri>();
+                List<Uri> uris = [];
                 foreach (string endpoint in endpoints)
                     uris.Add(new Uri(endpoint.Trim()));
 
@@ -166,13 +166,13 @@ namespace OpenSim.Region.OptionalModules.Framework.Monitoring
             Response resp = m_client.Advanced.GetKey(new GetKeyRequest() { Key = m_etcdBasePath + k });
 
             if (resp == null)
-                return String.Empty;
+                return string.Empty;
 
             if (resp.ErrorCode.HasValue)
             {
                 m_log.DebugFormat("[ETCD]: Error {0} ({1}) getting {2}", resp.Cause, (int)resp.ErrorCode, m_etcdBasePath + k);
 
-                return String.Empty;
+                return string.Empty;
             }
 
             return resp.Node.Value;

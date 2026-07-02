@@ -39,7 +39,7 @@ namespace OpenSim.Framework.Monitoring
 
         public int LogLevel { get; set; }
 
-        private object JobLock = new object();
+        private object JobLock = new();
 
         public string Name { get; private set; }
 
@@ -64,7 +64,7 @@ namespace OpenSim.Framework.Monitoring
         /// </remarks>
         private bool m_warnOverMaxQueue = true;
 
-        private BlockingCollection<Job> m_jobQueue = new BlockingCollection<Job>(5000);
+        private BlockingCollection<Job> m_jobQueue = new(5000);
 
         private CancellationTokenSource m_cancelSource;
 

@@ -65,7 +65,7 @@ namespace pCampBot
             }
 
             // TODO: unused: Vector3 pos = client.Self.SimPosition;
-            Vector3 newpos = new Vector3(Bot.Random.Next(1, 254), Bot.Random.Next(1, 254), Bot.Random.Next(1, 254));
+            Vector3 newpos = new(Bot.Random.Next(1, 254), Bot.Random.Next(1, 254), Bot.Random.Next(1, 254));
             Bot.Client.Self.Movement.TurnToward(newpos);
 
             Bot.Client.Self.Movement.AtPos = true;

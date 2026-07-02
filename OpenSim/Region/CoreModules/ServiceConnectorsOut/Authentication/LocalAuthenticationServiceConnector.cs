@@ -78,7 +78,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authentication
                     }
 
                     string serviceDll = userConfig.GetString("LocalServiceModule",
-                            String.Empty);
+                            string.Empty);
 
                     if (serviceDll.Length == 0)
                     {
@@ -86,7 +86,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Authentication
                         return;
                     }
 
-                    Object[] args = new Object[] { source };
+                    object[] args = new object[] { source };
                     m_AuthenticationService =
                             ServerUtils.LoadPlugin<IAuthenticationService>(serviceDll,
                             args);

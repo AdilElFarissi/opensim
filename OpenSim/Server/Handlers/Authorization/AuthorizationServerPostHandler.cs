@@ -49,13 +49,13 @@ namespace OpenSim.Server.Handlers.Authorization
         protected override byte[] ProcessRequest(string path, Stream request,
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
-            XmlSerializer xs = new XmlSerializer(typeof (AuthorizationRequest));
+            XmlSerializer xs = new(typeof (AuthorizationRequest));
             AuthorizationRequest Authorization = (AuthorizationRequest) xs.Deserialize(request);
 
-            string message = String.Empty;
+            string message = string.Empty;
             bool authorized = m_AuthorizationService.IsAuthorizedForRegion(Authorization.ID, Authorization.FirstName, Authorization.SurName, Authorization.RegionID, out message);
 
-            AuthorizationResponse result = new AuthorizationResponse(authorized, Authorization.ID + " has been authorized");
+            AuthorizationResponse result = new(authorized, Authorization.ID + " has been authorized");
 
             xs = new XmlSerializer(typeof(AuthorizationResponse));
             return ServerUtils.SerializeResult(xs, result);

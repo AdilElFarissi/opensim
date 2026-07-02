@@ -44,14 +44,14 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         public const ulong HANDLEMASK = 0xffffff00ffffff00ul;
         public const ulong HANDLECOORDMASK = 0xffffff00ul;
 
-        private static readonly object m_creationLock = new object();
+        private static readonly object m_creationLock = new();
 
-        private static readonly Dictionary<ulong, int> m_expireControl = new Dictionary<ulong, int>();
-        private static readonly Dictionary<ulong, GridRegion> m_byHandler = new Dictionary<ulong, GridRegion>();
-        private static readonly Dictionary<string, GridRegion> m_byName = new Dictionary<string, GridRegion>();
-        private static readonly Dictionary<UUID, GridRegion> m_byUUID = new Dictionary<UUID, GridRegion>();
+        private static readonly Dictionary<ulong, int> m_expireControl = [];
+        private static readonly Dictionary<ulong, GridRegion> m_byHandler = [];
+        private static readonly Dictionary<string, GridRegion> m_byName = [];
+        private static readonly Dictionary<UUID, GridRegion> m_byUUID = [];
         // includes handles to the inside of large regions
-        private static readonly Dictionary<ulong, GridRegion> m_innerHandles = new Dictionary<ulong, GridRegion>();
+        private static readonly Dictionary<ulong, GridRegion> m_innerHandles = [];
 
         //private static bool disposed;
         private static ReaderWriterLockSlim m_rwLock;
@@ -470,7 +470,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             try
             {
                 int now = (int)(Util.GetTimeStamp() - starttimeS);
-                List<ulong> toexpire = new List<ulong>(m_expireControl.Count);
+                List<ulong> toexpire = new(m_expireControl.Count);
                 foreach (KeyValuePair<ulong, int> kvp in m_expireControl)
                 {
                     if (kvp.Value < now)
@@ -513,7 +513,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             rsy >>= 8;
 
             ulong handle = region.RegionHandle & HANDLEMASK;
-            fastRegionHandle fh = new fastRegionHandle(handle);
+            fastRegionHandle fh = new(handle);
             uint startY = fh.y;
             for (int i = 0; i < rsx; i++)
             {
@@ -539,7 +539,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             rsx >>= 8;
             rsy >>= 8;
             ulong handle = region.RegionHandle & HANDLEMASK;
-            fastRegionHandle fh = new fastRegionHandle(handle);
+            fastRegionHandle fh = new(handle);
             uint startY = fh.y;
             for (int i = 0; i < rsx; i++)
             {
@@ -600,7 +600,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
         {
             return handle.GetHashCode();
         }
-        public override bool Equals(Object obj)
+        public override bool Equals(object obj)
         {
             if(obj == null)
                 return false;

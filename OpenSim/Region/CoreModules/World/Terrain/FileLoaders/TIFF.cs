@@ -931,7 +931,7 @@ namespace OpenSim.Region.CoreModules.World.Terrain.FileLoaders
                         // Handle the case where BitsPerSample is an offset to an array
                         long currentPos = stream.Position;
                         stream.Seek(valueOffset, SeekOrigin.Begin);
-                        List<int> bits = new List<int>();
+                        List<int> bits = [];
                         for (int j = 0; j < count; j++)
                         {
                             stream.Read(buffer, 0, 2);

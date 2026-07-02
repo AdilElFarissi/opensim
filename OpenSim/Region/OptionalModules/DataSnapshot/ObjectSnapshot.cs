@@ -44,8 +44,8 @@ namespace OpenSim.Region.DataSnapshot.Providers
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private bool m_stale = true;
 
-        private static UUID m_DefaultImage = new UUID("89556747-24cb-43ed-920b-47caed15465f");
-        private static UUID m_BlankImage = new UUID("5748decc-f629-461c-9a36-a35a221fe21f");
+        private static UUID m_DefaultImage = new("89556747-24cb-43ed-920b-47caed15465f");
+        private static UUID m_BlankImage = new("5748decc-f629-461c-9a36-a35a221fe21f");
 
 
         public void Initialize(Scene scene, DataSnapshotManager parent)
@@ -134,7 +134,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
                         xmlobject.AppendChild(node);
 
                         node = nodeFactory.CreateNode(XmlNodeType.Element, "flags", "");
-                        node.InnerText = String.Format("{0:x}", (uint)m_rootPart.Flags);
+                        node.InnerText = string.Format("{0:x}", (uint)m_rootPart.Flags);
                         xmlobject.AppendChild(node);
 
                         node = nodeFactory.CreateNode(XmlNodeType.Element, "regionuuid", "");
@@ -176,7 +176,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
             return parent;
         }
 
-        public String Name
+        public string Name
         {
             get { return "ObjectSnapshot"; }
         }
@@ -209,7 +209,7 @@ namespace OpenSim.Region.DataSnapshot.Providers
         private string GuessImage(SceneObjectGroup sog)
         {
             string bestguess = string.Empty;
-            Dictionary<UUID, int> counts = new Dictionary<UUID, int>();
+            Dictionary<UUID, int> counts = [];
 
             PrimitiveBaseShape shape = sog.RootPart.Shape;
             if (shape != null && shape.ProfileShape == ProfileShape.Square)

@@ -91,7 +91,7 @@ namespace OpenSim.Region.Framework.Scenes
         /// <value>
         /// The keys are the stat names.
         /// </value>
-        private Dictionary<string, float> m_lastReportedExtraSimStats = new Dictionary<string, float>();
+        private Dictionary<string, float> m_lastReportedExtraSimStats = [];
 
         // Sending a stats update every 3 seconds-
         private int m_statsUpdatesEveryMS = 3000;
@@ -101,8 +101,8 @@ namespace OpenSim.Region.Framework.Scenes
         private float m_timeDilation;
         private int m_fps;
 
-        private object m_statsLock = new object();
-        private object m_statsFrameLock = new object();
+        private object m_statsLock = new();
+        private object m_statsFrameLock = new();
 
         /// <summary>
         /// Parameter to adjust reported scene fps
@@ -166,7 +166,7 @@ namespace OpenSim.Region.Framework.Scenes
 
         private RegionInfo ReportingRegion;
 
-        private System.Timers.Timer m_report = new System.Timers.Timer();
+        private System.Timers.Timer m_report = new();
 
         private IEstateModule estateModule;
 
@@ -366,7 +366,7 @@ namespace OpenSim.Region.Framework.Scenes
                 m_activeScripts = SG.GetActiveScriptsCount();
                 m_scriptLinesPerSecond = SG.GetScriptLPS();
 
-                newvalues[(int)StatsIndex.TimeDilation] = (Single.IsNaN(timeDilation)) ? 0.0f : (float)Math.Round(timeDilation, 3);
+                newvalues[(int)StatsIndex.TimeDilation] = (float.IsNaN(timeDilation)) ? 0.0f : (float)Math.Round(timeDilation, 3);
                 newvalues[(int)StatsIndex.SimFPS] = (float)Math.Round(reportedFPS, 1);
                 newvalues[(int)StatsIndex.PhysicsFPS] = (float)Math.Round(physfps, 1);
                 newvalues[(int)StatsIndex.AgentUpdates] = m_agentUpdates * updateTimeFactor;
@@ -394,7 +394,7 @@ namespace OpenSim.Region.Framework.Scenes
 
                 // add extra stats for internal use
                 newvalues[(int)StatsIndex.LSLScriptLinesPerSecond] = (float)Math.Round(m_scriptLinesPerSecond * updateTimeFactor, 3);
-                newvalues[(int)StatsIndex.FrameDilation2] = (Single.IsNaN(timeDilation)) ? 0.1f : (float)Math.Round(timeDilation, 1);
+                newvalues[(int)StatsIndex.FrameDilation2] = (float.IsNaN(timeDilation)) ? 0.1f : (float)Math.Round(timeDilation, 1);
                 newvalues[(int)StatsIndex.UsersLoggingIn] = m_usersLoggingIn;
                 newvalues[(int)StatsIndex.TotalGeoPrim] = SG.GetTotalPrimObjectsCount();
                 newvalues[(int)StatsIndex.TotalMesh] = SG.GetTotalMeshObjectsCount();

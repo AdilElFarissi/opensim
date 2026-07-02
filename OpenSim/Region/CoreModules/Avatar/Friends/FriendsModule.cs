@@ -73,7 +73,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         protected static readonly FriendInfo[] EMPTY_FRIENDS = Array.Empty<FriendInfo>();
 
-        protected List<Scene> m_Scenes = new();
+        protected List<Scene> m_Scenes = [];
 
         protected IPresenceService m_PresenceService = null;
         protected IFriendsService m_FriendsService = null;
@@ -86,21 +86,21 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         /// This is a complex and error-prone thing to do.  At the moment, we assume that the efficiency gained in
         /// permissions checks outweighs the disadvantages of that complexity.
         /// </remarks>
-        protected Dictionary<UUID, UserFriendData> m_Friends = new();
+        protected Dictionary<UUID, UserFriendData> m_Friends = [];
 
-        protected Dictionary<UUID, HashSet<UUID>> m_OnlineFriendsCache = new();
+        protected Dictionary<UUID, HashSet<UUID>> m_OnlineFriendsCache = [];
 
         /// <summary>
         /// Maintain a record of clients that need to notify about their online status. This only
         /// needs to be done on login.  Subsequent online/offline friend changes are sent by a different mechanism.
         /// </summary>
-        protected HashSet<UUID> m_NeedsToNotifyStatus = new();
+        protected HashSet<UUID> m_NeedsToNotifyStatus = [];
 
         /// <summary>
         /// Maintain a record of viewers that need to be sent notifications for friends that are online.  This only
         /// needs to be done on login.  Subsequent online/offline friend changes are sent by a different mechanism.
         /// </summary>
-        protected HashSet<UUID> m_NeedsListOfOnlineFriends = new();
+        protected HashSet<UUID> m_NeedsListOfOnlineFriends = [];
 
         protected IPresenceService PresenceService
         {
@@ -175,8 +175,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             {
                 int mPort = friendsConfig.GetInt("Port", 0);
 
-                string connector = friendsConfig.GetString("Connector", String.Empty);
-                Object[] args = new Object[] { config };
+                string connector = friendsConfig.GetString("Connector", string.Empty);
+                object[] args = new object[] { config };
 
                 m_FriendsService = ServerUtils.LoadPlugin<IFriendsService>(connector, args);
                 m_FriendsSimConnector = new FriendsSimConnector();
@@ -276,7 +276,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         {
             if (!m_OnlineFriendsCache.TryGetValue(userID, out HashSet<UUID> friends))
             {
-                friends = new HashSet<UUID>();
+                friends = [];
                 m_OnlineFriendsCache[userID] = friends;
             }
             if (online)
@@ -295,7 +295,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         {
             if (!m_OnlineFriendsCache.TryGetValue(userID, out HashSet<UUID> friends))
             {
-                friends = new HashSet<UUID>();
+                friends = [];
                 m_OnlineFriendsCache[userID] = friends;
             }
             if (online)
@@ -307,9 +307,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         {
             if (m_OnlineFriendsCache.TryGetValue(userID, out HashSet<UUID> friends))
             {
-                List<UUID> friendslst = new List<UUID>(friends.Count);
-                foreach(UUID id in friends)
-                    friendslst.Add(id);
+                List<UUID> friendslst = [.. friends];
                 return friendslst;
             }
             else
@@ -452,7 +450,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 client.SendAgentOnline(online.ToArray());
 
             // Send outstanding friendship offers
-            List<string> outstanding = new();
+            List<string> outstanding = [];
             FriendInfo[] friends = GetFriendsFromCache(client.AgentId);
             foreach (FriendInfo fi in friends)
             {
@@ -506,7 +504,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         List<UUID> GetOnlineFriends(UUID userID)
         {
-            List<UUID> online = new();
+            List<UUID> online = [];
             FriendInfo[] friends = GetFriendsFromCache(userID);
             if(friends.Length == 0)
                 return online;
@@ -538,7 +536,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
             if (!m_OnlineFriendsCache.TryGetValue(userID, out HashSet<UUID> friends))
             {
-                friends = new HashSet<UUID>();
+                friends = [];
                 m_OnlineFriendsCache[userID] = friends;
             }
 

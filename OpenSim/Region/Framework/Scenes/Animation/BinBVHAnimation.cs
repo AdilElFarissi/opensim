@@ -50,8 +50,8 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         /// </summary>
         private int positionkeys;
 
-        public UInt16 unknown0; // Always 1
-        public UInt16 unknown1; // Always 0
+        public ushort unknown0; // Always 1
+        public ushort unknown1; // Always 0
 
         /// <summary>
         /// Animation Priority
@@ -61,7 +61,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         /// <summary>
         /// The animation length in seconds.
         /// </summary>
-        public Single Length;
+        public float Length;
 
         /// <summary>
         /// Expression set in the client.  Null if [None] is selected
@@ -71,12 +71,12 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         /// <summary>
         /// The time in seconds to start the animation
         /// </summary>
-        public Single InPoint;
+        public float InPoint;
 
         /// <summary>
         /// The time in seconds to end the animation
         /// </summary>
-        public Single OutPoint;
+        public float OutPoint;
 
         /// <summary>
         /// Loop the animation
@@ -86,12 +86,12 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         /// <summary>
         /// Meta data. Ease in Seconds.
         /// </summary>
-        public Single EaseInTime;
+        public float EaseInTime;
 
         /// <summary>
         /// Meta data. Ease out seconds.
         /// </summary>
-        public Single EaseOutTime;
+        public float EaseOutTime;
 
         /// <summary>
         /// Meta Data for the Hand Pose
@@ -115,8 +115,8 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         {
             byte[] outputbytes;
 
-            using (MemoryStream ms = new MemoryStream())
-            using (BinaryWriter iostream = new BinaryWriter(ms))
+            using (MemoryStream ms = new())
+            using (BinaryWriter iostream = new(ms))
             {
                 iostream.Write(BinBVHUtil.ES(Utils.UInt16ToBytes(unknown0)));
                 iostream.Write(BinBVHUtil.ES(Utils.UInt16ToBytes(unknown1)));
@@ -162,21 +162,27 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             m_jointCount = 0;
 
             Joints = new binBVHJoint[1];
-            Joints[0] = new binBVHJoint();
-            Joints[0].Name = "mPelvis";
-            Joints[0].Priority = 7;
-            Joints[0].positionkeys = new binBVHJointKey[1];
-            Joints[0].rotationkeys = new binBVHJointKey[1];
+            Joints[0] = new binBVHJoint
+            {
+                Name = "mPelvis",
+                Priority = 7,
+                positionkeys = new binBVHJointKey[1],
+                rotationkeys = new binBVHJointKey[1]
+            };
 
 
-            Joints[0].rotationkeys[0] = new binBVHJointKey();
-            Joints[0].rotationkeys[0].time = (0f);
+            Joints[0].rotationkeys[0] = new binBVHJointKey
+            {
+                time = (0f)
+            };
             Joints[0].rotationkeys[0].key_element.X = ((float)Random.Shared.NextDouble() * 2 - 1);
             Joints[0].rotationkeys[0].key_element.Y = ((float)Random.Shared.NextDouble() * 2 - 1);
             Joints[0].rotationkeys[0].key_element.Z = ((float)Random.Shared.NextDouble() * 2 - 1);
 
-            Joints[0].positionkeys[0] = new binBVHJointKey();
-            Joints[0].positionkeys[0].time = (0f);
+            Joints[0].positionkeys[0] = new binBVHJointKey
+            {
+                time = (0f)
+            };
             Joints[0].positionkeys[0].key_element.X = ((float)Random.Shared.NextDouble() * 2 - 1);
             Joints[0].positionkeys[0].key_element.Y = ((float)Random.Shared.NextDouble() * 2 - 1);
             Joints[0].positionkeys[0].key_element.Z = ((float)Random.Shared.NextDouble() * 2 - 1);
@@ -298,19 +304,20 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             binBVHJointKey[] positions;
             binBVHJointKey[] rotations;
 
-            binBVHJoint pJoint = new binBVHJoint();
+            binBVHJoint pJoint = new()
+            {
+                /*
+       109
+       84
+       111
+       114
+       114
+       111
+       0 <--- Null terminator
+   */
 
-            /*
-                109
-                84
-                111
-                114
-                114
-                111
-                0 <--- Null terminator
-            */
-
-            pJoint.Name = ReadBytesUntilNull(data, ref i); // Joint name
+                Name = ReadBytesUntilNull(data, ref i) // Joint name
+            };
 
             /*
                  2 <- Priority Revisited
@@ -408,8 +415,11 @@ namespace OpenSim.Region.Framework.Scenes.Animation
             binBVHJointKey[] m_keys = new binBVHJointKey[keycount];
             for (int j = 0; j < keycount; j++)
             {
-                binBVHJointKey pJKey = new binBVHJointKey();
-                pJKey.time = Utils.BytesUInt16ToFloat(data, i, InPoint, OutPoint); i += 2;
+                binBVHJointKey pJKey = new()
+                {
+                    time = Utils.BytesUInt16ToFloat(data, i, InPoint, OutPoint)
+                };
+                i += 2;
                 x = Utils.BytesUInt16ToFloat(data, i, min, max); i += 2;
                 y = Utils.BytesUInt16ToFloat(data, i, min, max); i += 2;
                 z = Utils.BytesUInt16ToFloat(data, i, min, max); i += 2;
@@ -513,11 +523,11 @@ namespace OpenSim.Region.Framework.Scenes.Animation
     }
     public static class BinBVHUtil
     {
-        public const float ONE_OVER_U16_MAX = 1.0f / UInt16.MaxValue;
+        public const float ONE_OVER_U16_MAX = 1.0f / ushort.MaxValue;
 
-        public static UInt16 FloatToUInt16(float val, float lower, float upper)
+        public static ushort FloatToUInt16(float val, float lower, float upper)
         {
-            UInt16 uival = 0;
+            ushort uival = 0;
             //m_parentGroup.GetTimeDilation() * (float)ushort.MaxValue
             //0-1
 
@@ -545,7 +555,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
                 val /= upper;
             }
 
-            uival = (UInt16)(val * UInt16.MaxValue);
+            uival = (ushort)(val * ushort.MaxValue);
 
             return uival;
         }
@@ -574,7 +584,7 @@ namespace OpenSim.Region.Framework.Scenes.Animation
         public static byte[] WriteNullTerminatedString(string str)
         {
             byte[] output = new byte[str.Length + 1];
-            Char[] chr = str.ToCharArray();
+            char[] chr = str.ToCharArray();
             int i = 0;
             for (i = 0; i < chr.Length; i++)
             {

@@ -40,7 +40,7 @@ namespace OpenSim.Data.SQLite
 //        private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         protected Dictionary<string, FieldInfo> m_Fields =
-                new Dictionary<string, FieldInfo>();
+                [];
 
         protected List<string> m_ColumnNames = null;
         protected string m_Realm;
@@ -65,14 +65,14 @@ namespace OpenSim.Data.SQLite
                 //Console.WriteLine(string.Format("OPENING CONNECTION FOR {0} USING {1}", storeName, connectionString));
                 m_Connection.Open();
 
-                if (storeName != String.Empty)
+                if (storeName != string.Empty)
                 {
                     //SQLiteConnection newConnection =
                     //        (SQLiteConnection)((ICloneable)m_Connection).Clone();
                     //newConnection.Open();
 
                     //Migration m = new Migration(newConnection, Assembly, storeName);
-                    Migration m = new Migration(m_Connection, Assembly, storeName);
+                    Migration m = new(m_Connection, Assembly, storeName);
                     m.Update();
                     //newConnection.Close();
                     //newConnection.Dispose();
@@ -103,7 +103,7 @@ namespace OpenSim.Data.SQLite
             if (m_ColumnNames != null)
                 return;
 
-            m_ColumnNames = new List<string>();
+            m_ColumnNames = [];
 
             DataTable schemaTable = reader.GetSchemaTable();
             foreach (DataRow row in schemaTable.Rows)
@@ -124,9 +124,9 @@ namespace OpenSim.Data.SQLite
             if (fields.Length != keys.Length)
                 return new T[0];
 
-            List<string> terms = new List<string>();
+            List<string> terms = [];
 
-            using (SQLiteCommand cmd = new SQLiteCommand())
+            using (SQLiteCommand cmd = new())
             {
                 for (int i = 0 ; i < fields.Length ; i++)
                 {
@@ -134,9 +134,9 @@ namespace OpenSim.Data.SQLite
                     terms.Add("`" + fields[i] + "` = :" + fields[i]);
                 }
 
-                string where = String.Join(" and ", terms.ToArray());
+                string where = string.Join(" and ", terms.ToArray());
 
-                string query = String.Format("select * from {0} where {1}",
+                string query = string.Format("select * from {0} where {1}",
                         m_Realm, where);
 
                 cmd.CommandText = query;
@@ -153,11 +153,11 @@ namespace OpenSim.Data.SQLite
 
             CheckColumnNames(reader);
 
-            List<T> result = new List<T>();
+            List<T> result = [];
 
             while (reader.Read())
             {
-                T row = new T();
+                T row = new();
 
                 foreach (string name in m_Fields.Keys)
                 {
@@ -187,13 +187,13 @@ namespace OpenSim.Data.SQLite
                 if (m_DataField != null)
                 {
                     Dictionary<string, string> data =
-                            new Dictionary<string, string>();
+                            [];
 
                     foreach (string col in m_ColumnNames)
                     {
                         data[col] = reader[col].ToString();
                         if (data[col] == null)
-                            data[col] = String.Empty;
+                            data[col] = string.Empty;
                     }
 
                     m_DataField.SetValue(row, data);
@@ -209,9 +209,9 @@ namespace OpenSim.Data.SQLite
 
         public virtual T[] Get(string where)
         {
-            using (SQLiteCommand cmd = new SQLiteCommand())
+            using (SQLiteCommand cmd = new())
             {
-                string query = String.Format("select * from {0} where {1}",
+                string query = string.Format("select * from {0} where {1}",
                         m_Realm, where);
 
                 cmd.CommandText = query;
@@ -222,11 +222,11 @@ namespace OpenSim.Data.SQLite
 
         public virtual bool Store(T row)
         {
-            using (SQLiteCommand cmd = new SQLiteCommand())
+            using (SQLiteCommand cmd = new())
             {
                 string query = "";
-                List<String> names = new List<String>();
-                List<String> values = new List<String>();
+                List<string> names = [];
+                List<string> values = [];
 
                 foreach (FieldInfo fi in m_Fields.Values)
                 {
@@ -248,7 +248,7 @@ namespace OpenSim.Data.SQLite
                     }
                 }
 
-                query = String.Format("replace into {0} (`", m_Realm) + String.Join("`,`", names.ToArray()) + "`) values (" + String.Join(",", values.ToArray()) + ")";
+                query = string.Format("replace into {0} (`", m_Realm) + string.Join("`,`", names.ToArray()) + "`) values (" + string.Join(",", values.ToArray()) + ")";
 
                 cmd.CommandText = query;
 
@@ -269,9 +269,9 @@ namespace OpenSim.Data.SQLite
             if (fields.Length != keys.Length)
                 return false;
 
-            List<string> terms = new List<string>();
+            List<string> terms = [];
 
-            using (SQLiteCommand cmd = new SQLiteCommand())
+            using (SQLiteCommand cmd = new())
             {
                 for (int i = 0 ; i < fields.Length ; i++)
                 {
@@ -279,9 +279,9 @@ namespace OpenSim.Data.SQLite
                     terms.Add("`" + fields[i] + "` = :" + fields[i]);
                 }
 
-                string where = String.Join(" and ", terms.ToArray());
+                string where = string.Join(" and ", terms.ToArray());
 
-                string query = String.Format("delete from {0} where {1}", m_Realm, where);
+                string query = string.Format("delete from {0} where {1}", m_Realm, where);
 
                 cmd.CommandText = query;
 

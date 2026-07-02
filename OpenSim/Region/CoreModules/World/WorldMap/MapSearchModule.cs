@@ -104,7 +104,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
 
             try
             {
-                List<MapBlockData> blocks = new List<MapBlockData>();
+                List<MapBlockData> blocks = [];
                 if (mapName.Length < 3 || (mapName.EndsWith("#") && mapName.Length < 4))
                 {
                     // final block, closing the search result
@@ -135,10 +135,12 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
                 {
                     foreach (GridRegion info in regionInfos)
                     {
-                        data = new MapBlockData();
-                        data.Agents = 0;
-                        data.Access = info.Access;
-                        MapBlockData block = new MapBlockData();
+                        data = new MapBlockData
+                        {
+                            Agents = 0,
+                            Access = info.Access
+                        };
+                        MapBlockData block = new();
                         MapBlockFromGridRegion(block, info, flags);
 
                         if (needOriginalName && flags == 2 &&  regionInfos.Count == 1)
@@ -198,7 +200,7 @@ namespace OpenSim.Region.CoreModules.World.WorldMap
         private void AddFinalBlock(List<MapBlockData> blocks,string name)
         {
                 // final block, closing the search result
-                MapBlockData data = new MapBlockData()
+                MapBlockData data = new()
                 {
                     Agents = 0,
                     Access = (byte)SimAccess.NonExistent,

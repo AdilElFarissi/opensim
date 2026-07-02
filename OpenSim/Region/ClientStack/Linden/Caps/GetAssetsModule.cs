@@ -75,7 +75,7 @@ namespace OpenSim.Region.ClientStack.Linden
         private static GetAssetsHandler m_getAssetHandler;
         private static ObjectJobEngine m_workerpool = null;
         private static int m_NumberScenes = 0;
-        private static object m_loadLock = new object();
+        private static object m_loadLock = new();
         protected IUserManagement m_UserManagement = null;
 
         #region Region Module interfaceBase Members
@@ -183,9 +183,9 @@ namespace OpenSim.Region.ClientStack.Linden
         private class PollServiceAssetEventArgs : PollServiceEventArgs
         {
             //private List<Hashtable> requests = new List<Hashtable>();
-            private List<OSHttpRequest> requests = new List<OSHttpRequest>();
-            private Dictionary<UUID, APollResponse> responses =new Dictionary<UUID, APollResponse>();
-            private HashSet<UUID> dropedResponses = new HashSet<UUID>();
+            private List<OSHttpRequest> requests = [];
+            private Dictionary<UUID, APollResponse> responses =[];
+            private HashSet<UUID> dropedResponses = [];
 
             private Scene m_scene;
             private string m_hgassets = null;
@@ -230,7 +230,7 @@ namespace OpenSim.Region.ClientStack.Linden
                             return lixo;
                         }
                     }
-                    return new Hashtable();
+                    return [];
                 };
                 
                 Request = delegate (UUID requestID, OSHttpRequest request)
@@ -256,12 +256,13 @@ namespace OpenSim.Region.ClientStack.Linden
                         requests.Remove(request);
                     }
                     */
-                    Hashtable response = new Hashtable();
-
-                    response["int_response_code"] = 500;
-                    response["str_response_string"] = "timeout";
-                    response["content_type"] = "text/plain";
-                    response["keepalive"] = false;
+                    Hashtable response = new()
+                    {
+                        ["int_response_code"] = 500,
+                        ["str_response_string"] = "timeout",
+                        ["content_type"] = "text/plain",
+                        ["keepalive"] = false
+                    };
                     return response;
                 };
             }
@@ -297,7 +298,7 @@ namespace OpenSim.Region.ClientStack.Linden
                     }
 */
                 }
-                OSHttpResponse response = new OSHttpResponse(requestinfo.request);
+                OSHttpResponse response = new(requestinfo.request);
                 m_getAssetHandler.Handle(requestinfo.request, response, m_hgassets);
 
                 lock(responses)
@@ -311,7 +312,7 @@ namespace OpenSim.Region.ClientStack.Linden
                         }
                     }
 
-                    APollResponse preq= new APollResponse()
+                    APollResponse preq= new()
                     {
                         osresponse = response
                     };

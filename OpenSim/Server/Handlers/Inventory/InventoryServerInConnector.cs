@@ -62,19 +62,19 @@ namespace OpenSim.Server.Handlers.Inventory
 
             IConfig serverConfig = config.Configs[m_ConfigName];
             if (serverConfig == null)
-                throw new Exception(String.Format("No section '{0}' in config file", m_ConfigName));
+                throw new Exception(string.Format("No section '{0}' in config file", m_ConfigName));
 
             string inventoryService = serverConfig.GetString("LocalServiceModule",
-                    String.Empty);
+                    string.Empty);
 
             if (inventoryService.Length == 0)
                 throw new Exception("No LocalServiceModule in config file");
 
-            Object[] args = new Object[] { config };
+            object[] args = new object[] { config };
             m_InventoryService =
                     ServerUtils.LoadPlugin<IInventoryService>(inventoryService, args);
 
-            m_userserver_url = serverConfig.GetString("UserServerURI", String.Empty);
+            m_userserver_url = serverConfig.GetString("UserServerURI", string.Empty);
             m_doLookup = serverConfig.GetBoolean("SessionAuthentication", false);
 
             AddHttpHandlers(server);
@@ -174,8 +174,8 @@ namespace OpenSim.Server.Handlers.Inventory
 
         public List<InventoryFolderBase> GetSystemFolders(Guid guid)
         {
-            UUID userID = new UUID(guid);
-            return new List<InventoryFolderBase>(GetSystemFolders(userID).Values);
+            UUID userID = new(guid);
+            return [.. GetSystemFolders(userID).Values];
         }
 
         // This shouldn't be here, it should be in the inventory service.
@@ -188,7 +188,7 @@ namespace OpenSim.Server.Handlers.Inventory
                 InventoryCollection content = m_InventoryService.GetFolderContent(userID, root.ID);
                 if (content != null)
                 {
-                    Dictionary<AssetType, InventoryFolderBase> folders = new Dictionary<AssetType, InventoryFolderBase>();
+                    Dictionary<AssetType, InventoryFolderBase> folders = [];
                     foreach (InventoryFolderBase folder in content.Folders)
                     {
                         if ((folder.Type != (short)AssetType.Folder) && (folder.Type != (short)AssetType.Unknown))
@@ -200,7 +200,7 @@ namespace OpenSim.Server.Handlers.Inventory
                 }
             }
             m_log.WarnFormat("[INVENTORY SERVICE]: System folders for {0} not found", userID);
-            return new Dictionary<AssetType, InventoryFolderBase>();
+            return [];
         }
 
         public InventoryItemBase GetItem(Guid guid)
@@ -220,7 +220,7 @@ namespace OpenSim.Server.Handlers.Inventory
 
         public List<InventoryItemBase> GetFolderItems(Guid folderID)
         {
-            List<InventoryItemBase> allItems = new List<InventoryItemBase>();
+            List<InventoryItemBase> allItems = [];
 
             // TODO: UUID.Zero is passed as the userID here, making the old assumption that the OpenSim
             // inventory server only has a single inventory database and not per-user inventory databases.
@@ -237,7 +237,7 @@ namespace OpenSim.Server.Handlers.Inventory
 
         public bool CreateUsersInventory(Guid rawUserID)
         {
-            UUID userID = new UUID(rawUserID);
+            UUID userID = new(rawUserID);
 
 
             return m_InventoryService.CreateUserInventory(userID);
@@ -245,14 +245,14 @@ namespace OpenSim.Server.Handlers.Inventory
 
         public List<InventoryItemBase> GetActiveGestures(Guid rawUserID)
         {
-            UUID userID = new UUID(rawUserID);
+            UUID userID = new(rawUserID);
 
             return m_InventoryService.GetActiveGestures(userID);
         }
 
         public List<InventoryFolderBase> GetInventorySkeleton(Guid rawUserID)
         {
-            UUID userID = new UUID(rawUserID);
+            UUID userID = new(rawUserID);
             return m_InventoryService.GetInventorySkeleton(userID);
         }
 
@@ -263,7 +263,7 @@ namespace OpenSim.Server.Handlers.Inventory
 
         public bool DeleteFolders(List<Guid> items)
         {
-            List<UUID> uuids = new List<UUID>();
+            List<UUID> uuids = [];
             foreach (Guid g in items)
                 uuids.Add(new UUID(g));
             // oops we lost the user info here. Bad bad handlers
@@ -272,7 +272,7 @@ namespace OpenSim.Server.Handlers.Inventory
 
         public bool DeleteItems(List<Guid> items)
         {
-            List<UUID> uuids = new List<UUID>();
+            List<UUID> uuids = [];
             foreach (Guid g in items)
                 uuids.Add(new UUID(g));
             // oops we lost the user info here. Bad bad handlers
@@ -300,7 +300,7 @@ namespace OpenSim.Server.Handlers.Inventory
             if (m_doLookup)
             {
                 m_log.InfoFormat("[INVENTORY IN CONNECTOR]: Checking trusted source {0}", peer);
-                UriBuilder ub = new UriBuilder(m_userserver_url);
+                UriBuilder ub = new(m_userserver_url);
                 IPAddress[] uaddrs = Dns.GetHostAddresses(ub.Host);
                 foreach (IPAddress uaddr in uaddrs)
                 {

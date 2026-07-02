@@ -146,7 +146,7 @@ namespace OpenSim.Framework.Monitoring
             thread.IsBackground = isBackground;
             thread.Name = name;
 
-            Watchdog.ThreadWatchdogInfo twi = new Watchdog.ThreadWatchdogInfo(thread, timeout, name)
+            Watchdog.ThreadWatchdogInfo twi = new(thread, timeout, name)
             {
                 AlarmIfTimeout = alarmIfTimeout,
                 AlarmMethod = alarmMethod
@@ -185,7 +185,7 @@ namespace OpenSim.Framework.Monitoring
             thread.IsBackground = true;
             thread.Name = name;
 
-            Watchdog.ThreadWatchdogInfo twi = new Watchdog.ThreadWatchdogInfo(thread, Watchdog.DEFAULT_WATCHDOG_TIMEOUT_MS, name)
+            Watchdog.ThreadWatchdogInfo twi = new(thread, Watchdog.DEFAULT_WATCHDOG_TIMEOUT_MS, name)
             {
                 AlarmIfTimeout = false,
                 AlarmMethod = null
@@ -214,7 +214,7 @@ namespace OpenSim.Framework.Monitoring
                 return;
             }
 
-            ThreadStart ts = new ThreadStart(delegate()
+            ThreadStart ts = new(delegate()
             {
                 try
                 {

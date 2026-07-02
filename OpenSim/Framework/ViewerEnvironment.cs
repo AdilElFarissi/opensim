@@ -54,7 +54,7 @@ namespace OpenSim.Framework
         public float hazeDensity = 0.70f;
         public float densityMultiplier = 0.18f;
         public float distanceMultiplier = 0.8f;
-        public UInt16 maxAltitude = 1605;
+        public ushort maxAltitude = 1605;
         public Vector4 sunMoonColor = new(0.24f, 0.26f, 0.30f, 0.30f);
         public float sunMoonPosition = 0.317f;
         public Vector4 ambient = new(0.35f, 0.35f, 0.35f, 0.35f);
@@ -104,7 +104,7 @@ namespace OpenSim.Framework
 
         public OSD ToWLOSD(UUID message, UUID region)
         {
-            OSDArray array = new() { null, null, null, null };
+            OSDArray array = [null, null, null, null];
             array[0] = new OSDMap { {"messageID", message }, { "regionID", region } };
             Cycle.ToWLOSD(ref array);
             return array;
@@ -458,7 +458,7 @@ namespace OpenSim.Framework
                 byte[] ret = m_cachedbytes;
                 if (ret == null)
                 {
-                    OSDMap map = new();
+                    OSDMap map = [];
                     OSDMap cenv = (OSDMap)ToOSD();
                     cenv["parcel_id"] = parcelID;
                     cenv["region_id"] = regionID;
@@ -518,7 +518,7 @@ namespace OpenSim.Framework
                     return OSDParser.SerializeLLSDNotationFull(eosd);
             }
             catch {}
-            return String.Empty;
+            return string.Empty;
         }
 
         public ViewerEnvironment Clone()

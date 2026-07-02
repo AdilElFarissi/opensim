@@ -44,7 +44,7 @@ namespace OpenSim.Framework
 
         public ExpiringKey()
         {
-            m_dictionary = new Dictionary<Tkey1, int>();
+            m_dictionary = [];
             m_rwLock = new ReaderWriterLockSlim();
             m_expire = MINEXPIRECHECK;
             m_startTS = Util.GetTimeStampMS();
@@ -52,7 +52,7 @@ namespace OpenSim.Framework
 
         public ExpiringKey(int expireCheckTimeinMS)
         {
-            m_dictionary = new Dictionary<Tkey1, int>();
+            m_dictionary = [];
             m_rwLock = new ReaderWriterLockSlim();
             m_startTS = Util.GetTimeStampMS();
             m_expire = (expireCheckTimeinMS > MINEXPIRECHECK) ? m_expire = expireCheckTimeinMS : MINEXPIRECHECK;
@@ -107,7 +107,7 @@ namespace OpenSim.Framework
                 }
 
                 int now = (int)(Util.GetTimeStampMS() - m_startTS);
-                List<Tkey1> expired = new List<Tkey1>(m_dictionary.Count);
+                List<Tkey1> expired = new(m_dictionary.Count);
                 foreach(KeyValuePair<Tkey1,int> kvp in m_dictionary)
                 {
                     int expire = kvp.Value;

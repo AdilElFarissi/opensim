@@ -188,11 +188,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.SitStand
             string firstName = mainParams[3];
             string lastName = mainParams[4];
 
-            List<ScenePresence> scenePresencesMatched = new List<ScenePresence>();
+            List<ScenePresence> scenePresencesMatched = [];
 
             if (useRegex)
             {
-                Regex nameRegex = new Regex(string.Format("{0} {1}", firstName, lastName));
+                Regex nameRegex = new(string.Format("{0} {1}", firstName, lastName));
                 List<ScenePresence> scenePresences = m_scene.GetScenePresences();
 
                 foreach (ScenePresence sp in scenePresences)

@@ -53,7 +53,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
 //        private static byte[] s_asset2Data;
 
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private static object thisLock = new object();
+        private static object thisLock = new();
         private static Graphics m_graph = null; // just to get chars sizes
 
         private Scene m_scene;
@@ -121,9 +121,9 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
         {
             lock (thisLock)
             {
-                using (Font myFont = new Font(fontName, fontSize))
+                using (Font myFont = new(fontName, fontSize))
                 {
-                    SizeF stringSize = new SizeF();
+                    SizeF stringSize = new();
 
                     stringSize = m_graph.MeasureString(text, myFont);
                     xSize = stringSize.Width;
@@ -151,7 +151,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
             {
                 if(m_graph == null)
                 {
-                    Bitmap bitmap = new Bitmap(32, 32, PixelFormat.Format32bppArgb);
+                    Bitmap bitmap = new(32, 32, PixelFormat.Format32bppArgb);
                     m_graph = Graphics.FromImage(bitmap);
                 }
             }
@@ -300,7 +300,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                      case "bgcolor":
                      case "bgcolour":
                           int hex = 0;
-                         if (Int32.TryParse(value, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out hex))
+                         if (int.TryParse(value, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out hex))
                          {
                              bgColor = Color.FromArgb(hex);
                          }
@@ -487,8 +487,8 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
         private void GDIDraw(string data, Graphics graph, char dataDelim, out bool reuseable)
         {
             reuseable = true;
-            Point startPoint = new Point(0, 0);
-            Point endPoint = new Point(0, 0);
+            Point startPoint = new(0, 0);
+            Point endPoint = new(0, 0);
             Pen drawPen = null;
             Font myFont = null;
             SolidBrush myBrush = null;
@@ -587,7 +587,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                             }
                             else
                             {
-                                using (Font errorFont = new Font(m_fontName,6))
+                                using (Font errorFont = new(m_fontName,6))
                                 {
                                     graph.DrawString("URL couldn't be resolved or is", errorFont,
                                                      myBrush, startPoint);
@@ -698,7 +698,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                         }
                         if (myFontStyle != myFont.Style)
                         {
-                            Font newFont = new Font(myFont, myFontStyle);
+                            Font newFont = new(myFont, myFontStyle);
                             myFont.Dispose();
                             myFont = newFont;
                         }
@@ -775,7 +775,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                         int hex = 0;
 
                         Color newColor;
-                        if (Int32.TryParse(nextLine, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out hex))
+                        if (int.TryParse(nextLine, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out hex))
                         {
                             newColor = Color.FromArgb(hex);
                         }
@@ -854,7 +854,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                     string yVal = parts[i+1].Trim();
                     float x = Convert.ToSingle(xVal, CultureInfo.InvariantCulture);
                     float y = Convert.ToSingle(yVal, CultureInfo.InvariantCulture);
-                    PointF point = new PointF(x, y);
+                    PointF point = new(x, y);
                     points[i / 2] = point;
 
 //                    m_log.DebugFormat("[VECTOR RENDER MODULE]: Got point {0}", points[i / 2]);
@@ -874,7 +874,7 @@ namespace OpenSim.Region.CoreModules.Scripting.VectorRender
                     {
                         using (Stream s = response.GetResponseStream())
                         {
-                            Bitmap image = new Bitmap(s);
+                            Bitmap image = new(s);
                             return image;
                         }
                     }

@@ -38,7 +38,7 @@ namespace OpenSim.Services.Connectors
     public class HGAssetServiceConnector : IAssetService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private ExpiringCacheOS<string, AssetServicesConnector> m_connectors = new ExpiringCacheOS<string, AssetServicesConnector>(60000);
+        private ExpiringCacheOS<string, AssetServicesConnector> m_connectors = new(60000);
 
         public HGAssetServiceConnector(IConfigSource source)
         {
@@ -170,7 +170,7 @@ namespace OpenSim.Services.Connectors
                 if (Util.ParseForeignAssetID(ids[i], out url, out assetID) > 0)
                 {
                     if (!url2assets.ContainsKey(url))
-                        url2assets.Add(url, new List<AssetAndIndex>());
+                        url2assets.Add(url, []);
                     url2assets[url].Add(new AssetAndIndex(UUID.Parse(assetID), i));
                 }
             }

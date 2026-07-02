@@ -140,7 +140,7 @@ namespace OpenSim.Services.GridService
         public GridRegion LinkRegion(UUID scopeID, string regionDescriptor)
         {
             string reason = string.Empty;
-            uint xloc = Util.RegionToWorldLoc((uint)Random.Shared.Next(0, Int16.MaxValue));
+            uint xloc = Util.RegionToWorldLoc((uint)Random.Shared.Next(0, short.MaxValue));
             return TryLinkRegionToCoords(scopeID, regionDescriptor, (int)xloc, 0, out reason);
         }
 
@@ -161,7 +161,7 @@ namespace OpenSim.Services.GridService
             return null;
         }
 
-        private static readonly IPEndPoint dummyIP = new IPEndPoint(0,0);
+        private static readonly IPEndPoint dummyIP = new(0,0);
         private bool TryCreateLinkImpl(UUID scopeID, int xloc, int yloc, RegionURI rurl, UUID ownerID, out GridRegion regInfo)
         {
             m_log.InfoFormat("[HYPERGRID LINKER]: Link to {0} {1}, in <{2},{3}>",
@@ -428,9 +428,11 @@ namespace OpenSim.Services.GridService
                 OpenSim.Framework.RegionFlags rflags = (OpenSim.Framework.RegionFlags)Convert.ToInt32(regions[0].Data["flags"]);
                 if ((rflags & OpenSim.Framework.RegionFlags.Hyperlink) != 0)
                 {
-                    regInfo = new GridRegion();
-                    regInfo.RegionID = regions[0].RegionID;
-                    regInfo.ScopeID = m_ScopeID;
+                    regInfo = new GridRegion
+                    {
+                        RegionID = regions[0].RegionID,
+                        ScopeID = m_ScopeID
+                    };
                 }
             }
 
@@ -535,9 +537,9 @@ namespace OpenSim.Services.GridService
             foreach (RegionData r in regions)
             {
                 MainConsole.Instance.Output(
-                    String.Format("{0}\n{2,-32} {1}\n",
+                    string.Format("{0}\n{2,-32} {1}\n",
                         r.RegionName, r.RegionID,
-                        String.Format("{0},{1} ({2},{3})", r.posX, r.posY,
+                        string.Format("{0},{1} ({2},{3})", r.posX, r.posY,
                                     Util.WorldToRegionLoc((uint)r.posX), Util.WorldToRegionLoc((uint)r.posY)
                         )
                     )
@@ -548,7 +550,7 @@ namespace OpenSim.Services.GridService
 
         public void RunCommand(string module, string[] cmdparams)
         {
-            List<string> args = new List<string>(cmdparams);
+            List<string> args = [.. cmdparams];
             if (args.Count < 1)
                 return;
 
@@ -626,7 +628,7 @@ namespace OpenSim.Services.GridService
                     if (parts.Length > 2)
                     {
                         // Insert remote region name
-                        ArrayList parameters = new ArrayList(cmdparams);
+                        ArrayList parameters = new(cmdparams);
                         parameters.Insert(3, parts[2]);
                         cmdparams = (string[])parameters.ToArray(typeof(string));
                     }
@@ -697,7 +699,7 @@ namespace OpenSim.Services.GridService
             try
             {
                 XmlReader r = XmlReader.Create(cmdparams[0]);
-                XmlConfigSource cs = new XmlConfigSource(r);
+                XmlConfigSource cs = new(r);
                 string[] excludeSections = null;
 
                 if (cmdparams.Length == 2)

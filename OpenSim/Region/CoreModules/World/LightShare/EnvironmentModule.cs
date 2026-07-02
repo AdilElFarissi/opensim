@@ -422,7 +422,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             {
                 if (httpRequest.Query.ContainsKey("parcelid"))
                 {
-                    _ = Int32.TryParse((string)httpRequest.Query["parcelid"], out parcel);
+                    _ = int.TryParse((string)httpRequest.Query["parcelid"], out parcel);
                 }
             }
 
@@ -458,7 +458,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             {
                 if (httpRequest.Query.ContainsKey("parcelid"))
                 {
-                    _ = Int32.TryParse((string)httpRequest.Query["parcelid"], out parcelid);
+                    _ = int.TryParse((string)httpRequest.Query["parcelid"], out parcelid);
                 }
             }
 
@@ -530,7 +530,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             {
                 if (httpRequest.Query.ContainsKey("parcelid"))
                 {
-                    if (!Int32.TryParse((string)httpRequest.Query["parcelid"], out parcel))
+                    if (!int.TryParse((string)httpRequest.Query["parcelid"], out parcel))
                     {
                         message = "Failed to decode request";
                         goto Error;
@@ -538,7 +538,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                 }
                 if (httpRequest.Query.ContainsKey("trackno"))
                 {
-                    if (!Int32.TryParse((string)httpRequest.Query["trackno"], out track))
+                    if (!int.TryParse((string)httpRequest.Query["trackno"], out track))
                     {
                         message = "Failed to decode request";
                         goto Error;
@@ -664,7 +664,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                     Name, caps.RegionName, e.Message, e.StackTrace);
 
                 success = false;
-                message = String.Format("ExtEnvironment Set for region {0} has failed, settings not saved.", caps.RegionName);
+                message = string.Format("ExtEnvironment Set for region {0} has failed, settings not saved.", caps.RegionName);
             }
 
         Error:
@@ -846,7 +846,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
                 return null;
 
             RegionLightShareData wl = ToLightShare();
-            byte[] mBlock = new Byte[249];
+            byte[] mBlock = new byte[249];
             int pos = 0;
 
             wl.waterColor.ToBytes(mBlock, 0); pos += 12;
@@ -887,7 +887,7 @@ namespace OpenSim.Region.CoreModules.World.LightShare
             mBlock[pos] = Convert.ToByte(wl.cloudScrollYLock); pos++;
             mBlock[pos] = Convert.ToByte(wl.drawClassicClouds); // pos++;
 
-            List<byte[]> param = new() { mBlock };
+            List<byte[]> param = [mBlock];
             return param;
         }
 

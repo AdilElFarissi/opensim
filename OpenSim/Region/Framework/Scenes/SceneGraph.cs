@@ -69,9 +69,9 @@ namespace OpenSim.Region.Framework.Scenes
         private Dictionary<UUID, SceneObjectPart> m_scenePartsByID = new(1024);
         private Dictionary<uint, SceneObjectPart> m_scenePartsByLocalID = new(1024);
         private SceneObjectPart[] m_scenePartsArray;
-        private Dictionary<UUID, ScenePresence> m_scenePresenceMap = new();
-        private Dictionary<uint, ScenePresence> m_scenePresenceLocalIDMap = new();
-        private Dictionary<UUID, SceneObjectGroup> m_updateList = new();
+        private Dictionary<UUID, ScenePresence> m_scenePresenceMap = [];
+        private Dictionary<uint, ScenePresence> m_scenePresenceLocalIDMap = [];
+        private Dictionary<UUID, SceneObjectGroup> m_updateList = [];
         private List<ScenePresence> m_scenePresenceList;
 
         private readonly Scene m_parentScene;
@@ -95,8 +95,8 @@ namespace OpenSim.Region.Framework.Scenes
         /// These operations rely on the parts composition of the object.  If allowed to run concurrently then race
         /// conditions can occur.
         /// </remarks>
-        private readonly Object m_updateLock = new();
-        private readonly  Object m_linkLock = new();
+        private readonly object m_updateLock = new();
+        private readonly object m_linkLock = new();
         private readonly ReaderWriterLockSlim m_scenePresencesLock;
         private readonly ReaderWriterLockSlim m_scenePartsLock;
 
@@ -150,8 +150,8 @@ namespace OpenSim.Region.Framework.Scenes
                     m_scenePresencesLock.EnterWriteLock();
                     entered = true;
                 }
-                m_scenePresenceMap = new Dictionary<UUID, ScenePresence>();
-                m_scenePresenceLocalIDMap = new Dictionary<uint, ScenePresence>();
+                m_scenePresenceMap = [];
+                m_scenePresenceLocalIDMap = [];
                 m_scenePresenceList = null;
             }
             finally
@@ -172,8 +172,8 @@ namespace OpenSim.Region.Framework.Scenes
 
                 Entities.Clear();
                 m_scenePartsArray = null;
-                m_scenePartsByID = new Dictionary<UUID, SceneObjectPart>();
-                m_scenePartsByLocalID = new Dictionary<uint, SceneObjectPart>();
+                m_scenePartsByID = [];
+                m_scenePartsByLocalID = [];
                 if (_PhyScene is not null)
                     _PhyScene.OnPhysicsCrash -= physicsBasedCrash;
                 _PhyScene = null;
@@ -234,8 +234,8 @@ namespace OpenSim.Region.Framework.Scenes
 
         public void GetCoarseLocations(out List<Vector3> coarseLocations, out List<UUID> avatarUUIDs, int maxLocations)
         {
-            coarseLocations = new List<Vector3>();
-            avatarUUIDs = new List<UUID>();
+            coarseLocations = [];
+            avatarUUIDs = [];
 
             // coarse locations are sent as BYTE, so limited to the 255m max of normal regions
             // try to work around that scale down X and Y acording to region size, so reducing the resolution
@@ -643,7 +643,7 @@ namespace OpenSim.Region.Framework.Scenes
                     return;
 
                 updates = m_updateList;
-                m_updateList = new Dictionary<UUID, SceneObjectGroup>();
+                m_updateList = [];
             }
 
             // Go through all updates
@@ -966,13 +966,13 @@ namespace OpenSim.Region.Framework.Scenes
                     entered = true;
                 }
 
-                m_scenePresenceList ??= new List<ScenePresence>(m_scenePresenceMap.Values);
+                m_scenePresenceList ??= [.. m_scenePresenceMap.Values];
 
                 return m_scenePresenceList;
             }
             catch
             {
-                return new List<ScenePresence>();
+                return [];
             }
             finally
             {
@@ -1949,7 +1949,7 @@ namespace OpenSim.Region.Framework.Scenes
 
             try
             {
-                List<SceneObjectGroup> childGroups = new();
+                List<SceneObjectGroup> childGroups = [];
 
                 // We do this in reverse to get the link order of the prims correct
                 foreach (SceneObjectPart childpart in CollectionsMarshal.AsSpan(children))
@@ -2015,9 +2015,9 @@ namespace OpenSim.Region.Framework.Scenes
         /// <param name="prims"></param>
         protected internal void DelinkObjects(List<SceneObjectPart> prims)
         {
-            List<SceneObjectPart> childParts = new();
-            List<SceneObjectPart> rootParts = new();
-            List<SceneObjectGroup> affectedGroups = new();
+            List<SceneObjectPart> childParts = [];
+            List<SceneObjectPart> rootParts = [];
+            List<SceneObjectGroup> affectedGroups = [];
             // Look them all up in one go, since that is comparatively expensive
             //
             Monitor.Enter(m_linkLock);
@@ -2076,7 +2076,7 @@ namespace OpenSim.Region.Framework.Scenes
                     //
                     SceneObjectGroup group = root.ParentGroup;
 
-                    List<SceneObjectPart> newSet = new(group.Parts);
+                    List<SceneObjectPart> newSet = [.. group.Parts];
 
                     newSet.Remove(root);
                     int numChildren = newSet.Count;

@@ -56,7 +56,7 @@ namespace OpenSim.Region.CoreModules.World.Region
         protected UUID m_Initiator;
         protected bool m_Notice = false;
         protected IDialogModule m_DialogModule = null;
-        protected string m_MarkerPath = String.Empty;
+        protected string m_MarkerPath = string.Empty;
         private int[] m_CurrentAlerts = null;
         protected bool m_shortCircuitDelays = false;
         protected bool m_rebootAll = false;
@@ -66,7 +66,7 @@ namespace OpenSim.Region.CoreModules.World.Region
             IConfig restartConfig = config.Configs["RestartModule"];
             if (restartConfig != null)
             {
-                m_MarkerPath = restartConfig.GetString("MarkerPath", String.Empty);
+                m_MarkerPath = restartConfig.GetString("MarkerPath", string.Empty);
             }
             IConfig startupConfig = config.Configs["Startup"];
             m_shortCircuitDelays = startupConfig.GetBoolean("SkipDelayOnEmptyRegion", false);
@@ -75,7 +75,7 @@ namespace OpenSim.Region.CoreModules.World.Region
 
         public void AddRegion(Scene scene)
         {
-            if (m_MarkerPath != String.Empty)
+            if (m_MarkerPath != string.Empty)
                 File.Delete(Path.Combine(m_MarkerPath,
                         scene.RegionInfo.RegionID.ToString()));
 
@@ -149,7 +149,7 @@ namespace OpenSim.Region.CoreModules.World.Region
             m_Initiator = initiator;
             m_Notice = notice;
             m_CurrentAlerts = alerts;
-            m_Alerts = new List<int>(alerts);
+            m_Alerts = [.. alerts];
             m_Alerts.Sort();
             m_Alerts.Reverse();
 
@@ -193,13 +193,13 @@ namespace OpenSim.Region.CoreModules.World.Region
             if (sendOut)
             {
                 int minutes = currentAlert / 60;
-                string currentAlertString = String.Empty;
+                string currentAlertString = string.Empty;
                 if (minutes > 0)
                 {
                     if (minutes == 1)
                         currentAlertString += "1 minute";
                     else
-                        currentAlertString += String.Format("{0} minutes", minutes);
+                        currentAlertString += string.Format("{0} minutes", minutes);
                     if ((currentAlert % 60) != 0)
                         currentAlertString += " and ";
                 }
@@ -209,12 +209,12 @@ namespace OpenSim.Region.CoreModules.World.Region
                     if (seconds == 1)
                         currentAlertString += "1 second";
                     else
-                        currentAlertString += String.Format("{0} seconds", seconds);
+                        currentAlertString += string.Format("{0} seconds", seconds);
                 }
 
-                string msg = String.Format(m_Message, currentAlertString);
+                string msg = string.Format(m_Message, currentAlertString);
 
-                if (m_DialogModule != null && msg != String.Empty)
+                if (m_DialogModule != null && msg != string.Empty)
                 {
                     if (m_Notice)
                         m_DialogModule.SendGeneralAlert(msg);
@@ -230,9 +230,11 @@ namespace OpenSim.Region.CoreModules.World.Region
         {
             if (intervalSeconds > 0)
             {
-                m_CountdownTimer = new Timer();
-                m_CountdownTimer.AutoReset = false;
-                m_CountdownTimer.Interval = intervalSeconds * 1000;
+                m_CountdownTimer = new Timer
+                {
+                    AutoReset = false,
+                    Interval = intervalSeconds * 1000
+                };
                 m_CountdownTimer.Elapsed += OnTimer;
                 m_CountdownTimer.Start();
             }
@@ -272,8 +274,7 @@ namespace OpenSim.Region.CoreModules.World.Region
             m_CountdownTimer.Stop();
             m_CountdownTimer = null;
 
-            m_Alerts = new List<int>(m_CurrentAlerts);
-            m_Alerts.Add(seconds);
+            m_Alerts = [.. m_CurrentAlerts, seconds];
             m_Alerts.Sort();
             m_Alerts.Reverse();
 
@@ -288,11 +289,11 @@ namespace OpenSim.Region.CoreModules.World.Region
             {
                 m_CountdownTimer.Stop();
                 m_CountdownTimer = null;
-                if (m_DialogModule != null && message != String.Empty)
+                if (m_DialogModule != null && message != string.Empty)
                     m_DialogModule.SendNotificationToUsersInRegion(UUID.Zero, "System", message);
                     //m_DialogModule.SendGeneralAlert(message);
             }
-            if (m_MarkerPath != String.Empty)
+            if (m_MarkerPath != string.Empty)
                 File.Delete(Path.Combine(m_MarkerPath,
                         m_Scene.RegionInfo.RegionID.ToString()));
         }
@@ -311,7 +312,7 @@ namespace OpenSim.Region.CoreModules.World.Region
                 {
                     if (args[2] == "abort")
                     {
-                        string msg = String.Empty;
+                        string msg = string.Empty;
                         if (args.Length > 3)
                             msg = args[3];
 
@@ -330,7 +331,7 @@ namespace OpenSim.Region.CoreModules.World.Region
             if (args[2] == "notice")
                 notice = true;
 
-            List<int> times = new List<int>();
+            List<int> times = [];
             for (int i = 4 ; i < args.Length ; i++)
                 times.Add(Convert.ToInt32(args[i]));
 
@@ -350,8 +351,8 @@ namespace OpenSim.Region.CoreModules.World.Region
             {
                 string pidstring = System.Diagnostics.Process.GetCurrentProcess().Id.ToString();
                 FileStream fs = File.Create(path);
-                System.Text.ASCIIEncoding enc = new System.Text.ASCIIEncoding();
-                Byte[] buf = enc.GetBytes(pidstring);
+                System.Text.ASCIIEncoding enc = new();
+                byte[] buf = enc.GetBytes(pidstring);
                 fs.Write(buf, 0, buf.Length);
                 fs.Close();
             }

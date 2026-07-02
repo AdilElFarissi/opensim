@@ -35,7 +35,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
         public BSActorCollection()
         {
-            m_actors = new Dictionary<string, BSActor>();
+            m_actors = [];
         }
         public void Add(string name, BSActor actor)
         {

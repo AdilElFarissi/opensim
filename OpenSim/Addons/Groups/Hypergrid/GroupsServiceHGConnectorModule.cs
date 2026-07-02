@@ -60,7 +60,7 @@ namespace OpenSim.Groups
         private string m_ServiceLocation;
         private IConfigSource m_Config;
 
-        private Dictionary<string, GroupsServiceHGConnector> m_NetworkConnectors = new Dictionary<string, GroupsServiceHGConnector>();
+        private Dictionary<string, GroupsServiceHGConnector> m_NetworkConnectors = [];
         private RemoteConnectorCacheWrapper m_CacheWrapper; // for caching info of external group services
 
         #region ISharedRegionModule
@@ -80,7 +80,7 @@ namespace OpenSim.Groups
             m_Config = config;
             m_ServiceLocation = groupsConfig.GetString("LocalService", "local"); // local or remote
             m_LocalGroupsServiceLocation = groupsConfig.GetString("GroupsExternalURI", "http://127.0.0.1");
-            m_Scenes = new List<Scene>();
+            m_Scenes = [];
 
             m_Enabled = true;
 
@@ -276,7 +276,7 @@ namespace OpenSim.Groups
 
                 }
             }
-            return new List<GroupMembersData>();
+            return [];
         }
 
         public bool AddGroupRole(string RequestingAgentID, UUID groupID, UUID roleID, string name, string description, string title, ulong powers, out string reason)
@@ -344,7 +344,7 @@ namespace OpenSim.Groups
                 }
             }
 
-            return new List<GroupRolesData>();
+            return [];
         }
 
         public List<GroupRoleMembersData> GetGroupRoleMembers(string RequestingAgentID, UUID groupID)
@@ -373,7 +373,7 @@ namespace OpenSim.Groups
                 }
             }
 
-            return new List<GroupRoleMembersData>();
+            return [];
         }
 
         public bool AddAgentToGroup(string RequestingAgentID, string AgentID, UUID GroupID, UUID RoleID, string token, out string reason)
@@ -382,7 +382,7 @@ namespace OpenSim.Groups
             string name = string.Empty;
             reason = string.Empty;
 
-            UUID uid = new UUID(AgentID);
+            UUID uid = new(AgentID);
             if (IsLocal(GroupID, out url, out name))
             {
                 if (m_UserManagement.IsLocalGridUser(uid)) // local user
@@ -490,7 +490,7 @@ namespace OpenSim.Groups
             if (IsLocal(GroupID, out url, out gname))
                 return m_LocalGroupsConnector.GetAgentGroupRoles(AgentUUI(RequestingAgentID), AgentUUI(AgentID), GroupID);
             else
-                return new List<GroupRolesData>();
+                return [];
         }
 
         public void SetAgentActiveGroup(string RequestingAgentID, string AgentID, UUID GroupID)
@@ -546,7 +546,7 @@ namespace OpenSim.Groups
                 {
                     // then send the notice to every grid for which there are members in this group
                     List<GroupMembersData> members = m_LocalGroupsConnector.GetGroupMembers(AgentUUI(RequestingAgentID), groupID);
-                    List<string> urls = new List<string>();
+                    List<string> urls = [];
                     foreach (GroupMembersData m in members)
                     {
                         if (!m_UserManagement.IsLocalGridUser(m.AgentID))

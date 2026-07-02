@@ -60,13 +60,13 @@ namespace OpenSim.Framework.Console
 
         public ConsoleDisplayList()
         {
-            Rows = new List<KeyValuePair<string, string>>();
+            Rows = [];
             KeyValueDivider = DefaultKeyValueDivider;
         }
 
         public override string ToString()
         {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
             AddToStringBuilder(sb);
             return sb.ToString();
         }
@@ -86,7 +86,7 @@ namespace OpenSim.Framework.Console
         /// </summary>
         private string GetFormatString()
         {
-            StringBuilder formatSb = new StringBuilder();
+            StringBuilder formatSb = new();
 
             int longestKey = -1;
 

@@ -52,9 +52,9 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>Temporarily holds deserialized layer data information in memory</summary>
-        private readonly ExpiringCache<UUID, OpenJPEG.J2KLayerInfo[]> m_decodedCache = new ExpiringCache<UUID,OpenJPEG.J2KLayerInfo[]>();
+        private readonly ExpiringCache<UUID, OpenJPEG.J2KLayerInfo[]> m_decodedCache = new();
         /// <summary>List of client methods to notify of results of decode</summary>
-        private readonly Dictionary<UUID, List<DecodedCallback>> m_notifyList = new Dictionary<UUID, List<DecodedCallback>>();
+        private readonly Dictionary<UUID, List<DecodedCallback>> m_notifyList = [];
         /// <summary>Cache that will store decoded JPEG2000 layer boundary data</summary>
         private IAssetCache m_cache;
         private IAssetCache Cache
@@ -157,8 +157,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
                     }
                     else
                     {
-                        List<DecodedCallback> notifylist = new List<DecodedCallback>();
-                        notifylist.Add(callback);
+                        List<DecodedCallback> notifylist = [callback];
                         m_notifyList.Add(assetID, notifylist);
                         decode = true;
                     }
@@ -233,7 +232,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
                     try
                     {
                         List<int> layerStarts;
-                        using (MemoryStream ms = new MemoryStream(j2kData))
+                        using (MemoryStream ms = new(j2kData))
                         {
                             layerStarts = CSJ2K.J2kImage.GetLayerBoundaries(ms);
                         }
@@ -244,7 +243,7 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
 
                             for (int i = 0; i < layerStarts.Count; i++)
                             {
-                                OpenJPEG.J2KLayerInfo layer = new OpenJPEG.J2KLayerInfo();
+                                OpenJPEG.J2KLayerInfo layer = new();
 
                                 if (i == 0)
                                     layer.Start = 0;
@@ -337,18 +336,20 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
             {
                 string assetID = "j2k" + AssetId.ToString();
 
-                AssetBase layerDecodeAsset = new AssetBase(assetID, assetID, (sbyte)AssetType.Notecard, m_CreatorID.ToString());
-                layerDecodeAsset.Local = true;
-                layerDecodeAsset.Temporary = true;
+                AssetBase layerDecodeAsset = new(assetID, assetID, (sbyte)AssetType.Notecard, m_CreatorID.ToString())
+                {
+                    Local = true,
+                    Temporary = true
+                };
 
                 #region Serialize Layer Data
 
-                StringBuilder stringResult = new StringBuilder();
+                StringBuilder stringResult = new();
                 string strEnd = "\n";
                 for (int i = 0; i < Layers.Length; i++)
                 {
                     if (i == Layers.Length - 1)
-                        strEnd = String.Empty;
+                        strEnd = string.Empty;
 
                     stringResult.AppendFormat("{0}|{1}|{2}{3}", Layers[i].Start, Layers[i].End, Layers[i].End - Layers[i].Start, strEnd);
                 }
@@ -408,9 +409,11 @@ namespace OpenSim.Region.CoreModules.Agent.TextureSender
                                 return false;
                             }
 
-                            Layers[i] = new OpenJPEG.J2KLayerInfo();
-                            Layers[i].Start = element1;
-                            Layers[i].End = element2;
+                            Layers[i] = new OpenJPEG.J2KLayerInfo
+                            {
+                                Start = element1,
+                                End = element2
+                            };
                         }
                         else
                         {

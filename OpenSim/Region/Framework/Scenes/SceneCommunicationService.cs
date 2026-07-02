@@ -67,7 +67,7 @@ namespace OpenSim.Region.Framework.Scenes
             List<GridRegion> neighbours
                 = m_scene.GridService.GetNeighbours(m_scene.RegionInfo.ScopeID, m_scene.RegionInfo.RegionID);
 
-            List<ulong> onlineNeighbours = new List<ulong>();
+            List<ulong> onlineNeighbours = [];
 
             foreach (GridRegion n in neighbours)
             {
@@ -127,7 +127,7 @@ namespace OpenSim.Region.Framework.Scenes
             // This assumes that we know what our neighbors are.
             try
             {
-                List<string> simulatorList = new List<string>();
+                List<string> simulatorList = [];
                 foreach (ulong regionHandle in presence.KnownRegionHandles)
                 {
                     if (regionHandle != m_regionInfo.RegionHandle)

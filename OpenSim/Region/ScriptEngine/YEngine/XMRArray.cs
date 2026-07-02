@@ -59,10 +59,10 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         private XMRInstAbstract inst;                         // script instance debited with heap use
         private int heapUse;                                  // current heap use debit amount
 
-        public static TokenTypeSDTypeDelegate countDelegate = new TokenTypeSDTypeDelegate(new TokenTypeInt(null), []);
-        public static TokenTypeSDTypeDelegate clearDelegate = new TokenTypeSDTypeDelegate(new TokenTypeVoid(null), []);
-        public static TokenTypeSDTypeDelegate indexDelegate = new TokenTypeSDTypeDelegate(new TokenTypeObject(null), [new TokenTypeInt(null)]);
-        public static TokenTypeSDTypeDelegate valueDelegate = new TokenTypeSDTypeDelegate(new TokenTypeObject(null), [new TokenTypeInt(null)]);
+        public static TokenTypeSDTypeDelegate countDelegate = new(new TokenTypeInt(null), []);
+        public static TokenTypeSDTypeDelegate clearDelegate = new(new TokenTypeVoid(null), []);
+        public static TokenTypeSDTypeDelegate indexDelegate = new(new TokenTypeObject(null), [new TokenTypeInt(null)]);
+        public static TokenTypeSDTypeDelegate valueDelegate = new(new TokenTypeObject(null), [new TokenTypeInt(null)]);
 
         public XMR_Array(XMRInstAbstract inst)
         {
@@ -345,7 +345,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
     public class XMRArrayKeyComparer: IComparer<object>
     {
 
-        public static XMRArrayKeyComparer singleton = new XMRArrayKeyComparer();
+        public static XMRArrayKeyComparer singleton = new();
 
         /**
          * @brief Compare two keys
@@ -355,7 +355,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
              // Use short type name (eg, String, Int32, XMRArrayListKey) as most significant part of key.
             string xtn = x.GetType().Name;
             string ytn = y.GetType().Name;
-            int ctn = String.CompareOrdinal(xtn, ytn);
+            int ctn = string.CompareOrdinal(xtn, ytn);
             if(ctn != 0)
                 return ctn;
 
@@ -373,13 +373,15 @@ namespace OpenSim.Region.ScriptEngine.Yengine
 
         private static Dictionary<string, ComparerDelegate> BuildComparers()
         {
-            Dictionary<string, ComparerDelegate> cmps = new Dictionary<string, ComparerDelegate>();
-            cmps.Add(typeof(double).Name, MyFloatComparer);
-            cmps.Add(typeof(int).Name, MyIntComparer);
-            cmps.Add(typeof(XMRArrayListKey).Name, MyListKeyComparer);
-            cmps.Add(typeof(LSL_Rotation).Name, MyRotationComparer);
-            cmps.Add(typeof(string).Name, MyStringComparer);
-            cmps.Add(typeof(LSL_Vector).Name, MyVectorComparer);
+            Dictionary<string, ComparerDelegate> cmps = new()
+            {
+                { typeof(double).Name, MyFloatComparer },
+                { typeof(int).Name, MyIntComparer },
+                { typeof(XMRArrayListKey).Name, MyListKeyComparer },
+                { typeof(LSL_Rotation).Name, MyRotationComparer },
+                { typeof(string).Name, MyStringComparer },
+                { typeof(LSL_Vector).Name, MyVectorComparer }
+            };
             return cmps;
         }
 
@@ -427,7 +429,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
         }
         private static int MyStringComparer(object a, object b)
         {
-            return String.CompareOrdinal((string)a, (string)b);
+            return string.CompareOrdinal((string)a, (string)b);
         }
         private static int MyVectorComparer(object a, object b)
         {
@@ -558,7 +560,7 @@ namespace OpenSim.Region.ScriptEngine.Yengine
          */
         public override string ToString()
         {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
             for(int i = 0; i < length; i++)
             {
                 if(i > 0)

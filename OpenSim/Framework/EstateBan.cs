@@ -122,7 +122,7 @@ namespace OpenSim.Framework
 
         public Dictionary<string, object> ToMap()
         {
-            Dictionary<string, object> map = new Dictionary<string, object>();
+            Dictionary<string, object> map = [];
             PropertyInfo[] properties = this.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
             foreach (PropertyInfo p in properties)
                 map[p.Name] = p.GetValue(this, null);
@@ -138,14 +138,14 @@ namespace OpenSim.Framework
                 if (p == null)
                     continue;
                 object value = p.GetValue(this, null);
-                if (value is String)
+                if (value is string)
                     p.SetValue(this, map[p.Name], null);
-                else if (value is Int32)
-                    p.SetValue(this, Int32.Parse((string)map[p.Name]), null);
-                else if (value is UInt32)
-                    p.SetValue(this, UInt32.Parse((string)map[p.Name]), null);
-                else if (value is Boolean)
-                    p.SetValue(this, Boolean.Parse((string)map[p.Name]), null);
+                else if (value is int)
+                    p.SetValue(this, int.Parse((string)map[p.Name]), null);
+                else if (value is uint)
+                    p.SetValue(this, uint.Parse((string)map[p.Name]), null);
+                else if (value is bool)
+                    p.SetValue(this, bool.Parse((string)map[p.Name]), null);
                 else if (value is UUID)
                     p.SetValue(this, UUID.Parse((string)map[p.Name]), null);
             }

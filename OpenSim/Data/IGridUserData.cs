@@ -37,7 +37,7 @@ namespace OpenSim.Data
 
         public GridUserData()
         {
-            Data = new Dictionary<string, string>();
+            Data = [];
         }
     }
 

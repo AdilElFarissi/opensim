@@ -79,7 +79,7 @@ namespace OpenSim.Capabilities.Handlers
             }
 
             UUID textureID;
-            if (!String.IsNullOrEmpty(textureStr) && UUID.TryParse(textureStr, out textureID))
+            if (!string.IsNullOrEmpty(textureStr) && UUID.TryParse(textureStr, out textureID))
             {
 //                m_log.DebugFormat("[GETTEXTURE]: Received request for texture id {0}", textureID);
 
@@ -127,7 +127,7 @@ namespace OpenSim.Capabilities.Handlers
         private bool FetchTexture(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, UUID textureID, string format)
         {
             // m_log.DebugFormat("[GETTEXTURE]: {0} with requested format {1}", textureID, format);
-            if(!String.IsNullOrEmpty(m_RedirectURL))
+            if(!string.IsNullOrEmpty(m_RedirectURL))
             {
                 string textureUrl = m_RedirectURL + "?texture_id=" + textureID.ToString();
                 httpResponse.Redirect(textureUrl, HttpStatusCode.Moved);
@@ -151,8 +151,10 @@ namespace OpenSim.Capabilities.Handlers
                 }
 
                 // need to convert format
-                AssetBase newTexture = new AssetBase(texture.ID + "-" + format, texture.Name, (sbyte)AssetType.Texture, texture.Metadata.CreatorID);
-                newTexture.Data = ConvertTextureData(texture, format);
+                AssetBase newTexture = new(texture.ID + "-" + format, texture.Name, (sbyte)AssetType.Texture, texture.Metadata.CreatorID)
+                {
+                    Data = ConvertTextureData(texture, format)
+                };
                 if (newTexture.Data.Length == 0)
                     return false; // !!! Caller try another codec, please!
 
@@ -173,7 +175,7 @@ namespace OpenSim.Capabilities.Handlers
         {
             string range = request.Headers.GetOne("Range");
 
-            if (!String.IsNullOrEmpty(range)) // JP2's only
+            if (!string.IsNullOrEmpty(range)) // JP2's only
             {
                 // Range request
                 int start, end;
@@ -231,7 +233,7 @@ namespace OpenSim.Capabilities.Handlers
 
                         response.ContentLength = len;
                         response.ContentType = texture.Metadata.ContentType;
-                        response.AddHeader("Content-Range", String.Format("bytes {0}-{1}/{2}", start, end, texture.Data.Length));
+                        response.AddHeader("Content-Range", string.Format("bytes {0}-{1}/{2}", start, end, texture.Data.Length));
                         response.RawBuffer = texture.Data;
                         response.RawBufferStart = start;
                         response.RawBufferLen = len;
@@ -290,7 +292,7 @@ namespace OpenSim.Capabilities.Handlers
 
                 if (rangeValues.Length == 2)
                 {
-                    if (!Int32.TryParse(rangeValues[0], out start))
+                    if (!int.TryParse(rangeValues[0], out start))
                         return false;
 
                     string rawEnd = rangeValues[1];
@@ -300,7 +302,7 @@ namespace OpenSim.Capabilities.Handlers
                         end = -1;
                         return true;
                     }
-                    else if (Int32.TryParse(rawEnd, out end))
+                    else if (int.TryParse(rawEnd, out end))
                     {
                         return true;
                     }
@@ -316,7 +318,7 @@ namespace OpenSim.Capabilities.Handlers
             m_log.DebugFormat("[GETTEXTURE]: Converting texture {0} to {1}", texture.ID, format);
             byte[] data = Array.Empty<byte>();
 
-            MemoryStream imgstream = new MemoryStream();
+            MemoryStream imgstream = new();
             Bitmap mTexture = null;
             ManagedImage managedImage = null;
             Image image = null;
@@ -330,7 +332,7 @@ namespace OpenSim.Capabilities.Handlers
                     // Save to bitmap
                     mTexture = new Bitmap(image);
 
-                    using(EncoderParameters myEncoderParameters = new EncoderParameters())
+                    using(EncoderParameters myEncoderParameters = new())
                     {
                         myEncoderParameters.Param[0] = new EncoderParameter(Encoder.Quality,95L);
 
@@ -372,7 +374,7 @@ namespace OpenSim.Capabilities.Handlers
         }
 
         // From msdn
-        private static ImageCodecInfo GetEncoderInfo(String mimeType)
+        private static ImageCodecInfo GetEncoderInfo(string mimeType)
         {
             ImageCodecInfo[] encoders;
             encoders = ImageCodecInfo.GetImageEncoders();

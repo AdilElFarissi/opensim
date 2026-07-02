@@ -40,8 +40,8 @@ namespace OpenSim.Region.PhysicsModule.POS
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "POSPhysicsScene")]
     public class POSScene : PhysicsScene, INonSharedRegionModule
     {
-        private List<POSCharacter> _characters = new List<POSCharacter>();
-        private List<POSPrim> _prims = new List<POSPrim>();
+        private List<POSCharacter> _characters = [];
+        private List<POSPrim> _prims = [];
         private float[] _heightMap;
         private const float gravity = -9.8f;
 
@@ -117,9 +117,11 @@ namespace OpenSim.Region.PhysicsModule.POS
         public override PhysicsActor AddAvatar(
             string avName, Vector3 position, Vector3 velocity, Vector3 size, bool isFlying)
         {
-            POSCharacter act = new POSCharacter();
-            act.Position = position;
-            act.Flying = isFlying;
+            POSCharacter act = new()
+            {
+                Position = position,
+                Flying = isFlying
+            };
             _characters.Add(act);
             return act;
         }
@@ -152,10 +154,12 @@ namespace OpenSim.Region.PhysicsModule.POS
         public override PhysicsActor AddPrimShape(string primName, PrimitiveBaseShape pbs, Vector3 position,
                                                   Vector3 size, Quaternion rotation, bool isPhysical, uint localid)
         {
-            POSPrim prim = new POSPrim();
-            prim.Position = position;
-            prim.Orientation = rotation;
-            prim.Size = size;
+            POSPrim prim = new()
+            {
+                Position = position,
+                Orientation = rotation,
+                Size = size
+            };
             _prims.Add(prim);
             return prim;
         }
@@ -308,7 +312,7 @@ namespace OpenSim.Region.PhysicsModule.POS
 
         public override Dictionary<uint, float> GetTopColliders()
         {
-            Dictionary<uint, float> returncolliders = new Dictionary<uint, float>();
+            Dictionary<uint, float> returncolliders = [];
             return returncolliders;
         }
     }

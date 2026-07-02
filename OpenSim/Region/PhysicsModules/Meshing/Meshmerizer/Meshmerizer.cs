@@ -74,7 +74,7 @@ namespace OpenSim.Region.PhysicsModule.Meshing
         private List<Vector3> mBoundingHull = null;
 
         // Mesh cache. Static so it can be shared across instances of this class
-        private static Dictionary<ulong, Mesh> m_uniqueMeshes = new Dictionary<ulong, Mesh>();
+        private static Dictionary<ulong, Mesh> m_uniqueMeshes = [];
 
         #region INonSharedRegionModule
         public string Name
@@ -163,14 +163,15 @@ namespace OpenSim.Region.PhysicsModule.Meshing
         /// <returns></returns>
         private static Mesh CreateSimpleBoxMesh(float minX, float maxX, float minY, float maxY, float minZ, float maxZ)
         {
-            Mesh box = new Mesh();
-            List<Vertex> vertices = new List<Vertex>();
-            // bottom
-
-            vertices.Add(new Vertex(minX, maxY, minZ));
-            vertices.Add(new Vertex(maxX, maxY, minZ));
-            vertices.Add(new Vertex(maxX, minY, minZ));
-            vertices.Add(new Vertex(minX, minY, minZ));
+            Mesh box = new();
+            List<Vertex> vertices =
+            [
+                // bottom
+                new Vertex(minX, maxY, minZ),
+                new Vertex(maxX, maxY, minZ),
+                new Vertex(maxX, minY, minZ),
+                new Vertex(minX, minY, minZ),
+            ];
 
             box.Add(new Triangle(vertices[0], vertices[1], vertices[2]));
             box.Add(new Triangle(vertices[0], vertices[2], vertices[3]));
@@ -265,7 +266,7 @@ namespace OpenSim.Region.PhysicsModule.Meshing
                 ushort uY = Utils.BytesToUInt16(posBytes, i + 2);
                 ushort uZ = Utils.BytesToUInt16(posBytes, i + 4);
 
-                Coord c = new Coord(
+                Coord c = new(
                 Utils.UInt16ToFloat(uX, posMin.X, posMax.X) * size.X,
                 Utils.UInt16ToFloat(uY, posMin.Y, posMax.Y) * size.Y,
                 Utils.UInt16ToFloat(uZ, posMin.Z, posMax.Z) * size.Z);
@@ -279,7 +280,7 @@ namespace OpenSim.Region.PhysicsModule.Meshing
                 ushort v1 = (ushort)(Utils.BytesToUInt16(triangleBytes, i) + faceIndexOffset);
                 ushort v2 = (ushort)(Utils.BytesToUInt16(triangleBytes, i + 2) + faceIndexOffset);
                 ushort v3 = (ushort)(Utils.BytesToUInt16(triangleBytes, i + 4) + faceIndexOffset);
-                Face f = new Face(v1, v2, v3);
+                Face f = new(v1, v2, v3);
                 faces.Add(f);
             }
         }
@@ -330,14 +331,14 @@ namespace OpenSim.Region.PhysicsModule.Meshing
             int numFaces = faces.Count;
 
             // Create the list of vertices
-            List<Vertex> vertices = new List<Vertex>();
+            List<Vertex> vertices = [];
             for (int i = 0; i < numCoords; i++)
             {
                 Coord c = coords[i];
                 vertices.Add(new Vertex(c.X, c.Y, c.Z));
             }
 
-            Mesh mesh = new Mesh();
+            Mesh mesh = new();
             // Add the corresponding triangles to the mesh
             for (int i = 0; i < numFaces; i++)
             {
@@ -362,8 +363,8 @@ namespace OpenSim.Region.PhysicsModule.Meshing
         {
 //            m_log.DebugFormat("[MESH]: experimental mesh proxy generation for {0}", primName);
 
-            coords = new List<Coord>();
-            faces = new List<Face>();
+            coords = [];
+            faces = [];
             OSD meshOsd = null;
 
             mConvexHulls = null;
@@ -379,7 +380,7 @@ namespace OpenSim.Region.PhysicsModule.Meshing
             }
 
             long start = 0;
-            using (MemoryStream data = new MemoryStream(primShape.SculptData))
+            using (MemoryStream data = new(primShape.SculptData))
             {
                 try
                 {
@@ -462,9 +463,9 @@ namespace OpenSim.Region.PhysicsModule.Meshing
                                 m_log.Debug(keys);
                             }
 
-                            Vector3 min = new Vector3(-0.5f, -0.5f, -0.5f);
+                            Vector3 min = new(-0.5f, -0.5f, -0.5f);
                             if (convexBlock.ContainsKey("Min")) min = convexBlock["Min"].AsVector3();
-                            Vector3 max = new Vector3(0.5f, 0.5f, 0.5f);
+                            Vector3 max = new(0.5f, 0.5f, 0.5f);
                             if (convexBlock.ContainsKey("Max")) max = convexBlock["Max"].AsVector3();
 
                             List<Vector3> boundingHull = null;
@@ -472,14 +473,14 @@ namespace OpenSim.Region.PhysicsModule.Meshing
                             if (convexBlock.ContainsKey("BoundingVerts"))
                             {
                                 byte[] boundingVertsBytes = convexBlock["BoundingVerts"].AsBinary();
-                                boundingHull = new List<Vector3>();
+                                boundingHull = [];
                                 for (int i = 0; i < boundingVertsBytes.Length; )
                                 {
                                     ushort uX = Utils.BytesToUInt16(boundingVertsBytes, i); i += 2;
                                     ushort uY = Utils.BytesToUInt16(boundingVertsBytes, i); i += 2;
                                     ushort uZ = Utils.BytesToUInt16(boundingVertsBytes, i); i += 2;
 
-                                    Vector3 pos = new Vector3(
+                                    Vector3 pos = new(
                                         Utils.UInt16ToFloat(uX, min.X, max.X),
                                         Utils.UInt16ToFloat(uY, min.Y, max.Y),
                                         Utils.UInt16ToFloat(uZ, min.Z, max.Z)
@@ -498,13 +499,13 @@ namespace OpenSim.Region.PhysicsModule.Meshing
 
                                 byte[] posBytes = convexBlock["Positions"].AsBinary();
 
-                                List<List<Vector3>> hulls = new List<List<Vector3>>();
+                                List<List<Vector3>> hulls = [];
                                 int posNdx = 0;
 
                                 foreach (byte cnt in hullList)
                                 {
                                     int count = cnt == 0 ? 256 : cnt;
-                                    List<Vector3> hull = new List<Vector3>();
+                                    List<Vector3> hull = [];
 
                                     for (int i = 0; i < count; i++)
                                     {
@@ -512,7 +513,7 @@ namespace OpenSim.Region.PhysicsModule.Meshing
                                         ushort uY = Utils.BytesToUInt16(posBytes, posNdx); posNdx += 2;
                                         ushort uZ = Utils.BytesToUInt16(posBytes, posNdx); posNdx += 2;
 
-                                        Vector3 pos = new Vector3(
+                                        Vector3 pos = new(
                                             Utils.UInt16ToFloat(uX, min.X, max.X),
                                             Utils.UInt16ToFloat(uY, min.Y, max.Y),
                                             Utils.UInt16ToFloat(uZ, min.Z, max.Z)
@@ -551,7 +552,7 @@ namespace OpenSim.Region.PhysicsModule.Meshing
                 if (physOffset < 0 || physSize == 0)
                     return false; // no mesh data in asset
 
-                OSD decodedMeshOsd = new OSD();
+                OSD decodedMeshOsd = new();
                 byte[] meshBytes = new byte[physSize];
                 System.Buffer.BlockCopy(primShape.SculptData, physOffset, meshBytes, 0, physSize);
                 //                        byte[] decompressed = new byte[physSize * 5];
@@ -597,11 +598,11 @@ namespace OpenSim.Region.PhysicsModule.Meshing
         {
             OSD decodedOsd = null;
 
-            using (MemoryStream outMs = new MemoryStream())
+            using (MemoryStream outMs = new())
             {
-                using (MemoryStream inMs = new MemoryStream(meshBytes))
+                using (MemoryStream inMs = new(meshBytes))
                 {
-                    using (DeflateStream decompressionStream = new DeflateStream(inMs, CompressionMode.Decompress))
+                    using (DeflateStream decompressionStream = new(inMs, CompressionMode.Decompress))
                     {
                         byte[] readBuffer = new byte[8192];
                         inMs.Read(readBuffer, 0, 2); // skip first 2 bytes in header
@@ -630,8 +631,8 @@ namespace OpenSim.Region.PhysicsModule.Meshing
         private bool GenerateCoordsAndFacesFromPrimSculptData(
             string primName, PrimitiveBaseShape primShape, Vector3 size, float lod, out List<Coord> coords, out List<Face> faces)
         {
-            coords = new List<Coord>();
-            faces = new List<Face>();
+            coords = [];
+            faces = [];
             PrimMesher.SculptMesh sculptMesh;
             Image idata = null;
             string decodedSculptFileName = "";
@@ -755,8 +756,8 @@ namespace OpenSim.Region.PhysicsModule.Meshing
             string primName, PrimitiveBaseShape primShape, Vector3 size, float lod, out List<Coord> coords, out List<Face> faces)
         {
             PrimMesh primMesh;
-            coords = new List<Coord>();
-            faces = new List<Face>();
+            coords = [];
+            faces = [];
 
             float pathShearX = primShape.PathShearX < 128 ? (float)primShape.PathShearX * 0.01f : (float)(primShape.PathShearX - 256) * 0.01f;
             float pathShearY = primShape.PathShearY < 128 ? (float)primShape.PathShearY * 0.01f : (float)(primShape.PathShearY - 256) * 0.01f;
@@ -907,7 +908,7 @@ namespace OpenSim.Region.PhysicsModule.Meshing
             if (mBoundingHull == null)
                 return null;
 
-            List<Vector3> verts = new List<Vector3>();
+            List<Vector3> verts = [];
             foreach (var vert in mBoundingHull)
                 verts.Add(vert * size);
 
@@ -924,10 +925,10 @@ namespace OpenSim.Region.PhysicsModule.Meshing
             if (mConvexHulls == null)
                 return null;
 
-            List<List<Vector3>> hulls = new List<List<Vector3>>();
+            List<List<Vector3>> hulls = [];
             foreach (var hull in mConvexHulls)
             {
-                List<Vector3> verts = new List<Vector3>();
+                List<Vector3> verts = [];
                 foreach (var vert in hull)
                     verts.Add(vert * size);
                 hulls.Add(verts);
@@ -936,27 +937,27 @@ namespace OpenSim.Region.PhysicsModule.Meshing
             return hulls;
         }
 
-        public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod)
+        public IMesh CreateMesh(string primName, PrimitiveBaseShape primShape, Vector3 size, float lod)
         {
             return CreateMesh(primName, primShape, size, lod, false, true);
         }
 
-        public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical, bool shouldCache, bool convex, bool forOde)
+        public IMesh CreateMesh(string primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical, bool shouldCache, bool convex, bool forOde)
         {
             return CreateMesh(primName, primShape, size, lod, false);
         }
 
-        public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical)
+        public IMesh CreateMesh(string primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical)
         {
             return CreateMesh(primName, primShape, size, lod, isPhysical, true);
         }
 
-        public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical, bool convex, bool forOde)
+        public IMesh CreateMesh(string primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical, bool convex, bool forOde)
         {
             return CreateMesh(primName, primShape, size, lod, isPhysical, true);
         }
 
-        public IMesh CreateMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical, bool shouldCache)
+        public IMesh CreateMesh(string primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical, bool shouldCache)
         {
 #if SPAM
             m_log.DebugFormat("[MESH]: Creating mesh for {0}", primName);
@@ -1009,7 +1010,7 @@ namespace OpenSim.Region.PhysicsModule.Meshing
 
             return mesh;
         }
-        public IMesh GetMesh(String primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical, bool convex)
+        public IMesh GetMesh(string primName, PrimitiveBaseShape primShape, Vector3 size, float lod, bool isPhysical, bool convex)
         {
             return null;
         }

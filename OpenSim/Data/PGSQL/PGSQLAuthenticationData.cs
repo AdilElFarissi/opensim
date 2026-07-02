@@ -52,10 +52,10 @@ namespace OpenSim.Data.PGSQL
         {
             m_Realm = realm;
             m_ConnectionString = connectionString;
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
+            using (NpgsqlConnection conn = new(m_ConnectionString))
             {
                 conn.Open();
-                Migration m = new Migration(conn, GetType().Assembly, "AuthStore");
+                Migration m = new(conn, GetType().Assembly, "AuthStore");
                 m_database = new PGSQLManager(m_ConnectionString);
                 m.Update();
             }
@@ -63,13 +63,15 @@ namespace OpenSim.Data.PGSQL
 
         public AuthenticationData Get(UUID principalID)
         {
-            AuthenticationData ret = new AuthenticationData();
-            ret.Data = new Dictionary<string, object>();
+            AuthenticationData ret = new()
+            {
+                Data = []
+            };
 
             string sql = string.Format("select * from {0} where uuid = :principalID", m_Realm);
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_ConnectionString))
+            using (NpgsqlCommand cmd = new(sql, conn))
             {
                 cmd.Parameters.Add(m_database.CreateParameter("principalID", principalID));
                 conn.Open();
@@ -81,7 +83,7 @@ namespace OpenSim.Data.PGSQL
 
                         if (m_ColumnNames == null)
                         {
-                            m_ColumnNames = new List<string>();
+                            m_ColumnNames = [];
 
                             DataTable schemaTable = result.GetSchemaTable();
                             foreach (DataRow row in schemaTable.Rows)
@@ -125,10 +127,10 @@ namespace OpenSim.Data.PGSQL
             }
             */
             string[] fields = new List<string>(data.Data.Keys).ToArray();
-            StringBuilder updateBuilder = new StringBuilder();
+            StringBuilder updateBuilder = new();
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand())
+            using (NpgsqlConnection conn = new(m_ConnectionString))
+            using (NpgsqlCommand cmd = new())
             {
                 updateBuilder.AppendFormat("update {0} set ", m_Realm);
 
@@ -153,12 +155,12 @@ namespace OpenSim.Data.PGSQL
                 conn.Open();
                 if (cmd.ExecuteNonQuery() < 1)
                 {
-                    StringBuilder insertBuilder = new StringBuilder();
+                    StringBuilder insertBuilder = new();
 
                     insertBuilder.AppendFormat("insert into {0} (uuid, \"", m_Realm);
-                    insertBuilder.Append(String.Join("\", \"", fields));
+                    insertBuilder.Append(string.Join("\", \"", fields));
                     insertBuilder.Append("\") values (:principalID, :");
-                    insertBuilder.Append(String.Join(", :", fields));
+                    insertBuilder.Append(string.Join(", :", fields));
                     insertBuilder.Append(")");
 
                     cmd.CommandText = insertBuilder.ToString();
@@ -175,8 +177,8 @@ namespace OpenSim.Data.PGSQL
         public bool SetDataItem(UUID principalID, string item, string value)
         {
             string sql = string.Format("update {0} set {1} = :{1} where uuid = :UUID", m_Realm, item);
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_ConnectionString))
+            using (NpgsqlCommand cmd = new(sql, conn))
             {
                 cmd.Parameters.Add(m_database.CreateParameter("\"" + item + "\"", value));
                 conn.Open();
@@ -192,8 +194,8 @@ namespace OpenSim.Data.PGSQL
                 DoExpire();
 
             string sql = "insert into tokens (uuid, token, validity) values (:principalID, :token, :lifetime)";
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_ConnectionString))
+            using (NpgsqlCommand cmd = new(sql, conn))
             {
                 cmd.Parameters.Add(m_database.CreateParameter("principalID", principalID));
                 cmd.Parameters.Add(m_database.CreateParameter("token", token));
@@ -216,8 +218,8 @@ namespace OpenSim.Data.PGSQL
             DateTime validDate = DateTime.Now.AddMinutes(lifetime);
             string sql = "update tokens set validity = :validDate where uuid = :principalID and token = :token and validity > (CURRENT_DATE + CURRENT_TIME)";
 
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_ConnectionString))
+            using (NpgsqlCommand cmd = new(sql, conn))
             {
                 cmd.Parameters.Add(m_database.CreateParameter("principalID", principalID));
                 cmd.Parameters.Add(m_database.CreateParameter("token", token));
@@ -236,8 +238,8 @@ namespace OpenSim.Data.PGSQL
         {
             DateTime currentDateTime = DateTime.Now;
             string sql = "delete from tokens where validity < :currentDateTime";
-            using (NpgsqlConnection conn = new NpgsqlConnection(m_ConnectionString))
-            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, conn))
+            using (NpgsqlConnection conn = new(m_ConnectionString))
+            using (NpgsqlCommand cmd = new(sql, conn))
             {
                 conn.Open();
                 cmd.Parameters.Add(m_database.CreateParameter("currentDateTime", currentDateTime));

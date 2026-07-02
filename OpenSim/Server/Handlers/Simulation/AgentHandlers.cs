@@ -100,22 +100,24 @@ namespace OpenSim.Server.Handlers.Simulation
         protected void DoAgentPost(OSDMap args, string remoteAddress, IOSHttpResponse response, UUID id)
         {
             OSD tmpOSD;
-            EntityTransferContext ctx = new EntityTransferContext();
+            EntityTransferContext ctx = new();
             if (args.TryGetValue("context", out tmpOSD) && tmpOSD is OSDMap)
                 ctx.Unpack((OSDMap)tmpOSD);
 
             AgentDestinationData data = CreateAgentDestinationData();
             UnpackData(args, data, remoteAddress);
 
-            GridRegion destination = new GridRegion();
-            destination.RegionID = data.uuid;
-            destination.RegionLocX = data.x;
-            destination.RegionLocY = data.y;
-            destination.RegionName = data.name;
+            GridRegion destination = new()
+            {
+                RegionID = data.uuid,
+                RegionLocX = data.x,
+                RegionLocY = data.y,
+                RegionName = data.name
+            };
 
             GridRegion gatekeeper = ExtractGatekeeper(data);
 
-            AgentCircuitData aCircuit = new AgentCircuitData();
+            AgentCircuitData aCircuit = new();
             try
             {
                 aCircuit.UnpackAgentCircuitData(args);
@@ -131,11 +133,13 @@ namespace OpenSim.Server.Handlers.Simulation
 
             if (args.TryGetValue("source_uuid", out tmpOSD))
             {
-                source = new GridRegion();
-                source.RegionID = UUID.Parse(tmpOSD.AsString());
-                source.RegionLocX = Int32.Parse(args["source_x"].AsString());
-                source.RegionLocY = Int32.Parse(args["source_y"].AsString());
-                source.RegionName = args["source_name"].AsString();
+                source = new GridRegion
+                {
+                    RegionID = UUID.Parse(tmpOSD.AsString()),
+                    RegionLocX = int.Parse(args["source_x"].AsString()),
+                    RegionLocY = int.Parse(args["source_y"].AsString()),
+                    RegionName = args["source_name"].AsString()
+                };
 
                 if (args.TryGetValue("source_server_uri", out tmpOSD))
                     source.RawServerURI = tmpOSD.AsString();
@@ -145,11 +149,13 @@ namespace OpenSim.Server.Handlers.Simulation
 
             bool result = CreateAgent(source, gatekeeper, destination, aCircuit, data.flags, data.fromLogin, ctx, out string reason);
 
-            OSDMap resp = new OSDMap(3);
-            resp["reason"] = OSD.FromString(reason);
-            resp["success"] = OSD.FromBoolean(result);
-            // Let's also send out the IP address of the caller back to the caller (HG 1.5)
-            resp["your_ip"] = remoteAddress;
+            OSDMap resp = new(3)
+            {
+                ["reason"] = OSD.FromString(reason),
+                ["success"] = OSD.FromBoolean(result),
+                // Let's also send out the IP address of the caller back to the caller (HG 1.5)
+                ["your_ip"] = remoteAddress
+            };
 
             response.StatusCode = (int)HttpStatusCode.OK;
             response.RawBuffer = OSDParser.SerializeJsonToBytes(resp);
@@ -165,12 +171,12 @@ namespace OpenSim.Server.Handlers.Simulation
             OSD tmpOSD;
             // retrieve the input arguments
             if (args.TryGetValue("destination_x", out tmpOSD) && tmpOSD != null)
-                Int32.TryParse(tmpOSD.AsString(), out data.x);
+                int.TryParse(tmpOSD.AsString(), out data.x);
             else
                 m_log.WarnFormat("  -- request didn't have destination_x");
 
             if (args.TryGetValue("destination_y", out tmpOSD) && tmpOSD != null)
-                Int32.TryParse(tmpOSD.AsString(), out data.y);
+                int.TryParse(tmpOSD.AsString(), out data.y);
             else
                 m_log.WarnFormat("  -- request didn't have destination_y");
 
@@ -329,7 +335,7 @@ namespace OpenSim.Server.Handlers.Simulation
                     theirVersion = float.Parse(parts[1], Culture.FormatProvider);
             }
 
-            EntityTransferContext ctx = new EntityTransferContext();
+            EntityTransferContext ctx = new();
             if (args.TryGetValue("context", out tmpOSD) && tmpOSD is OSDMap)
                 ctx.Unpack((OSDMap)tmpOSD);
 
@@ -349,7 +355,7 @@ namespace OpenSim.Server.Handlers.Simulation
             if (args.TryGetValue("simulation_service_accepted_max", out tmpOSD))
                 maxVersionRequired = (float)tmpOSD.AsReal();
 
-            OSDMap resp = new OSDMap(3);
+            OSDMap resp = new(3);
 
             float version = 0f;
 
@@ -377,7 +383,7 @@ namespace OpenSim.Server.Handlers.Simulation
                     version > VersionInfo.SimulationServiceVersionAcceptedMax)
                 {
                     resp["success"] = OSD.FromBoolean(false);
-                    resp["reason"] = OSD.FromString(String.Format("Your region protocol version is {0} and we accept only {1} - {2}. No version overlap.", theirVersion, VersionInfo.SimulationServiceVersionAcceptedMin, VersionInfo.SimulationServiceVersionAcceptedMax));
+                    resp["reason"] = OSD.FromString(string.Format("Your region protocol version is {0} and we accept only {1} - {2}. No version overlap.", theirVersion, VersionInfo.SimulationServiceVersionAcceptedMin, VersionInfo.SimulationServiceVersionAcceptedMax));
                     httpResponse.RawBuffer = Util.UTF8.GetBytes(OSDParser.SerializeJsonString(resp, true));
                     return;
                 }
@@ -389,7 +395,7 @@ namespace OpenSim.Server.Handlers.Simulation
                     maxVersionProvided < VersionInfo.SimulationServiceVersionAcceptedMin)
                 {
                     resp["success"] = OSD.FromBoolean(false);
-                    resp["reason"] = OSD.FromString(String.Format("Your region provide protocol versions {0} - {1} and we accept only {2} - {3}. No version overlap.", minVersionProvided, maxVersionProvided, VersionInfo.SimulationServiceVersionAcceptedMin, VersionInfo.SimulationServiceVersionAcceptedMax));
+                    resp["reason"] = OSD.FromString(string.Format("Your region provide protocol versions {0} - {1} and we accept only {2} - {3}. No version overlap.", minVersionProvided, maxVersionProvided, VersionInfo.SimulationServiceVersionAcceptedMin, VersionInfo.SimulationServiceVersionAcceptedMax));
                     httpResponse.RawBuffer = Util.UTF8.GetBytes(OSDParser.SerializeJsonString(resp, true));
                     return;
                 }
@@ -397,7 +403,7 @@ namespace OpenSim.Server.Handlers.Simulation
                     maxVersionRequired < VersionInfo.SimulationServiceVersionSupportedMin)
                 {
                     resp["success"] = OSD.FromBoolean(false);
-                    resp["reason"] = OSD.FromString(String.Format("You require region protocol versions {0} - {1} and we provide only {2} - {3}. No version overlap.", minVersionRequired, maxVersionRequired, VersionInfo.SimulationServiceVersionSupportedMin, VersionInfo.SimulationServiceVersionSupportedMax));
+                    resp["reason"] = OSD.FromString(string.Format("You require region protocol versions {0} - {1} and we provide only {2} - {3}. No version overlap.", minVersionRequired, maxVersionRequired, VersionInfo.SimulationServiceVersionSupportedMin, VersionInfo.SimulationServiceVersionSupportedMax));
                     httpResponse.RawBuffer = Util.UTF8.GetBytes(OSDParser.SerializeJsonString(resp, true));
                     return;
                 }
@@ -410,7 +416,7 @@ namespace OpenSim.Server.Handlers.Simulation
                 inboundVersion = Math.Min(maxVersionRequired, VersionInfo.SimulationServiceVersionSupportedMax);
             }
 
-            List<UUID> features = new List<UUID>();
+            List<UUID> features = [];
 
             if (args.TryGetValue("features", out tmpOSD) && tmpOSD is OSDArray)
             {
@@ -420,8 +426,10 @@ namespace OpenSim.Server.Handlers.Simulation
                     features.Add(new UUID(o.AsString()));
             }
 
-            GridRegion destination = new GridRegion();
-            destination.RegionID = regionID;
+            GridRegion destination = new()
+            {
+                RegionID = regionID
+            };
 
             string reason;
             // We're sending the version numbers down to the local connector to do the varregion check.
@@ -439,12 +447,12 @@ namespace OpenSim.Server.Handlers.Simulation
 
             resp["success"] = OSD.FromBoolean(result);
             resp["reason"] = OSD.FromString(reason);
-            string legacyVersion = String.Format(Culture.FormatProvider, "SIMULATION/{0}", version);
+            string legacyVersion = string.Format(Culture.FormatProvider, "SIMULATION/{0}", version);
             resp["version"] = OSD.FromString(legacyVersion);
             resp["negotiated_inbound_version"] = OSD.FromReal(inboundVersion);
             resp["negotiated_outbound_version"] = OSD.FromReal(outboundVersion);
 
-            OSDArray featuresWanted = new OSDArray();
+            OSDArray featuresWanted = [];
             foreach (UUID feature in features)
                 featuresWanted.Add(OSD.FromString(feature.ToString()));
 
@@ -471,8 +479,10 @@ namespace OpenSim.Server.Handlers.Simulation
                 m_SimulationService.ReleaseAgent(regionID, agentID, "");
             else
             {
-                GridRegion destination = new GridRegion();
-                destination.RegionID = regionID;
+                GridRegion destination = new()
+                {
+                    RegionID = regionID
+                };
                 Util.FireAndForget(
                     o => m_SimulationService.CloseAgent(destination, agentID, auth_token), null, "AgentHandler.DoAgentDelete");
             }
@@ -486,22 +496,24 @@ namespace OpenSim.Server.Handlers.Simulation
         protected void DoAgentPost(OSDMap args, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse, UUID agentID)
         {
             OSD tmpOSD;
-            EntityTransferContext ctx = new EntityTransferContext();
+            EntityTransferContext ctx = new();
             if (args.TryGetValue("context", out tmpOSD) && tmpOSD is OSDMap)
                 ctx.Unpack((OSDMap)tmpOSD);
 
             AgentDestinationData data = CreateAgentDestinationData();
             UnpackData(args, data);
 
-            GridRegion destination = new GridRegion();
-            destination.RegionID = data.uuid;
-            destination.RegionLocX = data.x;
-            destination.RegionLocY = data.y;
-            destination.RegionName = data.name;
+            GridRegion destination = new()
+            {
+                RegionID = data.uuid,
+                RegionLocX = data.x,
+                RegionLocY = data.y,
+                RegionName = data.name
+            };
 
             GridRegion gatekeeper = ExtractGatekeeper(data);
 
-            AgentCircuitData aCircuit = new AgentCircuitData();
+            AgentCircuitData aCircuit = new();
             try
             {
                 aCircuit.UnpackAgentCircuitData(args);
@@ -518,11 +530,13 @@ namespace OpenSim.Server.Handlers.Simulation
 
             if (args.TryGetValue("source_uuid", out tmpOSD))
             {
-                source = new GridRegion();
-                source.RegionID = UUID.Parse(tmpOSD.AsString());
-                source.RegionLocX = Int32.Parse(args["source_x"].AsString());
-                source.RegionLocY = Int32.Parse(args["source_y"].AsString());
-                source.RegionName = args["source_name"].AsString();
+                source = new GridRegion
+                {
+                    RegionID = UUID.Parse(tmpOSD.AsString()),
+                    RegionLocX = int.Parse(args["source_x"].AsString()),
+                    RegionLocY = int.Parse(args["source_y"].AsString()),
+                    RegionName = args["source_name"].AsString()
+                };
 
                 if (args.TryGetValue("source_server_uri", out tmpOSD))
                     source.RawServerURI = tmpOSD.AsString();
@@ -530,7 +544,7 @@ namespace OpenSim.Server.Handlers.Simulation
                     source.RawServerURI = null;
             }
 
-            OSDMap resp = new OSDMap(2);
+            OSDMap resp = new(2);
             string reason = string.Empty;
 
             bool result = CreateAgent(source, gatekeeper, destination, aCircuit, data.flags, ctx, out reason);
@@ -555,12 +569,12 @@ namespace OpenSim.Server.Handlers.Simulation
             OSD tmpOSD;
             // retrieve the input arguments
             if (args.TryGetValue("destination_x", out tmpOSD) && tmpOSD != null)
-                Int32.TryParse(tmpOSD.AsString(), out data.x);
+                int.TryParse(tmpOSD.AsString(), out data.x);
             else
                 m_log.WarnFormat("  -- request didn't have destination_x");
 
             if (args.TryGetValue("destination_y", out tmpOSD) && tmpOSD != null)
-                Int32.TryParse(tmpOSD.AsString(), out data.y);
+                int.TryParse(tmpOSD.AsString(), out data.y);
             else
                 m_log.WarnFormat("  -- request didn't have destination_y");
 
@@ -593,14 +607,14 @@ namespace OpenSim.Server.Handlers.Simulation
         {
             // retrieve the input arguments
             OSD tmpOSD;
-            EntityTransferContext ctx = new EntityTransferContext();
+            EntityTransferContext ctx = new();
             int x = 0, y = 0;
             UUID uuid = UUID.Zero;
             string regionname = string.Empty;
             if (args.TryGetValue("destination_x", out tmpOSD) && tmpOSD != null)
-                Int32.TryParse(tmpOSD.AsString(), out x);
+                int.TryParse(tmpOSD.AsString(), out x);
             if (args.TryGetValue("destination_y", out tmpOSD) && tmpOSD != null)
-                Int32.TryParse(tmpOSD.AsString(), out y);
+                int.TryParse(tmpOSD.AsString(), out y);
             if (args.TryGetValue("destination_uuid", out tmpOSD) && tmpOSD != null)
                 UUID.TryParse(tmpOSD.AsString(), out uuid);
             if (args.TryGetValue("destination_name", out tmpOSD) && tmpOSD != null)
@@ -608,11 +622,13 @@ namespace OpenSim.Server.Handlers.Simulation
             if (args.TryGetValue("context", out tmpOSD) && tmpOSD is OSDMap)
                 ctx.Unpack((OSDMap)tmpOSD);
 
-            GridRegion destination = new GridRegion();
-            destination.RegionID = uuid;
-            destination.RegionLocX = x;
-            destination.RegionLocY = y;
-            destination.RegionName = regionname;
+            GridRegion destination = new()
+            {
+                RegionID = uuid,
+                RegionLocX = x,
+                RegionLocY = y,
+                RegionName = regionname
+            };
 
             string messageType;
             if (args["message_type"] != null)
@@ -626,7 +642,7 @@ namespace OpenSim.Server.Handlers.Simulation
             bool result = true;
             if ("AgentData".Equals(messageType))
             {
-                AgentData agent = new AgentData();
+                AgentData agent = new();
                 try
                 {
                     agent.Unpack(args, m_SimulationService.GetScene(destination.RegionID), ctx);
@@ -645,7 +661,7 @@ namespace OpenSim.Server.Handlers.Simulation
             }
             else if ("AgentPosition".Equals(messageType))
             {
-                AgentPosition agent = new AgentPosition();
+                AgentPosition agent = new();
                 try
                 {
                     agent.Unpack(args, m_SimulationService.GetScene(destination.RegionID), ctx);

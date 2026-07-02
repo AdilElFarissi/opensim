@@ -43,8 +43,8 @@ namespace OpenSim.Services.Connectors.Hypergrid
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
-        private string m_ServerURI = String.Empty;
-        private string m_ServiceKey = String.Empty;
+        private string m_ServerURI = string.Empty;
+        private string m_ServiceKey = string.Empty;
         private UUID m_SessionID;
 
         public HGFriendsServicesConnector()
@@ -72,13 +72,14 @@ namespace OpenSim.Services.Connectors.Hypergrid
 
         public uint GetFriendPerms(UUID PrincipalID, UUID friendID)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-
-            sendData["PRINCIPALID"] = PrincipalID.ToString();
-            sendData["FRIENDID"] = friendID.ToString();
-            sendData["METHOD"] = "getfriendperms";
-            sendData["KEY"] = m_ServiceKey;
-            sendData["SESSIONID"] = m_SessionID.ToString();
+            Dictionary<string, object> sendData = new()
+            {
+                ["PRINCIPALID"] = PrincipalID.ToString(),
+                ["FRIENDID"] = friendID.ToString(),
+                ["METHOD"] = "getfriendperms",
+                ["KEY"] = m_ServiceKey,
+                ["SESSIONID"] = m_SessionID.ToString()
+            };
 
             string reqString = ServerUtils.BuildQueryString(sendData);
             string uri = m_ServerURI + "/hgfriends";
@@ -115,9 +116,11 @@ namespace OpenSim.Services.Connectors.Hypergrid
 
         public bool NewFriendship(UUID PrincipalID, string Friend)
         {
-            FriendInfo finfo = new FriendInfo();
-            finfo.PrincipalID = PrincipalID;
-            finfo.Friend = Friend;
+            FriendInfo finfo = new()
+            {
+                PrincipalID = PrincipalID,
+                Friend = Friend
+            };
 
             Dictionary<string, object> sendData = finfo.ToKeyValuePairs();
 
@@ -146,7 +149,7 @@ namespace OpenSim.Services.Connectors.Hypergrid
                 if ((replyData != null) && replyData.ContainsKey("Result") && (replyData["Result"] != null))
                 {
                     bool success = false;
-                    Boolean.TryParse(replyData["Result"].ToString(), out success);
+                    bool.TryParse(replyData["Result"].ToString(), out success);
                     return success;
                 }
                 else
@@ -162,9 +165,11 @@ namespace OpenSim.Services.Connectors.Hypergrid
 
         public bool DeleteFriendship(UUID PrincipalID, UUID Friend, string secret)
         {
-            FriendInfo finfo = new FriendInfo();
-            finfo.PrincipalID = PrincipalID;
-            finfo.Friend = Friend.ToString();
+            FriendInfo finfo = new()
+            {
+                PrincipalID = PrincipalID,
+                Friend = Friend.ToString()
+            };
 
             Dictionary<string, object> sendData = finfo.ToKeyValuePairs();
 
@@ -209,9 +214,11 @@ namespace OpenSim.Services.Connectors.Hypergrid
 
         public bool ValidateFriendshipOffered(UUID fromID, UUID toID)
         {
-            FriendInfo finfo = new FriendInfo();
-            finfo.PrincipalID = fromID;
-            finfo.Friend = toID.ToString();
+            FriendInfo finfo = new()
+            {
+                PrincipalID = fromID,
+                Friend = toID.ToString()
+            };
 
             Dictionary<string, object> sendData = finfo.ToKeyValuePairs();
 
@@ -255,8 +262,8 @@ namespace OpenSim.Services.Connectors.Hypergrid
 
         public List<UUID> StatusNotification(List<string> friends, UUID userID, bool online)
         {
-            Dictionary<string, object> sendData = new Dictionary<string, object>();
-            List<UUID> friendsOnline = new List<UUID>();
+            Dictionary<string, object> sendData = [];
+            List<UUID> friendsOnline = [];
 
             sendData["METHOD"] = "statusnotification";
             sendData["userID"] = userID.ToString();

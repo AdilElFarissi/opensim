@@ -35,7 +35,7 @@ namespace OpenSim.Tools.Configger
     {
         public static string[] Glob(string path)
         {
-            string vol=String.Empty;
+            string vol= string.Empty;
 
             if (Path.VolumeSeparatorChar != Path.DirectorySeparatorChar)
             {
@@ -53,13 +53,13 @@ namespace OpenSim.Tools.Configger
             // Glob
 
             path = vol;
-            if (vol != String.Empty)
-                path += new String(new char[] {Path.VolumeSeparatorChar, Path.DirectorySeparatorChar});
+            if (vol != string.Empty)
+                path += new string(new char[] {Path.VolumeSeparatorChar, Path.DirectorySeparatorChar});
             else
-                path = new String(new char[] {Path.DirectorySeparatorChar});
+                path = new string(new char[] {Path.DirectorySeparatorChar});
 
-            List<string> paths = new List<string>();
-            List<string> found = new List<string>();
+            List<string> paths = [];
+            List<string> found = [];
             paths.Add(path);
 
             int compIndex = -1;
@@ -67,7 +67,7 @@ namespace OpenSim.Tools.Configger
             {
                 compIndex++;
 
-                List<string> addpaths = new List<string>();
+                List<string> addpaths = [];
                 foreach (string p in paths)
                 {
                     string[] dirs = Directory.GetDirectories(p, c);

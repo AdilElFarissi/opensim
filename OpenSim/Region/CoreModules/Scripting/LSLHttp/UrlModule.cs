@@ -84,9 +84,9 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        protected readonly Dictionary<UUID, UrlData> m_RequestMap = new();
-        protected readonly Dictionary<string, UrlData> m_UrlMap = new();
-        protected readonly Dictionary<UUID, int> m_countsPerSOG = new();
+        protected readonly Dictionary<UUID, UrlData> m_RequestMap = [];
+        protected readonly Dictionary<string, UrlData> m_UrlMap = [];
+        protected readonly Dictionary<UUID, int> m_countsPerSOG = [];
 
         protected bool m_enabled = false;
         protected string m_ErrorStr;
@@ -162,7 +162,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             }
 
             m_enabled = true;
-            m_ErrorStr = String.Empty;
+            m_ErrorStr = string.Empty;
 
             IConfig llFunctionsConfig = config.Configs["LL-Functions"];
 
@@ -231,7 +231,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
             if(!m_enabled)
             {
-                engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_DENIED", m_ErrorStr });
+                engine.PostScriptEvent(itemID, "http_request", new object[] { urlcode.ToString(), "URL_REQUEST_DENIED", m_ErrorStr });
                 return urlcode;
             }
 
@@ -239,7 +239,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             {
                 if (m_UrlMap.Count >= TotalUrls)
                 {
-                    engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_DENIED",
+                    engine.PostScriptEvent(itemID, "http_request", new object[] { urlcode.ToString(), "URL_REQUEST_DENIED",
                         "Too many URLs already open" });
                     return urlcode;
                 }
@@ -255,7 +255,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                     url = url,
                     urlcode = urlcode,
                     isSsl = false,
-                    requests = new Dictionary<UUID, RequestData>(),
+                    requests = [],
                     scene = host.ParentGroup.Scene
                 };
 
@@ -282,7 +282,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 //    "[URL MODULE]: Set up incoming request url {0} for {1} in {2} {3}",
                 //     uri, itemID, host.Name, host.LocalId);
 
-                engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_GRANTED", url + "/"});
+                engine.PostScriptEvent(itemID, "http_request", new object[] { urlcode.ToString(), "URL_REQUEST_GRANTED", url + "/"});
             }
 
             return urlcode;
@@ -294,13 +294,13 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
             if(!m_enabled)
             {
-                engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_DENIED",  m_ErrorStr });
+                engine.PostScriptEvent(itemID, "http_request", new object[] { urlcode.ToString(), "URL_REQUEST_DENIED",  m_ErrorStr });
                 return urlcode;
             }
 
             if (m_HttpsServer == null)
             {
-                engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_DENIED", "" });
+                engine.PostScriptEvent(itemID, "http_request", new object[] { urlcode.ToString(), "URL_REQUEST_DENIED", "" });
                 return urlcode;
             }
 
@@ -308,7 +308,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             {
                 if (m_UrlMap.Count >= TotalUrls)
                 {
-                    engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_DENIED",
+                    engine.PostScriptEvent(itemID, "http_request", new object[] { urlcode.ToString(), "URL_REQUEST_DENIED",
                         "Too many URLs already open" });
                     return urlcode;
                 }
@@ -324,7 +324,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                     url = url,
                     urlcode = urlcode,
                     isSsl = true,
-                    requests = new Dictionary<UUID, RequestData>(),
+                    requests = [],
                     scene = host.ParentGroup.Scene
                 };
 
@@ -349,7 +349,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 //    "[URL MODULE]: Set up incoming secure request url {0} for {1} in {2} {3}",
                 //     uri, itemID, host.Name, host.LocalId);
                 // keep ending / because legacy
-                engine.PostScriptEvent(itemID, "http_request", new Object[] { urlcode.ToString(), "URL_REQUEST_GRANTED", url + "/"});
+                engine.PostScriptEvent(itemID, "http_request", new object[] { urlcode.ToString(), "URL_REQUEST_GRANTED", url + "/"});
             }
 
             return urlcode;
@@ -467,7 +467,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
             lock (m_UrlMap)
             {
-                List<string> removeURLs = new();
+                List<string> removeURLs = [];
 
                 foreach (KeyValuePair<string, UrlData> url in m_UrlMap)
                 {
@@ -492,7 +492,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
         {
             lock (m_UrlMap)
             {
-                List<string> removeURLs = new();
+                List<string> removeURLs = [];
 
                 foreach (KeyValuePair<string, UrlData> url in m_UrlMap)
                 {
@@ -537,12 +537,12 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             lock (m_RequestMap)
             {
                 if (!m_RequestMap.TryGetValue(requestID, out url))
-                    return new Hashtable();
+                    return [];
                 startTime = url.requests[requestID].startTime;
             }
 
             if (System.Environment.TickCount - startTime < 25000)
-                return new Hashtable();
+                return [];
 
             //remove from map
             lock (url.requests)
@@ -607,7 +607,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             lock (m_RequestMap)
             {
                 if (!m_RequestMap.TryGetValue(requestID, out url))
-                    return new Hashtable();
+                    return [];
             }
 
             RequestData requestData = null;
@@ -617,11 +617,11 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
             {
                 requestData = url.requests[requestID];
                 if (requestData == null)
-                    return new Hashtable();
+                    return [];
 
                 timeout = System.Environment.TickCount - requestData.startTime > 25000;
                 if (!requestData.requestDone && !timeout)
-                    return new Hashtable();
+                    return [];
 
                 url.requests.Remove(requestID);
                 lock (m_RequestMap)
@@ -641,7 +641,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                 };
             }
 
-            Hashtable headers = new();
+            Hashtable headers = [];
             if(url.scene is not null)
             {
                 SceneObjectPart sop = url.scene.GetSceneObjectPart(url.hostID);
@@ -748,7 +748,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
                         uri = uri,
                         hostID = url.hostID,
                         scene = url.scene,
-                        headers = new Dictionary<string, string>()
+                        headers = []
                     };
 
                     NameValueCollection headers = request.Headers;
@@ -809,7 +809,7 @@ namespace OpenSim.Region.CoreModules.Scripting.LSLHttp
 
                     request.InputStream.Dispose();
 
-                    url.engine.PostScriptEvent(url.itemID, "http_request", new Object[] { requestID.ToString(), request.HttpMethod, requestBody });
+                    url.engine.PostScriptEvent(url.itemID, "http_request", new object[] { requestID.ToString(), request.HttpMethod, requestBody });
 
                     return null;
 

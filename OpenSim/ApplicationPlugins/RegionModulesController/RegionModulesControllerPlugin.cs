@@ -56,11 +56,11 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
         private string m_name;
 
         // Internal lists to collect information about modules present
-        private List<TypeExtensionNode> m_nonSharedModules = new List<TypeExtensionNode>();
-        private List<TypeExtensionNode> m_sharedModules = new List<TypeExtensionNode>();
+        private List<TypeExtensionNode> m_nonSharedModules = [];
+        private List<TypeExtensionNode> m_sharedModules = [];
 
         // List of shared module instances, for adding to Scenes
-        private List<ISharedRegionModule> m_sharedInstances = new List<ISharedRegionModule>();
+        private List<ISharedRegionModule> m_sharedInstances = [];
 
         public RegionModulesControllerPlugin()
         {
@@ -93,7 +93,7 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
             if (modulesConfig == null)
                 modulesConfig = m_openSim.ConfigSource.Source.AddConfig("Modules");
 
-            Dictionary<RuntimeAddin, IList<int>> loadedModules = new Dictionary<RuntimeAddin, IList<int>>();
+            Dictionary<RuntimeAddin, IList<int>> loadedModules = [];
 
             // Scan modules and load all that aren't disabled
             foreach (TypeExtensionNode node in AddinManager.GetExtensionNodes("/OpenSim/RegionModules"))
@@ -174,7 +174,7 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
             IList<int> loadedModuleData;
 
             if (!loadedModules.ContainsKey(node.Addin))
-                loadedModules.Add(node.Addin, new List<int> { 0, 0, 0 });
+                loadedModules.Add(node.Addin, [0, 0, 0]);
 
             loadedModuleData = loadedModules[node.Addin];
 
@@ -276,7 +276,7 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
                     className = moduleParts[1];
 
                 // Match the class name if given
-                if (className != String.Empty &&
+                if (className != string.Empty &&
                         node.Type.ToString() != className)
                     return false;
             }
@@ -291,8 +291,8 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
         //
         public void AddRegionToModules (Scene scene)
         {
-            Dictionary<Type, ISharedRegionModule> deferredSharedModules = new Dictionary<Type, ISharedRegionModule>();
-            Dictionary<Type, INonSharedRegionModule> deferredNonSharedModules = new Dictionary<Type, INonSharedRegionModule>();
+            Dictionary<Type, ISharedRegionModule> deferredSharedModules = [];
+            Dictionary<Type, INonSharedRegionModule> deferredNonSharedModules = [];
 
             // We need this to see if a module has already been loaded and
             // has defined a replaceable interface. It's a generic call,
@@ -301,7 +301,7 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
             MethodInfo mi = s.GetMethod("RequestModuleInterface");
 
             // This will hold the shared modules we actually load
-            List<ISharedRegionModule> sharedlist = new List<ISharedRegionModule>();
+            List<ISharedRegionModule> sharedlist = [];
 
             // Iterate over the shared modules that have been loaded
             // Add them to the new Scene
@@ -341,7 +341,7 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
             IConfig modulesConfig = m_openSim.ConfigSource.Source.Configs["Modules"];
 
             // Scan for, and load, nonshared modules
-            List<INonSharedRegionModule> list = new List<INonSharedRegionModule>();
+            List<INonSharedRegionModule> list = [];
             foreach (TypeExtensionNode node in m_nonSharedModules)
             {
                 object[] ctorArgs = new object[] {0};
@@ -436,7 +436,7 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
             }
 
             // Same thing for nonshared modules, load them unless overridden
-            List<INonSharedRegionModule> deferredlist = new List<INonSharedRegionModule>();
+            List<INonSharedRegionModule> deferredlist = [];
 
             foreach (INonSharedRegionModule module in deferredNonSharedModules.Values)
             {
