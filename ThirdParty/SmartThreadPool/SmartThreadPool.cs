@@ -96,7 +96,6 @@
 #endregion
 
 using System;
-using System.Security;
 using System.Threading;
 using System.Collections.Concurrent;
 using System.Collections.Generic;

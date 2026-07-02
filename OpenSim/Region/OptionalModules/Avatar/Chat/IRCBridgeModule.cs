@@ -34,7 +34,6 @@ using log4net;
 using Mono.Addins;
 using Nini.Config;
 using Nwc.XmlRpc;
-using OpenSim.Framework;
 using OpenSim.Framework.Servers;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;

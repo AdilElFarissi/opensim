@@ -29,8 +29,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using System.Threading;
-using System.Text;
 using System.Xml;
 using OpenSim.Framework;
 using OpenSim.Framework.Console;
@@ -38,9 +36,6 @@ using OpenSim.Framework.Monitoring;
 using OpenSim.Framework.Servers;
 using log4net;
 using log4net.Config;
-using log4net.Appender;
-using log4net.Core;
-using log4net.Repository;
 using Nini.Config;
 
 namespace OpenSim.Server.Base

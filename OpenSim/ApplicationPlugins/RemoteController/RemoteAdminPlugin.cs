@@ -30,12 +30,9 @@ using Mono.Addins;
 using Nini.Config;
 using Nwc.XmlRpc;
 using OpenMetaverse;
-using OpenSim;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
 using OpenSim.Framework.Servers;
 using OpenSim.Framework.Servers.HttpServer;
-using OpenSim.Region.CoreModules.World.Terrain;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
@@ -49,10 +46,7 @@ using System.Reflection;
 using System.Threading;
 using System.Timers;
 using System.Xml;
-using static System.Net.Mime.MediaTypeNames;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
-using PermissionMask = OpenSim.Framework.PermissionMask;
-using PresenceInfo = OpenSim.Services.Interfaces.PresenceInfo;
 using RegionInfo = OpenSim.Framework.RegionInfo;
 
 namespace OpenSim.ApplicationPlugins.RemoteController

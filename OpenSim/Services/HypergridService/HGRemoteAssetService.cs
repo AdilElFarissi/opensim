@@ -25,10 +25,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Reflection;
-using System.Xml;
 
 using Nini.Config;
 using log4net;
@@ -38,7 +35,6 @@ using OpenSim.Framework;
 using OpenSim.Framework.Serialization.External;
 using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
-using OpenSim.Services.AssetService;
 
 namespace OpenSim.Services.HypergridService
 {

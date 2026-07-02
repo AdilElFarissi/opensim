@@ -33,9 +33,6 @@ using log4net;
 using Nini.Config;
 using System.Reflection;
 using OpenSim.Data;
-using OpenSim.Framework;
-using OpenSim.Framework.Console;
-using OpenSim.Server.Base;
 
 namespace OpenSim.Services.AuthenticationService
 {

@@ -26,7 +26,6 @@
  */
 
 using System;
-using System.Runtime.Serialization;
 
 namespace OpenSim.Region.ScriptEngine.Shared
 {

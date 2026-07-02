@@ -26,8 +26,6 @@
  */
 
 using System;
-using System.Reflection;
-using log4net;
 using OpenMetaverse;
 
 namespace OpenSim.Framework

@@ -27,16 +27,11 @@
 
 using log4net;
 using System;
-using System.Threading;
 using System.Collections.Generic;
-using System.Collections.Concurrent;
 using System.IO;
 using System.Reflection;
-using System.Timers;
 using Nini.Config;
 using OpenSim.Framework;
-using OpenSim.Framework.Monitoring;
-using OpenSim.Framework.ServiceAuth;
 using OpenSim.Services.Interfaces;
 using OpenMetaverse;
 

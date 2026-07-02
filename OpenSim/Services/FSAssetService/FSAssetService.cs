@@ -38,7 +38,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Reflection;
-using System.Security.Cryptography;
 using System.Threading;
 
 namespace OpenSim.Services.FSAssetService

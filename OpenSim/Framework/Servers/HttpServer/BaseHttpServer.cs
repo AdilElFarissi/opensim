@@ -46,7 +46,6 @@ using log4net;
 using Nwc.XmlRpc;
 using OpenSim.Framework.Monitoring;
 using OpenMetaverse.StructuredData;
-using OpenMetaverse;
 
 namespace OpenSim.Framework.Servers.HttpServer
 {

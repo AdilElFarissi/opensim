@@ -33,7 +33,6 @@ using OpenSim.Framework;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Server.Handlers.Base;
 using OpenMetaverse;
-using OpenMetaverse.StructuredData;
 
 
 namespace OpenSim.Capabilities.Handlers

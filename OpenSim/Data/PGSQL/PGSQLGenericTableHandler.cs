@@ -31,8 +31,6 @@ using System.Data;
 using System.Reflection;
 using log4net;
 using OpenMetaverse;
-using OpenSim.Framework;
-using OpenSim.Region.Framework.Interfaces;
 using System.Text;
 using Npgsql;
 

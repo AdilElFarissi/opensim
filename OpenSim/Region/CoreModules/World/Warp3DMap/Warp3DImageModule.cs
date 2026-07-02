@@ -29,7 +29,6 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.IO;
 using System.Reflection;
 using System.Runtime;
 
@@ -44,7 +43,6 @@ using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 
 using OpenMetaverse;
-using OpenMetaverse.Assets;
 using OpenMetaverse.Imaging;
 using OpenMetaverse.Rendering;
 using OpenMetaverse.StructuredData;

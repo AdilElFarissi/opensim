@@ -40,9 +40,6 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
 using Caps = OpenSim.Framework.Capabilities.Caps;
 using OpenSim.Capabilities.Handlers;
-using OpenSim.Framework.Monitoring;
-
-using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Region.ClientStack.Linden
 {

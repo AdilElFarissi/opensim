@@ -31,7 +31,6 @@ using System.IO;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
-using log4net;
 using Nini.Config;
 
 using OpenMetaverse;

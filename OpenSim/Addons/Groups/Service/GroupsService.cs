@@ -35,7 +35,6 @@ using Nini.Config;
 using OpenMetaverse;
 using OpenSim.Data;
 using OpenSim.Framework;
-using OpenSim.Services.Interfaces;
 
 namespace OpenSim.Groups
 {

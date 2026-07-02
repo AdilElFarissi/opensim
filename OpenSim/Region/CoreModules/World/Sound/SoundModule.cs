@@ -30,7 +30,6 @@ using System.Reflection;
 
 using Nini.Config;
 using OpenMetaverse;
-using log4net;
 using Mono.Addins;
 
 using OpenSim.Framework;

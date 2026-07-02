@@ -40,8 +40,6 @@ using OpenSim.Region.Framework.Scenes;
 using OpenSim.Framework.Capabilities;
 
 using Nini.Config;
-using log4net;
-using System.Reflection;
 
 using OSDArray = OpenMetaverse.StructuredData.OSDArray;
 using OSDMap = OpenMetaverse.StructuredData.OSDMap;

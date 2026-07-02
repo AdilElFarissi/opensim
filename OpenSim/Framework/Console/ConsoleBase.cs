@@ -27,11 +27,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Reflection;
-using System.Text;
-using System.Threading;
-using log4net;
 
 namespace OpenSim.Framework.Console
 {

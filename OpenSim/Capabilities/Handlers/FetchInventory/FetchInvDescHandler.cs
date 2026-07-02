@@ -31,7 +31,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using log4net;
-using Nini.Config;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using OpenSim.Framework;

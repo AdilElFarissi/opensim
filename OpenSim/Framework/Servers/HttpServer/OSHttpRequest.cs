@@ -31,10 +31,8 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
 using System.Net;
-using System.Reflection;
 using System.Text;
 using OSHttpServer;
-using log4net;
 
 using System.Runtime.CompilerServices;
 

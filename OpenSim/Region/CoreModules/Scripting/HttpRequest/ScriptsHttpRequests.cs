@@ -42,7 +42,6 @@ using OpenSim.Region.Framework.Scenes;
 using Mono.Addins;
 using System.Net.Http;
 using System.Security.Authentication;
-using System.Net.Http.Headers;
 
 /*****************************************************
  *

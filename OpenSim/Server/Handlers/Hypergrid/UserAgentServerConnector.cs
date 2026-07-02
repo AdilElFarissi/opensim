@@ -29,17 +29,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Net;
-using System.Reflection;
 
 using Nini.Config;
-using OpenSim.Framework;
 using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Server.Handlers.Base;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
-
-using log4net;
 using Nwc.XmlRpc;
 using OpenMetaverse;
 

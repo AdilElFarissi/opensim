@@ -29,12 +29,9 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
-using log4net;
 using System.Data.SQLite;
 
 using OpenMetaverse;
-using OpenSim.Framework;
-using OpenSim.Region.Framework.Interfaces;
 
 namespace OpenSim.Data.SQLite
 {

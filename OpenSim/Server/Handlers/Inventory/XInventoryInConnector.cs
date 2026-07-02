@@ -27,7 +27,6 @@
 
 using System;
 using System.Reflection;
-using System.Text;
 using System.Xml;
 using System.Collections.Generic;
 using System.IO;
@@ -40,8 +39,6 @@ using OpenSim.Framework.Servers.HttpServer;
 using OpenSim.Server.Handlers.Base;
 using log4net;
 using OpenMetaverse;
-
-using System.Threading;
 
 namespace OpenSim.Server.Handlers.Inventory
 {

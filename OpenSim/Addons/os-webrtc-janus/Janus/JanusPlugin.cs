@@ -30,7 +30,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 
 using OpenMetaverse.StructuredData;
-using OpenMetaverse;
 
 using Nini.Config;
 using log4net;

@@ -28,19 +28,13 @@
 using log4net;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Net;
 using System.Reflection;
 
 using Nini.Config;
 using OpenSim.Framework;
-using OpenSim.Framework.Console;
-
-using OpenSim.Framework.ServiceAuth;
 using OpenSim.Server.Base;
 using OpenSim.Services.Interfaces;
 using OpenMetaverse;
-using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Services.Connectors
 {

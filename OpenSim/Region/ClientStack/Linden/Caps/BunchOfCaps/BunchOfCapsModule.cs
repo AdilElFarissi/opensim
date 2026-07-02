@@ -26,14 +26,11 @@
  */
 
 using System;
-
-using log4net;
 using Nini.Config;
 using OpenMetaverse;
 using Mono.Addins;
 
 using OpenSim.Framework;
-using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using Caps = OpenSim.Framework.Capabilities.Caps;

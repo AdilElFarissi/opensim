@@ -30,7 +30,6 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 
 using System.Net;
-using log4net;
 using Nini.Config;
 using Mono.Addins;
 using OpenMetaverse;

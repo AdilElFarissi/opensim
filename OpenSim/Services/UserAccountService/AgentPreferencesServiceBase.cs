@@ -26,10 +26,8 @@
  */
 
 using System;
-using System.Reflection;
 using Nini.Config;
 using OpenSim.Data;
-using OpenSim.Services.Interfaces;
 using OpenSim.Services.Base;
 
 namespace OpenSim.Services.UserAccountService

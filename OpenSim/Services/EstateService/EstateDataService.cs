@@ -28,9 +28,7 @@
 using System;
 using System.Collections.Generic;
 using OpenMetaverse;
-using log4net;
 using Nini.Config;
-using System.Reflection;
 using OpenSim.Services.Base;
 using OpenSim.Services.Interfaces;
 using OpenSim.Data;

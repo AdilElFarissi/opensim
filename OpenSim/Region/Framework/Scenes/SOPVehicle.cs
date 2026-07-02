@@ -33,9 +33,6 @@ using OpenSim.Region.PhysicsModules.SharedBase;
 using System.Text;
 using System.IO;
 using System.Xml;
-using OpenSim.Framework.Serialization;
-using OpenSim.Framework.Serialization.External;
-using OpenSim.Region.Framework.Scenes.Serialization;
 
 namespace OpenSim.Region.Framework.Scenes
 {

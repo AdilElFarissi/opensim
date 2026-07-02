@@ -26,14 +26,10 @@
  */
 
 using System;
-using System.Text;
 using System.Reflection;
 using Nini.Config;
 using log4net;
-using OpenSim.Framework;
-using OpenSim.Data;
 using OpenSim.Services.Interfaces;
-using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 using System.Collections;
 

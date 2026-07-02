@@ -26,7 +26,6 @@
  */
 
 using System.Runtime.CompilerServices;
-using System.Threading;
 
 namespace OpenSim.Framework
 {

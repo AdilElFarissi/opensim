@@ -28,7 +28,6 @@
 using System;
 using System.Text;
 using OpenMetaverse;
-using log4net;
 using Nini.Config;
 using OpenSim.Services.Base;
 using OpenSim.Services.Interfaces;

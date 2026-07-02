@@ -26,12 +26,6 @@
  */
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Data;
-using System.Reflection;
-using OpenMetaverse;
-using OpenSim.Framework;
 using Npgsql;
 
 namespace OpenSim.Data.PGSQL

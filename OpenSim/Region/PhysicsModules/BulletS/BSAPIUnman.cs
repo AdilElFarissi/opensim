@@ -25,13 +25,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 using System;
-using System.Collections.Generic;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security;
-using System.Text;
-
-using OpenSim.Framework;
 
 using OpenMetaverse;
 

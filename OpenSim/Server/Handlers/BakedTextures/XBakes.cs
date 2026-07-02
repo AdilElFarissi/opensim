@@ -27,14 +27,12 @@
 
 using System;
 using System.IO;
-using System.Text;
 using System.Reflection;
 using OpenSim.Framework;
 using OpenSim.Services.Base;
 using OpenSim.Services.Interfaces;
 using Nini.Config;
 using log4net;
-using OpenMetaverse;
 
 namespace OpenSim.Server.Handlers.BakedTextures
 {

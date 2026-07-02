@@ -33,11 +33,7 @@ using OpenSim.Framework.ServiceAuth;
 using OpenSim.Server.Base;
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Data;
-using System.Linq;
 using System.Reflection;
-using System.Text;
 
 namespace OpenSim.Groups
 {

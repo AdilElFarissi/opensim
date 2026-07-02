@@ -27,11 +27,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Net;
 using System.Reflection;
-using System.Text;
-using System.Collections;
 
 using OpenSim.Framework;
 using OpenSim.Services.Interfaces;

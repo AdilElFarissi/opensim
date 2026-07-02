@@ -37,7 +37,6 @@ using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 
 using log4net;
-using System.Threading;
 using OpenSim.Framework;
 
 namespace osWebRtcVoice

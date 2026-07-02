@@ -28,7 +28,6 @@
 using System;
 using System.Reflection;
 using System.Collections.Generic;
-using System.Diagnostics; //for [DebuggerNonUserCode]
 using OpenSim.Region.ScriptEngine.Interfaces;
 
 namespace OpenSim.Region.ScriptEngine.Shared.ScriptBase

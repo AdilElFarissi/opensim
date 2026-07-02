@@ -26,11 +26,8 @@
  */
 
 using System;
-using System.Threading;
-using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
-using System.Security.Policy;
 using System.IO;
 using System.Xml;
 using System.Text;
@@ -39,10 +36,6 @@ using OpenSim.Framework;
 using OpenSim.Region.ScriptEngine.Interfaces;
 using OpenSim.Region.ScriptEngine.Shared;
 using OpenSim.Region.ScriptEngine.Shared.Api;
-using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
-using OpenSim.Region.ScriptEngine.Yengine;
-using OpenSim.Region.Framework.Scenes;
-using log4net;
 
 using LSL_Float = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLFloat;
 using LSL_Integer = OpenSim.Region.ScriptEngine.Shared.LSL_Types.LSLInteger;

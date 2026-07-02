@@ -28,7 +28,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using log4net;
 using MySql.Data.MySqlClient;
 using OpenMetaverse;
 

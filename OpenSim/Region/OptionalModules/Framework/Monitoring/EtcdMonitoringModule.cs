@@ -28,13 +28,9 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
 using log4net;
 using Mono.Addins;
 using Nini.Config;
-using OpenMetaverse;
-using OpenSim.Framework;
-using OpenSim.Framework.Console;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using netcd;

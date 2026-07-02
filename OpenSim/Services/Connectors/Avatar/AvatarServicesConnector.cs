@@ -28,13 +28,10 @@
 using log4net;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Reflection;
 using Nini.Config;
 using OpenSim.Framework;
-using OpenSim.Framework.ServiceAuth;
 using OpenSim.Services.Interfaces;
-using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using IAvatarService = OpenSim.Services.Interfaces.IAvatarService;
 using OpenSim.Server.Base;
 using OpenMetaverse;

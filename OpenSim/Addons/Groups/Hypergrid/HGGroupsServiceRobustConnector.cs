@@ -27,8 +27,6 @@
 
 using System;
 using System.Reflection;
-using System.Text;
-using System.Xml;
 using System.Collections.Generic;
 using System.IO;
 using Nini.Config;

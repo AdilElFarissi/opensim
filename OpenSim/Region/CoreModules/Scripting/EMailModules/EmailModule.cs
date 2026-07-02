@@ -31,7 +31,6 @@ using System.Net.Security;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using log4net;
-using MailKit;
 using MailKit.Net.Smtp;
 using MimeKit;
 using Nini.Config;

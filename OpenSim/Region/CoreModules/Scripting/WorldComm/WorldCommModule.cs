@@ -31,7 +31,6 @@ using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
 using Nini.Config;
-using Mono.Addins;
 
 using OpenMetaverse;
 

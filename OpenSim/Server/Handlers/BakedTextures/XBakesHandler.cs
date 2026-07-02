@@ -27,7 +27,6 @@
 
 using System;
 using System.IO;
-using System.Text;
 using System.Net;
 using Nini.Config;
 using OpenSim.Server.Base;

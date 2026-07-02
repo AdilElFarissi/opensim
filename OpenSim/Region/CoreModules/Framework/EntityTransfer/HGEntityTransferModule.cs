@@ -30,13 +30,11 @@ using System.Collections.Generic;
 using System.Reflection;
 
 using OpenSim.Framework;
-using OpenSim.Framework.Client;
 using OpenSim.Framework.Monitoring;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Connectors.Hypergrid;
 using OpenSim.Services.Interfaces;
-using OpenSim.Server.Base;
 
 using OpenMetaverse;
 using log4net;

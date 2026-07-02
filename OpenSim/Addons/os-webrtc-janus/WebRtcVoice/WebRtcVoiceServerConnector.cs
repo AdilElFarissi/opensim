@@ -27,14 +27,9 @@
 
 using System;
 using System.Reflection;
-
-using OpenSim.Framework;
 using OpenSim.Framework.Servers.HttpServer;
-using OpenSim.Region.Framework.Interfaces;
-using OpenSim.Services.Interfaces;
 using OpenSim.Server.Base;
 using OpenSim.Server.Handlers.Base;
-using System.Threading.Tasks;
 
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;

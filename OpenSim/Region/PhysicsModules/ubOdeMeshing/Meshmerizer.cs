@@ -45,7 +45,6 @@ using System.Reflection;
 using System.IO;
 
 using Mono.Addins;
-using System.Buffers;
 
 namespace OpenSim.Region.PhysicsModule.ubODEMeshing
 {

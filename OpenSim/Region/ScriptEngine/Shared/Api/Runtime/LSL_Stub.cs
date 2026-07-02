@@ -25,7 +25,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-using System;
 using System.Diagnostics; //for [DebuggerNonUserCode]
 using System.Runtime.CompilerServices;
 using OpenSim.Region.ScriptEngine.Interfaces;

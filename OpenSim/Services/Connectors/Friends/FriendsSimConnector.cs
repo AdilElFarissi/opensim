@@ -28,8 +28,6 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-
-using OpenSim.Services.Interfaces;
 using GridRegion = OpenSim.Services.Interfaces.GridRegion;
 using OpenSim.Server.Base;
 using OpenSim.Framework;

@@ -36,10 +36,9 @@ using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using log4net;
 using OpenMetaverse;
-using OpenSim.Framework;
 using OpenSim.Framework.Monitoring;
 using OpenSim.Framework.Servers.HttpServer;
-using Timer=System.Timers.Timer;
+using Timer = System.Timers.Timer;
 using Nini.Config;
 using System.Runtime.InteropServices;
 

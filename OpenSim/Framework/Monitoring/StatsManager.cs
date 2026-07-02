@@ -31,8 +31,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-
-using OpenSim.Framework;
 using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Framework.Monitoring

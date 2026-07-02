@@ -28,8 +28,6 @@
 using System;
 using System.Reflection;
 using Nini.Config;
-using OpenSim.Framework;
-using OpenSim.Services.Interfaces;
 using OpenSim.Services.Base;
 using log4net;
 

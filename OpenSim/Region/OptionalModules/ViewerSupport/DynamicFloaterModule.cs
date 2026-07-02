@@ -28,23 +28,14 @@
 using System;
 using System.IO;
 using System.Reflection;
-using System.Text;
 using System.Collections.Generic;
 using OpenMetaverse;
-using OpenMetaverse.StructuredData;
-using OpenSim;
-using OpenSim.Region;
-using OpenSim.Region.Framework;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Framework;
-using OpenSim.Framework.Servers;
-using OpenSim.Framework.Servers.HttpServer;
 using Nini.Config;
 using log4net;
 using Mono.Addins;
-using Caps = OpenSim.Framework.Capabilities.Caps;
-using OSDMap = OpenMetaverse.StructuredData.OSDMap;
 
 namespace OpenSim.Region.OptionalModules.ViewerSupport
 {

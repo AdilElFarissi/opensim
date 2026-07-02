@@ -26,14 +26,9 @@
  */
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 using OpenSim.Framework;
-using OpenSim.Region.Framework;
 using OpenSim.Region.PhysicsModules.SharedBase;
-
-using Nini.Config;
-using log4net;
 
 using OpenMetaverse;
 
