@@ -48,7 +48,7 @@ jobs:
           print(f'🔍 Fetching open security alerts from: {repo_path}')
           response = requests.get(base_url, headers=headers, params={'state': 'open', 'per_page': 100})
 
-          if response.status_code != 200:
+          if response.status_code != '200':
               print(f'❌ Failed to fetch alerts: {response.status_code} - {response.text}')
               exit(1)
 
