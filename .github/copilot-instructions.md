@@ -16,4 +16,5 @@ You are an automated code repair agent fixing vulnerabilities and bugs in OpenSi
 * **Respect Prebuild Blueprints**: Do not manually modify `.csproj` or `.sln` files. All project structures are driven dynamically by `prebuild.xml`. If a dependency change is required, modify `prebuild.xml` instead.
 * **Logging Standards**: When fixing error handling or catch blocks, use the internal Log4Net interface (`m_log.Error(...)`). Do not use `Console.WriteLine` or standard System.Diagnostics tracing.
 * **Null Safety**: Prioritize modern C# 8+ null-coalescing operators (`??=`) and patterns, but ensure compatibility with existing legacy type checking systems used across the codebase.
+* ** Check Breaking Changes**: Check the method references if the current change break something where the method is used and rework the fix if is the case.
 * **Add Missing Summary**: If the context method doesn't have a summary, add a short summary explaining the method, its parameters, the expected return value, and exceptions.
