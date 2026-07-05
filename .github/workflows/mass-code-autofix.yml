@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 jobs:
-  bulk-fix:
+  copilot-mass-autofix:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository code
