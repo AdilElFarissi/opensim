@@ -42,7 +42,7 @@ jobs:
               'Accept': 'application/vnd.github+json',
               'X-GitHub-Api-Version': '2022-11-28',
           }
-          base_url = f'https://github.com{owner}/{repo}/code-scanning/alerts'
+          base_url = f'https://github.com/{owner}/{repo}/code-scanning/alerts'
 
           # --- NEW: READ CUSTOM INSTRUCTIONS ---
           instructions_text = ''
