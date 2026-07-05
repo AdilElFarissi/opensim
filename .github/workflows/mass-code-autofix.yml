@@ -1,9 +1,7 @@
-name: "Trigger Mass Copilot Autofixes"
+name: Trigger Mass Copilot Autofixes
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 0 * * 0'
 
 permissions:
   security-events: write
@@ -16,11 +14,11 @@ jobs:
       - name: Checkout repository code
         uses: actions/checkout@v4
 
+      # Forces step logging visibility even if setup fails
       - name: Execute Mass Autofix Script
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO_PATH: ${{ github.repository }}
         run: |
-          # Make the script file executable and run it safely
           chmod +x ./autofix.sh
           ./autofix.sh
