@@ -24,7 +24,6 @@ jobs:
 
       - name: Run Mass Autofix Execution
         env:
-          # Swapped to use your high-privilege personal token secret
           GITHUB_TOKEN: ${{ secrets.AUTOFIX_PAT }}
           REPO_PATH: ${{ github.repository }}
         run: |
@@ -35,7 +34,7 @@ jobs:
           repo = os.environ.get('REPO_PATH')
 
           if not token:
-              print('❌ Critical Error: AUTOFIX_PAT secret is missing or empty!')
+              print('❌ Critical Error: AUTOFIX_PAT secret is missing or empty in your repo settings!')
               exit(1)
 
           headers = {
@@ -44,8 +43,9 @@ jobs:
               'X-GitHub-Api-Version': '2022-11-28'
           }
           
-          base_url = f'https://github.com/{repo}/code-scanning/alerts'
-          print(f'🔍 Querying alerts from: {base_url}')
+          # FIXED: Restored the exact api.github.com subdomain mapping
+          base_url = f'https://api.github.com/repos/{repo}/code-scanning/alerts'
+          print(f'🔍 Querying alerts from the official API: {base_url}')
 
           # Fetch open alerts
           resp = requests.get(base_url, headers=headers, params={'state': 'open', 'per_page': 100})
@@ -65,6 +65,10 @@ jobs:
           ]
           print(f'🎯 Filtered down to {len(targets)} matching severe alerts.')
 
+          if not targets:
+              print('🎉 No matching open alerts found. Workflow complete!')
+              exit(0)
+
           for alert in targets:
               num = alert.get('number')
               rule = alert.get('rule', {}).get('id', 'Unknown')
@@ -73,7 +77,7 @@ jobs:
               fix_url = f'{base_url}/{num}/autofix'
               fix_resp = requests.post(fix_url, headers=headers)
               
-              if fix_resp.status_code in [200, 201, 202]:
+              if fix_resp.status_code in:
                   print(f'✅ Fix successfully initiated for Alert #{num}!')
               else:
                   print(f'⚠️ Warning for Alert #{num}: Status {fix_resp.status_code} - {fix_resp.text}')
