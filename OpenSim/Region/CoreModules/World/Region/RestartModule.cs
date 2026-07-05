@@ -212,7 +212,26 @@ namespace OpenSim.Region.CoreModules.World.Region
                         currentAlertString += string.Format("{0} seconds", seconds);
                 }
 
-                string msg = string.Format(m_Message, currentAlertString);
+                string msg;
+                if (string.IsNullOrEmpty(m_Message))
+                {
+                    msg = currentAlertString;
+                }
+                else if (m_Message.Contains("{0}"))
+                {
+                    try
+                    {
+                        msg = string.Format(m_Message, currentAlertString);
+                    }
+                    catch (FormatException)
+                    {
+                        msg = m_Message;
+                    }
+                }
+                else
+                {
+                    msg = m_Message;
+                }
 
                 if (m_DialogModule != null && msg != string.Empty)
                 {
