@@ -27,6 +27,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          python -m pip install --upgrade pip
           pip install requests
 
       - name: Execute Mass Autofix Script
@@ -52,24 +53,31 @@ jobs:
           base_url = f'https://github.com{owner}/{repo}/code-scanning/alerts'
 
           print('🔍 Fetching open security alerts...')
+          # Fetch open alerts. We will filter the severities in python.
           response = requests.get(base_url, headers=headers, params={'state': 'open', 'per_page': 100})
 
           if response.status_code != 200:
               print(f'❌ Failed to fetch alerts: {response.status_code}')
               exit(1)
 
-          alerts = response.json()
-          print(f' Found {len(alerts)} open alerts.')
+          all_alerts = response.json()
+          
+          # Target only critical and error levels
+          allowed_severities = ['critical', 'error']
+          alerts = [a for a in all_alerts if a.get('rule', {}).get('severity') in allowed_severities]
+          
+          print(f' Found {len(alerts)} open alerts matching [critical] or [error] severity.')
 
           for alert in alerts:
               num = alert.get('number')
               rule = alert.get('rule', {}).get('id', 'Unknown Rule')
+              severity = alert.get('rule', {}).get('severity', 'unknown')
               
-              print(f'🤖 Triggering Autofix for Alert #{num} ({rule})...')
+              print(f'🤖 Triggering Autofix for Alert #{num} [{severity.upper()}] ({rule})...')
               fix_url = f'{base_url}/{num}/autofix'
               fix_resp = requests.post(fix_url, headers=headers)
               
-              if fix_resp.status_code in [200, 201, 202]:
+              if fix_resp.status_code in:
                   print(f'✅ Fix initiated for #{num}!')
               else:
                   print(f'⚠️ Failed to fix #{num}: {fix_resp.status_code}')
