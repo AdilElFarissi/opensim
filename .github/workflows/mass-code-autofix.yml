@@ -44,7 +44,7 @@ jobs:
               'X-GitHub-Api-Version': '2022-11-28'
           }
           
-          base_url = f'https://github.com{repo}/code-scanning/alerts'
+          base_url = f'https://github.com/{repo}/code-scanning/alerts'
           print(f'🔍 Querying alerts from: {base_url}')
 
           # Fetch open alerts
