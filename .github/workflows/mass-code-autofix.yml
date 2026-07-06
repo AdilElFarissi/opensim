@@ -32,6 +32,7 @@ jobs:
 
           token = os.environ.get('GITHUB_TOKEN')
           repo = os.environ.get('REPO_PATH')
+          print(f'Repo: {repo}')
 
           if not token:
               print('❌ Critical Error: AUTOFIX_PAT secret is missing or empty in your repo settings!')
@@ -43,10 +44,9 @@ jobs:
               'X-GitHub-Api-Version': '2022-11-28'
           }
           
-          base_url = f'https://api.github.com/repos/{owner}/{repo}/code-scanning/alerts'
+          base_url = f'https://api.github.com/repos/{repo}/code-scanning/alerts'
           print(f'🔍 Querying alerts from the official API: {base_url}')
 
-          # Fetch open alerts
           resp = requests.get(base_url, headers=headers, params={'state': 'open', 'per_page': 100})
           
           if resp.status_code != 200:
@@ -56,7 +56,6 @@ jobs:
           alerts = resp.json()
           print(f'📋 Total open security alerts found: {len(alerts)}')
 
-          # Filter targets across error/critical/high parameters
           targets = [
               a for a in alerts 
               if a.get('rule', {}).get('severity') in ['critical', 'error', 'high'] 
@@ -76,11 +75,10 @@ jobs:
               fix_url = f'{base_url}/{num}/autofix'
               fix_resp = requests.post(fix_url, headers=headers)
               
-              # FIXED: Added the explicit list of success codes [200, 201] to resolve the syntax error
-              if fix_resp.status_code in:
+              if fix_resp.status_code in [200, 201]:
                   print(f'✅ Fix successfully initiated for Alert #{num}!')
               else:
                   print(f'⚠️ Warning for Alert #{num}: Status {fix_resp.status_code} - {fix_resp.text}')
               
-              time.sleep(2)
+              time.sleep(5)
           "
