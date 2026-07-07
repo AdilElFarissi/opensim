@@ -99,11 +99,11 @@ jobs:
               #with open(".github/copilot-instructions.md", "r") as f:
                   #rules = f.read()
 
-          if not os.path.exists("codeql-sarif-report"):
+          if not os.path.exists("/codeql-directory/codeql-sarif-report"):
               print("Critical: codeql-results.sarif was not found on disk.")
               exit(0)
 
-          with open("codeql-sarif-report", "r") as f:
+          with open("/codeql-directory/codeql-sarif-report", "r") as f:
               sarif_data = json.load(f)
 
           runs = sarif_data.get("runs", [])
