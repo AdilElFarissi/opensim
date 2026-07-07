@@ -516,20 +516,18 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                         }
 
                         data = cmap["Positions"].AsBinary();
-                        fixed(byte* ptrstart = data)
+                        bool truncated = false;
+                        int pos = 0;
+                        int dataLen = data.Length;
+
+                        int vertsoffset = 0;
+
+                        if (totalpoints == dataLen / 6) // 2 bytes per coord, 3 coords per point
                         {
-                            byte* ptr = ptrstart;
-                            byte* ptrend = ptrstart + data.Length;
-                            bool truncated = false;
-
-                            int vertsoffset = 0;
-
-                            if (totalpoints == data.Length / 6) // 2 bytes per coord, 3 coords per point
+                            foreach (int hullsize in hsizes)
                             {
-                                foreach (int hullsize in hsizes)
+                                if (hullsize < 4)
                                 {
-                                    if (hullsize < 4)
-                                    {
                                         if (hullsize < 3)
                                         {
                                             if (ptr + (6 * hullsize) > ptrend)
@@ -571,15 +569,15 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
 
                                     for (i = 0; i < hullsize; i++)
                                     {
-                                        if (ptr + 6 > ptrend)
+                                        if (pos > dataLen - 6)
                                         {
                                             truncated = true;
                                             break;
                                         }
 
-                                        t1 = Utils.BytesToUInt16(ptr); ptr += 2;
-                                        t2 = Utils.BytesToUInt16(ptr); ptr += 2;
-                                        t3 = Utils.BytesToUInt16(ptr); ptr += 2;
+                                        t1 = Utils.BytesToUInt16(data, pos); pos += 2;
+                                        t2 = Utils.BytesToUInt16(data, pos); pos += 2;
+                                        t3 = Utils.BytesToUInt16(data, pos); pos += 2;
 
                                         f3 = new float3(t1 * range.X + min.X,
                                                         t2 * range.Y + min.Y,
