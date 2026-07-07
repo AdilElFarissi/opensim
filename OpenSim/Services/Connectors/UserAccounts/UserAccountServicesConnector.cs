@@ -357,7 +357,7 @@ namespace OpenSim.Services.Connectors
                 ["Password"] = password
             };
             if (!string.IsNullOrEmpty(email))
-                sendData["Email"] = first;
+                sendData["Email"] = email;
             sendData["ScopeID"] = scopeID.ToString();
 
             return SendAndGetReply(sendData);
