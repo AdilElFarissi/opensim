@@ -701,8 +701,8 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                     if (coords.Count > 0 && faces.Count > 0)
                         return true;
                 }
+                return false;
             }
-            return false;
         }
 
         /// <summary>
