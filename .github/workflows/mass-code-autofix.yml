@@ -1,4 +1,4 @@
-name: "Security & Bug Detection Pipeline"
+name: "Bug Detection & OpenRouter Free Fix"
 
 on:
   workflow_dispatch: 
@@ -46,13 +46,13 @@ jobs:
         uses: github/codeql-action/analyze@v4
         with:
           category: "/language:csharp"
-          output: "${{ github.workspace }}/codeql-results.sarif"
+          output: "codeql-results.sarif"
 
       - name: Share CodeQL SARIF Artifact
         uses: actions/upload-artifact@v4
         with:
           name: codeql-sarif-report
-          path: "${{ github.workspace }}/codeql-results.sarif"
+          path: "codeql-results.sarif"
 
   codeql-autofix:
     name: CodeQL Scan & OpenRouter Free Fix
