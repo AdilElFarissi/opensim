@@ -27,12 +27,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.AUTOFIX_PAT }}
           REPO_PATH: ${{ github.repository }}
         run: |
-          python -c "
+          cat << 'EOF' > run_fixes.py
           import os, time, requests
 
           token = os.environ.get('GITHUB_TOKEN')
           repo = os.environ.get('REPO_PATH')
-          print(f'Repo: {repo}')
+          branch = 'master'
 
           if not token:
               print('❌ Critical Error: AUTOFIX_PAT secret is missing or empty in your repo settings!')
@@ -41,7 +41,7 @@ jobs:
           headers = {
               'Authorization': f'Bearer {token}',
               'Accept': 'application/vnd.github+json',
-              'X-GitHub-Api-Version': '2022-11-28'
+              'X-GitHub-Api-Version': '2026-03-10'
           }
           
           base_url = f'https://api.github.com/repos/{repo}/code-scanning/alerts'
@@ -59,7 +59,7 @@ jobs:
           targets = [
               a for a in alerts 
               if a.get('rule', {}).get('severity') in ['critical', 'error', 'high'] 
-              or a.get('rule', {}).get('security_severity_level') in ['critical', 'high']
+              or a.get('rule', {}).get('security_severity_level') in ['critical', 'error', 'high']
           ]
           print(f'🎯 Filtered down to {len(targets)} matching severe alerts.')
 
@@ -73,12 +73,28 @@ jobs:
               print(f'🤖 Requesting Autofix for Alert #{num} ({rule})...')
               
               fix_url = f'{base_url}/{num}/autofix'
+              commit_url = f'{base_url}/{num}/autofix/commits'
+              payload = {
+                  'target_ref': 'refs/heads/master',
+                  'message': f'Commit Autofix #{num} ({rule})'
+              }
+
               fix_resp = requests.post(fix_url, headers=headers)
               
-              if fix_resp.status_code in [200, 201]:
+              if fix_resp.status_code in [200, 201, 202]:
                   print(f'✅ Fix successfully initiated for Alert #{num}!')
+                  if fix_resp.status_code == 202:
+                      print(f'✅ Fix successfully initiated for Alert #{num} - Status {fix_resp.status_code}')
+                  if fix_resp.status_code == 200:
+                      print(f'✅ Fix for Alert #{num} already exist! Sending commit to branch {branch} - Status {fix_resp.status_code}')
+                      commit_resp = requests.post(commit_url, headers=headers, json=payload)
+                      if commit_resp.status_code == 201:
+                          print(f'✅ Fix Commit for Alert #{num} successfully created in branch {branch} - Status {fix_resp.status_code}')
+                      else:
+                          print(f'⚠️ Warning for Commit to fix #{num} failed: Status {fix_resp.status_code} - {fix_resp.text}')
               else:
                   print(f'⚠️ Warning for Alert #{num}: Status {fix_resp.status_code} - {fix_resp.text}')
               
               time.sleep(5)
-          "
+          EOF
+          python run_fixes.py
