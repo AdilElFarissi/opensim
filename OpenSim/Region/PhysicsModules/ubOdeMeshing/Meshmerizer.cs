@@ -516,18 +516,20 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                         }
 
                         data = cmap["Positions"].AsBinary();
-                        bool truncated = false;
-                        int pos = 0;
-                        int dataLen = data.Length;
-
-                        int vertsoffset = 0;
-
-                        if (totalpoints == dataLen / 6) // 2 bytes per coord, 3 coords per point
+                        fixed(byte* ptrstart = data)
                         {
-                            foreach (int hullsize in hsizes)
+                            byte* ptr = ptrstart;
+                            byte* ptrend = ptrstart + data.Length;
+                            bool truncated = false;
+
+                            int vertsoffset = 0;
+
+                            if (totalpoints == data.Length / 6) // 2 bytes per coord, 3 coords per point
                             {
-                                if (hullsize < 4)
+                                foreach (int hullsize in hsizes)
                                 {
+                                    if (hullsize < 4)
+                                    {
                                         if (hullsize < 3)
                                         {
                                             if (ptr + (6 * hullsize) > ptrend)
@@ -569,15 +571,15 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
 
                                     for (i = 0; i < hullsize; i++)
                                     {
-                                        if (pos > dataLen - 6)
+                                        if (ptr + 6 > ptrend)
                                         {
                                             truncated = true;
                                             break;
                                         }
 
-                                        t1 = Utils.BytesToUInt16(data, pos); pos += 2;
-                                        t2 = Utils.BytesToUInt16(data, pos); pos += 2;
-                                        t3 = Utils.BytesToUInt16(data, pos); pos += 2;
+                                        t1 = Utils.BytesToUInt16(ptr); ptr += 2;
+                                        t2 = Utils.BytesToUInt16(ptr); ptr += 2;
+                                        t3 = Utils.BytesToUInt16(ptr); ptr += 2;
 
                                         f3 = new float3(t1 * range.X + min.X,
                                                         t2 * range.Y + min.Y,
@@ -701,8 +703,8 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
                     if (coords.Count > 0 && faces.Count > 0)
                         return true;
                 }
-                return false;
             }
+            return false;
         }
 
         /// <summary>
@@ -1578,5 +1580,4 @@ namespace OpenSim.Region.PhysicsModule.ubODEMeshing
             return true;
         }
     }
-}
 }
