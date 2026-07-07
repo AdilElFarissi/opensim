@@ -217,7 +217,7 @@ namespace OpenSim.Region.CoreModules.World.Region
                 {
                     msg = currentAlertString;
                 }
-                else if (m_Message.Contains("{0}"))
+                else if (m_Message.Contains("{0") && !m_Message.Contains("{{0"))
                 {
                     try
                     {
