@@ -184,7 +184,7 @@ jobs:
               fixed_file_content = None
 
               models_pool = [
-                  "tencent/hy3:free"
+                  "poolside/laguna-xs.2:free"
               ]
 
               for current_model in models_pool:
@@ -195,7 +195,7 @@ jobs:
                           messages=[
                               {
                                   "role": "system", 
-                                  "content": f"You are an expert C# refactoring tool. Your primary task is to review the code and fix specific lines containing vulnerabilities. Give absolute priority to keeping the source structure intact.\nInstructions:\n1. Return the ENTIRE corrected source code. No placeholders, no cuts.\n2. Return ONLY clean functional code. No markdown boxes (```), no conversational text."
+                                  "content": f"You are an expert C# refactoring tool. Your primary task is to review the code and fix vulnerabilities focusing on the provided specific lines. Give absolute priority to keeping the source structure intact. Add the missing summaries.\nInstructions:\n1. Return the ENTIRE corrected source code. No placeholders, no cuts.\n2. Return ONLY clean functional code. No markdown boxes (```), no conversational text.\n3. Do not use 'var' or change the types to 'var'.\n4. Do not remove the commented copyright header."
                               },
                               {
                                   "role": "user", 
@@ -264,6 +264,6 @@ jobs:
           commit-message: "style: resolve static security vulnerabilities via OpenRouter AI"
           title: "🤖 Automated OpenRouter Security Patch"
           body-path: pr_description.txt
-          branch: openrouter-ai-patches
+          branch: openrouter-ai-patches-rev
           base: 'master'
           delete-branch: true
