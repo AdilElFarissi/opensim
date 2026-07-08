@@ -122,7 +122,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Combat.CombatModule
                         if (killingAvatar == null)
                         {
                             IUserManagement userManager = deadAvatar.Scene.RequestModuleInterface<IUserManagement>();
-                            string userName = "Unkown User";
+                            string userName = "Unknown User";
                             if (userManager != null)
                                 userName = userManager.GetUserName(part.OwnerID);
                             deadAvatarMessage = string.Format("You impaled yourself on {0} owned by {1}!", part.Name, userName);
