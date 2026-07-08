@@ -137,9 +137,8 @@ jobs:
                               "message": message_text
                           })
 
-          print(f"📋 CodeQL detected unique files : {list(files2patch)}")
+          print(f"📋 CodeQL detected {len(files2patch)} unique file!")
 
-          # Rapport étendu pour la PR
           pr_body_details = "### 🔍 Detected Vulnerabilities by File (with lines):\n"
           if not vulnerabilities_by_file:
               pr_body_details += "_No C# vulnerabilities found or parsed._\n"
@@ -151,7 +150,6 @@ jobs:
           with open("pr_details.txt", "w", encoding="utf-8") as f_details:
               f_details.write(pr_body_details)
 
-          # Analyse et correction IA avec limite anti-saturation
           MAX_ALERTS_PER_FILE = 10
 
           for file in files2patch:
@@ -207,7 +205,7 @@ jobs:
                       )
 
                       if hasattr(response, 'choices') and len(response.choices) > 0:
-                          raw_content = response.choices.message.content
+                          raw_content = response.choices[0].message.content
                       elif isinstance(response, dict) and "choices" in response:
                           raw_content = response["choices"][0]["message"]["content"]
                       else:
@@ -250,19 +248,14 @@ jobs:
           EOF
           python fix_code.py
           rm fix_code.py
-          
-      - name: Read PR Details
-        id: pr_details
+      
+      - name: Prepare Pull Request Body Text
         run: |
-          if [ -f pr_details.txt ]; then
-            EOF=$(dd if=/dev/urandom bs=15 count=1 2>/dev/null | base64 | tr -dc 'a-zA-Z0-9' | head -c 10)
-            echo "body<<$EOF" >> $GITHUB_OUTPUT
-            cat pr_details.txt >> $GITHUB_OUTPUT
-            echo "$EOF" >> $GITHUB_OUTPUT
-            rm pr_details.txt
-          else
-            echo "body=No details available." >> $GITHUB_OUTPUT
-          fi
+          cat << 'EOF' > pr_description.txt
+          This PR automatically fixes static analysis alerts detected by CodeQL.
+
+          ${{ steps.pr_details.outputs.body }}
+          EOF
 
       - name: Create Pull Request with AI Fixes
         uses: peter-evans/create-pull-request@v6
@@ -270,10 +263,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "style: resolve static security vulnerabilities via OpenRouter AI"
           title: "🤖 Automated OpenRouter Security Patch"
-          body: |
-            This PR automatically fixes static analysis alerts detected by CodeQL.
-
-            ${{ steps.pr_details.outputs.body }}
+          body-path: pr_description.txt
           branch: openrouter-ai-patches
           base: 'master'
           delete-branch: true
