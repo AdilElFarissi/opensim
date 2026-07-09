@@ -184,7 +184,7 @@ jobs:
               fixed_file_content = None
 
               models_pool = [
-                  "poolside/laguna-xs.2:free"
+                  "nvidia/nemotron-3-super-120b-a12b:free"
               ]
 
               for current_model in models_pool:
@@ -264,6 +264,6 @@ jobs:
           commit-message: "style: resolve static security vulnerabilities via OpenRouter AI"
           title: "🤖 Automated OpenRouter Security Patch"
           body-path: pr_description.txt
-          branch: openrouter-ai-patches-rev
+          branch: openrouter-ai-patches
           base: 'master'
           delete-branch: true
