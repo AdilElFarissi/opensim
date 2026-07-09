@@ -1,30 +1,3 @@
-/*
- * Copyright (c) Contributors, http://opensimulator.org/
- * See CONTRIBUTORS.TXT for a full list of copyright holders.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSimulator Project nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -81,9 +54,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
                 m_adminPrefix = m_config.GetString("admin_prefix", "");
 
             }
-            m_saydistanceSQ = m_saydistance * m_saydistance;
-            m_shoutdistanceSQ = m_shoutdistance * m_shoutdistance;
-            m_whisperdistanceSQ = m_whisperdistance *m_whisperdistance;
+            m_saydistanceSQ = (float)m_saydistance * m_saydistance;
+            m_shoutdistanceSQ = (float)m_shoutdistance * m_shoutdistance;
+            m_whisperdistanceSQ = (float)m_whisperdistance * m_whisperdistance;
 
         }
 
@@ -180,7 +153,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
 
             if (FreezeCache.Contains(c.Sender.AgentId.ToString()))
             {
-                if (c.Type != ChatTypeEnum.StartTyping || c.Type != ChatTypeEnum.StopTyping)
+                if (c.Type != ChatTypeEnum.StartTyping && c.Type != ChatTypeEnum.StopTyping)
                     c.Sender.SendAgentAlertMessage("You may not talk as you are frozen.", false);
             }
             else
@@ -213,6 +186,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             Vector3 hidePos = fromPos;
 
             if (c.Channel == DEBUG_CHANNEL) c.Type = ChatTypeEnum.DebugChannel;
+
+            if (scene == null)
+            {
+                m_log.WarnFormat("[CHAT]: message from unknown scene (null) ignored");
+                return;
+            }
 
             if(!m_scenes.Contains(scene))
             {
@@ -343,7 +322,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             ChatSourceType sourceType = ChatSourceType.Object;
             if (null != c.Sender)
             {
-                ScenePresence avatar = (c.Scene as Scene).GetScenePresence(c.Sender.AgentId);
+                Scene sceneForAvatar = c.Scene as Scene;
+                if (sceneForAvatar == null)
+                {
+                    return;
+                }
+                ScenePresence avatar = sceneForAvatar.GetScenePresence(c.Sender.AgentId);
                 fromID = c.Sender.AgentId;
                 fromName = avatar.Name;
                 ownerID = UUID.Zero;
@@ -448,7 +432,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Chat
             return true;
         }
 
-        Dictionary<UUID, System.Threading.Timer> Timers = [];
+        private readonly Dictionary<UUID, System.Threading.Timer> Timers = [];
         public virtual void ParcelFreezeUser(IClientAPI client, UUID parcelowner, uint flags, UUID target)
         {
             System.Threading.Timer Timer;

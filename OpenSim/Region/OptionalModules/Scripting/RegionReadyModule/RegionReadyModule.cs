@@ -1,30 +1,3 @@
-/*
- * Copyright (c) Contributors, http://opensimulator.org/
- * See CONTRIBUTORS.TXT for a full list of copyright holders.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSimulator Project nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -269,42 +242,53 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
             byte[] buffer;
             try
             {
-                buffer = OSDParser.SerializeJsonToBytes(RRAlert); ;
+                buffer = OSDParser.SerializeJsonToBytes(RRAlert);
             }
-            catch (Exception e)
+            catch (ArgumentNullException e)
+            {
+                m_log.WarnFormat("[RegionReady]: Exception thrown on alert: {0}", e.Message);
+                return;
+            }
+            catch (SerializationException e)
             {
                 m_log.WarnFormat("[RegionReady]: Exception thrown on alert: {0}", e.Message);
                 return;
             }
 
-            HttpResponseMessage responseMessage = null;
-            HttpRequestMessage request = null;
-            HttpClient client = null;
             try
             {
-                client = WebUtil.GetNewGlobalHttpClient(-1);
+                using (var client = WebUtil.GetNewGlobalHttpClient(-1))
+                using (var request = new HttpRequestMessage(HttpMethod.Post, m_uri))
+                {
+                    request.Headers.ExpectContinue = false;
+                    request.Headers.TransferEncodingChunked = false;
+                    request.Headers.TryAddWithoutValidation("Connection", "close");
 
-                request = new(HttpMethod.Post, m_uri);
-                request.Headers.ExpectContinue = false;
-                request.Headers.TransferEncodingChunked = false;
-                request.Headers.TryAddWithoutValidation("Connection", "close");
+                    request.Content = new ByteArrayContent(buffer);
+                    request.Content.Headers.TryAddWithoutValidation("Content-Type", "application/json");
+                    request.Content.Headers.ContentLength = buffer.Length;
 
-                request.Content = new ByteArrayContent(buffer);
-                request.Content.Headers.TryAddWithoutValidation("Content-Type", "application/json");
-                request.Content.Headers.TryAddWithoutValidation("Content-Length", buffer.Length.ToString());
-
-                responseMessage = client.Send(request, HttpCompletionOption.ResponseContentRead);
-                responseMessage.EnsureSuccessStatusCode();
+                    using (var responseMessage = client.Send(request, HttpCompletionOption.ResponseContentRead))
+                    {
+                        responseMessage.EnsureSuccessStatusCode();
+                    }
+                }
             }
-            catch(Exception e)
+            catch (HttpRequestException e)
             {
                 m_log.WarnFormat("[RegionReady]: Exception thrown sending alert: {0}", e.Message);
             }
-            finally
+            catch (ArgumentNullException e)
             {
-                request?.Dispose();
-                responseMessage?.Dispose();
-                client?.Dispose();
+                m_log.WarnFormat("[RegionReady]: Exception thrown sending alert: {0}", e.Message);
+            }
+            catch (InvalidOperationException e)
+            {
+                m_log.WarnFormat("[RegionReady]: Exception thrown sending alert: {0}", e.Message);
+            }
+            catch (UriFormatException e)
+            {
+                m_log.WarnFormat("[RegionReady]: Exception thrown sending alert: {0}", e.Message);
             }
         }
     }

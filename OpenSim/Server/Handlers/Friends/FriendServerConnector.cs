@@ -35,11 +35,20 @@ using OpenSim.Server.Handlers.Base;
 
 namespace OpenSim.Server.Handlers.Friends
 {
+    /// <summary>
+    /// A service connector for the Friends service.
+    /// </summary>
     public class FriendsServiceConnector : ServiceConnector
     {
-        private IFriendsService m_FriendsService;
-        private string m_ConfigName = "FriendsService";
+        private readonly IFriendsService m_FriendsService;
+        private readonly string m_ConfigName = "FriendsService";
 
+        /// <summary>
+        /// Initializes a new instance of the FriendsServiceConnector class.
+        /// </summary>
+        /// <param name="config">The configuration source.</param>
+        /// <param name="server">The HTTP server to which handlers are added.</param>
+        /// <param name="configName">The name of the configuration section for this service.</param>
         public FriendsServiceConnector(IConfigSource config, IHttpServer server, string configName) :
                 base(config, server, configName)
         {
