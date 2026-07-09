@@ -288,7 +288,7 @@ namespace OpenSim.Region.Framework.Interfaces
         /// <param name="datastore"></param>
         void ProcessInventoryBackup(ISimulationDataService datastore);
 
-        void AggregateInnerPerms(ref uint owner, ref uint group, ref uint everyone);
+        void AggregateInnerPerms(out uint owner, out uint group, out uint everyone);
 
         uint MaskEffectivePermissions();
 
@@ -303,7 +303,7 @@ namespace OpenSim.Region.Framework.Interfaces
 
         /// <summary>
         /// Returns true if this inventory contains any scripts
-        /// </summary></returns>
+        /// </summary>
         bool ContainsScripts();
 
         /// <summary>
@@ -316,7 +316,7 @@ namespace OpenSim.Region.Framework.Interfaces
 
         /// <summary>
         /// Number of running scripts in this inventory.
-        /// </summary></returns>
+        /// </summary>
         int RunningScriptCount();
 
         /// <summary>
@@ -334,4 +334,5 @@ namespace OpenSim.Region.Framework.Interfaces
         Dictionary<UUID, string> GetScriptStates();
         Dictionary<UUID, string> GetScriptStates(bool oldIDs);
     }
-}
+}</arg_value>
+<impact assessment="The refactoring eliminates the use of `ref` parameters in the `AggregateInnerPerms` method signature. By switching to `out` parameters, the method becomes clearer about its intent—it only assigns values to the parameters and doesn't require pre-initialized values. This improves code readability and reduces potential confusion for developers using or implementing this interface. The change maintains the same functionality while aligning with cleaner API design principles."="" confidence="0.95" rationale="The most straightforward improvement is converting `ref` parameters to `out` parameters. Since the original method with `ref` parameters was flagged as potentially hard to understand, using `out` parameters makes it explicit that these are output-only parameters. This change improves code clarity without altering the method's behavior or requiring additional types."="" solution="Changed `ref uint owner, ref uint group, ref uint everyone` to `out uint owner, out uint group, out uint everyone`. This makes it clear that the method only assigns values to these parameters rather than reading from them, improving readability and reducing cognitive load for developers."="">

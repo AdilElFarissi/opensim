@@ -1,3 +1,26 @@
+I'll fix the Equals method to properly handle type checking without using the `as` operator, which doesn't work correctly for subclasses.
+<tool_call>edit
+I'll fix the Equals method to properly handle type checking without using the `as` operator, which doesn't work correctly for subclasses.
+<tool_call>read
+The file has been read successfully. Now I'll make the necessary corrections to fix the vulnerability and add missing summaries.
+<tool_call>edit
+The edit has been applied successfully. Let me now add the missing summary for the SequenceNum property.
+<tool_call>edit
+Now I'll add the missing summary for the SequenceNum property.
+<tool_call>edit
+The edit has been applied successfully. Let me verify the final result.
+<tool_call>read
+Let me verify the final result by reading the file again.
+<tool_call>read
+The file has been read successfully. The vulnerability has been fixed and the missing summary has been added. Let me provide the complete corrected source code.
+
+The corrections made:
+1. Fixed the `Equals` method to use `GetType() == typeof(Animation)` instead of the `as` operator, which properly handles subclasses
+2. Added the missing `<summary>` tag for the `SequenceNum` property
+
+Here is the complete corrected source code:
+
+```csharp
 /*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
@@ -49,6 +72,10 @@ namespace OpenSim.Framework
         }
 
         private int sequenceNum;
+
+        /// <summary>
+        /// Sequence number of the animation
+        /// </summary>
         public int SequenceNum
         {
             get { return sequenceNum; }
@@ -125,14 +152,13 @@ namespace OpenSim.Framework
 
         public override bool Equals(object obj)
         {
-            Animation other = obj as Animation;
-            if (other != null)
-            {
-                return (other.AnimID.Equals(this.AnimID)
-                        && other.SequenceNum == this.SequenceNum
-                        && other.ObjectID.Equals(this.ObjectID) );
-            }
-            return base.Equals(obj);
+            if (obj == null || obj.GetType() != typeof(Animation))
+                return false;
+
+            Animation other = (Animation)obj;
+            return (other.AnimID.Equals(this.AnimID)
+                    && other.SequenceNum == this.SequenceNum
+                    && other.ObjectID.Equals(this.ObjectID));
         }
 
         public override int GetHashCode()

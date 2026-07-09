@@ -55,7 +55,7 @@ namespace OpenSim.Region.CoreModules
         private IConfig m_windConfig;
         private IWindModelPlugin m_activeWindPlugin = null;
         private string m_dWindPluginName = "SimpleRandomWind";
-        private Dictionary<string, IWindModelPlugin> m_availableWindPlugins = [];
+        private readonly Dictionary<string, IWindModelPlugin> m_availableWindPlugins = [];
 
         // Simplified windSpeeds based on the fact that the client protocal tracks at a resolution of 16m
         private Vector2[] windSpeeds = new Vector2[16 * 16];
@@ -252,9 +252,7 @@ namespace OpenSim.Region.CoreModules
             switch (cmdparams[2])
             {
                 case "wind_update_rate":
-                    int newRate = 1;
-
-                    if (int.TryParse(cmdparams[3], out newRate))
+                    if (int.TryParse(cmdparams[3], out int newRate))
                     {
                         m_frameUpdateRate = newRate;
                     }
@@ -270,16 +268,16 @@ namespace OpenSim.Region.CoreModules
                 case "wind_plugin":
                     string desiredPlugin = cmdparams[3];
 
-                    if (desiredPlugin.Equals(m_activeWindPlugin.Name))
+                    if (desiredPlugin.Equals(m_activeWindPlugin?.Name))
                     {
                         MainConsole.Instance.Output("Wind model plugin {0} is already active", cmdparams[3]);
 
                         return;
                     }
 
-                    if (m_availableWindPlugins.ContainsKey(desiredPlugin))
+                    if (m_availableWindPlugins.TryGetValue(desiredPlugin, out IWindModelPlugin plugin))
                     {
-                        m_activeWindPlugin = m_availableWindPlugins[cmdparams[3]];
+                        m_activeWindPlugin = plugin;
 
                         MainConsole.Instance.Output("{0} wind model plugin now active", m_activeWindPlugin.Name);
                     }
@@ -353,21 +351,13 @@ namespace OpenSim.Region.CoreModules
         /// <param name="y">0...255</param>
         public Vector3 WindSpeed(int x, int y, int z)
         {
-            if (m_activeWindPlugin != null)
-            {
-                return m_activeWindPlugin.WindSpeed(x, y, z);
-            }
-            else
-            {
-                return new Vector3(0.0f, 0.0f, 0.0f);
-            }
+            return m_activeWindPlugin?.WindSpeed(x, y, z) ?? new Vector3(0.0f, 0.0f, 0.0f);
         }
 
         public void WindParamSet(string plugin, string param, float value)
         {
-            if (m_availableWindPlugins.ContainsKey(plugin))
+            if (m_availableWindPlugins.TryGetValue(plugin, out IWindModelPlugin windPlugin))
             {
-                IWindModelPlugin windPlugin = m_availableWindPlugins[plugin];
                 windPlugin.WindParamSet(param, value);
             }
             else
@@ -378,9 +368,8 @@ namespace OpenSim.Region.CoreModules
 
         public float WindParamGet(string plugin, string param)
         {
-            if (m_availableWindPlugins.ContainsKey(plugin))
+            if (m_availableWindPlugins.TryGetValue(plugin, out IWindModelPlugin windPlugin))
             {
-                IWindModelPlugin windPlugin = m_availableWindPlugins[plugin];
                 return windPlugin.WindParamGet(param);
             }
             else
@@ -393,14 +382,7 @@ namespace OpenSim.Region.CoreModules
         {
             get
             {
-                if (m_activeWindPlugin != null)
-                {
-                    return m_activeWindPlugin.Name;
-                }
-                else
-                {
-                    return string.Empty;
-                }
+                return m_activeWindPlugin?.Name ?? string.Empty;
             }
         }
 

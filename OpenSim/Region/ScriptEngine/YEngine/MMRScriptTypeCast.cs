@@ -1,30 +1,3 @@
-/*
- * Copyright (c) Contributors, http://opensimulator.org/
- * See CONTRIBUTORS.TXT for a full list of copyright holders.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSimulator Project nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 using OpenSim.Region.ScriptEngine.Shared.ScriptBase;
 using System;
 using System.Collections.Generic;
@@ -50,47 +23,47 @@ namespace OpenSim.Region.ScriptEngine.Yengine
     {
         private delegate void CastDelegate(IScriptCodeGen scg, Token errorAt);
 
-        private static ConstructorInfo floatConstructorStringInfo = typeof(LSL_Float).GetConstructor(new Type[] { typeof(string) });
-        private static ConstructorInfo integerConstructorStringInfo = typeof(LSL_Integer).GetConstructor(new Type[] { typeof(string) });
-        private static ConstructorInfo lslFloatConstructorInfo = typeof(LSL_Float).GetConstructor(new Type[] { typeof(double) });
-        private static ConstructorInfo lslIntegerConstructorInfo = typeof(LSL_Integer).GetConstructor(new Type[] { typeof(int) });
-        private static ConstructorInfo lslStringConstructorInfo = typeof(LSL_String).GetConstructor(new Type[] { typeof(string) });
-        private static ConstructorInfo rotationConstrucorStringInfo = typeof(LSL_Rotation).GetConstructor(new Type[] { typeof(string) });
-        private static ConstructorInfo vectorConstrucorStringInfo = typeof(LSL_Vector).GetConstructor(new Type[] { typeof(string) });
-        private static FieldInfo lslFloatValueFieldInfo = typeof(LSL_Float).GetField("value");
-        private static FieldInfo lslIntegerValueFieldInfo = typeof(LSL_Integer).GetField("value");
-        private static FieldInfo lslStringValueFieldInfo = typeof(LSL_String).GetField("m_string");
-        private static FieldInfo sdtcITableFieldInfo = typeof(XMRSDTypeClObj).GetField("sdtcITable");
-        private static MethodInfo boolToListMethodInfo = typeof(TypeCast).GetMethod("BoolToList", new Type[] { typeof(bool) });
-        private static MethodInfo boolToStringMethodInfo = typeof(TypeCast).GetMethod("BoolToString", new Type[] { typeof(bool) });
-        private static MethodInfo charToStringMethodInfo = typeof(TypeCast).GetMethod("CharToString", new Type[] { typeof(char) });
-        private static MethodInfo excToStringMethodInfo = typeof(TypeCast).GetMethod("ExceptionToString", new Type[] { typeof(Exception), typeof(XMRInstAbstract) });
-        private static MethodInfo floatToStringMethodInfo = typeof(TypeCast).GetMethod("FloatToString", new Type[] { typeof(double) });
-        private static MethodInfo intToStringMethodInfo = typeof(TypeCast).GetMethod("IntegerToString", new Type[] { typeof(int) });
-        private static MethodInfo keyToBoolMethodInfo = typeof(TypeCast).GetMethod("KeyToBool", new Type[] { typeof(string) });
-        private static MethodInfo listToBoolMethodInfo = typeof(TypeCast).GetMethod("ListToBool", new Type[] { typeof(LSL_List) });
-        private static MethodInfo listToStringMethodInfo = typeof(TypeCast).GetMethod("ListToString", new Type[] { typeof(LSL_List) });
-        private static MethodInfo objectToFloatMethodInfo = typeof(TypeCast).GetMethod("ObjectToFloat", new Type[] { typeof(object) });
-        private static MethodInfo objectToIntegerMethodInfo = typeof(TypeCast).GetMethod("ObjectToInteger", new Type[] { typeof(object) });
-        private static MethodInfo objectToListMethodInfo = typeof(TypeCast).GetMethod("ObjectToList", new Type[] { typeof(object) });
-        private static MethodInfo objectToRotationMethodInfo = typeof(TypeCast).GetMethod("ObjectToRotation", new Type[] { typeof(object) });
-        private static MethodInfo objectToStringMethodInfo = typeof(TypeCast).GetMethod("ObjectToString", new Type[] { typeof(object) });
-        private static MethodInfo objectToVectorMethodInfo = typeof(TypeCast).GetMethod("ObjectToVector", new Type[] { typeof(object) });
-        private static MethodInfo rotationToBoolMethodInfo = typeof(TypeCast).GetMethod("RotationToBool", new Type[] { typeof(LSL_Rotation) });
-        private static MethodInfo rotationToStringMethodInfo = typeof(TypeCast).GetMethod("RotationToString", new Type[] { typeof(LSL_Rotation) });
-        private static MethodInfo stringToBoolMethodInfo = typeof(TypeCast).GetMethod("StringToBool", new Type[] { typeof(string) });
-        private static MethodInfo vectorToBoolMethodInfo = typeof(TypeCast).GetMethod("VectorToBool", new Type[] { typeof(LSL_Vector) });
-        private static MethodInfo vectorToStringMethodInfo = typeof(TypeCast).GetMethod("VectorToString", new Type[] { typeof(LSL_Vector) });
-        private static MethodInfo sdTypeClassCastClass2ClassMethodInfo = typeof(XMRSDTypeClObj).GetMethod("CastClass2Class", new Type[] { typeof(object), typeof(int) });
-        private static MethodInfo sdTypeClassCastIFace2ClassMethodInfo = typeof(XMRSDTypeClObj).GetMethod("CastIFace2Class", new Type[] { typeof(Delegate[]), typeof(int) });
-        private static MethodInfo sdTypeClassCastObj2IFaceMethodInfo = typeof(XMRSDTypeClObj).GetMethod("CastObj2IFace", new Type[] { typeof(object), typeof(string) });
-        private static MethodInfo charToListMethodInfo = typeof(TypeCast).GetMethod("CharToList", new Type[] { typeof(char) });
-        private static MethodInfo excToListMethodInfo = typeof(TypeCast).GetMethod("ExcToList", new Type[] { typeof(Exception) });
-        private static MethodInfo vectorToListMethodInfo = typeof(TypeCast).GetMethod("VectorToList", new Type[] { typeof(LSL_Vector) });
-        private static MethodInfo floatToListMethodInfo = typeof(TypeCast).GetMethod("FloatToList", new Type[] { typeof(double) });
-        private static MethodInfo integerToListMethodInfo = typeof(TypeCast).GetMethod("IntegerToList", new Type[] { typeof(int) });
-        private static MethodInfo rotationToListMethodInfo = typeof(TypeCast).GetMethod("RotationToList", new Type[] { typeof(LSL_Rotation) });
-        private static MethodInfo stringToListMethodInfo = typeof(TypeCast).GetMethod("StringToList", new Type[] { typeof(string) });
+        private static readonly ConstructorInfo floatConstructorStringInfo = typeof(LSL_Float).GetConstructor(new Type[] { typeof(string) });
+        private static readonly ConstructorInfo integerConstructorStringInfo = typeof(LSL_Integer).GetConstructor(new Type[] { typeof(string) });
+        private static readonly ConstructorInfo lslFloatConstructorInfo = typeof(LSL_Float).GetConstructor(new Type[] { typeof(double) });
+        private static readonly ConstructorInfo lslIntegerConstructorInfo = typeof(LSL_Integer).GetConstructor(new Type[] { typeof(int) });
+        private static readonly ConstructorInfo lslStringConstructorInfo = typeof(LSL_String).GetConstructor(new Type[] { typeof(string) });
+        private static readonly ConstructorInfo rotationConstrucorStringInfo = typeof(LSL_Rotation).GetConstructor(new Type[] { typeof(string) });
+        private static readonly ConstructorInfo vectorConstrucorStringInfo = typeof(LSL_Vector).GetConstructor(new Type[] { typeof(string) });
+        private static readonly FieldInfo lslFloatValueFieldInfo = typeof(LSL_Float).GetField("value");
+        private static readonly FieldInfo lslIntegerValueFieldInfo = typeof(LSL_Integer).GetField("value");
+        private static readonly FieldInfo lslStringValueFieldInfo = typeof(LSL_String).GetField("m_string");
+        private static readonly FieldInfo sdtcITableFieldInfo = typeof(XMRSDTypeClObj).GetField("sdtcITable");
+        private static readonly MethodInfo boolToListMethodInfo = typeof(TypeCast).GetMethod("BoolToList", new Type[] { typeof(bool) });
+        private static readonly MethodInfo boolToStringMethodInfo = typeof(TypeCast).GetMethod("BoolToString", new Type[] { typeof(bool) });
+        private static readonly MethodInfo charToStringMethodInfo = typeof(TypeCast).GetMethod("CharToString", new Type[] { typeof(char) });
+        private static readonly MethodInfo excToStringMethodInfo = typeof(TypeCast).GetMethod("ExceptionToString", new Type[] { typeof(Exception), typeof(XMRInstAbstract) });
+        private static readonly MethodInfo floatToStringMethodInfo = typeof(TypeCast).GetMethod("FloatToString", new Type[] { typeof(double) });
+        private static readonly MethodInfo intToStringMethodInfo = typeof(TypeCast).GetMethod("IntegerToString", new Type[] { typeof(int) });
+        private static readonly MethodInfo keyToBoolMethodInfo = typeof(TypeCast).GetMethod("KeyToBool", new Type[] { typeof(string) });
+        private static readonly MethodInfo listToBoolMethodInfo = typeof(TypeCast).GetMethod("ListToBool", new Type[] { typeof(LSL_List) });
+        private static readonly MethodInfo listToStringMethodInfo = typeof(TypeCast).GetMethod("ListToString", new Type[] { typeof(LSL_List) });
+        private static readonly MethodInfo objectToFloatMethodInfo = typeof(TypeCast).GetMethod("ObjectToFloat", new Type[] { typeof(object) });
+        private static readonly MethodInfo objectToIntegerMethodInfo = typeof(TypeCast).GetMethod("ObjectToInteger", new Type[] { typeof(object) });
+        private static readonly MethodInfo objectToListMethodInfo = typeof(TypeCast).GetMethod("ObjectToList", new Type[] { typeof(object) });
+        private static readonly MethodInfo objectToRotationMethodInfo = typeof(TypeCast).GetMethod("ObjectToRotation", new Type[] { typeof(object) });
+        private static readonly MethodInfo objectToStringMethodInfo = typeof(TypeCast).GetMethod("ObjectToString", new Type[] { typeof(object) });
+        private static readonly MethodInfo objectToVectorMethodInfo = typeof(TypeCast).GetMethod("ObjectToVector", new Type[] { typeof(object) });
+        private static readonly MethodInfo rotationToBoolMethodInfo = typeof(TypeCast).GetMethod("RotationToBool", new Type[] { typeof(LSL_Rotation) });
+        private static readonly MethodInfo rotationToStringMethodInfo = typeof(TypeCast).GetMethod("RotationToString", new Type[] { typeof(LSL_Rotation) });
+        private static readonly MethodInfo stringToBoolMethodInfo = typeof(TypeCast).GetMethod("StringToBool", new Type[] { typeof(string) });
+        private static readonly MethodInfo vectorToBoolMethodInfo = typeof(TypeCast).GetMethod("VectorToBool", new Type[] { typeof(LSL_Vector) });
+        private static readonly MethodInfo vectorToStringMethodInfo = typeof(TypeCast).GetMethod("VectorToString", new Type[] { typeof(LSL_Vector) });
+        private static readonly MethodInfo sdTypeClassCastClass2ClassMethodInfo = typeof(XMRSDTypeClObj).GetMethod("CastClass2Class", new Type[] { typeof(object), typeof(int) });
+        private static readonly MethodInfo sdTypeClassCastIFace2ClassMethodInfo = typeof(XMRSDTypeClObj).GetMethod("CastIFace2Class", new Type[] { typeof(Delegate[]), typeof(int) });
+        private static readonly MethodInfo sdTypeClassCastObj2IFaceMethodInfo = typeof(XMRSDTypeClObj).GetMethod("CastObj2IFace", new Type[] { typeof(object), typeof(string) });
+        private static readonly MethodInfo charToListMethodInfo = typeof(TypeCast).GetMethod("CharToList", new Type[] { typeof(char) });
+        private static readonly MethodInfo excToListMethodInfo = typeof(TypeCast).GetMethod("ExcToList", new Type[] { typeof(Exception) });
+        private static readonly MethodInfo vectorToListMethodInfo = typeof(TypeCast).GetMethod("VectorToList", new Type[] { typeof(LSL_Vector) });
+        private static readonly MethodInfo floatToListMethodInfo = typeof(TypeCast).GetMethod("FloatToList", new Type[] { typeof(double) });
+        private static readonly MethodInfo integerToListMethodInfo = typeof(TypeCast).GetMethod("IntegerToList", new Type[] { typeof(int) });
+        private static readonly MethodInfo rotationToListMethodInfo = typeof(TypeCast).GetMethod("RotationToList", new Type[] { typeof(LSL_Rotation) });
+        private static readonly MethodInfo stringToListMethodInfo = typeof(TypeCast).GetMethod("StringToList", new Type[] { typeof(string) });
 
         /*
          * List of all allowed type casts and how to perform the casting.

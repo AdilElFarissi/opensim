@@ -28,6 +28,7 @@
 using System;
 using System.Reflection;
 using System.Collections.Generic;
+using System.Linq;
 using log4net;
 using Mono.Addins;
 using Nini.Config;
@@ -46,14 +47,18 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Neighbour
     public class NeighbourServiceInConnectorModule : ISharedRegionModule, INeighbourService
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private static bool m_Enabled = false;
-        private static bool m_Registered = false;
+        private bool m_Enabled = false;
+        private bool m_Registered = false;
 
         private IConfigSource m_Config;
-        private List<Scene> m_Scenes = [];
+        private readonly List<Scene> m_Scenes = new List<Scene>();
 
         #region Region Module interface
 
+        /// <summary>
+        /// Initialises the module with the given configuration.
+        /// </summary>
+        /// <param name="config">The configuration source.</param>
         public void Initialise(IConfigSource config)
         {
             m_Config = config;
@@ -71,6 +76,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Neighbour
 
         }
 
+        /// <summary>
+        /// Performs post-initialisation tasks.
+        /// </summary>
         public void PostInitialise()
         {
             if (!m_Enabled)
@@ -79,20 +87,33 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Neighbour
 //            m_log.Info("[NEIGHBOUR IN CONNECTOR]: Starting...");
         }
 
+        /// <summary>
+        /// Closes the module and releases resources.
+        /// </summary>
         public void Close()
         {
         }
 
+        /// <summary>
+        /// Gets the type of interface this module replaces.
+        /// </summary>
         public Type ReplaceableInterface
         {
             get { return null; }
         }
 
+        /// <summary>
+        /// Gets the name of this module.
+        /// </summary>
         public string Name
         {
             get { return "NeighbourServiceInConnectorModule"; }
         }
 
+        /// <summary>
+        /// Adds a region to the module.
+        /// </summary>
+        /// <param name="scene">The scene to add.</param>
         public void AddRegion(Scene scene)
         {
             if (!m_Enabled)
@@ -109,12 +130,20 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Neighbour
 
         }
 
+        /// <summary>
+        /// Removes a region from the module.
+        /// </summary>
+        /// <param name="scene">The scene to remove.</param>
         public void RemoveRegion(Scene scene)
         {
             if (m_Enabled && m_Scenes.Contains(scene))
                 m_Scenes.Remove(scene);
         }
 
+        /// <summary>
+        /// Called when the region is loaded.
+        /// </summary>
+        /// <param name="scene">The loaded scene.</param>
         public void RegionLoaded(Scene scene)
         {
         }
@@ -123,15 +152,18 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsIn.Neighbour
 
         #region INeighbourService
 
+        /// <summary>
+        /// Handles the HelloNeighbour request from a neighboring region.
+        /// </summary>
+        /// <param name="regionHandle">The handle of the region being greeted.</param>
+        /// <param name="thisRegion">Information about the requesting region.</param>
+        /// <returns>GridRegion information for the greeting region, or null if not found.</returns>
         public GridRegion HelloNeighbour(ulong regionHandle, RegionInfo thisRegion)
         {
-            foreach (Scene s in m_Scenes)
+            foreach (Scene s in m_Scenes.Where(s => s.RegionInfo.RegionHandle == regionHandle))
             {
-                if (s.RegionInfo.RegionHandle == regionHandle)
-                {
-                    //m_log.DebugFormat("[NEIGHBOUR IN CONNECTOR]: HelloNeighbour from {0} to {1}", thisRegion.RegionName, s.RegionInfo.RegionName);
-                    return s.IncomingHelloNeighbour(thisRegion);
-                }
+                //m_log.DebugFormat("[NEIGHBOUR IN CONNECTOR]: HelloNeighbour from {0} to {1}", thisRegion.RegionName, s.RegionInfo.RegionName);
+                return s.IncomingHelloNeighbour(thisRegion);
             }
             return null;
         }

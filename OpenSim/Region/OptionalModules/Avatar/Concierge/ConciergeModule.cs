@@ -1,30 +1,3 @@
-/*
- * Copyright (c) Contributors, http://opensimulator.org/
- * See CONTRIBUTORS.TXT for a full list of copyright holders.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSimulator Project nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -47,6 +20,10 @@ using OpenSim.Region.CoreModules.Avatar.Chat;
 
 namespace OpenSim.Region.OptionalModules.Avatar.Concierge
 {
+    /// <summary>
+    /// Concierge module for managing region concierge services including chat handling,
+    /// avatar welcome messages, and broker updates.
+    /// </summary>
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "ConciergeModule")]
     public class ConciergeModule : ChatModule, ISharedRegionModule
     {
@@ -54,8 +31,8 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
 
 //        private const int DEBUG_CHANNEL = 2147483647; use base value
 
-        private new List<IScene> m_scenes = [];
-        private List<IScene> m_conciergedScenes = [];
+        private readonly List<IScene> m_scenes = new();
+        private readonly List<IScene> m_conciergedScenes = new();
 
         private bool m_replacingChatModule = false;
 
@@ -69,11 +46,15 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
         private string m_brokerURI = string.Empty;
         private int m_brokerUpdateTimeout = 300;
 
-        internal new object m_syncy = new();
+        internal readonly object m_syncy = new();
 
-        internal new bool m_enabled = false;
+        internal bool m_enabled = false;
 
         #region ISharedRegionModule Members
+        /// <summary>
+        /// Initializes the concierge module with configuration from OpenSim.ini.
+        /// </summary>
+        /// <param name="configSource">Configuration source containing Concierge settings.</param>
         public override void Initialise(IConfigSource configSource)
         {
             IConfig config = configSource.Configs["Concierge"];
@@ -99,7 +80,7 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
                 }
                 else
                 {
-                    m_replacingChatModule  = !configSource.Configs["Chat"].GetBoolean("enabled", true);
+                    m_replacingChatModule = !configSource.Configs["Chat"].GetBoolean("enabled", true);
                 }
             }
             catch (Exception)
@@ -132,6 +113,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
             }
         }
 
+        /// <summary>
+        /// Adds a region to the concierge module and subscribes to relevant events.
+        /// </summary>
+        /// <param name="scene">The scene to add.</param>
         public override void AddRegion(Scene scene)
         {
             if (!m_enabled) return;
@@ -164,6 +149,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
             m_log.InfoFormat("[Concierge]: initialized for {0}", scene.RegionInfo.RegionName);
         }
 
+        /// <summary>
+        /// Removes a region from the concierge module and unsubscribes from events.
+        /// </summary>
+        /// <param name="scene">The scene to remove.</param>
         public override void RemoveRegion(Scene scene)
         {
             if (!m_enabled) return;
@@ -198,19 +187,31 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
             m_log.InfoFormat("[Concierge]: removed {0}", scene.RegionInfo.RegionName);
         }
 
+        /// <summary>
+        /// Performs post-initialization tasks.
+        /// </summary>
         public override void PostInitialise()
         {
         }
 
+        /// <summary>
+        /// Closes the module and cleans up resources.
+        /// </summary>
         public override void Close()
         {
         }
 
+        /// <summary>
+        /// Gets the interface that this module replaces.
+        /// </summary>
         new public Type ReplaceableInterface
         {
             get { return null; }
         }
 
+        /// <summary>
+        /// Gets the name of this module.
+        /// </summary>
         public override string Name
         {
             get { return "ConciergeModule"; }
@@ -218,6 +219,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
         #endregion
 
         #region ISimChat Members
+        /// <summary>
+        /// Handles broadcast chat messages.
+        /// </summary>
+        /// <param name="sender">The sender of the message.</param>
+        /// <param name="c">The chat message.</param>
         public override void OnChatBroadcast(object sender, OSChatMessage c)
         {
             if (m_replacingChatModule)
@@ -231,6 +237,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
             return;
         }
 
+        /// <summary>
+        /// Handles chat messages from clients.
+        /// </summary>
+        /// <param name="sender">The sender of the message.</param>
+        /// <param name="c">The chat message.</param>
         public override void OnChatFromClient(object sender, OSChatMessage c)
         {
             if (m_replacingChatModule)
@@ -263,6 +274,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
             return;
         }
 
+        /// <summary>
+        /// Handles chat messages from the world.
+        /// </summary>
+        /// <param name="sender">The sender of the message.</param>
+        /// <param name="c">The chat message.</param>
         public override void OnChatFromWorld(object sender, OSChatMessage c)
         {
             if (m_replacingChatModule)
@@ -289,6 +305,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
         #endregion
 
 
+        /// <summary>
+        /// Handles new client connections.
+        /// </summary>
+        /// <param name="client">The new client.</param>
         public override void OnNewClient(IClientAPI client)
         {
             client.OnLogout += OnClientLoggedOut;
@@ -299,6 +319,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
 
 
 
+        /// <summary>
+        /// Handles client logout events.
+        /// </summary>
+        /// <param name="client">The client that logged out.</param>
         public void OnClientLoggedOut(IClientAPI client)
         {
             client.OnLogout -= OnClientLoggedOut;
@@ -307,13 +331,17 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
             if (m_conciergedScenes.Contains(client.Scene))
             {
                 Scene scene = client.Scene as Scene;
-                m_log.DebugFormat("[Concierge]: {0} logs off from {1}", client.Name, scene.RegionInfo.RegionName);
-                AnnounceToAgentsRegion(scene, string.Format(m_announceLeaving, client.Name, scene.RegionInfo.RegionName, scene.GetRootAgentCount()));
+                m_log.DebugFormat("[Concierge]: {0} logs off from {1}", client.Name, scene?.RegionInfo.RegionName);
+                AnnounceToAgentsRegion(scene, string.Format(m_announceLeaving, client.Name, scene?.RegionInfo.RegionName, scene?.GetRootAgentCount() ?? 0));
                 UpdateBroker(scene);
             }
         }
 
 
+        /// <summary>
+        /// Handles agent root agent events (agent enters region).
+        /// </summary>
+        /// <param name="agent">The scene presence of the agent.</param>
         public void OnMakeRootAgent(ScenePresence agent)
         {
             if (m_conciergedScenes.Contains(agent.Scene))
@@ -328,6 +356,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
         }
 
 
+        /// <summary>
+        /// Handles agent child agent events (agent leaves region).
+        /// </summary>
+        /// <param name="agent">The scene presence of the agent.</param>
         public void OnMakeChildAgent(ScenePresence agent)
         {
             if (m_conciergedScenes.Contains(agent.Scene))
@@ -355,6 +387,10 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
             }
         }
 
+        /// <summary>
+        /// Updates the broker with current avatar information for a region.
+        /// </summary>
+        /// <param name="scene">The scene to update.</param>
         protected void UpdateBroker(Scene scene)
         {
             if (string.IsNullOrEmpty(m_brokerURI))
@@ -465,6 +501,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
             }
         }
 
+        /// <summary>
+        /// Welcomes an avatar to a region by sending welcome messages.
+        /// </summary>
+        /// <param name="agent">The scene presence of the agent.</param>
+        /// <param name="scene">The scene where the agent is located.</param>
         protected void WelcomeAvatar(ScenePresence agent, Scene scene)
         {
             // welcome mechanics: check whether we have a welcomes
@@ -514,9 +555,14 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
         //         m_log.DebugFormat("[Concierge]: could not find an agent for client {0}", client.Name);
         // }
 
+        /// <summary>
+        /// Announces a message to all agents in a scene.
+        /// </summary>
+        /// <param name="scene">The scene to announce to.</param>
+        /// <param name="msg">The message to announce.</param>
         protected void AnnounceToAgentsRegion(IScene scene, string msg)
         {
-            if(scene is Scene)
+            if (scene is Scene)
             {
                 OSChatMessage c = new()
                 {
@@ -531,6 +577,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
             }
         }
 
+        /// <summary>
+        /// Announces a message to a specific agent.
+        /// </summary>
+        /// <param name="agent">The agent to announce to.</param>
+        /// <param name="msg">The message to announce.</param>
         protected void AnnounceToAgent(ScenePresence agent, string msg)
         {
             OSChatMessage c = new()
@@ -548,6 +599,11 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
                  (byte)ChatSourceType.Object, (byte)ChatAudibleLevel.Fully);
         }
 
+        /// <summary>
+        /// Validates that required string parameters are present in an XML-RPC request.
+        /// </summary>
+        /// <param name="request">The XML-RPC request.</param>
+        /// <param name="param">Array of required parameter names.</param>
         private static void checkStringParameters(XmlRpcRequest request, string[] param)
         {
             Hashtable requestData = (Hashtable) request.Params[0];
@@ -560,6 +616,12 @@ namespace OpenSim.Region.OptionalModules.Avatar.Concierge
             }
         }
 
+        /// <summary>
+        /// Handles XML-RPC requests to update welcome messages.
+        /// </summary>
+        /// <param name="request">The XML-RPC request.</param>
+        /// <param name="remoteClient">The endpoint of the remote client.</param>
+        /// <returns>The XML-RPC response.</returns>
         public XmlRpcResponse XmlRpcUpdateWelcomeMethod(XmlRpcRequest request, IPEndPoint remoteClient)
         {
             m_log.Info("[Concierge]: processing UpdateWelcome request");

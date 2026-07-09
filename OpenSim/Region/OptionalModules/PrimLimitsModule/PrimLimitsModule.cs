@@ -1,4 +1,4 @@
-/*
+/{
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -213,17 +213,12 @@ namespace OpenSim.Region.OptionalModules
                     {
                         // caller is not the sole Parcel owner
                         EstateSettings estateSettings = m_scene.RegionInfo.EstateSettings;
-                        if (ownerID != estateSettings.EstateOwner)
+                        if (ownerID != estateSettings.EstateOwner && !estateSettings.EstateManagers.Contains(ownerID))
                         {
-                            // caller is NOT the Estate owner
-                            List<UUID> mgrs = [.. estateSettings.EstateManagers];
-                            if (!mgrs.Contains(ownerID))
+                            // caller is not an Estate Manager
+                            if ((lo.PrimCounts.Users[ownerID] + objectCount) > maxPrimsPerUser)
                             {
-                                // caller is not an Estate Manager
-                                if ((lo.PrimCounts.Users[ownerID] + objectCount) >  maxPrimsPerUser)
-                                {
-                                    response = "Unable to rez object because you have reached your limit";
-                                }
+                                response = "Unable to rez object because you have reached your limit";
                             }
                         }
                     }

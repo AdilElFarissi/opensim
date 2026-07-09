@@ -42,16 +42,13 @@ namespace OpenSim.Framework.Servers.HttpServer
 
     public class JsonRpcError
     {
-        internal OSDMap Error = [];
+        internal readonly OSDMap Error = [];
 
         public int Code
         {
             get
             {
-                if (Error.ContainsKey("code"))
-                    return Error["code"].AsInteger();
-                else
-                    return 0;
+                return Error.TryGetValue("code", out OSD code) ? code.AsInteger() : 0;
             }
             set
             {
@@ -63,10 +60,7 @@ namespace OpenSim.Framework.Servers.HttpServer
         {
             get
             {
-                if (Error.ContainsKey("message"))
-                    return Error["message"].AsString();
-                else
-                    return null;
+                return Error.TryGetValue("message", out OSD message) ? message.AsString() : null;
             }
             set
             {
@@ -130,7 +124,7 @@ namespace OpenSim.Framework.Servers.HttpServer
 
             if (Error.Code != 0)
             {
-                Reply["error"] = (OSD)Error.Error;
+                Reply["error"] = Error.Error;
             }
 
             string result = string.Empty;
@@ -140,7 +134,7 @@ namespace OpenSim.Framework.Servers.HttpServer
             }
             catch
             {
-
+                // Serialization failed, return empty string
             }
             return result;
         }

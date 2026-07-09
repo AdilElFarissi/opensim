@@ -26,6 +26,7 @@
  */
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace OpenSim.Framework.Console
@@ -88,11 +89,7 @@ namespace OpenSim.Framework.Console
         {
             StringBuilder formatSb = new();
 
-            int longestKey = -1;
-
-            foreach (KeyValuePair<string, string> row in Rows)
-                if (row.Key.Length > longestKey)
-                    longestKey = row.Key.Length;
+            int longestKey = Rows.Any() ? Rows.Max(row => row.Key.Length) : -1;
 
             formatSb.Append(' ', Indent);
 

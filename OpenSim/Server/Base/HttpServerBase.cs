@@ -35,18 +35,27 @@ using Nini.Config;
 
 namespace OpenSim.Server.Base
 {
+    /// <summary>
+    /// Base class for HTTP server implementations.
+    /// Handles configuration and initialization of HTTP servers with optional SSL support.
+    /// </summary>
     public class HttpServerBase : ServicesServerBase
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private uint m_consolePort;
 
-        // Handle all the automagical stuff
-        //
+        /// <summary>
+        /// Handles all the automagical stuff
+        /// </summary>
         public HttpServerBase(string prompt, string[] args) : base(prompt, args)
         {
         }
 
+        /// <summary>
+        /// Reads and processes network configuration settings.
+        /// Sets up HTTP servers with optional SSL support based on configuration.
+        /// </summary>
         protected override void ReadConfig()
         {
             IConfig networkConfig = Config.Configs["Network"];
@@ -109,7 +118,7 @@ namespace OpenSim.Server.Base
             MainServer.Instance = httpServer;
 
             // If https_listener = true, then add an ssl listener on the https_port...
-            if (ssl_listener == true)
+            if (ssl_listener)
             {
                 uint https_port = (uint)networkConfig.GetInt("https_port", 0);
 
@@ -139,6 +148,10 @@ namespace OpenSim.Server.Base
             }
         }
 
+        /// <summary>
+        /// Initializes all HTTP servers and registers console commands.
+        /// Starts all configured HTTP servers and sets up the console server reference.
+        /// </summary>
         protected override void Initialise()
         {
             foreach (BaseHttpServer s in MainServer.Servers.Values)

@@ -50,9 +50,22 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         //    are converted into simulator origin values before being passed to the base
         //    class.
 
-        // PositionDisplacement is the vehicle relative distance from the root prim position to the center-of-mass.
+        /// <summary>
+        /// PositionDisplacement is the vehicle relative distance from the root prim position to the center-of-mass.
+        /// </summary>
         public virtual OMV.Vector3 PositionDisplacement { get; set; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BSPrimDisplaced"/> class.
+        /// </summary>
+        /// <param name="localID">The local ID of the prim.</param>
+        /// <param name="primName">The name of the prim.</param>
+        /// <param name="parent_scene">The parent scene.</param>
+        /// <param name="pos">The initial position.</param>
+        /// <param name="size">The size of the prim.</param>
+        /// <param name="rotation">The initial rotation.</param>
+        /// <param name="pbs">The primitive base shape.</param>
+        /// <param name="pisPhysical">Whether the prim is physical.</param>
         public BSPrimDisplaced(uint localID, string primName, BSScene parent_scene, OMV.Vector3 pos, OMV.Vector3 size,
                            OMV.Quaternion rotation, PrimitiveBaseShape pbs, bool pisPhysical)
             : base(localID, primName, parent_scene, pos, size, rotation, pbs, pisPhysical)
@@ -60,28 +73,31 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             ClearDisplacement();
         }
 
-        // Clears any center-of-mass displacement introduced by linksets, etc.
-        // Does not clear the displacement set by the user.
+        /// <summary>
+        /// Clears any center-of-mass displacement introduced by linksets, etc.
+        /// Does not clear the displacement set by the user.
+        /// </summary>
         public void ClearDisplacement()
         {
-            if (UserSetCenterOfMassDisplacement.HasValue)
-                PositionDisplacement = (OMV.Vector3)UserSetCenterOfMassDisplacement;
-            else
-                PositionDisplacement = OMV.Vector3.Zero;
+            PositionDisplacement = UserSetCenterOfMassDisplacement.HasValue
+                                       ? (OMV.Vector3)UserSetCenterOfMassDisplacement
+                                       : OMV.Vector3.Zero;
         }
 
-        // Set this sets and computes the displacement from the passed prim to the center-of-mass.
-        // A user set value for center-of-mass overrides whatever might be passed in here.
-        // The displacement is in local coordinates (relative to root prim in linkset oriented coordinates).
-        // Returns the relative offset from the root position to the center-of-mass.
-        // Called at taint time.
+        /// <summary>
+        /// Sets and computes the displacement from the passed prim to the center-of-mass.
+        /// A user set value for center-of-mass overrides whatever might be passed in here.
+        /// The displacement is in local coordinates (relative to root prim in linkset oriented coordinates).
+        /// Returns the relative offset from the root position to the center-of-mass.
+        /// Called at taint time.
+        /// </summary>
+        /// <param name="centerOfMassDisplacement">The center of mass displacement.</param>
+        /// <returns>The effective center of mass displacement.</returns>
         public virtual Vector3 SetEffectiveCenterOfMassDisplacement(Vector3 centerOfMassDisplacement)
         {
-            Vector3 comDisp;
-            if (UserSetCenterOfMassDisplacement.HasValue)
-                comDisp = (OMV.Vector3)UserSetCenterOfMassDisplacement;
-            else
-                comDisp = centerOfMassDisplacement;
+            Vector3 comDisp = UserSetCenterOfMassDisplacement.HasValue
+                                  ? (OMV.Vector3)UserSetCenterOfMassDisplacement
+                                  : centerOfMassDisplacement;
 
             // Eliminate any jitter caused be very slight differences in masses and positions
             if (comDisp.ApproxEquals(Vector3.Zero, 0.01f) )
@@ -102,6 +118,9 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
         // 'ForcePosition' is the one way to set the physical position of the body in the physics engine.
         // Displace the simulator idea of position (center of root prim) to the physical position.
+        /// <summary>
+        /// Gets or sets the force position of the prim.
+        /// </summary>
         public override Vector3 ForcePosition
         {
             get {
@@ -144,16 +163,26 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         }
 
         // These are also overridden by BSPrimLinkable if the prim can be part of a linkset
+        /// <summary>
+        /// Gets the center of mass position.
+        /// </summary>
         public override OMV.Vector3 CenterOfMass
         {
             get { return RawPosition; }
         }
 
+        /// <summary>
+        /// Gets the geometric center position.
+        /// </summary>
         public override OMV.Vector3 GeometricCenter
         {
             get { return RawPosition; }
         }
 
+        /// <summary>
+        /// Updates the entity properties with the current physical state.
+        /// </summary>
+        /// <param name="entprop">The entity properties to update.</param>
         public override void UpdateProperties(EntityProperties entprop)
         {
             // Undo any center-of-mass displacement that might have been done.

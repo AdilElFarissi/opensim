@@ -52,10 +52,10 @@ namespace OpenSim.Services.HypergridService
                 LogManager.GetLogger(
                 MethodBase.GetCurrentMethod().DeclaringType);
 
-        private string m_HomeURL;
-        private IUserAccountService m_UserAccountService;
+        private readonly string m_HomeURL;
+        private readonly IUserAccountService m_UserAccountService;
 
-        private UserAccountCache m_Cache;
+        private readonly UserAccountCache m_Cache;
 
         public HGInventoryService(IConfigSource config, string configName)
             : base(config, configName)
@@ -298,7 +298,7 @@ namespace OpenSim.Services.HypergridService
                 UserAccount user = m_Cache.GetUser(it.CreatorId);
 
                 // Adjust the creator data
-                if (user != null && it != null && string.IsNullOrEmpty(it.CreatorData))
+                if (user != null && string.IsNullOrEmpty(it.CreatorData))
                     it.CreatorData = m_HomeURL + ";" + user.FirstName + " " + user.LastName;
             }
             return it;

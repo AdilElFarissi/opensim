@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -26,6 +26,7 @@
  */
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace OpenSim.Region.PhysicsModule.BulletS
 {
@@ -36,8 +37,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
         delegate bool ConstraintAction(BSConstraint constrain);
 
-        private List<BSConstraint> m_constraints;
-        private BulletWorld m_world;
+        private readonly List<BSConstraint> m_constraints;
+        private readonly BulletWorld m_world;
 
         public BSConstraintCollection(BulletWorld world)
         {
@@ -86,15 +87,12 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             uint lookingID2 = body2.ID;
             lock (m_constraints)
             {
-                foreach (BSConstraint constrain in m_constraints)
+                foreach (BSConstraint constrain in m_constraints.Where(constrain => (constrain.Body1.ID == lookingID1 && constrain.Body2.ID == lookingID2)
+                        || (constrain.Body1.ID == lookingID2 && constrain.Body2.ID == lookingID1)))
                 {
-                    if ((constrain.Body1.ID == lookingID1 && constrain.Body2.ID == lookingID2)
-                        || (constrain.Body1.ID == lookingID2 && constrain.Body2.ID == lookingID1))
-                    {
-                        foundConstraint = constrain;
-                        found = true;
-                        break;
-                    }
+                    foundConstraint = constrain;
+                    found = true;
+                    break;
                 }
             }
             returnConstraint = foundConstraint;
@@ -144,12 +142,9 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             uint lookingID = body1.ID;
             lock (m_constraints)
             {
-                foreach (BSConstraint constrain in m_constraints)
+                foreach (BSConstraint constrain in m_constraints.Where(constrain => constrain.Body1.ID == lookingID || constrain.Body2.ID == lookingID))
                 {
-                    if (constrain.Body1.ID == lookingID || constrain.Body2.ID == lookingID)
-                    {
-                        toRemove.Add(constrain);
-                    }
+                    toRemove.Add(constrain);
                 }
                 foreach (BSConstraint constrain in toRemove)
                 {

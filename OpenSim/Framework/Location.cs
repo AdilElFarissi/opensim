@@ -30,78 +30,133 @@ using OpenMetaverse;
 
 namespace OpenSim.Framework
 {
+    /// <summary>
+    /// Represents a location with X and Y coordinates.
+    /// </summary>
     [Serializable]
-    public class Location : ICloneable
+    public class Location
     {
         private readonly uint m_x;
         private readonly uint m_y;
 
+        /// <summary>
+        /// Initializes a new instance of the Location class with the specified coordinates.
+        /// </summary>
+        /// <param name="x">The X coordinate.</param>
+        /// <param name="y">The Y coordinate.</param>
         public Location(uint x, uint y)
         {
             m_x = x;
             m_y = y;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the Location class from a region handle.
+        /// </summary>
+        /// <param name="regionHandle">The region handle.</param>
         public Location(ulong regionHandle)
         {
             m_x =  (uint)(regionHandle >> 32);
             m_y = (uint)(regionHandle & (ulong)uint.MaxValue);
         }
 
+        /// <summary>
+        /// Gets the region handle.
+        /// </summary>
         public ulong RegionHandle
         {
             get { return Utils.UIntsToLong(m_x, m_y); }
         }
 
+        /// <summary>
+        /// Gets the X coordinate.
+        /// </summary>
         public uint X
         {
             get { return m_x; }
         }
 
+        /// <summary>
+        /// Gets the Y coordinate.
+        /// </summary>
         public uint Y
         {
             get { return m_y; }
         }
 
+        /// <summary>
+        /// Determines whether the specified object is equal to this instance.
+        /// </summary>
+        /// <param name="obj">The object to compare with this instance.</param>
+        /// <returns>true if the specified object is equal to this instance; otherwise, false.</returns>
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(obj, this))
                 return true;
 
-            if (obj is Location)
-            {
-                return Equals((Location) obj);
-            }
+            if (obj == null || obj.GetType() != GetType())
+                return false;
 
-            return base.Equals(obj);
+            return Equals((Location) obj);
         }
 
+        /// <summary>
+        /// Determines whether the specified Location is equal to this instance.
+        /// </summary>
+        /// <param name="loc">The Location to compare with this instance.</param>
+        /// <returns>true if the specified Location is equal to this instance; otherwise, false.</returns>
         public bool Equals(Location loc)
         {
             return loc.X == X && loc.Y == Y;
         }
 
+        /// <summary>
+        /// Determines whether the specified coordinates are equal to this instance.
+        /// </summary>
+        /// <param name="x">The X coordinate.</param>
+        /// <param name="y">The Y coordinate.</param>
+        /// <returns>true if the specified coordinates are equal to this instance; otherwise, false.</returns>
         public bool Equals(int x, int y)
         {
             return X == x && y == Y;
         }
 
+        /// <summary>
+        /// Determines whether either of the two Location objects is equal to the other.
+        /// </summary>
+        /// <param name="o">The first Location.</param>
+        /// <param name="o2">The second Location.</param>
+        /// <returns>true if the Locations are equal; otherwise, false.</returns>
         public static bool operator ==(Location o, object o2)
         {
             return o.Equals(o2);
         }
 
+        /// <summary>
+        /// Determines whether either of the two Location objects is not equal to the other.
+        /// </summary>
+        /// <param name="o">The first Location.</param>
+        /// <param name="o2">The second Location.</param>
+        /// <returns>true if the Locations are not equal; otherwise, false.</returns>
         public static bool operator !=(Location o, object o2)
         {
             return !o.Equals(o2);
         }
 
+        /// <summary>
+        /// Returns a hash code for this instance.
+        /// </summary>
+        /// <returns>A hash code for this instance.</returns>
         public override int GetHashCode()
         {
             return X.GetHashCode() ^ Y.GetHashCode();
         }
 
-        public object Clone()
+        /// <summary>
+        /// Creates a clone of this instance.
+        /// </summary>
+        /// <returns>A new Location with the same coordinates.</returns>
+        public Location Clone()
         {
             return new Location(X, Y);
         }

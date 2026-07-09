@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
+using System.Text;
 using MySql.Data.MySqlClient;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -38,9 +39,8 @@ namespace OpenSim.Data.MySQL
 {
     public class MySqlRegionData : MySqlFramework, IRegionData
     {
-        private string m_Realm;
+        private readonly string m_Realm;
         private List<string> m_ColumnNames;
-        //private string m_connectionString;
 
         protected virtual Assembly Assembly
         {
@@ -130,14 +130,11 @@ namespace OpenSim.Data.MySQL
 
             // find the first that contains pos
             RegionData rg = null;
-            foreach (RegionData r in ret)
+            foreach (RegionData r in ret.Where(r => posX >= r.posX && posX < r.posX + r.sizeX
+                                                    && posY >= r.posY && posY < r.posY + r.sizeY))
             {
-                if (posX >= r.posX && posX < r.posX + r.sizeX
-                    && posY >= r.posY && posY < r.posY + r.sizeY)
-                {
-                    rg = r;
-                    break;
-                }
+                rg = r;
+                break;
             }
 
             return rg;
@@ -204,11 +201,10 @@ namespace OpenSim.Data.MySQL
             if (dbret.Count == 0)
                 return ret;
 
-            foreach (RegionData r in dbret)
+            foreach (RegionData r in dbret.Where(r => r.posX + r.sizeX > startX && r.posX <= endX
+                                                      && r.posY + r.sizeY > startY && r.posY <= endY))
             {
-                if (r.posX + r.sizeX > startX && r.posX <= endX
-                    && r.posY + r.sizeY > startY && r.posY <= endY)
-                    ret.Add(r);
+                ret.Add(r);
             }
             return ret;
         }
@@ -333,11 +329,16 @@ namespace OpenSim.Data.MySQL
 
                 if (ExecuteNonQuery(cmd) < 1)
                 {
-                    string insert = "insert into `" + m_Realm + "` (`uuid`, `ScopeID`, `locX`, `locY`, `sizeX`, `sizeY`, `regionName`, `" +
-                            string.Join("`, `", fields) +
-                            "`) values ( ?regionID, ?scopeID, ?posX, ?posY, ?sizeX, ?sizeY, ?regionName, ?" + string.Join(", ?", fields) + ")";
+                    StringBuilder insertBuilder = new StringBuilder();
+                    insertBuilder.Append("insert into `");
+                    insertBuilder.Append(m_Realm);
+                    insertBuilder.Append("` (`uuid`, `ScopeID`, `locX`, `locY`, `sizeX`, `sizeY`, `regionName`, `");
+                    insertBuilder.Append(string.Join("`, `", fields));
+                    insertBuilder.Append("`) values ( ?regionID, ?scopeID, ?posX, ?posY, ?sizeX, ?sizeY, ?regionName, ?");
+                    insertBuilder.Append(string.Join(", ?", fields));
+                    insertBuilder.Append(")");
 
-                    cmd.CommandText = insert;
+                    cmd.CommandText = insertBuilder.ToString();
 
                     if (ExecuteNonQuery(cmd) < 1)
                     {

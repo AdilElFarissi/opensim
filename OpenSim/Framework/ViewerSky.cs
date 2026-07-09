@@ -25,22 +25,52 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+using System;
 using System.Collections.Generic;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 
 namespace OpenSim.Framework
 {
+    /// <summary>
+    /// Represents sky and cloud configuration data for the viewer environment.
+    /// </summary>
     public class SkyData
     {
+        /// <summary>
+        /// Represents absorption coefficient data for atmospheric scattering calculations.
+        /// </summary>
         public struct AbsCoefData
         {
+            /// <summary>
+            /// The constant term in the absorption coefficient equation.
+            /// </summary>
             public float constant_term;
+            /// <summary>
+            /// The exponential scale factor in the absorption coefficient equation.
+            /// </summary>
             public float exp_scale;
+            /// <summary>
+            /// The exponential term in the absorption coefficient equation.
+            /// </summary>
             public float exp_term;
+            /// <summary>
+            /// The linear term in the absorption coefficient equation.
+            /// </summary>
             public float linear_term;
+            /// <summary>
+            /// The width parameter for the absorption coefficient.
+            /// </summary>
             public float width;
 
+            /// <summary>
+            /// Initializes a new instance of the AbsCoefData structure.
+            /// </summary>
+            /// <param name="w">The width parameter.</param>
+            /// <param name="expt">The exponential term.</param>
+            /// <param name="exps">The exponential scale factor.</param>
+            /// <param name="lin">The linear term.</param>
+            /// <param name="cons">The constant term.</param>
             public AbsCoefData(float w, float expt, float exps, float lin, float cons)
             {
                 constant_term = cons;
@@ -50,6 +80,10 @@ namespace OpenSim.Framework
                 width = w;
             }
 
+            /// <summary>
+            /// Converts the absorption coefficient data to an OSDMap for serialization.
+            /// </summary>
+            /// <returns>An OSDMap representation of this data.</returns>
             public OSDMap ToOSD()
             {
                 OSDMap map = new()
@@ -63,6 +97,10 @@ namespace OpenSim.Framework
                 return map;
             }
 
+            /// <summary>
+            /// Populates the absorption coefficient data from an OSDMap.
+            /// </summary>
+            /// <param name="map">The OSDMap containing the data.</param>
             public void FromOSD(OSDMap map)
             {
                 constant_term = map["constant_term"];
@@ -73,15 +111,45 @@ namespace OpenSim.Framework
             }
         }
 
+        /// <summary>
+        /// Represents Mie scattering coefficient data for atmospheric calculations.
+        /// </summary>
         public struct mCoefData
         {
+            /// <summary>
+            /// The anisotropy factor for Mie scattering.
+            /// </summary>
             public float anisotropy;
+            /// <summary>
+            /// The constant term in the Mie coefficient equation.
+            /// </summary>
             public float constant_term;
+            /// <summary>
+            /// The exponential scale factor in the Mie coefficient equation.
+            /// </summary>
             public float exp_scale;
+            /// <summary>
+            /// The exponential term in the Mie coefficient equation.
+            /// </summary>
             public float exp_term;
+            /// <summary>
+            /// The linear term in the Mie coefficient equation.
+            /// </summary>
             public float linear_term;
+            /// <summary>
+            /// The width parameter for the Mie coefficient.
+            /// </summary>
             public float width;
 
+            /// <summary>
+            /// Initializes a new instance of the mCoefData structure.
+            /// </summary>
+            /// <param name="w">The width parameter.</param>
+            /// <param name="expt">The exponential term.</param>
+            /// <param name="exps">The exponential scale factor.</param>
+            /// <param name="lin">The linear term.</param>
+            /// <param name="cons">The constant term.</param>
+            /// <param name="ani">The anisotropy factor.</param>
             public mCoefData(float w, float expt, float exps, float lin, float cons, float ani)
             {
                 anisotropy = ani;
@@ -92,6 +160,10 @@ namespace OpenSim.Framework
                 width = w;
             }
 
+            /// <summary>
+            /// Converts the Mie coefficient data to an OSDMap for serialization.
+            /// </summary>
+            /// <returns>An OSDMap representation of this data.</returns>
             public OSDMap ToOSD()
             {
                 OSDMap map = new()
@@ -106,6 +178,10 @@ namespace OpenSim.Framework
                 return map;
             }
 
+            /// <summary>
+            /// Populates the Mie coefficient data from an OSDMap.
+            /// </summary>
+            /// <param name="map">The OSDMap containing the data.</param>
             public void FromOSD(OSDMap map)
             {
                 anisotropy = map["anisotropy"];
@@ -175,6 +251,11 @@ namespace OpenSim.Framework
         public float moon_scale = 1;
         public float planet_radius = 6360f;
 
+        /// <summary>
+        /// Loads sky configuration data from a WindLight OSD structure.
+        /// </summary>
+        /// <param name="name">The name of the sky configuration.</param>
+        /// <param name="osd">The OSD structure containing the sky configuration data.</param>
         public void FromWLOSD(string name, OSD osd)
         {
             Vector4 v4tmp;
@@ -228,6 +309,10 @@ namespace OpenSim.Framework
             Name = name;
         }
 
+        /// <summary>
+        /// Converts the sky configuration data to a WindLight OSD structure.
+        /// </summary>
+        /// <returns>An OSDMap containing the sky configuration data.</returns>
         public OSD ToWLOSD()
         {
             OSDMap map = [];
@@ -260,6 +345,10 @@ namespace OpenSim.Framework
             return map;
         }
 
+        /// <summary>
+        /// Converts the sky configuration data to an OSD structure for serialization.
+        /// </summary>
+        /// <returns>An OSDMap containing the sky configuration data.</returns>
         public OSD ToOSD()
         {
             OSDMap map = new(64)
@@ -324,16 +413,26 @@ namespace OpenSim.Framework
             return map;
         }
 
+        private static readonly float FLOAT_EQUALITY_EPSILON = 1e-6f;
+
+        /// <summary>
+        /// Loads sky configuration data from an OSDMap structure.
+        /// </summary>
+        /// <param name="name">The name of the sky configuration.</param>
+        /// <param name="map">The OSDMap containing the sky configuration data.</param>
         public void FromOSD(string name, OSDMap map)
         {
             OSD otmp;
+            if (map == null)
+                return;
+
             if (map.TryGetValue("absorption_config", out otmp) && otmp is OSDArray absorptionArray)
             {
-                if (absorptionArray.Count > 0)
+                if (absorptionArray.Count > 0 && absorptionArray[0] is OSDMap absorptionMapA)
                 {
-                    abscoefA.FromOSD(absorptionArray[0] as OSDMap);
-                    if (absorptionArray.Count > 1)
-                        abscoefA.FromOSD(absorptionArray[1] as OSDMap);
+                    abscoefA.FromOSD(absorptionMapA);
+                    if (absorptionArray.Count > 1 && absorptionArray[1] is OSDMap absorptionMapB)
+                        abscoefB.FromOSD(absorptionMapB);
                 }
             }
             if (map.TryGetValue("bloom_id", out otmp))
@@ -398,8 +497,8 @@ namespace OpenSim.Framework
 
             if (map.TryGetValue("mie_config", out otmp) && otmp is OSDArray mieArray)
             {
-                if (mieArray.Count > 0)
-                    mieconf.FromOSD(mieArray[0] as OSDMap);
+                if (mieArray.Count > 0 && mieArray[0] is OSDMap mieMap)
+                    mieconf.FromOSD(mieMap);
             }
 
             if (map.TryGetValue("moisture_level", out otmp))
@@ -419,8 +518,8 @@ namespace OpenSim.Framework
 
             if (map.TryGetValue("rayleigh_config", out otmp) && otmp is OSDArray rayleighArray)
             {
-                if (rayleighArray.Count > 0)
-                    rayleigh_config.FromOSD(rayleighArray[0] as OSDMap);
+                if (rayleighArray.Count > 0 && rayleighArray[0] is OSDMap rayleighMap)
+                    rayleigh_config.FromOSD(rayleighMap);
             }
 
             if (map.TryGetValue("sky_bottom_radius", out otmp))
@@ -439,10 +538,18 @@ namespace OpenSim.Framework
             if (map.TryGetValue("sun_scale", out otmp))
                 sun_scale = otmp;
 
-            if (map.TryGetValue("sunlight_color", out otmp) && otmp is OSDArray sunlightArray)
+            if (map.TryGetValue("sunlight_color", out otmp))
             {
-                if(sunlightArray.Count == 4)
-                    sunlight_color = otmp;
+                if (otmp is OSDArray sunlightArray)
+                {
+                    if(sunlightArray.Count == 4)
+                        sunlight_color = otmp;
+                    else
+                    {
+                        Vector3 tv = otmp;
+                        sunlight_color = new Vector4(tv.X, tv.Y, tv.Z, 0);
+                    }
+                }
                 else
                 {
                     Vector3 tv = otmp;
@@ -452,6 +559,10 @@ namespace OpenSim.Framework
             Name = name;
         }
 
+        /// <summary>
+        /// Gathers texture asset UUIDs for the sky configuration.
+        /// </summary>
+        /// <param name="uuids">Dictionary to store the gathered asset UUIDs with their types.</param>
         public void GatherAssets(Dictionary<UUID, sbyte> uuids)
         {
             Util.AddToGatheredIds(uuids, bloom_id, (sbyte)AssetType.Texture);

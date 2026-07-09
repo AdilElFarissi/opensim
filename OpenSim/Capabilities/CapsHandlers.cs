@@ -43,13 +43,13 @@ namespace OpenSim.Framework.Capabilities
     {
         private readonly Dictionary<string, IRequestHandler> m_capsHandlers = [];
         private readonly ConcurrentDictionary<string, ISimpleStreamHandler> m_capsSimpleHandlers = new();
-        private IHttpServer m_httpListener;
-        private string m_httpListenerHostName;
-        private uint m_httpListenerPort;
+        private readonly IHttpServer m_httpListener;
+        private readonly string m_httpListenerHostName;
+        private readonly uint m_httpListenerPort;
 
         public readonly string BaseURL;
 
-        /// <summary></summary>
+        /// <summary>
         /// CapsHandlers is a cap handler container but also takes
         /// care of adding and removing cap handlers to and from the
         /// supplied BaseHttpServer.
@@ -62,10 +62,9 @@ namespace OpenSim.Framework.Capabilities
             m_httpListener = httpListener;
             m_httpListenerHostName = httpListenerHostname;
             m_httpListenerPort = httpListenerPort;
-            if (httpListener != null && httpListener.UseSSL)
-                BaseURL = $"https://{m_httpListenerHostName}:{m_httpListenerPort}";
-            else
-                BaseURL = $"http://{m_httpListenerHostName}:{m_httpListenerPort}";
+            BaseURL = httpListener != null && httpListener.UseSSL
+                ? $"https://{m_httpListenerHostName}:{m_httpListenerPort}"
+                : $"http://{m_httpListenerHostName}:{m_httpListenerPort}";
         }
 
         /// <summary>
@@ -77,16 +76,16 @@ namespace OpenSim.Framework.Capabilities
         {
             lock (m_capsHandlers)
             {
-                if(m_capsHandlers.ContainsKey(capsName))
+                if (m_capsHandlers.TryGetValue(capsName, out IRequestHandler handler))
                 {
-                    m_httpListener.RemoveStreamHandler("POST", m_capsHandlers[capsName].Path);
-                    m_httpListener.RemoveStreamHandler("PUT", m_capsHandlers[capsName].Path);
-                    m_httpListener.RemoveStreamHandler("GET", m_capsHandlers[capsName].Path);
-                    m_httpListener.RemoveStreamHandler("DELETE", m_capsHandlers[capsName].Path);
+                    m_httpListener.RemoveStreamHandler("POST", handler.Path);
+                    m_httpListener.RemoveStreamHandler("PUT", handler.Path);
+                    m_httpListener.RemoveStreamHandler("GET", handler.Path);
+                    m_httpListener.RemoveStreamHandler("DELETE", handler.Path);
                     m_capsHandlers.Remove(capsName);
                 }
             }
-            if(m_capsSimpleHandlers.TryRemove(capsName, out ISimpleStreamHandler hdr))
+            if (m_capsSimpleHandlers.TryRemove(capsName, out ISimpleStreamHandler hdr))
             {
                 m_httpListener.RemoveSimpleStreamHandler(hdr.Path);
             }
@@ -94,17 +93,19 @@ namespace OpenSim.Framework.Capabilities
 
         public void AddSimpleHandler(string capName, ISimpleStreamHandler handler, bool addToListener = true)
         {
-            if(ContainsCap(capName))
+            if (ContainsCap(capName))
                 Remove(capName);
-            if(m_capsSimpleHandlers.TryAdd(capName, handler) && addToListener)
+            if (m_capsSimpleHandlers.TryAdd(capName, handler) && addToListener)
                 m_httpListener.AddSimpleStreamHandler(handler);
         }
 
         public bool ContainsCap(string cap)
         {
             lock (m_capsHandlers)
+            {
                 if (m_capsHandlers.ContainsKey(cap))
                     return true;
+            }
             return m_capsSimpleHandlers.ContainsKey(cap);
         }
 
@@ -129,12 +130,12 @@ namespace OpenSim.Framework.Capabilities
             {
                 lock (m_capsHandlers)
                 {
-                    if (m_capsHandlers.ContainsKey(idx))
+                    if (m_capsHandlers.TryGetValue(idx, out IRequestHandler existingHandler))
                     {
-                        m_httpListener.RemoveStreamHandler("POST", m_capsHandlers[idx].Path);
-                        m_httpListener.RemoveStreamHandler("PUT", m_capsHandlers[idx].Path);
-                        m_httpListener.RemoveStreamHandler("GET", m_capsHandlers[idx].Path);
-                        m_httpListener.RemoveStreamHandler("DELETE", m_capsHandlers[idx].Path);
+                        m_httpListener.RemoveStreamHandler("POST", existingHandler.Path);
+                        m_httpListener.RemoveStreamHandler("PUT", existingHandler.Path);
+                        m_httpListener.RemoveStreamHandler("GET", existingHandler.Path);
+                        m_httpListener.RemoveStreamHandler("DELETE", existingHandler.Path);
                         m_capsHandlers.Remove(idx);
                     }
 

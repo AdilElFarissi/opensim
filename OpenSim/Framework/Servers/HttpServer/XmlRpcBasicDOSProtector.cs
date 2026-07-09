@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -31,6 +31,9 @@ using Nwc.XmlRpc;
 
 namespace OpenSim.Framework.Servers.HttpServer
 {
+    /// <summary>
+    /// Provides DOS protection for XML-RPC requests by managing normal and throttled method processing.
+    /// </summary>
     public class XmlRpcBasicDOSProtector
     {
         private readonly XmlRpcMethod _normalMethod;
@@ -39,7 +42,13 @@ namespace OpenSim.Framework.Servers.HttpServer
         private readonly BasicDosProtectorOptions _options;
         private readonly BasicDOSProtector _dosProtector;
 
-        public XmlRpcBasicDOSProtector(XmlRpcMethod normalMethod, XmlRpcMethod throttledMethod,BasicDosProtectorOptions options)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="XmlRpcBasicDOSProtector"/> class.
+        /// </summary>
+        /// <param name="normalMethod">The method to call when the request is not throttled.</param>
+        /// <param name="throttledMethod">The method to call when the request is throttled.</param>
+        /// <param name="options">The DOS protector options configuration.</param>
+        public XmlRpcBasicDOSProtector(XmlRpcMethod normalMethod, XmlRpcMethod throttledMethod, BasicDosProtectorOptions options)
         {
             _normalMethod = normalMethod;
             _throttledMethod = throttledMethod;
@@ -48,6 +57,13 @@ namespace OpenSim.Framework.Servers.HttpServer
             _dosProtector = new BasicDOSProtector(_options);
 
         }
+
+        /// <summary>
+        /// Processes an XML-RPC request with DOS protection.
+        /// </summary>
+        /// <param name="request">The XML-RPC request to process.</param>
+        /// <param name="client">The client endpoint making the request.</param>
+        /// <returns>The XML-RPC response from either the normal or throttled method.</returns>
         public XmlRpcResponse Process(XmlRpcRequest request, IPEndPoint client)
         {
 
@@ -63,25 +79,36 @@ namespace OpenSim.Framework.Servers.HttpServer
             return resp;
         }
 
+        /// <summary>
+        /// Gets the client string identifier for DOS protection purposes.
+        /// </summary>
+        /// <param name="request">The XML-RPC request.</param>
+        /// <param name="client">The client endpoint.</param>
+        /// <returns>A string identifying the client for DOS protection.</returns>
         private string GetClientString(XmlRpcRequest request, IPEndPoint client)
         {
             string clientstring;
             if (_options.AllowXForwardedFor && request.Params.Count > 3)
             {
                 object headerstr = request.Params[3];
-                if (headerstr != null && !string.IsNullOrEmpty(headerstr.ToString()))
-                    clientstring = request.Params[3].ToString();
-                else
-                    clientstring = client.Address.ToString();
+                clientstring = (headerstr != null && !string.IsNullOrEmpty(headerstr.ToString()))
+                    ? request.Params[3].ToString()
+                    : client.Address.ToString();
             }
             else
                 clientstring = client.Address.ToString();
             return clientstring;
         }
 
+        /// <summary>
+        /// Gets the endpoint string for DOS protection purposes.
+        /// </summary>
+        /// <param name="request">The XML-RPC request.</param>
+        /// <param name="client">The client endpoint.</param>
+        /// <returns>A string identifying the endpoint for DOS protection.</returns>
         private string GetEndPoint(XmlRpcRequest request, IPEndPoint client)
         {
-             return client.Address.ToString();
+            return client.Address.ToString();
         }
 
     }

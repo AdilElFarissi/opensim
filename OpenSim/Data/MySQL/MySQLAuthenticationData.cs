@@ -29,14 +29,18 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Data;
+using System.Text;
 using OpenMetaverse;
 using MySql.Data.MySqlClient;
 
 namespace OpenSim.Data.MySQL
 {
+    /// <summary>
+    /// Provides MySQL-based implementation for authentication data storage and retrieval.
+    /// </summary>
     public class MySqlAuthenticationData : MySqlFramework, IAuthenticationData
     {
-        private string m_Realm;
+        private readonly string m_Realm;
         private List<string> m_ColumnNames;
         private int m_LastExpire;
         // private string m_connectionString;
@@ -46,21 +50,33 @@ namespace OpenSim.Data.MySQL
             get { return GetType().Assembly; }
         }
 
+        /// <summary>
+        /// Initializes a new instance of the MySqlAuthenticationData class with the specified connection string and realm.
+        /// </summary>
+        /// <param name="connectionString">The database connection string.</param>
+        /// <param name="realm">The authentication realm.</param>
         public MySqlAuthenticationData(string connectionString, string realm)
                 : base(connectionString)
         {
             m_Realm = realm;
             m_connectionString = connectionString;
 
+            Assembly assembly = typeof(MySqlAuthenticationData).Assembly;
+
             using (MySqlConnection dbcon = new(m_connectionString))
             {
                 dbcon.Open();
-                Migration m = new(dbcon, Assembly, "AuthStore");
+                Migration m = new(dbcon, assembly, "AuthStore");
                 m.Update();
                 dbcon.Close();
             }
         }
 
+        /// <summary>
+        /// Retrieves authentication data for the specified principal UUID.
+        /// </summary>
+        /// <param name="principalID">The UUID of the principal.</param>
+        /// <returns>The authentication data, or null if not found.</returns>
         public AuthenticationData Get(UUID principalID)
         {
             AuthenticationData ret = new()
@@ -85,11 +101,8 @@ namespace OpenSim.Data.MySQL
 
                             CheckColumnNames(result);
 
-                            foreach(string s in m_ColumnNames)
+                            foreach(string s in m_ColumnNames.Where(col => col != "UUID"))
                             {
-                                if(s == "UUID")
-                                    continue;
-
                                 ret.Data[s] = result[s].ToString();
                             }
 
@@ -120,6 +133,11 @@ namespace OpenSim.Data.MySQL
             m_ColumnNames = columnNames;
         }
 
+        /// <summary>
+        /// Stores the specified authentication data.
+        /// </summary>
+        /// <param name="data">The authentication data to store.</param>
+        /// <returns>True if the operation was successful; otherwise, false.</returns>
         public bool Store(AuthenticationData data)
         {
             data.Data.Remove("UUID");
@@ -128,31 +146,31 @@ namespace OpenSim.Data.MySQL
 
             using (MySqlCommand cmd = new())
             {
-                string update = "update `"+m_Realm+"` set ";
+                StringBuilder update = new StringBuilder("update `" + m_Realm + "` set ");
                 bool first = true;
                 foreach (string field in fields)
                 {
                     if (!first)
-                        update += ", ";
-                    update += "`" + field + "` = ?"+field;
+                        update.Append(", ");
+                    update.Append("`" + field + "` = ?" + field);
 
                     first = false;
 
                     cmd.Parameters.AddWithValue("?"+field, data.Data[field]);
                 }
 
-                update += " where UUID = ?principalID";
+                update.Append(" where UUID = ?principalID");
 
-                cmd.CommandText = update;
+                cmd.CommandText = update.ToString();
                 cmd.Parameters.AddWithValue("?principalID", data.PrincipalID.ToString());
 
                 if (ExecuteNonQuery(cmd) < 1)
                 {
-                    string insert = "insert into `" + m_Realm + "` (`UUID`, `" +
+                    StringBuilder insert = new StringBuilder("insert into `" + m_Realm + "` (`UUID`, `" +
                             string.Join("`, `", fields) +
-                            "`) values (?principalID, ?" + string.Join(", ?", fields) + ")";
+                            "`) values (?principalID, ?" + string.Join(", ?", fields) + ")");
 
-                    cmd.CommandText = insert;
+                    cmd.CommandText = insert.ToString();
 
                     if (ExecuteNonQuery(cmd) < 1)
                         return false;
@@ -162,6 +180,13 @@ namespace OpenSim.Data.MySQL
             return true;
         }
 
+        /// <summary>
+        /// Sets a specific data item for the principal.
+        /// </summary>
+        /// <param name="principalID">The UUID of the principal.</param>
+        /// <param name="item">The name of the data item.</param>
+        /// <param name="value">The value to set.</param>
+        /// <returns>True if the operation was successful; otherwise, false.</returns>
         public bool SetDataItem(UUID principalID, string item, string value)
         {
             using (MySqlCommand cmd
@@ -177,6 +202,13 @@ namespace OpenSim.Data.MySQL
             return false;
         }
 
+        /// <summary>
+        /// Sets a token for the specified principal.
+        /// </summary>
+        /// <param name="principalID">The UUID of the principal.</param>
+        /// <param name="token">The token value.</param>
+        /// <param name="lifetime">The token lifetime in minutes.</param>
+        /// <returns>True if the token was set successfully; otherwise, false.</returns>
         public bool SetToken(UUID principalID, string token, int lifetime)
         {
             if (System.Environment.TickCount - m_LastExpire > 30000)
@@ -197,6 +229,13 @@ namespace OpenSim.Data.MySQL
             return false;
         }
 
+        /// <summary>
+        /// Checks and validates a token for the specified principal.
+        /// </summary>
+        /// <param name="principalID">The UUID of the principal.</param>
+        /// <param name="token">The token value.</param>
+        /// <param name="lifetime">The token lifetime in minutes.</param>
+        /// <returns>True if the token is valid; otherwise, false.</returns>
         public bool CheckToken(UUID principalID, string token, int lifetime)
         {
             if (System.Environment.TickCount - m_LastExpire > 30000)

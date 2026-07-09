@@ -35,6 +35,10 @@ using OpenMetaverse;
 
 namespace OpenSim.Data.MySQL
 {
+    /// <summary>
+    /// Handles generic table operations for MySQL databases.
+    /// </summary>
+    /// <typeparam name="T">The type of objects to handle.</typeparam>
     public class MySQLGenericTableHandler<T> : MySqlFramework where T: class, new()
     {
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -50,6 +54,12 @@ namespace OpenSim.Data.MySQL
             get { return GetType().Assembly; }
         }
 
+        /// <summary>
+        /// Initializes a new instance of the MySQLGenericTableHandler class with a transaction.
+        /// </summary>
+        /// <param name="trans">The MySqlTransaction to use.</param>
+        /// <param name="realm">The database realm or table name.</param>
+        /// <param name="storeName">The name of the store for migrations.</param>
         public MySQLGenericTableHandler(MySqlTransaction trans,
                 string realm, string storeName) : base(trans)
         {
@@ -58,6 +68,12 @@ namespace OpenSim.Data.MySQL
             CommonConstruct(storeName);
         }
 
+        /// <summary>
+        /// Initializes a new instance of the MySQLGenericTableHandler class with a connection string.
+        /// </summary>
+        /// <param name="connectionString">The database connection string.</param>
+        /// <param name="realm">The database realm or table name.</param>
+        /// <param name="storeName">The name of the store for migrations.</param>
         public MySQLGenericTableHandler(string connectionString,
                 string realm, string storeName) : base(connectionString)
         {
@@ -114,6 +130,12 @@ namespace OpenSim.Data.MySQL
             m_ColumnNames = columnNames;
         }
 
+        /// <summary>
+        /// Retrieves an array of T objects matching the specified field and key.
+        /// </summary>
+        /// <param name="field">The field name to query.</param>
+        /// <param name="key">The key value to match.</param>
+        /// <returns>An array of T objects.</returns>
         public virtual T[] Get(string field, string key)
         {   
             using (MySqlCommand cmd = new())
@@ -124,6 +146,12 @@ namespace OpenSim.Data.MySQL
             }
         }
 
+        /// <summary>
+        /// Retrieves an array of T objects matching any of the specified keys for the given field.
+        /// </summary>
+        /// <param name="field">The field name to query.</param>
+        /// <param name="keys">The array of key values to match.</param>
+        /// <returns>An array of T objects.</returns>
         public virtual T[] Get(string field, string[] keys)
         {
             int flen = keys.Length;
@@ -151,11 +179,24 @@ namespace OpenSim.Data.MySQL
             }
         }
 
+        /// <summary>
+        /// Retrieves an array of T objects matching the specified fields and keys.
+        /// </summary>
+        /// <param name="fields">The array of field names to query.</param>
+        /// <param name="keys">The array of key values to match.</param>
+        /// <returns>An array of T objects.</returns>
         public virtual T[] Get(string[] fields, string[] keys)
         {
             return Get(fields, keys, string.Empty);
         }
 
+        /// <summary>
+        /// Retrieves an array of T objects matching the specified fields, keys, and options.
+        /// </summary>
+        /// <param name="fields">The array of field names to query.</param>
+        /// <param name="keys">The array of key values to match.</param>
+        /// <param name="options">Additional SQL options to append.</param>
+        /// <returns>An array of T objects.</returns>
         public virtual T[] Get(string[] fields, string[] keys, string options)
         {
             int flen = fields.Length;
@@ -209,6 +250,12 @@ namespace OpenSim.Data.MySQL
             return DoQueryWithConnection(cmd, trans.Connection);
         }
 
+        /// <summary>
+        /// Executes the query and returns an array of T objects using the provided connection.
+        /// </summary>
+        /// <param name="cmd">The MySqlCommand to execute.</param>
+        /// <param name="dbcon">The MySqlConnection to use.</param>
+        /// <returns>An array of T objects.</returns>
         protected T[] DoQueryWithConnection(MySqlCommand cmd, MySqlConnection dbcon)
         {
             List<T> result = [];
@@ -264,9 +311,8 @@ namespace OpenSim.Data.MySQL
 
                         foreach (string col in m_ColumnNames)
                         {
-                            data[col] = reader[col].ToString();
-                            if (data[col] == null)
-                                data[col] = string.Empty;
+                            object val = reader[col];
+                            data[col] = val == DBNull.Value ? string.Empty : val.ToString();
                         }
 
                         m_DataField.SetValue(row, data);
@@ -279,6 +325,11 @@ namespace OpenSim.Data.MySQL
             return result.ToArray();
         }
 
+        /// <summary>
+        /// Retrieves an array of T objects matching the specified where clause.
+        /// </summary>
+        /// <param name="where">The where clause to use in the query.</param>
+        /// <returns>An array of T objects.</returns>
         public virtual T[] Get(string where)
         {
             using (MySqlCommand cmd = new())
@@ -289,6 +340,11 @@ namespace OpenSim.Data.MySQL
             }
         }
 
+        /// <summary>
+        /// Stores the specified row in the database.
+        /// </summary>
+        /// <param name="row">The row object to store.</param>
+        /// <returns>True if the operation was successful; otherwise, false.</returns>
         public virtual bool Store(T row)
         {
             //m_log.DebugFormat("[MYSQL GENERIC TABLE HANDLER]: Store(T row) invoked");
@@ -338,11 +394,23 @@ namespace OpenSim.Data.MySQL
             }
         }
 
+        /// <summary>
+        /// Deletes a row matching the specified field and key.
+        /// </summary>
+        /// <param name="field">The field name to use for deletion.</param>
+        /// <param name="key">The key value to match.</param>
+        /// <returns>True if the operation was successful; otherwise, false.</returns>
         public virtual bool Delete(string field, string key)
         {
             return Delete(new string[] { field }, new string[] { key });
         }
 
+        /// <summary>
+        /// Deletes rows matching the specified fields and keys.
+        /// </summary>
+        /// <param name="fields">The array of field names to use for deletion.</param>
+        /// <param name="keys">The array of key values to match.</param>
+        /// <returns>True if the operation was successful; otherwise, false.</returns>
         public virtual bool Delete(string[] fields, string[] keys)
         {
             //m_log.DebugFormat(
@@ -373,11 +441,23 @@ namespace OpenSim.Data.MySQL
             }
         }
 
+        /// <summary>
+        /// Gets the count of rows matching the specified field and key.
+        /// </summary>
+        /// <param name="field">The field name to query.</param>
+        /// <param name="key">The key value to match.</param>
+        /// <returns>The count of matching rows.</returns>
         public long GetCount(string field, string key)
         {
             return GetCount(new string[] { field }, new string[] { key });
         }
 
+        /// <summary>
+        /// Gets the count of rows matching the specified fields and keys.
+        /// </summary>
+        /// <param name="fields">The array of field names to query.</param>
+        /// <param name="keys">The array of key values to match.</param>
+        /// <returns>The count of matching rows.</returns>
         public long GetCount(string[] fields, string[] keys)
         {
             int flen = fields.Length;
@@ -406,6 +486,11 @@ namespace OpenSim.Data.MySQL
             }
         }
 
+        /// <summary>
+        /// Gets the count of rows matching the specified where clause.
+        /// </summary>
+        /// <param name="where">The where clause to use in the query.</param>
+        /// <returns>The count of matching rows.</returns>
         public long GetCount(string where)
         {
             using (MySqlCommand cmd = new())
@@ -421,6 +506,11 @@ namespace OpenSim.Data.MySQL
             }
         }
 
+        /// <summary>
+        /// Executes a scalar query and returns the result.
+        /// </summary>
+        /// <param name="cmd">The MySqlCommand to execute.</param>
+        /// <returns>The scalar result.</returns>
         public object DoQueryScalar(MySqlCommand cmd)
         {
             if (m_trans == null)

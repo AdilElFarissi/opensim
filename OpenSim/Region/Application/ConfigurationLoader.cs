@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Xml;
 using log4net;
@@ -99,16 +100,10 @@ namespace OpenSim
 
                 if (masterFileName != string.Empty)
                 {
-                    if (File.Exists(masterFilePath))
-                    {
-                        if (!sources.Contains(masterFilePath))
-                            sources.Add(masterFilePath);
-                    }
+                    if (File.Exists(masterFilePath) && !sources.Contains(masterFilePath))
+                        sources.Add(masterFilePath);
                     else
-                    {
                         m_log.ErrorFormat("Master ini file {0} not found", Path.GetFullPath(masterFilePath));
-                        Environment.Exit(1);
-                    }
                 }
             }
 
@@ -122,20 +117,19 @@ namespace OpenSim
             }
             else
             {
-                Application.iniFilePath = Path.GetFullPath(
-                    Path.Combine(Util.configDir(), iniFileName));
-
-                if (!File.Exists(Application.iniFilePath))
+                string iniPath = Path.GetFullPath(Path.Combine(Util.configDir(), iniFileName));
+                
+                if (!File.Exists(iniPath))
                 {
                     iniFileName = "OpenSim.xml";
-                    Application.iniFilePath = Path.GetFullPath(Path.Combine(Util.configDir(), iniFileName));
+                    iniPath = Path.GetFullPath(Path.Combine(Util.configDir(), iniFileName));
                 }
 
-                if (File.Exists(Application.iniFilePath))
-                {
-                    if (!sources.Contains(Application.iniFilePath))
-                        sources.Add(Application.iniFilePath);
-                }
+                if (File.Exists(iniPath))
+                    Application.iniFilePath = iniPath;
+                
+                if (File.Exists(Application.iniFilePath) && !sources.Contains(Application.iniFilePath))
+                    sources.Add(Application.iniFilePath);
             }
 
             m_config = new OpenSimConfigSource
@@ -164,16 +158,13 @@ namespace OpenSim
                 List<string> overrideSources = [];
 
                 string[] fileEntries = Directory.GetFiles(iniDirName);
-                foreach (string filePath in fileEntries)
+                foreach (string filePath in fileEntries.Where(f => ".ini".Equals(Path.GetExtension(f), StringComparison.OrdinalIgnoreCase)))
                 {
-                    if (".ini".Equals(Path.GetExtension(filePath), StringComparison.OrdinalIgnoreCase))
+                    string fullPath = Path.GetFullPath(filePath);
+                    if (!sources.Contains(fullPath))
                     {
-                        if (!sources.Contains(Path.GetFullPath(filePath)))
-                        {
-                            overrideSources.Add(Path.GetFullPath(filePath));
-                            // put it in sources too, to avoid circularity
-                            sources.Add(Path.GetFullPath(filePath));
-                        }
+                        overrideSources.Add(fullPath);
+                        sources.Add(fullPath);
                     }
                 }
 
@@ -234,46 +225,40 @@ namespace OpenSim
             {
                 // Look for Include-* in the key name
                 string[] keys = config.GetKeys();
-                foreach (string k in keys)
+                foreach (string k in keys.Where(key => key.StartsWith("Include-")))
                 {
-                    if (k.StartsWith("Include-"))
+                    // read the config file to be included.
+                    string file = config.GetString(k);
+                    if (IsUri(file))
                     {
-                        // read the config file to be included.
-                        string file = config.GetString(k);
-                        if (IsUri(file))
+                        if (!sources.Contains(file))
+                            sources.Add(file);
+                    }
+                    else
+                    {
+                        string basepath = Path.GetFullPath(Util.configDir());
+                        // Resolve relative paths with wildcards
+                        string chunkWithoutWildcards = file;
+                        string chunkWithWildcards = string.Empty;
+                        int wildcardIndex = file.IndexOfAny(anyOfWildCardsChars);
+                        if (wildcardIndex != -1)
                         {
-                            if (!sources.Contains(file))
-                                sources.Add(file);
+                            chunkWithoutWildcards = file.Substring(0, wildcardIndex);
+                            chunkWithWildcards = file.Substring(wildcardIndex);
+                        }
+                        string path = Path.Combine(basepath, chunkWithoutWildcards);
+                        path = Path.GetFullPath(path) + chunkWithWildcards;
+                        string[] paths = Util.Glob(path);
+
+                        // If the include path contains no wildcards, then warn the user that it wasn't found.
+                        if (wildcardIndex == -1 && paths.Length == 0)
+                        {
+                            m_log.WarnFormat("[CONFIG]: Could not find include file {0}", path);
                         }
                         else
                         {
-                            string basepath = Path.GetFullPath(Util.configDir());
-                            // Resolve relative paths with wildcards
-                            string chunkWithoutWildcards = file;
-                            string chunkWithWildcards = string.Empty;
-                            int wildcardIndex = file.IndexOfAny(anyOfWildCardsChars);
-                            if (wildcardIndex != -1)
-                            {
-                                chunkWithoutWildcards = file.Substring(0, wildcardIndex);
-                                chunkWithWildcards = file.Substring(wildcardIndex);
-                            }
-                            string path = Path.Combine(basepath, chunkWithoutWildcards);
-                            path = Path.GetFullPath(path) + chunkWithWildcards;
-                            string[] paths = Util.Glob(path);
-
-                            // If the include path contains no wildcards, then warn the user that it wasn't found.
-                            if (wildcardIndex == -1 && paths.Length == 0)
-                            {
-                                m_log.WarnFormat("[CONFIG]: Could not find include file {0}", path);
-                            }
-                            else
-                            {
-                                foreach (string p in paths)
-                                {
-                                    if (!sources.Contains(p))
-                                        sources.Add(p);
-                                }
-                            }
+                            foreach (string p in paths.Where(p => !sources.Contains(p)))
+                                sources.Add(p);
                         }
                     }
                 }
