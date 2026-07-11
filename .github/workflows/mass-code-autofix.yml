@@ -110,11 +110,10 @@ jobs:
           runs = sarif_data.get("runs", [])
           fixed_count = 0
 
+          already_patched = set()
           if os.path.exists(already_patched.json):
               with open("already_patched.json", "r") as f_exclude_r:
                   already_patched = set(json.load(f_exclude_r))
-          else:
-              already_patched = set()
 
           vulnerabilities_by_file = {}
           files2patch = set()
