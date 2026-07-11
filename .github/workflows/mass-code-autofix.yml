@@ -35,7 +35,7 @@ jobs:
         uses: github/codeql-action/init@v4
         with:
           languages: 'csharp'
-          queries: security-extended 
+          queries: security-extended,security-and-quality 
 
       - name: Restore Dependencies & Build
         run: |
@@ -46,16 +46,16 @@ jobs:
         uses: github/codeql-action/analyze@v4
         with:
           category: "/language:csharp"
-          output: "./codeql-directory"
+          output: ./
 
       - name: Share CodeQL SARIF Artifact
         uses: actions/upload-artifact@v4
         with:
           name: codeql-sarif-report
-          path: "./codeql-directory/"
+          path: ./
 
   codeql-autofix:
-    name: CodeQL Scan & OpenRouter Free Fix
+    name: OpenRouter Free Fix To CodeQL Scan Results
     runs-on: ubuntu-latest
     needs: codeql-analysis
     steps:
