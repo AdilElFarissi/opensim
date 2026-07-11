@@ -27,6 +27,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Net.Http;
 using System.Reflection;
 using System.Runtime;
 using log4net;
@@ -38,7 +40,6 @@ using OpenSim.Framework;
 using OpenSim.Region.Framework.Interfaces;
 using OpenSim.Region.Framework.Scenes;
 using OpenSim.Services.Interfaces;
-using System.Net.Http;
 
 namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
 {
@@ -157,7 +158,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
                 {
                     From = "RegionReady",
                     Message = (m_firstEmptyCompileQueue ? "server_startup," : ("oar_file_load," + (m_lastOarLoadedOk ? "1," : "0,"))) +
-                        numScriptsFailed.ToString() + "," + message,
+                        numScriptsFailed + "," + message,
                     Channel = m_channelNotify,
                     Type = ChatTypeEnum.Region,
                     Scene = m_scene
@@ -269,7 +270,7 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
             byte[] buffer;
             try
             {
-                buffer = OSDParser.SerializeJsonToBytes(RRAlert); ;
+                buffer = OSDParser.SerializeJsonToBytes(RRAlert);
             }
             catch (Exception e)
             {
@@ -277,34 +278,38 @@ namespace OpenSim.Region.OptionalModules.Scripting.RegionReady
                 return;
             }
 
-            HttpResponseMessage responseMessage = null;
-            HttpRequestMessage request = null;
-            HttpClient client = null;
             try
             {
-                client = WebUtil.GetNewGlobalHttpClient(-1);
+                using (HttpClient client = WebUtil.GetNewGlobalHttpClient(-1))
+                using (HttpRequestMessage request = new(HttpMethod.Post, m_uri))
+                using (HttpResponseMessage responseMessage = client.Send(request, HttpCompletionOption.ResponseContentRead))
+                {
+                    request.Headers.ExpectContinue = false;
+                    request.Headers.TransferEncodingChunked = false;
+                    request.Headers.TryAddWithoutValidation("Connection", "close");
 
-                request = new(HttpMethod.Post, m_uri);
-                request.Headers.ExpectContinue = false;
-                request.Headers.TransferEncodingChunked = false;
-                request.Headers.TryAddWithoutValidation("Connection", "close");
+                    request.Content = new ByteArrayContent(buffer);
+                    request.Content.Headers.TryAddWithoutValidation("Content-Type", "application/json");
+                    request.Content.Headers.TryAddWithoutValidation("Content-Length", buffer.Length.ToString());
 
-                request.Content = new ByteArrayContent(buffer);
-                request.Content.Headers.TryAddWithoutValidation("Content-Type", "application/json");
-                request.Content.Headers.TryAddWithoutValidation("Content-Length", buffer.Length.ToString());
-
-                responseMessage = client.Send(request, HttpCompletionOption.ResponseContentRead);
-                responseMessage.EnsureSuccessStatusCode();
+                    responseMessage.EnsureSuccessStatusCode();
+                }
             }
-            catch(Exception e)
+            catch (ProtocolViolationException e)
             {
-                m_log.WarnFormat("[RegionReady]: Exception thrown sending alert: {0}", e.Message);
+                m_log.WarnFormat("[RegionReady]: Protocol violation sending alert: {0}", e.Message);
             }
-            finally
+            catch (HttpRequestException e)
             {
-                request?.Dispose();
-                responseMessage?.Dispose();
-                client?.Dispose();
+                m_log.WarnFormat("[RegionReady]: HTTP request exception sending alert: {0}", e.Message);
+            }
+            catch (InvalidOperationException e)
+            {
+                m_log.WarnFormat("[RegionReady]: Invalid operation sending alert: {0}", e.Message);
+            }
+            catch (IOException e)
+            {
+                m_log.WarnFormat("[RegionReady]: I/O exception sending alert: {0}", e.Message);
             }
         }
     }

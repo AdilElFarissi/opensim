@@ -37,13 +37,13 @@ namespace OpenSim.Data.MySQL
 {
     public class MySQLGroupsData : IGroupsData
     {
-        private MySqlGroupsGroupsHandler m_Groups;
-        private MySqlGroupsMembershipHandler m_Membership;
-        private MySqlGroupsRolesHandler m_Roles;
-        private MySqlGroupsRoleMembershipHandler m_RoleMembership;
-        private MySqlGroupsInvitesHandler m_Invites;
-        private MySqlGroupsNoticesHandler m_Notices;
-        private MySqlGroupsPrincipalsHandler m_Principals;
+        private readonly MySqlGroupsGroupsHandler m_Groups;
+        private readonly MySqlGroupsMembershipHandler m_Membership;
+        private readonly MySqlGroupsRolesHandler m_Roles;
+        private readonly MySqlGroupsRoleMembershipHandler m_RoleMembership;
+        private readonly MySqlGroupsInvitesHandler m_Invites;
+        private readonly MySqlGroupsNoticesHandler m_Notices;
+        private readonly MySqlGroupsPrincipalsHandler m_Principals;
 
         public MySQLGroupsData(string connectionString, string realm)
         {
@@ -82,10 +82,9 @@ namespace OpenSim.Data.MySQL
 
         public GroupData[] RetrieveGroups(string pattern)
         {
-            if (string.IsNullOrEmpty(pattern))
-                pattern = "1";
-            else
-                pattern = string.Format("Name LIKE '%{0}%'", MySqlHelper.EscapeString(pattern));
+            pattern = string.IsNullOrEmpty(pattern)
+                ? "1"
+                : string.Format("Name LIKE '%{0}%'", MySqlHelper.EscapeString(pattern));
 
             return m_Groups.Get(string.Format("ShowInList=1 AND ({0})", pattern));
         }
@@ -424,8 +423,6 @@ namespace OpenSim.Data.MySQL
 
         public void DeleteOld()
         {
-            uint now = (uint)Util.UnixTimeSinceEpoch();
-
             using (MySqlCommand cmd = new())
             {
                 cmd.CommandText = string.Format("delete from {0} where TMStamp < NOW() - INTERVAL 2 WEEK", m_Realm);
@@ -451,12 +448,10 @@ namespace OpenSim.Data.MySQL
 
         public void DeleteOld()
         {
-            uint now = (uint)Util.UnixTimeSinceEpoch();
-
             using (MySqlCommand cmd = new())
             {
                 cmd.CommandText = string.Format("delete from {0} where TMStamp < ?tstamp", m_Realm);
-                cmd.Parameters.AddWithValue("?tstamp", now - 14 * 24 * 60 * 60); // > 2 weeks old
+                cmd.Parameters.AddWithValue("?tstamp", (uint)Util.UnixTimeSinceEpoch() - 14 * 24 * 60 * 60); // > 2 weeks old
 
                 ExecuteNonQuery(cmd);
             }

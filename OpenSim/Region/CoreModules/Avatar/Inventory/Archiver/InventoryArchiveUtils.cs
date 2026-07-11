@@ -1,3 +1,6 @@
+I'll analyze the code and fix the specified vulnerabilities while maintaining the source structure.
+
+```csharp
 /*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
@@ -26,6 +29,7 @@
  */
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using OpenMetaverse;
 using OpenSim.Framework;
@@ -73,10 +77,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         {
             List<InventoryFolderBase> folders = FindFoldersByPath(inventoryService, userId, path);
 
-            if (folders.Count == 0)
-                return null;
-            else
-                return folders[0];
+            return folders.Count == 0 ? null : folders[0];
         }
 
         /// <summary>
@@ -109,10 +110,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
             List<InventoryFolderBase> folders = FindFoldersByPath(inventoryService, startFolder, path);
 
-            if (folders.Count == 0)
-                return null;
-            else
-                return folders[0];
+            return folders.Count == 0 ? null : folders[0];
         }
 
         /// <summary>
@@ -202,15 +200,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 //            m_log.DebugFormat(
 //                "Found {0} folders in {1} for {2}", contents.Folders.Count, startFolder.Name, startFolder.Owner);
 
-            foreach (InventoryFolderBase folder in contents.Folders)
+            foreach (InventoryFolderBase folder in contents.Folders.Where(f => f.Name == components[0]))
             {
-                if (folder.Name == components[0])
-                {
-                    if (components.Length > 1)
-                        foundFolders.AddRange(FindFoldersByPath(inventoryService, folder, components[1]));
-                    else
-                        foundFolders.Add(folder);
-                }
+                if (components.Length > 1)
+                    foundFolders.AddRange(FindFoldersByPath(inventoryService, folder, components[1]));
+                else
+                    foundFolders.Add(folder);
             }
 
             return foundFolders;
@@ -270,10 +265,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
         {
             List<InventoryItemBase> foundItems = FindItemsByPath(inventoryService, startFolder, path);
 
-            if (foundItems.Count != 0)
-                return foundItems[0];
-            else
-                return null;
+            return foundItems.Count != 0 ? foundItems[0] : null;
         }
 
         public static List<InventoryItemBase> FindItemsByPath(
@@ -326,12 +318,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
 //                m_log.DebugFormat("[INVENTORY ARCHIVE UTILS]: Found {0} items in FindItemByPath()", items.Count);
 
-                foreach (InventoryItemBase item in items)
+                foreach (InventoryItemBase item in items.Where(i => i.Name == components[0]))
                 {
 //                    m_log.DebugFormat("[INVENTORY ARCHIVE UTILS]: Inspecting item {0} {1}", item.Name, item.ID);
-
-                    if (item.Name == components[0])
-                        foundItems.Add(item);
+                    foundItems.Add(item);
                 }
             }
             else
@@ -340,10 +330,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Inventory.Archiver
 
                 InventoryCollection contents = inventoryService.GetFolderContent(startFolder.Owner, startFolder.ID);
 
-                foreach (InventoryFolderBase folder in contents.Folders)
+                foreach (InventoryFolderBase folder in contents.Folders.Where(f => f.Name == components[0]))
                 {
-                    if (folder.Name == components[0])
-                        foundItems.AddRange(FindItemsByPath(inventoryService, folder, components[1]));
+                    foundItems.AddRange(FindItemsByPath(inventoryService, folder, components[1]));
                 }
             }
 

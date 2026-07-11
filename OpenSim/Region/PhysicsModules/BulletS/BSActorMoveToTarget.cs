@@ -29,6 +29,11 @@ using OMV = OpenMetaverse;
 
 namespace OpenSim.Region.PhysicsModule.BulletS
 {
+    /// <summary>
+    /// Moves a prim to a target position using a motor-based approach.
+    /// This actor handles the movement of physical prims towards a specified target,
+    /// applying appropriate forces to overcome gravity and achieve smooth motion.
+    /// </summary>
     public class BSActorMoveToTarget : BSActor
     {
         private BSVMotor m_targetMotor;
@@ -102,7 +107,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 m_targetMotor.TimeScale = m_controllingPrim.MoveToTargetTau;
                 m_targetMotor.Efficiency = 1f;
                  */
-                m_targetMotor = new BSVMotor("BSActorMoveToTarget-" + m_controllingPrim.LocalID.ToString(),
+                m_targetMotor = new BSVMotor("BSActorMoveToTarget-" + m_controllingPrim.LocalID,
                                             m_controllingPrim.MoveToTargetTau,  // timeScale
                                             BSMotor.Infinite,                   // decay time scale
                                             1f                                  // efficiency

@@ -95,21 +95,45 @@ namespace OpenSim
             string targetdll = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
                         "System.Drawing.Common.dll");
             string src = targetdll + (Util.IsWindows() ? ".win" : ".linux");
+            string srcDir = Path.GetDirectoryName(src);
             try
             {
                 if (!File.Exists(targetdll))
+                {
+                    if (!Directory.Exists(srcDir))
+                    {
+                        throw new DirectoryNotFoundException("Source directory does not exist: " + srcDir);
+                    }
                     File.Copy(src, targetdll);
+                }
                 else
                 {
-                    FileInfo targetInfo = new(targetdll);
-                    FileInfo srcInfo = new(src);
-                    if(targetInfo.Length != srcInfo.Length)
+                    FileInfo targetInfo = new FileInfo(targetdll);
+                    FileInfo srcInfo = new FileInfo(src);
+                    if (targetInfo.Length != srcInfo.Length)
+                    {
                         File.Copy(src, targetdll, true);
+                    }
                 }
             }
-            catch (Exception e)
+            catch (DirectoryNotFoundException e)
             {
-                m_log.Error("Failed to copy System.Drawing.Common.dll for current platform" + e.Message);
+                m_log.Error("Failed to copy System.Drawing.Common.dll for current platform: " + e.Message);
+                throw;
+            }
+            catch (FileNotFoundException e)
+            {
+                m_log.Error("Failed to copy System.Drawing.Common.dll for current platform: " + e.Message);
+                throw;
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                m_log.Error("Failed to copy System.Drawing.Common.dll for current platform: " + e.Message);
+                throw;
+            }
+            catch (IOException e)
+            {
+                m_log.Error("Failed to copy System.Drawing.Common.dll for current platform: " + e.Message);
                 throw;
             }
 
@@ -394,7 +418,7 @@ namespace OpenSim
 
             msg += $"\r\nApplication is terminating: {e.IsTerminating}\r\n";
 
-            m_log.Error("[APPLICATION]: + msg");
+            m_log.Error("[APPLICATION]: " + msg);
 
             if (m_saveCrashDumps)
             {
@@ -405,17 +429,32 @@ namespace OpenSim
                     {
                         Directory.CreateDirectory(m_crashDir);
                     }
-                    string log = Util.GetUniqueFilename(ex.GetType() + ".txt");
-                    using (StreamWriter m_crashLog = new(Path.Combine(m_crashDir, log)))
+                    string crashFileName = Path.GetFileName(Util.GetUniqueFilename(ex.GetType() + ".txt"));
+                    string crashFilePath = Path.Combine(m_crashDir, crashFileName);
+                    using (StreamWriter m_crashLog = new(crashFilePath))
                     {
                         m_crashLog.WriteLine(msg);
                     }
 
-                    File.Copy("OpenSim.ini", Path.Combine(m_crashDir, log + "_OpenSim.ini"), true);
+                    string openSimIniSource = "OpenSim.ini";
+                    string openSimIniDest = Path.Combine(m_crashDir, crashFileName + "_OpenSim.ini");
+                    File.Copy(openSimIniSource, openSimIniDest, true);
                 }
-                catch (Exception e2)
+                catch (DirectoryNotFoundException e2)
                 {
-                    m_log.Error($"[CRASH LOGGER CRASHED]: {e2}");
+                    m_log.Error("[CRASH LOGGER]: " + e2.Message);
+                }
+                catch (FileNotFoundException e2)
+                {
+                    m_log.Error("[CRASH LOGGER]: " + e2.Message);
+                }
+                catch (UnauthorizedAccessException e2)
+                {
+                    m_log.Error("[CRASH LOGGER]: " + e2.Message);
+                }
+                catch (IOException e2)
+                {
+                    m_log.Error("[CRASH LOGGER]: " + e2.Message);
                 }
             }
 

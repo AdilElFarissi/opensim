@@ -43,7 +43,7 @@ namespace OpenSim.Capabilities.Handlers
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private IInventoryService m_inventoryService;
+        private readonly IInventoryService m_inventoryService;
         private UUID m_agentID;
 
         public FetchInventory2Handler(IInventoryService invService, UUID agentId)
@@ -59,21 +59,19 @@ namespace OpenSim.Capabilities.Handlers
             OSDMap requestmap = (OSDMap)OSDParser.DeserializeLLSDXml(Utils.StringToBytes(request));
             OSDArray itemsRequested = (OSDArray)requestmap["items"];
 
-            UUID[] itemIDs = new UUID[itemsRequested.Count];
-            int i = 0;
-
-            foreach (OSDMap osdItemId in itemsRequested)
-            {
-                itemIDs[i++] = osdItemId["item_id"].AsUUID();
-            }
+            UUID[] itemIDs = itemsRequested
+                .Cast<OSDMap>()
+                .Select(osdItemId => osdItemId["item_id"].AsUUID())
+                .ToArray();
 
             InventoryItemBase[] items;
 
             if (m_agentID.IsZero())
             {
                 items = new InventoryItemBase[itemsRequested.Count];
+                int idx = 0;
                 foreach (UUID id in itemIDs)
-                    items[i++] = m_inventoryService.GetItem(UUID.Zero, id);
+                    items[idx++] = m_inventoryService.GetItem(UUID.Zero, id);
             }
             else
             {
@@ -95,10 +93,9 @@ namespace OpenSim.Capabilities.Handlers
             else
             {
                 LLSDxmlEncode2.AddArray("items", lsl);
-                foreach (InventoryItemBase item in items)
+                foreach (InventoryItemBase item in items.Where(item => item != null))
                 {
-                    if (item is not null)
-                        item.ToLLSDxml(lsl, 0xff);
+                    item.ToLLSDxml(lsl, 0xff);
                 }
                 LLSDxmlEncode2.AddEndArray(lsl);
             }            
@@ -119,14 +116,11 @@ namespace OpenSim.Capabilities.Handlers
 
             OSDArray itemsRequested = (OSDArray)requestmap["items"];
 
-            UUID[] itemIDs = new UUID[itemsRequested.Count];
-            int i = 0;
-            foreach (OSDMap osdItemId in itemsRequested)
-            {
-                UUID id = osdItemId["item_id"].AsUUID();
-                if(!BadRequests.ContainsKey(id))
-                    itemIDs[i++] = id;
-            }
+            UUID[] itemIDs = itemsRequested
+                .Cast<OSDMap>()
+                .Select(osdItemId => osdItemId["item_id"].AsUUID())
+                .Where(id => !BadRequests.ContainsKey(id))
+                .ToArray();
 
             InventoryItemBase[] items = null;
             try
@@ -134,7 +128,10 @@ namespace OpenSim.Capabilities.Handlers
                 // badrequests still not filled
                 items = m_inventoryService.GetMultipleItems(m_agentID, itemIDs);
             }
-            catch{ }
+            catch (Exception ex)
+            {
+                m_log.Error("[FETCH INVENTORY HANDLER]: Exception during GetMultipleItems", ex);
+            }
 
             osUTF8 lsl = LLSDxmlEncode2.Start(4096);
             LLSDxmlEncode2.AddMap(lsl);
@@ -148,10 +145,9 @@ namespace OpenSim.Capabilities.Handlers
             else
             {
                 LLSDxmlEncode2.AddArray("items", lsl);
-                foreach (InventoryItemBase item in items)
+                foreach (InventoryItemBase item in items.Where(item => item != null))
                 {
-                    if (item != null)
-                        item.ToLLSDxml(lsl, 0xff);
+                    item.ToLLSDxml(lsl, 0xff);
                 }
                 LLSDxmlEncode2.AddEndArray(lsl);
             }
@@ -162,4 +158,3 @@ namespace OpenSim.Capabilities.Handlers
         }
     }
 }
-

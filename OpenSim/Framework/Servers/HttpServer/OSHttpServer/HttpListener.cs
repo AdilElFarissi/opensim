@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Net.Security;
@@ -154,7 +154,7 @@ namespace OSHttpServer
                     socket?.Dispose();
                     continue;
                 }
-                catch (Exception err)
+                catch (Exception err) when (err is ObjectDisposedException or InvalidOperationException)
                 {
                     m_logWriter.Write(this, LogPrio.Debug, "OSHTTP Accept wait fatal error: " + err.Message);
                     ExceptionThrown?.Invoke(this, err);
@@ -203,7 +203,7 @@ namespace OSHttpServer
                     socket?.Dispose();
                     continue;
                 }
-                catch (Exception err)
+                catch (Exception err) when (err is ObjectDisposedException or InvalidOperationException)
                 {
                     m_logWriter.Write(this, LogPrio.Debug, "OSHTTP Accept processing fatal error: " + err.Message);
                     ExceptionThrown?.Invoke(this, err);

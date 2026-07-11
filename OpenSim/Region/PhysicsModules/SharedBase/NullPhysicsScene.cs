@@ -37,7 +37,7 @@ namespace OpenSim.Region.PhysicsModules.SharedBase
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private static int m_workIndicator;
+        private int m_workIndicator;
 
         public override PhysicsActor AddAvatar(
             string avName, Vector3 position, Vector3 velocity, Vector3 size, bool isFlying)

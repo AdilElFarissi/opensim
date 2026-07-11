@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Xml;
 using OpenSim.Framework;
@@ -128,21 +129,19 @@ namespace OpenSim.Server.Base
 
                 prompt = startupConfig.GetString("Prompt", prompt);
 
-                if(startupConfig.GetBoolean("EnableRobustSelfsignedCertSupport", false))
-                {
-                    if(!File.Exists("SSL\\ssl\\"+ startupConfig.GetString("RobustCertFileName") +".p12") || startupConfig.GetBoolean("RobustCertRenewOnStartup"))
-                    {               
-                        Util.CreateOrUpdateSelfsignedCert(
-                            string.IsNullOrEmpty(startupConfig.GetString("RobustCertFileName")) ? "Robust" : startupConfig.GetString("RobustCertFileName"),
-                            string.IsNullOrEmpty(startupConfig.GetString("RobustCertHostName")) ? "localhost" : startupConfig.GetString("RobustCertHostName"),
-                            string.IsNullOrEmpty(startupConfig.GetString("RobustCertHostIp")) ? "127.0.0.1" : startupConfig.GetString("RobustCertHostIp"),
-                            string.IsNullOrEmpty(startupConfig.GetString("RobustCertPassword")) ? string.Empty : startupConfig.GetString("RobustCertPassword")
-                        );
-                    }
+                if(startupConfig.GetBoolean("EnableRobustSelfsignedCertSupport", false) &&
+                   (!File.Exists(Path.Combine("SSL", "ssl", startupConfig.GetString("RobustCertFileName") + ".p12")) || startupConfig.GetBoolean("RobustCertRenewOnStartup")))
+                {               
+                    Util.CreateOrUpdateSelfsignedCert(
+                        string.IsNullOrEmpty(startupConfig.GetString("RobustCertFileName")) ? "Robust" : startupConfig.GetString("RobustCertFileName"),
+                        string.IsNullOrEmpty(startupConfig.GetString("RobustCertHostName")) ? "localhost" : startupConfig.GetString("RobustCertHostName"),
+                        string.IsNullOrEmpty(startupConfig.GetString("RobustCertHostIp")) ? "127.0.0.1" : startupConfig.GetString("RobustCertHostIp"),
+                        string.IsNullOrEmpty(startupConfig.GetString("RobustCertPassword")) ? string.Empty : startupConfig.GetString("RobustCertPassword")
+                    );
                 }
             }
             // Allow derived classes to load config before the console is opened.
-            ReadConfig();
+            OnReadConfig();
 
             // Create main console
             string consoleType = "local";
@@ -174,7 +173,7 @@ namespace OpenSim.Server.Base
             RegisterCommonAppenders(startupConfig);
             LogEnvironmentInformation();
 
-            string pidfile = startupConfig.GetString("PIDFile", string.Empty);
+            string pidfile = startupConfig?.GetString("PIDFile", string.Empty) ?? string.Empty;
             if (pidfile.Length > 0)
             {
                 CreatePIDFile(pidfile);
@@ -185,7 +184,7 @@ namespace OpenSim.Server.Base
 
             // Allow derived classes to perform initialization that
             // needs to be done after the console has opened
-            Initialise();
+            OnInitialise();
         }
 
         public bool Running
@@ -249,11 +248,18 @@ namespace OpenSim.Server.Base
             }
         }
 
-        protected virtual void ReadConfig()
+        /// <summary>
+        /// Allow derived classes to load config before the console is opened.
+        /// </summary>
+        protected virtual void OnReadConfig()
         {
         }
 
-        protected virtual void Initialise()
+        /// <summary>
+        /// Allow derived classes to perform initialization that
+        /// needs to be done after the console has opened.
+        /// </summary>
+        protected virtual void OnInitialise()
         {
         }
 
@@ -266,55 +272,49 @@ namespace OpenSim.Server.Base
             bool sourcesAdded = false;
 
             //loop over config sources
-            foreach (IConfig config in configSource.Configs)
+            foreach (IConfig config in configSource.Configs.Where(c => c != null))
             {
                 // Look for Include-* in the key name
                 string[] keys = config.GetKeys();
-                foreach (string k in keys)
+                foreach (string k in keys.Where(k => k.StartsWith("Include-")))
                 {
-                    if (k.StartsWith("Include-"))
+                    // read the config file to be included.
+                    string file = config.GetString(k);
+                    if (IsUri(file))
                     {
-                        // read the config file to be included.
-                        string file = config.GetString(k);
-                        if (IsUri(file))
+                        if (!sources.Contains(file))
                         {
-                            if (!sources.Contains(file))
-                            {
-                                sourcesAdded = true;
-                                sources.Add(file);
-                            }
+                            sourcesAdded = true;
+                            sources.Add(file);
+                        }
+                    }
+                    else
+                    {
+                        string basepath = Path.GetFullPath(m_configDirectory);
+                        // Resolve relative paths with wildcards
+                        string chunkWithoutWildcards = file;
+                        string chunkWithWildcards = string.Empty;
+                        int wildcardIndex = file.IndexOfAny(new char[] { '*', '?' });
+                        if (wildcardIndex != -1)
+                        {
+                            chunkWithoutWildcards = file.Substring(0, wildcardIndex);
+                            chunkWithWildcards = file.Substring(wildcardIndex);
+                        }
+                        string path = Path.Combine(basepath, chunkWithoutWildcards);
+                        path = Path.GetFullPath(path) + chunkWithWildcards;
+                        string[] paths = Util.Glob(path);
+
+                        // If the include path contains no wildcards, then warn the user that it wasn't found.
+                        if (wildcardIndex == -1 && paths.Length == 0)
+                        {
+                            Console.WriteLine("[CONFIG]: Could not find include file {0}", path);
                         }
                         else
                         {
-                            string basepath = Path.GetFullPath(m_configDirectory);
-                            // Resolve relative paths with wildcards
-                            string chunkWithoutWildcards = file;
-                            string chunkWithWildcards = string.Empty;
-                            int wildcardIndex = file.IndexOfAny(new char[] { '*', '?' });
-                            if (wildcardIndex != -1)
+                            foreach (string p in paths.Where(p => !sources.Contains(p)))
                             {
-                                chunkWithoutWildcards = file.Substring(0, wildcardIndex);
-                                chunkWithWildcards = file.Substring(wildcardIndex);
-                            }
-                            string path = Path.Combine(basepath, chunkWithoutWildcards);
-                            path = Path.GetFullPath(path) + chunkWithWildcards;
-                            string[] paths = Util.Glob(path);
-
-                            // If the include path contains no wildcards, then warn the user that it wasn't found.
-                            if (wildcardIndex == -1 && paths.Length == 0)
-                            {
-                                Console.WriteLine("[CONFIG]: Could not find include file {0}", path);
-                            }
-                            else
-                            {
-                                foreach (string p in paths)
-                                {
-                                    if (!sources.Contains(p))
-                                    {
-                                        sourcesAdded = true;
-                                        sources.Add(p);
-                                    }
-                                }
+                                sourcesAdded = true;
+                                sources.Add(p);
                             }
                         }
                     }
@@ -349,15 +349,32 @@ namespace OpenSim.Server.Base
                 if (Uri.TryCreate(iniFile, UriKind.Absolute, out configUri) &&
                     (configUri.Scheme == Uri.UriSchemeHttp || configUri.Scheme == Uri.UriSchemeHttps))
                 {
-                    XmlReader r = XmlReader.Create(iniFile);
-                    s = new XmlConfigSource(r);
+                    using (XmlReader r = XmlReader.Create(iniFile))
+                    {
+                        s = new XmlConfigSource(r);
+                    }
                 }
                 else
                 {
                     s = new IniConfigSource(iniFile);
                 }
             }
-            catch (Exception e)
+            catch (FileNotFoundException e)
+            {
+                System.Console.WriteLine("Error reading from config source.  {0}", e.Message);
+                Environment.Exit(1);
+            }
+            catch (DirectoryNotFoundException e)
+            {
+                System.Console.WriteLine("Error reading from config source.  {0}", e.Message);
+                Environment.Exit(1);
+            }
+            catch (UnauthorizedAccessException e)
+            {
+                System.Console.WriteLine("Error reading from config source.  {0}", e.Message);
+                Environment.Exit(1);
+            }
+            catch (XmlException e)
             {
                 System.Console.WriteLine("Error reading from config source.  {0}", e.Message);
                 Environment.Exit(1);

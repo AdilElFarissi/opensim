@@ -1,30 +1,3 @@
-/*
- * Copyright (c) Contributors, http://opensimulator.org/
- * See CONTRIBUTORS.TXT for a full list of copyright holders.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSimulator Project nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -174,7 +147,6 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         private readonly Dictionary<UUID, bool> m_validGroupUuids = [];
 
         private readonly IGroupsModule m_groupsModule;
-
         private readonly IAssetService m_assetService = null;
         private readonly IAssetCache m_assetCache = null;
 
@@ -184,9 +156,9 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         {
             m_rootScene = scene;
 
-            if (options.ContainsKey("default-user"))
+            if (options.TryGetValue("default-user", out object defaultUserObj) && defaultUserObj is UUID defaultUser)
             {
-                m_defaultUser = (UUID)options["default-user"];
+                m_defaultUser = defaultUser;
                 m_log.InfoFormat("Using User {0} as default user", m_defaultUser.ToString());
             }
             else
@@ -219,16 +191,15 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             if(m_ForceAssetsCache)
                 m_skipAssets = false;
             m_requestId = requestId;
-            m_displacement = options.ContainsKey("displacement") ? (Vector3)options["displacement"] : Vector3.Zero;
-            m_rotation = options.ContainsKey("rotation") ? (float)options["rotation"] : 0f;
+            m_displacement = options.TryGetValue("displacement", out object displacementObj) && displacementObj is Vector3 displacement ? displacement : Vector3.Zero;
+            m_rotation = options.TryGetValue("rotation", out object rotationObj) && rotationObj is float rotation ? rotation : 0f;
 
             m_boundingOrigin = Vector3.Zero;
             m_boundingOrigin.Z = Constants.MinSimulationHeight;
             m_boundingSize = new Vector3(scene.RegionInfo.RegionSizeX, scene.RegionInfo.RegionSizeY, Constants.MaxSimulationHeight - Constants.MinSimulationHeight);
 
-            if (options.ContainsKey("bounding-origin"))
+            if (options.TryGetValue("bounding-origin", out object boundingOriginObj) && boundingOriginObj is Vector3 boOption)
             {
-                Vector3 boOption = (Vector3)options["bounding-origin"];
                 if (boOption != m_boundingOrigin)
                 {
                     m_boundingOrigin = boOption;
@@ -236,9 +207,8 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 m_boundingBox = true;
             }
 
-            if (options.ContainsKey("bounding-size"))
+            if (options.TryGetValue("bounding-size", out object boundingSizeObj) && boundingSizeObj is Vector3 bsOption)
             {
-                Vector3 bsOption = (Vector3)options["bounding-size"];
                 bool clip = false;
                 if (bsOption.X <= 0 || bsOption.X > m_boundingSize.X)
                 {
@@ -266,7 +236,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
 
             m_groupsModule = m_rootScene.RequestModuleInterface<IGroupsModule>();
             m_assetService = m_rootScene.AssetService;
-            m_assetCache = m_rootScene.RequestModuleInterface <IAssetCache>();
+            m_assetCache = m_rootScene.RequestModuleInterface<IAssetCache>();
         }
 
         public ArchiveReadRequest(Scene scene, Stream loadStream, Guid requestId, Dictionary<string, object> options)
@@ -465,7 +435,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                             assetsFiles[assetsFilesCount++] = asf;
                             if (assetsFilesCount == 32)
                             {
-                                loadNeededAssets(assetsFiles, assetsFilesCount, ref successfulAssetRestores, ref failedAssetRestores, ref skippedAssetRestores);
+                                loadNeededAssets(assetsFiles, assetsFilesCount, ref successfulAssetRestores, ref failedAssetRestores, ref skipedAssetRestores);
                                 assetsFilesCount = 0;
                             }
                         }
@@ -492,7 +462,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
                 }
 
                 if (assetsFilesCount > 0)
-                    loadNeededAssets(assetsFiles, assetsFilesCount, ref successfulAssetRestores, ref failedAssetRestores, ref skippedAssetRestores);
+                    loadNeededAssets(assetsFiles, assetsFilesCount, ref successfulAssetRestores, ref failedAssetRestores, ref skipedAssetRestores);
 
                 //m_log.Debug("[ARCHIVER]: Reached end of archive");
             }
@@ -1013,14 +983,13 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         {
             lock (m_validUserUuids)
             {
-                if (!m_validUserUuids.ContainsKey(uuid))
-                {
-                    // Note: we call GetUserAccount() inside the lock because this UserID is likely
-                    // to occur many times, and we only want to query the users service once.
-                    UserAccount account = scene.UserAccountService.GetUserAccount(scene.RegionInfo.ScopeID, uuid);
-                    m_validUserUuids.Add(uuid, account is not null);
-                }
+                if (m_validUserUuids.TryGetValue(uuid, out bool exists))
+                    return exists;
 
+                // Note: we call GetUserAccount() inside the lock because this UserID is likely
+                // to occur many times, and we only want to query the users service once.
+                UserAccount account = scene.UserAccountService.GetUserAccount(scene.RegionInfo.ScopeID, uuid);
+                m_validUserUuids[uuid] = account is not null;
                 return m_validUserUuids[uuid];
             }
         }
@@ -1034,23 +1003,22 @@ namespace OpenSim.Region.CoreModules.World.Archiver
         {
             lock (m_validGroupUuids)
             {
-                if (!m_validGroupUuids.ContainsKey(uuid))
-                {
-                    bool exists;
-                    if (m_groupsModule is null)
-                    {
-                        exists = false;
-                    }
-                    else
-                    {
-                        // Note: we call GetGroupRecord() inside the lock because this GroupID is likely
-                        // to occur many times, and we only want to query the groups service once.
-                        exists = (m_groupsModule.GetGroupRecord(uuid) is not null);
-                    }
-                    m_validGroupUuids.Add(uuid, exists);
-                }
+                if (m_validGroupUuids.TryGetValue(uuid, out bool exists))
+                    return exists;
 
-                return m_validGroupUuids[uuid];
+                bool groupExists;
+                if (m_groupsModule is null)
+                {
+                    groupExists = false;
+                }
+                else
+                {
+                    // Note: we call GetGroupRecord() inside the lock because this GroupID is likely
+                    // to occur many times, and we only want to query the groups service once.
+                    groupExists = (m_groupsModule.GetGroupRecord(uuid) is not null);
+                }
+                m_validGroupUuids[uuid] = groupExists;
+                return groupExists;
             }
         }
 
@@ -1186,7 +1154,7 @@ namespace OpenSim.Region.CoreModules.World.Archiver
             ITerrainModule terrainModule = scene.RequestModuleInterface<ITerrainModule>();
             using MemoryStream ms = new(data);
 
-            if (!m_displacement.IsZero() || m_rotation != 0f || m_boundingBox)
+            if (!m_displacement.IsZero() || !MathF.IsZero(m_rotation) || m_boundingBox)
             {
                 Vector2 boundingOrigin = new(m_boundingOrigin.X, m_boundingOrigin.Y);
                 Vector2 boundingSize = new(m_boundingSize.X, m_boundingSize.Y);

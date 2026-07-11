@@ -75,7 +75,7 @@ namespace OpenSim.Region.CoreModules.World.Region
 
         public void AddRegion(Scene scene)
         {
-            if (m_MarkerPath != string.Empty)
+            if (!string.IsNullOrEmpty(m_MarkerPath))
                 File.Delete(Path.Combine(m_MarkerPath,
                         scene.RegionInfo.RegionID.ToString()));
 
@@ -149,7 +149,7 @@ namespace OpenSim.Region.CoreModules.World.Region
             m_Initiator = initiator;
             m_Notice = notice;
             m_CurrentAlerts = alerts;
-            m_Alerts = [.. alerts];
+            m_Alerts = new List<int>(alerts);
             m_Alerts.Sort();
             m_Alerts.Reverse();
 
@@ -233,7 +233,7 @@ namespace OpenSim.Region.CoreModules.World.Region
                     msg = m_Message;
                 }
 
-                if (m_DialogModule != null && msg != string.Empty)
+                if (m_DialogModule != null && !string.IsNullOrEmpty(msg))
                 {
                     if (m_Notice)
                         m_DialogModule.SendGeneralAlert(msg);
@@ -249,10 +249,11 @@ namespace OpenSim.Region.CoreModules.World.Region
         {
             if (intervalSeconds > 0)
             {
+                double interval = (double)intervalSeconds * 1000.0;
                 m_CountdownTimer = new Timer
                 {
                     AutoReset = false,
-                    Interval = intervalSeconds * 1000
+                    Interval = interval
                 };
                 m_CountdownTimer.Elapsed += OnTimer;
                 m_CountdownTimer.Start();
@@ -273,13 +274,10 @@ namespace OpenSim.Region.CoreModules.World.Region
         private void OnTimer(object source, ElapsedEventArgs e)
         {
             int nextInterval = DoOneNotice(true);
-            if (m_shortCircuitDelays)
+            if (m_shortCircuitDelays && CountAgents() == 0)
             {
-                if (CountAgents() == 0)
-                {
-                    m_Scene.RestartNow();
-                    return;
-                }
+                m_Scene.RestartNow();
+                return;
             }
 
             SetTimer(nextInterval);
@@ -293,7 +291,7 @@ namespace OpenSim.Region.CoreModules.World.Region
             m_CountdownTimer.Stop();
             m_CountdownTimer = null;
 
-            m_Alerts = [.. m_CurrentAlerts, seconds];
+            m_Alerts = new List<int>(m_CurrentAlerts.Concat(new[] { seconds }));
             m_Alerts.Sort();
             m_Alerts.Reverse();
 
@@ -308,11 +306,10 @@ namespace OpenSim.Region.CoreModules.World.Region
             {
                 m_CountdownTimer.Stop();
                 m_CountdownTimer = null;
-                if (m_DialogModule != null && message != string.Empty)
+                if (m_DialogModule != null && !string.IsNullOrEmpty(message))
                     m_DialogModule.SendNotificationToUsersInRegion(UUID.Zero, "System", message);
-                    //m_DialogModule.SendGeneralAlert(message);
             }
-            if (m_MarkerPath != string.Empty)
+            if (!string.IsNullOrEmpty(m_MarkerPath))
                 File.Delete(Path.Combine(m_MarkerPath,
                         m_Scene.RegionInfo.RegionID.ToString()));
         }
@@ -327,31 +324,22 @@ namespace OpenSim.Region.CoreModules.World.Region
 
             if (args.Length < 5)
             {
-                if (args.Length > 2)
+                if (args.Length > 2 && args[2] == "abort")
                 {
-                    if (args[2] == "abort")
-                    {
-                        string msg = string.Empty;
-                        if (args.Length > 3)
-                            msg = args[3];
-
-                        AbortRestart(msg);
-
-                        MainConsole.Instance.Output("Region restart aborted");
-                        return;
-                    }
+                    string msg = args.Length > 3 ? args[3] : string.Empty;
+                    AbortRestart(msg);
+                    MainConsole.Instance.Output("Region restart aborted");
+                    return;
                 }
 
                 MainConsole.Instance.Output("Error: restart region <mode> <name> <delta seconds>+");
                 return;
             }
 
-            bool notice = false;
-            if (args[2] == "notice")
-                notice = true;
+            bool notice = args[2] == "notice";
 
-            List<int> times = [];
-            for (int i = 4 ; i < args.Length ; i++)
+            List<int> times = new List<int>();
+            for (int i = 4; i < args.Length; i++)
                 times.Add(Convert.ToInt32(args[i]));
 
             MainConsole.Instance.Output(
@@ -362,7 +350,7 @@ namespace OpenSim.Region.CoreModules.World.Region
 
         protected void CreateMarkerFile()
         {
-            if (m_MarkerPath.Length == 0)
+            if (string.IsNullOrEmpty(m_MarkerPath))
                 return;
 
             string path = Path.Combine(m_MarkerPath, m_Scene.RegionInfo.RegionID.ToString());
@@ -375,8 +363,9 @@ namespace OpenSim.Region.CoreModules.World.Region
                 fs.Write(buf, 0, buf.Length);
                 fs.Close();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                m_log.Error("[RESTART MODULE]: Failed to create marker file", ex);
             }
         }
 
@@ -389,19 +378,17 @@ namespace OpenSim.Region.CoreModules.World.Region
             {
                 foreach (Scene s in SceneManager.Instance.Scenes)
                 {
-                    foreach (ScenePresence sp in s.GetScenePresences())
+                    foreach (ScenePresence sp in s.GetScenePresences().Where(sp => !sp.IsChildAgent && !sp.IsNPC))
                     {
-                        if (!sp.IsChildAgent && !sp.IsNPC)
-                            agents++;
+                        agents++;
                     }
                 }
             }
             else
             {
-                foreach (ScenePresence sp in m_Scene.GetScenePresences())
+                foreach (ScenePresence sp in m_Scene.GetScenePresences().Where(sp => !sp.IsChildAgent && !sp.IsNPC))
                 {
-                    if (!sp.IsChildAgent && !sp.IsNPC)
-                        agents++;
+                    agents++;
                 }
             }
 

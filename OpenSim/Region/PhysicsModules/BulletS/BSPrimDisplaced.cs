@@ -64,10 +64,9 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         // Does not clear the displacement set by the user.
         public void ClearDisplacement()
         {
-            if (UserSetCenterOfMassDisplacement.HasValue)
-                PositionDisplacement = (OMV.Vector3)UserSetCenterOfMassDisplacement;
-            else
-                PositionDisplacement = OMV.Vector3.Zero;
+            PositionDisplacement = UserSetCenterOfMassDisplacement.HasValue
+                ? (OMV.Vector3)UserSetCenterOfMassDisplacement
+                : OMV.Vector3.Zero;
         }
 
         // Set this sets and computes the displacement from the passed prim to the center-of-mass.
@@ -77,11 +76,9 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         // Called at taint time.
         public virtual Vector3 SetEffectiveCenterOfMassDisplacement(Vector3 centerOfMassDisplacement)
         {
-            Vector3 comDisp;
-            if (UserSetCenterOfMassDisplacement.HasValue)
-                comDisp = (OMV.Vector3)UserSetCenterOfMassDisplacement;
-            else
-                comDisp = centerOfMassDisplacement;
+            Vector3 comDisp = UserSetCenterOfMassDisplacement.HasValue
+                ? (OMV.Vector3)UserSetCenterOfMassDisplacement
+                : centerOfMassDisplacement;
 
             // Eliminate any jitter caused be very slight differences in masses and positions
             if (comDisp.ApproxEquals(Vector3.Zero, 0.01f) )

@@ -26,6 +26,7 @@
  */
 
 using System;
+using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
 using log4net;
@@ -138,15 +139,9 @@ namespace OpenSim.Framework
             // See http://opensimulator.org/mantis/view.php?id=6851
             get
             {
-                // Old style version string contains viewer name followed by a space followed by a version number
-                if (m_viewerInternal is null || m_viewerInternal.Contains(' '))
-                {
-                    return m_viewerInternal;
-                }
-                else // New style version contains no spaces, just version number
-                {
-                    return $"{Channel} {m_viewerInternal}";
-                }
+                return (m_viewerInternal is null || m_viewerInternal.Contains(' '))
+                    ? m_viewerInternal
+                    : $"{Channel} {m_viewerInternal}";
             }
         }
 
@@ -279,18 +274,13 @@ namespace OpenSim.Framework
             {
                 OSDArray childrenSeeds = (OSDArray)tmpOSD;
                 ChildrenCapSeeds = [];
-                foreach (OSD o in childrenSeeds)
+                foreach (OSD o in childrenSeeds.Where(o => o.Type == OSDType.Map))
                 {
-                    if (o.Type == OSDType.Map)
+                    ulong handle = 0;
+                    string seed = "";
+                    OSDMap pair = (OSDMap)o;
+                    if (pair.TryGetValue("handle", out tmpOSD) && ulong.TryParse(tmpOSD.AsString(), out handle))
                     {
-                        ulong handle = 0;
-                        string seed = "";
-                        OSDMap pair = (OSDMap)o;
-                        if (pair.TryGetValue("handle", out tmpOSD))
-                        {
-                            if (!ulong.TryParse(tmpOSD.AsString(), out handle))
-                                continue;
-                        }
                         if (!ChildrenCapSeeds.ContainsKey(handle))
                         {
                             if (pair.TryGetValue("seed", out tmpOSD))
@@ -362,9 +352,17 @@ namespace OpenSim.Framework
                     m_log.Warn("[AGENTCIRCUITDATA]: failed to find a valid packed_appearance");
                 }
             }
-            catch (Exception e)
+            catch (ArgumentException ex)
             {
-                m_log.ErrorFormat("[AGENTCIRCUITDATA] failed to unpack appearance; {0}",e.Message);
+                m_log.ErrorFormat("[AGENTCIRCUITDATA] failed to unpack appearance; {0}", ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                m_log.ErrorFormat("[AGENTCIRCUITDATA] failed to unpack appearance; {0}", ex.Message);
+            }
+            catch (FormatException ex)
+            {
+                m_log.ErrorFormat("[AGENTCIRCUITDATA] failed to unpack appearance; {0}", ex.Message);
             }
 
             ServiceURLs = [];

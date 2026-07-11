@@ -235,7 +235,7 @@ namespace OpenSim.Data.PGSQL
             if (folderName.Length > 64)
             {
                 folderName = folderName.Substring(0, 64);
-                m_log.Warn("[INVENTORY DB]: Name field truncated from " + folder.Name.Length.ToString() + " to " + folderName.Length + " characters on add");
+                m_log.Warn("[INVENTORY DB]: Name field truncated from " + folder.Name.Length + " to " + folderName.Length + " characters on add");
             }
             using (NpgsqlConnection conn = new(m_connectionString))
             using (NpgsqlCommand cmd = new(sql, conn))
@@ -251,7 +251,7 @@ namespace OpenSim.Data.PGSQL
                 {
                     cmd.ExecuteNonQuery();
                 }
-                catch (Exception e)
+                catch (NpgsqlException e)
                 {
                     m_log.ErrorFormat("[INVENTORY DB]: Error : {0}", e.Message);
                 }
@@ -275,7 +275,7 @@ namespace OpenSim.Data.PGSQL
             if (folderName.Length > 64)
             {
                 folderName = folderName.Substring(0, 64);
-                m_log.Warn("[INVENTORY DB]: Name field truncated from " + folder.Name.Length.ToString() + " to " + folderName.Length + " characters on update");
+                m_log.Warn("[INVENTORY DB]: Name field truncated from " + folder.Name.Length + " to " + folderName.Length + " characters on update");
             }
             using (NpgsqlConnection conn = new(m_connectionString))
             using (NpgsqlCommand cmd = new(sql, conn))
@@ -291,7 +291,7 @@ namespace OpenSim.Data.PGSQL
                 {
                     cmd.ExecuteNonQuery();
                 }
-                catch (Exception e)
+                catch (NpgsqlException e)
                 {
                     m_log.ErrorFormat("[INVENTORY DB]: Error : {0}", e.Message);
                 }
@@ -315,7 +315,7 @@ namespace OpenSim.Data.PGSQL
                 {
                     cmd.ExecuteNonQuery();
                 }
-                catch (Exception e)
+                catch (NpgsqlException e)
                 {
                     m_log.ErrorFormat("[INVENTORY DB]: Error : {0}", e.Message);
                 }
@@ -435,14 +435,14 @@ namespace OpenSim.Data.PGSQL
             if (item.Name.Length > 64)
             {
                 itemName = item.Name.Substring(0, 64);
-                m_log.Warn("[INVENTORY DB]: Name field truncated from " + item.Name.Length.ToString() + " to " + itemName.Length.ToString() + " characters");
+                m_log.Warn("[INVENTORY DB]: Name field truncated from " + item.Name.Length + " to " + itemName.Length + " characters");
             }
 
             string itemDesc = item.Description;
             if (item.Description.Length > 128)
             {
                 itemDesc = item.Description.Substring(0, 128);
-                m_log.Warn("[INVENTORY DB]: Description field truncated from " + item.Description.Length.ToString() + " to " + itemDesc.Length.ToString() + " characters");
+                m_log.Warn("[INVENTORY DB]: Description field truncated from " + item.Description.Length + " to " + itemDesc.Length + " characters");
             }
 
             using (NpgsqlConnection conn = new(m_connectionString))
@@ -473,7 +473,7 @@ namespace OpenSim.Data.PGSQL
                 {
                     command.ExecuteNonQuery();
                 }
-                catch (Exception e)
+                catch (NpgsqlException e)
                 {
                     m_log.Error("[INVENTORY DB]: Error inserting item :" + e.Message);
                 }
@@ -489,7 +489,7 @@ namespace OpenSim.Data.PGSQL
                 {
                     command.ExecuteNonQuery();
                 }
-                catch (Exception e)
+                catch (NpgsqlException e)
                 {
                     m_log.Error("[INVENTORY DB] Error updating inventory folder for new item :" + e.Message);
                 }
@@ -527,14 +527,14 @@ namespace OpenSim.Data.PGSQL
             if (item.Name.Length > 64)
             {
                 itemName = item.Name.Substring(0, 64);
-                m_log.Warn("[INVENTORY DB]: Name field truncated from " + item.Name.Length.ToString() + " to " + itemName.Length.ToString() + " characters on update");
+                m_log.Warn("[INVENTORY DB]: Name field truncated from " + item.Name.Length + " to " + itemName.Length + " characters on update");
             }
 
             string itemDesc = item.Description;
             if (item.Description.Length > 128)
             {
                 itemDesc = item.Description.Substring(0, 128);
-                m_log.Warn("[INVENTORY DB]: Description field truncated from " + item.Description.Length.ToString() + " to " + itemDesc.Length.ToString() + " characters on update");
+                m_log.Warn("[INVENTORY DB]: Description field truncated from " + item.Description.Length + " to " + itemDesc.Length + " characters on update");
             }
 
             using (NpgsqlConnection conn = new(m_connectionString))
@@ -565,7 +565,7 @@ namespace OpenSim.Data.PGSQL
                 {
                     command.ExecuteNonQuery();
                 }
-                catch (Exception e)
+                catch (NpgsqlException e)
                 {
                     m_log.Error("[INVENTORY DB]: Error updating item :" + e.Message);
                 }
@@ -590,7 +590,7 @@ namespace OpenSim.Data.PGSQL
                     conn.Open();
                     cmd.ExecuteNonQuery();
                 }
-                catch (Exception e)
+                catch (NpgsqlException e)
                 {
                     m_log.Error("[INVENTORY DB]: Error deleting item :" + e.Message);
                 }
@@ -654,7 +654,7 @@ namespace OpenSim.Data.PGSQL
                 {
                     command.ExecuteNonQuery();
                 }
-                catch (Exception e)
+                catch (NpgsqlException e)
                 {
                     m_log.Error("[INVENTORY DB] Error deleting item :" + e.Message);
                 }

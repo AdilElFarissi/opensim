@@ -45,10 +45,10 @@ namespace OpenSim.Region.UserStatistics
             Hashtable pResult = [];
             if (updaterjs.Length == 0)
             {
-                StreamReader fs = new(new FileStream(Util.dataDir() + "/data/updater.js", FileMode.Open));
-                updaterjs = fs.ReadToEnd();
-                fs.Close();
-                fs.Dispose();
+                using (StreamReader fs = new(new FileStream(Util.dataDir() + "/data/updater.js", FileMode.Open)))
+                {
+                    updaterjs = fs.ReadToEnd();
+                }
             }
             pResult["js"] = updaterjs;
             return pResult;

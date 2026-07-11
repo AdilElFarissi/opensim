@@ -62,8 +62,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
 
         public void AddRegion(Scene scene)
         {
-            if (!m_Enabled)
-                return;
+            if (!m_Enabled) return;
 
             lock (m_scenes)
             {
@@ -146,10 +145,9 @@ namespace OpenSim.Region.CoreModules.Avatar.Lure
 
         public void OnStartLure(byte lureType, string message, UUID targetid, IClientAPI client)
         {
-            if (client.Scene is not Scene)
+            if (client.Scene is not Scene scene)
                 return;
 
-            Scene scene = (Scene)(client.Scene);
             ScenePresence presence = scene.GetScenePresence(client.AgentId);
 
             // Round up Z co-ordinate rather than round-down by casting.  This stops tall avatars from being given

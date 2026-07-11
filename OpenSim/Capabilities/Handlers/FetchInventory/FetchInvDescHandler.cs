@@ -90,6 +90,11 @@ namespace OpenSim.Capabilities.Handlers
                 for (int i = 0; i < foldersrequested.Count; i++)
                 {
                     OSDMap mfolder = foldersrequested[i] as OSDMap;
+                    if (mfolder is null)
+                    {
+                        m_log.Warn("[WEB FETCH INV DESC HANDLER]: Folder request entry is not a valid map");
+                        continue;
+                    }
                     UUID id = mfolder["folder_id"].AsUUID();
                     if(BadRequests.ContainsKey(id))
                     {
@@ -106,170 +111,169 @@ namespace OpenSim.Capabilities.Handlers
                             llsdRequest.fetch_folders = mfolder["fetch_folders"].AsBoolean();
                             llsdRequest.fetch_items = mfolder["fetch_items"].AsBoolean();
                         }
+                        catch (OSDException e)
+                        {
+                            m_log.Debug("[WEB FETCH INV DESC HANDLER]: caught OSD exception during deserialization: " + e.Message);
+                            continue;
+                        }
                         catch (Exception e)
                         {
-                            m_log.Debug("[WEB FETCH INV DESC HANDLER]: caught exception doing OSD deserialize" + e.Message);
+                            m_log.Debug("[WEB FETCH INV DESC HANDLER]: caught exception during OSD deserialize: " + e.Message);
                             continue;
                         }
                         folders.Add(llsdRequest);
                     }
                 }
-                foldersrequested = null;
-                map = null;
+                if (folders is null || folders.Count == 0)
+                {
+                    if(bad_folders.Count == 0)
+                    {
+                        httpResponse.RawBuffer = EmptyResponse;
+                        return;
+                    }
+
+                    osUTF8 osu = OSUTF8Cached.Acquire();
+                    osu.AppendASCII("[WEB FETCH INV DESC HANDLER]: Unable to fetch folders owned by Unknown user:");
+                    int limit = 5;
+                    int count = 0;
+                    foreach (UUID bad in bad_folders.Where(b => !BadRequests.ContainsKey(b)))
+                    {
+                        osu.Append((byte)' ');
+                        osu.AppendASCII(b.ToString());
+                        ++count;
+                        if (--limit < 0)
+                            break;
+                    }
+
+                    if(count > 0)
+                    {
+                        if (limit < 0)
+                            osu.AppendASCII(" ...");
+                        m_log.Warn(osu.ToString());
+                    }
+
+                    osu.Clear();
+
+                    osu.AppendASCII("<llsd><map><key>folders</key><array /></map><map><key>bad_folders</key><array>");
+                    foreach (UUID bad in bad_folders.Where(b => !BadRequests.ContainsKey(b)))
+                    {
+                        osu.AppendASCII("<map><key>folder_id</key><uuid>");
+                        osu.AppendASCII(b.ToString());
+                        osu.AppendASCII("</uuid><key>error</key><string>Unknown</string></map>");
+                    }
+                    osu.AppendASCII("</array></map></llsd>");
+                    httpResponse.RawBuffer = OSUTF8Cached.GetArrayAndRelease(osu);
+                    return;
+                }
+
+                UUID requester = folders[0].owner_id;
+
+                List<InventoryCollection> invcollSet = Fetch(folders, bad_folders);
+                //m_log.DebugFormat("[XXX]: Got {0} folders from a request of {1}", invcollSet.Count, folders.Count);
+
+                int invcollSetCount = 0;
+                if (invcollSet != null)
+                    invcollSetCount = invcollSet.Count;
+
+                osUTF8 lastresponse = LLSDxmlEncode2.Start();
+
+                if (invcollSetCount > 0)
+                {
+                    lastresponse.AppendASCII("<map><key>folders</key><array>");
+                    int i = 0;
+                    InventoryCollection thiscoll;
+                    for (i = 0; i < invcollSetCount; i++)
+                    {
+                        thiscoll = invcollSet[i];
+                        invcollSet[i] = null;
+
+                        LLSDxmlEncode2.AddMap(lastresponse);
+                        LLSDxmlEncode2.AddElem_folder_id(thiscoll.FolderID, lastresponse);
+                        LLSDxmlEncode2.AddElem_agent_id(thiscoll.OwnerID, lastresponse);
+                        LLSDxmlEncode2.AddElem_owner_id(thiscoll.OwnerID, lastresponse);
+                        LLSDxmlEncode2.AddElem("descendents", thiscoll.Descendents, lastresponse);
+                        LLSDxmlEncode2.AddElem_version(thiscoll.Version, lastresponse);
+
+                        if (thiscoll.Folders is null || thiscoll.Folders.Count == 0)
+                            LLSDxmlEncode2.AddEmptyArray("categories", lastresponse);
+                        else
+                        {
+                            LLSDxmlEncode2.AddArray("categories", lastresponse);
+                            foreach (InventoryFolderBase invFolder in thiscoll.Folders)
+                            {
+                                LLSDxmlEncode2.AddMap(lastresponse);
+
+                                LLSDxmlEncode2.AddElem_category_id(invFolder.ID, lastresponse);
+                                LLSDxmlEncode2.AddElem_parent_id(invFolder.ParentID, lastresponse);
+                                LLSDxmlEncode2.AddElem_name(invFolder.Name, lastresponse);
+                                LLSDxmlEncode2.AddElem("type_default", invFolder.Type, lastresponse);
+                                LLSDxmlEncode2.AddElem_version( invFolder.Version, lastresponse);
+
+                                LLSDxmlEncode2.AddEndMap(lastresponse);
+                            }
+                            LLSDxmlEncode2.AddEndArray(lastresponse);
+                        }
+
+                        if (thiscoll.Items is null || thiscoll.Items.Count == 0)
+                            LLSDxmlEncode2.AddEmptyArray("items", lastresponse);
+                        else
+                        {
+                            LLSDxmlEncode2.AddArray("items", lastresponse);
+                            foreach (InventoryItemBase invItem in thiscoll.Items)
+                            {
+                                invItem.ToLLSDxml(lastresponse);
+                            }
+
+                            LLSDxmlEncode2.AddEndArray(lastresponse);
+                        }
+
+
+                        LLSDxmlEncode2.AddEndMap(lastresponse);
+                        invcollSet[i] = null;
+                    }
+                    LLSDxmlEncode2.AddEndArrayAndMap(lastresponse);
+                }
+                else
+                {
+                    lastresponse.AppendASCII("<map><key>folders</key><array /></map>");
+                }
+
+                if (bad_folders.Count > 0)
+                {
+                    lastresponse.AppendASCII("<map><key>bad_folders</key><array>");
+                    foreach (UUID bad in bad_folders.Where(b => !BadRequests.ContainsKey(b)))
+                    {
+                        BadRequests.Add(bad);
+                        lastresponse.AppendASCII("<map><key>folder_id</key><uuid>");
+                        lastresponse.AppendASCII(bad.ToString());
+                        lastresponse.AppendASCII("</uuid><key>error</key><string>Unknown</string></map>");
+                    }
+                    lastresponse.AppendASCII("</array></map>");
+
+                    StringBuilder sb = osStringBuilderCache.Acquire();
+                    sb.Append("[WEB FETCH INV DESC HANDLER]: Unable to fetch folders owned by ");
+                    sb.Append(requester);
+                    sb.Append(" :");
+                    int limit = 9;
+                    foreach (UUID bad in bad_folders.Where(b => !BadRequests.ContainsKey(b)))
+                    {
+                        sb.Append(' ');
+                        sb.Append(bad);
+                        if(--limit < 0)
+                            break;
+                    }
+                    if(limit < 0)
+                        sb.Append(" ...");
+                    m_log.Warn(osStringBuilderCache.GetStringAndRelease(sb));
+                }
+
+                httpResponse.RawBuffer = LLSDxmlEncode2.EndToBytes(lastresponse);
             }
             catch (Exception e)
             {
                 m_log.Error("[FETCH INV DESC]: fail parsing request: " + e.Message);
                 httpResponse.RawBuffer = EmptyResponse;
-                return;
             }
-
-            if (folders is null || folders.Count == 0)
-            {
-                if(bad_folders.Count == 0)
-                {
-                    httpResponse.RawBuffer = EmptyResponse;
-                    return;
-                }
-
-                osUTF8 osu = OSUTF8Cached.Acquire();
-                osu.AppendASCII("[WEB FETCH INV DESC HANDLER]: Unable to fetch folders owned by Unknown user:");
-                int limit = 5;
-                int count = 0;
-                foreach (UUID bad in bad_folders)
-                {
-                    if (BadRequests.ContainsKey(bad))
-                        continue;
-                    osu.Append((byte)' ');
-                    osu.AppendASCII(bad.ToString());
-                    ++count;
-                    if (--limit < 0)
-                        break;
-                }
-
-                if(count > 0)
-                {
-                    if (limit < 0)
-                        osu.AppendASCII(" ...");
-                    m_log.Warn(osu.ToString());
-                }
-
-                osu.Clear();
-
-                osu.AppendASCII("<llsd><map><key>folders</key><array /></map><map><key>bad_folders</key><array>");
-                foreach (UUID bad in bad_folders)
-                {
-                    osu.AppendASCII("<map><key>folder_id</key><uuid>");
-                    osu.AppendASCII(bad.ToString());
-                    osu.AppendASCII("</uuid><key>error</key><string>Unknown</string></map>");
-                }
-                osu.AppendASCII("</array></map></llsd>");
-                httpResponse.RawBuffer = OSUTF8Cached.GetArrayAndRelease(osu);
-                return;
-            }
-
-            UUID requester = folders[0].owner_id;
-
-            List<InventoryCollection> invcollSet = Fetch(folders, bad_folders);
-            //m_log.DebugFormat("[XXX]: Got {0} folders from a request of {1}", invcollSet.Count, folders.Count);
-
-            int invcollSetCount = 0;
-            if (invcollSet is not null)
-                invcollSetCount = invcollSet.Count;
-
-            osUTF8 lastresponse = LLSDxmlEncode2.Start();
-
-            if (invcollSetCount > 0)
-            {
-                lastresponse.AppendASCII("<map><key>folders</key><array>");
-                int i = 0;
-                InventoryCollection thiscoll;
-                for (i = 0; i < invcollSetCount; i++)
-                {
-                    thiscoll = invcollSet[i];
-                    invcollSet[i] = null;
-
-                    LLSDxmlEncode2.AddMap(lastresponse);
-                    LLSDxmlEncode2.AddElem_folder_id(thiscoll.FolderID, lastresponse);
-                    LLSDxmlEncode2.AddElem_agent_id(thiscoll.OwnerID, lastresponse);
-                    LLSDxmlEncode2.AddElem_owner_id(thiscoll.OwnerID, lastresponse);
-                    LLSDxmlEncode2.AddElem("descendents", thiscoll.Descendents, lastresponse);
-                    LLSDxmlEncode2.AddElem_version(thiscoll.Version, lastresponse);
-
-                    if (thiscoll.Folders is null || thiscoll.Folders.Count == 0)
-                        LLSDxmlEncode2.AddEmptyArray("categories", lastresponse);
-                    else
-                    {
-                        LLSDxmlEncode2.AddArray("categories", lastresponse);
-                        foreach (InventoryFolderBase invFolder in thiscoll.Folders)
-                        {
-                            LLSDxmlEncode2.AddMap(lastresponse);
-
-                            LLSDxmlEncode2.AddElem_category_id(invFolder.ID, lastresponse);
-                            LLSDxmlEncode2.AddElem_parent_id(invFolder.ParentID, lastresponse);
-                            LLSDxmlEncode2.AddElem_name(invFolder.Name, lastresponse);
-                            LLSDxmlEncode2.AddElem("type_default", invFolder.Type, lastresponse);
-                            LLSDxmlEncode2.AddElem_version( invFolder.Version, lastresponse);
-
-                            LLSDxmlEncode2.AddEndMap(lastresponse);
-                        }
-                        LLSDxmlEncode2.AddEndArray(lastresponse);
-                    }
-
-                    if (thiscoll.Items is null || thiscoll.Items.Count == 0)
-                        LLSDxmlEncode2.AddEmptyArray("items", lastresponse);
-                    else
-                    {
-                        LLSDxmlEncode2.AddArray("items", lastresponse);
-                        foreach (InventoryItemBase invItem in thiscoll.Items)
-                        {
-                            invItem.ToLLSDxml(lastresponse);
-                        }
-
-                        LLSDxmlEncode2.AddEndArray(lastresponse);
-                    }
-
-
-                    LLSDxmlEncode2.AddEndMap(lastresponse);
-                    invcollSet[i] = null;
-                }
-                LLSDxmlEncode2.AddEndArrayAndMap(lastresponse);
-            }
-            else
-            {
-                lastresponse.AppendASCII("<map><key>folders</key><array /></map>");
-            }
-
-            if (bad_folders.Count > 0)
-            {
-                lastresponse.AppendASCII("<map><key>bad_folders</key><array>");
-                foreach (UUID bad in bad_folders)
-                {
-                    BadRequests.Add(bad);
-                    lastresponse.AppendASCII("<map><key>folder_id</key><uuid>");
-                    lastresponse.AppendASCII(bad.ToString());
-                    lastresponse.AppendASCII("</uuid><key>error</key><string>Unknown</string></map>");
-                }
-                lastresponse.AppendASCII("</array></map>");
-
-                StringBuilder sb = osStringBuilderCache.Acquire();
-                sb.Append("[WEB FETCH INV DESC HANDLER]: Unable to fetch folders owned by ");
-                sb.Append(requester.ToString());
-                sb.Append(" :");
-                int limit = 9;
-                foreach (UUID bad in bad_folders)
-                {
-                    sb.Append(' ');
-                    sb.Append(bad.ToString());
-                    if(--limit < 0)
-                        break;
-                }
-                if(limit < 0)
-                    sb.Append(" ...");
-                m_log.Warn(osStringBuilderCache.GetStringAndRelease(sb));
-            }
-
-            httpResponse.RawBuffer = LLSDxmlEncode2.EndToBytes(lastresponse);
         }
 
         private void AddLibraryFolders(List<LLSDFetchInventoryDescendents> libFolders, List<InventoryCollection> result)
@@ -282,7 +286,7 @@ namespace OpenSim.Capabilities.Handlers
             {
                 if ((fold = m_LibraryService.LibraryRootFolder.FindFolder(f.folder_id)) is not null)
                 {
-                    InventoryCollection Collection = new()
+                    InventoryCollection collection = new()
                     {
                         //ret.Collection.Folders = new List<InventoryFolderBase>();
                         Folders = fold.RequestListOfFolders(),
@@ -292,8 +296,8 @@ namespace OpenSim.Capabilities.Handlers
                         Version = fold.Version
                     };
 
-                    Collection.Descendents = Collection.Items.Count + Collection.Folders.Count;
-                    result.Add(Collection);
+                    collection.Descendents = collection.Items.Count + collection.Folders.Count;
+                    result.Add(collection);
 
                     //m_log.DebugFormat("[XXX]: Added libfolder {0} ({1}) {2}", ret.Collection.FolderID, ret.Collection.OwnerID);
                 }
@@ -326,14 +330,14 @@ namespace OpenSim.Capabilities.Handlers
                     if(doneZeroID)
                         continue;
                     doneZeroID = true;
-                    InventoryCollection Collection = new()
+                    InventoryCollection collection = new()
                     {
                         OwnerID = f.owner_id,
                         Version = 0,
                         FolderID = f.folder_id,
                         Descendents = 0
                     };
-                    result.Add(Collection);
+                    result.Add(collection);
                     continue;
                 }
                 if(dolib && f.owner_id.Equals(libOwner))
@@ -358,7 +362,7 @@ namespace OpenSim.Capabilities.Handlers
                 //m_log.DebugFormat("[XXX]: {0}", string.Join(",", fids));
 
                 InventoryCollection[] fetchedContents = m_InventoryService.GetMultipleFoldersContent(otherFolders[0].owner_id, otherIDs.ToArray());
-
+ 
                 if (fetchedContents is null)
                      return null;
  

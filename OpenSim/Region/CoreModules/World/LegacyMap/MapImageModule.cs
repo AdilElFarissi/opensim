@@ -16,7 +16,7 @@
  * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
+ * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ALL
  * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
@@ -123,19 +123,17 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                     {
                         mapbmp = new Bitmap(m_scene.RegionInfo.MaptileStaticFile);
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
                         m_log.ErrorFormat(
                             "[MAPTILE]: Failed to load Static map image texture file: {0} for {1}",
-                            m_scene.RegionInfo.MaptileStaticFile, m_scene.Name);
-                        //mapbmp = new Bitmap((int)m_scene.Heightmap.Width, (int)m_scene.Heightmap.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
-                        mapbmp = null;
+                            m_scene.RegionInfo.MaptileStaticFile, m_scene.Name, e);
+                        mapbmp = new Bitmap((int)m_scene.Heightmap.Width, (int)m_scene.Heightmap.Height, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
                     }
 
-                    if (mapbmp != null)
-                        m_log.DebugFormat(
-                            "[MAPTILE]: Static map image texture file {0} found for {1}",
-                            m_scene.RegionInfo.MaptileStaticFile, m_scene.Name);
+                    m_log.DebugFormat(
+                        "[MAPTILE]: Static map image texture file {0} found for {1}",
+                        m_scene.RegionInfo.MaptileStaticFile, m_scene.Name);
                 }
             }
             else
@@ -152,8 +150,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
             {
                 using (Bitmap mapbmp = CreateMapTile())
                 {
-                    if (mapbmp != null)
-                        return OpenJPEG.EncodeFromImage(mapbmp, false);
+                    return mapbmp != null ? OpenJPEG.EncodeFromImage(mapbmp, false) : null;
                 }
             }
             catch (Exception e) // LEGIT: Catching problems caused by OpenJPEG p/invoke
@@ -278,19 +275,19 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                 else
                     return null;
             }
-            catch (DllNotFoundException)
+            catch (DllNotFoundException e)
             {
-                m_log.ErrorFormat("[MAPTILE]: OpenJpeg is not installed correctly on this system.   Asset Data is empty for {0}", id);
+                m_log.ErrorFormat("[MAPTILE]: OpenJpeg is not installed correctly on this system.   Asset Data is empty for {0}: {1}", id, e.Message);
 
             }
-            catch (IndexOutOfRangeException)
+            catch (IndexOutOfRangeException e)
             {
-                m_log.ErrorFormat("[MAPTILE]: OpenJpeg was unable to decode this.   Asset Data is empty for {0}", id);
+                m_log.ErrorFormat("[MAPTILE]: OpenJpeg was unable to decode this.   Asset Data is empty for {0}: {1}", id, e.Message);
 
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                m_log.ErrorFormat("[MAPTILE]: OpenJpeg was unable to decode this.   Asset Data is empty for {0}", id);
+                m_log.ErrorFormat("[MAPTILE]: OpenJpeg was unable to decode this.   Asset Data is empty for {0}: {1}", id, e.Message);
 
             }
             return null;
@@ -312,293 +309,285 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
             {
                 lock (objs)
                 {
-                    foreach (EntityBase obj in objs)
+                    foreach (EntityBase obj in objs.Where(entity => entity is SceneObjectGroup))
                     {
                         // Only draw the contents of SceneObjectGroup
-                        if (obj is SceneObjectGroup)
+                        SceneObjectGroup mapdot = (SceneObjectGroup)obj;
+                        Color mapdotspot = Color.Gray; // Default color when prim color is white
+                        // Loop over prim in group
+                        foreach (SceneObjectPart part in mapdot.Parts.Where(p => p != null))
                         {
-                            SceneObjectGroup mapdot = (SceneObjectGroup)obj;
-                            Color mapdotspot = Color.Gray; // Default color when prim color is white
-                            // Loop over prim in group
-                            foreach (SceneObjectPart part in mapdot.Parts)
+                            // Draw if the object is at least 1 meter wide in any direction
+                            if (part.Scale.X > 1f || part.Scale.Y > 1f || part.Scale.Z > 1f)
                             {
-                                if (part == null)
+                                // Try to get the RGBA of the default texture entry..
+                                //
+                                try
+                                {
+                                    // get the null checks out of the way
+                                    // skip the ones that break
+                                    if (part.Shape == null)
+                                        continue;
+
+                                    if (part.Shape.PCode == (byte)PCode.Tree || part.Shape.PCode == (byte)PCode.NewTree || part.Shape.PCode == (byte)PCode.Grass)
+                                        continue; // eliminates trees from this since we don't really have a good tree representation
+                                    // if you want tree blocks on the map comment the above line and uncomment the below line
+                                    //mapdotspot = Color.PaleGreen;
+
+                                    Primitive.TextureEntry textureEntry = part.Shape.Textures;
+
+                                    if (textureEntry == null || textureEntry.DefaultTexture == null)
+                                        continue;
+
+                                    Color4 texcolor = textureEntry.DefaultTexture.RGBA;
+
+                                    // Not sure why some of these are null, oh well.
+
+                                    int colorr = 255 - (int)(texcolor.R * 255f);
+                                    int colorg = 255 - (int)(texcolor.G * 255f);
+                                    int colorb = 255 - (int)(texcolor.B * 255f);
+
+                                    if (!(colorr == 255 && colorg == 255 && colorb == 255))
+                                    {
+                                        //Try to set the map spot color
+                                        try
+                                        {
+                                            // If the color gets goofy somehow, skip it *shakes fist at Color4
+                                            mapdotspot = Color.FromArgb(colorr, colorg, colorb);
+                                        }
+                                        catch (ArgumentException)
+                                        {
+                                        }
+                                    }
+                                }
+                                catch (IndexOutOfRangeException)
+                                {
+                                    // Windows Array
+                                }
+                                catch (ArgumentOutOfRangeException)
+                                {
+                                    // Mono Array
+                                }
+
+                                Vector3 pos = part.GetWorldPosition();
+
+                                // skip prim outside of region
+                                if (!m_scene.PositionIsInCurrentRegion(pos))
                                     continue;
 
-                                // Draw if the object is at least 1 meter wide in any direction
-                                if (part.Scale.X > 1f || part.Scale.Y > 1f || part.Scale.Z > 1f)
+                                // skip prim in non-finite position
+                                if (float.IsNaN(pos.X) || float.IsNaN(pos.Y) ||
+                                    float.IsInfinity(pos.X) || float.IsInfinity(pos.Y))
+                                    continue;
+
+                                // Figure out if object is under 256m above the height of the terrain
+                                bool isBelow256AboveTerrain = false;
+
+                                try
                                 {
-                                    // Try to get the RGBA of the default texture entry..
-                                    //
-                                    try
-                                    {
-                                        // get the null checks out of the way
-                                        // skip the ones that break
-                                        if (part == null)
-                                            continue;
+                                    isBelow256AboveTerrain = (pos.Z < ((float)hm[(int)pos.X, (int)pos.Y] + 256f));
+                                }
+                                catch (Exception e)
+                                {
+                                    m_log.Error("[MAPTILE]: Error checking terrain height for object", e);
+                                }
 
-                                        if (part.Shape == null)
-                                            continue;
+                                if (isBelow256AboveTerrain)
+                                {
+                                    // Translate scale by rotation so scale is represented properly when object is rotated
+                                    Vector3 lscale = new(part.Shape.Scale.X, part.Shape.Scale.Y, part.Shape.Scale.Z);
+                                    lscale *= 0.5f;
 
-                                        if (part.Shape.PCode == (byte)PCode.Tree || part.Shape.PCode == (byte)PCode.NewTree || part.Shape.PCode == (byte)PCode.Grass)
-                                            continue; // eliminates trees from this since we don't really have a good tree representation
-                                        // if you want tree blocks on the map comment the above line and uncomment the below line
-                                        //mapdotspot = Color.PaleGreen;
+                                    Vector3 scale = new();
+                                    Vector3 tScale = new();
+                                    Vector3 axPos = new(pos.X, pos.Y, pos.Z);
 
-                                        Primitive.TextureEntry textureEntry = part.Shape.Textures;
+                                    Quaternion rot = part.GetWorldRotation();
+                                    scale = lscale * rot;
 
-                                        if (textureEntry == null || textureEntry.DefaultTexture == null)
-                                            continue;
+                                    // negative scales don't work in this situation
+                                    scale.X = Math.Abs(scale.X);
+                                    scale.Y = Math.Abs(scale.Y);
+                                    scale.Z = Math.Abs(scale.Z);
 
-                                        Color4 texcolor = textureEntry.DefaultTexture.RGBA;
+                                    // This scaling isn't very accurate and doesn't take into account the face rotation :P
+                                    int mapdrawstartX = (int)(pos.X - scale.X);
+                                    int mapdrawstartY = (int)(pos.Y - scale.Y);
+                                    int mapdrawendX = (int)(pos.X + scale.X);
+                                    int mapdrawendY = (int)(pos.Y + scale.Y);
 
-                                        // Not sure why some of these are null, oh well.
-
-                                        int colorr = 255 - (int)(texcolor.R * 255f);
-                                        int colorg = 255 - (int)(texcolor.G * 255f);
-                                        int colorb = 255 - (int)(texcolor.B * 255f);
-
-                                        if (!(colorr == 255 && colorg == 255 && colorb == 255))
-                                        {
-                                            //Try to set the map spot color
-                                            try
-                                            {
-                                                // If the color gets goofy somehow, skip it *shakes fist at Color4
-                                                mapdotspot = Color.FromArgb(colorr, colorg, colorb);
-                                            }
-                                            catch (ArgumentException)
-                                            {
-                                            }
-                                        }
-                                    }
-                                    catch (IndexOutOfRangeException)
-                                    {
-                                        // Windows Array
-                                    }
-                                    catch (ArgumentOutOfRangeException)
-                                    {
-                                        // Mono Array
-                                    }
-
-                                    Vector3 pos = part.GetWorldPosition();
-
-                                    // skip prim outside of region
-                                    if (!m_scene.PositionIsInCurrentRegion(pos))
+                                    // If object is beyond the edge of the map, don't draw it to avoid errors
+                                    if (mapdrawstartX < 0
+                                                || mapdrawstartX > (hm.Width - 1)
+                                                || mapdrawendX < 0
+                                                || mapdrawendX > (hm.Width - 1)
+                                                || mapdrawstartY < 0
+                                                || mapdrawstartY > (hm.Height - 1)
+                                                || mapdrawendY < 0
+                                                || mapdrawendY > (hm.Height - 1))
                                         continue;
 
-                                    // skip prim in non-finite position
-                                    if (float.IsNaN(pos.X) || float.IsNaN(pos.Y) ||
-                                        float.IsInfinity(pos.X) || float.IsInfinity(pos.Y))
-                                        continue;
+                                    #region obb face reconstruction part duex
+                                    Vector3[] vertexes = new Vector3[8];
 
-                                    // Figure out if object is under 256m above the height of the terrain
-                                    bool isBelow256AboveTerrain = false;
+                                    // float[] distance = new float[6];
+                                    Vector3[] FaceA = new Vector3[6]; // vertex A for Facei
+                                    Vector3[] FaceB = new Vector3[6]; // vertex B for Facei
+                                    Vector3[] FaceC = new Vector3[6]; // vertex C for Facei
+                                    Vector3[] FaceD = new Vector3[6]; // vertex D for Facei
 
-                                    try
+                                    tScale = new Vector3(lscale.X, -lscale.Y, lscale.Z);
+                                    scale = tScale * rot;
+                                    vertexes[0] = (new Vector3((pos.X + scale.X), (pos.Y + scale.Y), (pos.Z + scale.Z)));
+                                    // vertexes[0].x = pos.X + vertexes[0].x;
+                                    //vertexes[0].y = pos.Y + vertexes[0].y;
+                                    //vertexes[0].z = pos.Z + vertexes[0].z;
+
+                                    FaceA[0] = vertexes[0];
+                                    FaceB[3] = vertexes[0];
+                                    FaceA[4] = vertexes[0];
+
+                                    tScale = lscale;
+                                    scale = tScale * rot;
+                                    vertexes[1] = (new Vector3((pos.X + scale.X), (pos.Y + scale.Y), (pos.Z + scale.Z)));
+
+                                    // vertexes[1].x = pos.X + vertexes[1].x;
+                                    // vertexes[1].y = pos.Y + vertexes[1].y;
+                                    //vertexes[1].z = pos.Z + vertexes[1].z;
+
+                                    FaceB[0] = vertexes[1];
+                                    FaceA[1] = vertexes[1];
+                                    FaceC[4] = vertexes[1];
+
+                                    tScale = new Vector3(lscale.X, -lscale.Y, -lscale.Z);
+                                    scale = tScale * rot;
+                                    vertexes[2] = (new Vector3((pos.X + scale.X), (pos.Y + scale.Y), (pos.Z + scale.Z)));
+
+                                    //vertexes[2].x = pos.X + vertexes[2].x;
+                                    //vertexes[2].y = pos.Y + vertexes[2].y;
+                                    //vertexes[2].z = pos.Z + vertexes[2].z;
+
+                                    FaceC[0] = vertexes[2];
+                                    FaceD[3] = vertexes[2];
+                                    FaceC[5] = vertexes[2];
+
+                                    tScale = new Vector3(lscale.X, lscale.Y, -lscale.Z);
+                                    scale = tScale * rot;
+                                    vertexes[3] = (new Vector3((pos.X + scale.X), (pos.Y + scale.Y), (pos.Z + scale.Z)));
+
+                                    //vertexes[3].x = pos.X + vertexes[3].x;
+                                    // vertexes[3].y = pos.Y + vertexes[3].y;
+                                    // vertexes[3].z = pos.Z + vertexes[3].z;
+
+                                    FaceD[0] = vertexes[3];
+                                    FaceC[1] = vertexes[3];
+                                    FaceA[5] = vertexes[3];
+
+                                    tScale = new Vector3(-lscale.X, lscale.Y, lscale.Z);
+                                    scale = tScale * rot;
+                                    vertexes[4] = (new Vector3((pos.X + scale.X), (pos.Y + scale.Y), (pos.Z + scale.Z)));
+
+                                    // vertexes[4].x = pos.X + vertexes[4].x;
+                                    // vertexes[4].y = pos.Y + vertexes[4].y;
+                                    // vertexes[4].z = pos.Z + vertexes[4].z;
+
+                                    FaceB[1] = vertexes[4];
+                                    FaceA[2] = vertexes[4];
+                                    FaceD[4] = vertexes[4];
+
+                                    tScale = new Vector3(-lscale.X, lscale.Y, -lscale.Z);
+                                    scale = tScale * rot;
+                                    vertexes[5] = (new Vector3((pos.X + scale.X), (pos.Y + scale.Y), (pos.Z + scale.Z)));
+
+                                    // vertexes[5].x = pos.X + vertexes[5].x;
+                                    // vertexes[5].y = pos.Y + vertexes[5].y;
+                                    // vertexes[5].z = pos.Z + vertexes[5].z;
+
+                                    FaceD[1] = vertexes[5];
+                                    FaceC[2] = vertexes[5];
+                                    FaceB[5] = vertexes[5];
+
+                                    tScale = new Vector3(-lscale.X, -lscale.Y, lscale.Z);
+                                    scale = tScale * rot;
+                                    vertexes[6] = (new Vector3((pos.X + scale.X), (pos.Y + scale.Y), (pos.Z + scale.Z)));
+
+                                    // vertexes[6].x = pos.X + vertexes[6].x;
+                                    // vertexes[6].y = pos.Y + vertexes[6].y;
+                                    // vertexes[6].z = pos.Z + vertexes[6].z;
+
+                                    FaceB[2] = vertexes[6];
+                                    FaceA[3] = vertexes[6];
+                                    FaceB[4] = vertexes[6];
+
+                                    tScale = new Vector3(-lscale.X, -lscale.Y, -lscale.Z);
+                                    scale = tScale * rot;
+                                    vertexes[7] = (new Vector3((pos.X + scale.X), (pos.Y + scale.Y), (pos.Z + scale.Z)));
+
+                                    // vertexes[7].x = pos.X + vertexes[7].x;
+                                    // vertexes[7].y = pos.Y + vertexes[7].y;
+                                    // vertexes[7].z = pos.Z + vertexes[7].z;
+
+                                    FaceD[2] = vertexes[7];
+                                    FaceC[3] = vertexes[7];
+                                    FaceD[5] = vertexes[7];
+                                    #endregion
+
+                                    //int wy = 0;
+
+                                    //bool breakYN = false; // If we run into an error drawing, break out of the
+                                    // loop so we don't lag to death on error handling
+                                    DrawStruct ds = new()
                                     {
-                                        isBelow256AboveTerrain = (pos.Z < ((float)hm[(int)pos.X, (int)pos.Y] + 256f));
-                                    }
-                                    catch (Exception)
+                                        brush = new SolidBrush(mapdotspot),
+                                        //ds.rect = new Rectangle(mapdrawstartX, (255 - mapdrawstartY), mapdrawendX - mapdrawstartX, mapdrawendY - mapdrawstartY);
+
+                                        trns = new face[FaceA.Length]
+                                    };
+
+                                    for (int i = 0; i < FaceA.Length; i++)
                                     {
-                                    }
+                                        Point[] working = new Point[5];
+                                        working[0] = project(hm, FaceA[i], axPos);
+                                        working[1] = project(hm, FaceB[i], axPos);
+                                        working[2] = project(hm, FaceD[i], axPos);
+                                        working[3] = project(hm, FaceC[i], axPos);
+                                        working[4] = project(hm, FaceA[i], axPos);
 
-                                    if (isBelow256AboveTerrain)
-                                    {
-                                        // Translate scale by rotation so scale is represented properly when object is rotated
-                                        Vector3 lscale = new(part.Shape.Scale.X, part.Shape.Scale.Y, part.Shape.Scale.Z);
-                                        lscale *= 0.5f;
-
-                                        Vector3 scale = new();
-                                        Vector3 tScale = new();
-                                        Vector3 axPos = new(pos.X, pos.Y, pos.Z);
-
-                                        Quaternion rot = part.GetWorldRotation();
-                                        scale = lscale * rot;
-
-                                        // negative scales don't work in this situation
-                                        scale.X = Math.Abs(scale.X);
-                                        scale.Y = Math.Abs(scale.Y);
-                                        scale.Z = Math.Abs(scale.Z);
-
-                                        // This scaling isn't very accurate and doesn't take into account the face rotation :P
-                                        int mapdrawstartX = (int)(pos.X - scale.X);
-                                        int mapdrawstartY = (int)(pos.Y - scale.Y);
-                                        int mapdrawendX = (int)(pos.X + scale.X);
-                                        int mapdrawendY = (int)(pos.Y + scale.Y);
-
-                                        // If object is beyond the edge of the map, don't draw it to avoid errors
-                                        if (mapdrawstartX < 0
-                                                    || mapdrawstartX > (hm.Width - 1)
-                                                    || mapdrawendX < 0
-                                                    || mapdrawendX > (hm.Width - 1)
-                                                    || mapdrawstartY < 0
-                                                    || mapdrawstartY > (hm.Height - 1)
-                                                    || mapdrawendY < 0
-                                                    || mapdrawendY > (hm.Height - 1))
-                                            continue;
-
-                                        #region obb face reconstruction part duex
-                                        Vector3[] vertexes = new Vector3[8];
-
-                                        // float[] distance = new float[6];
-                                        Vector3[] FaceA = new Vector3[6]; // vertex A for Facei
-                                        Vector3[] FaceB = new Vector3[6]; // vertex B for Facei
-                                        Vector3[] FaceC = new Vector3[6]; // vertex C for Facei
-                                        Vector3[] FaceD = new Vector3[6]; // vertex D for Facei
-
-                                        tScale = new Vector3(lscale.X, -lscale.Y, lscale.Z);
-                                        scale = tScale * rot;
-                                        vertexes[0] = (new Vector3((pos.X + scale.X), (pos.Y + scale.Y), (pos.Z + scale.Z)));
-                                        // vertexes[0].x = pos.X + vertexes[0].x;
-                                        //vertexes[0].y = pos.Y + vertexes[0].y;
-                                        //vertexes[0].z = pos.Z + vertexes[0].z;
-
-                                        FaceA[0] = vertexes[0];
-                                        FaceB[3] = vertexes[0];
-                                        FaceA[4] = vertexes[0];
-
-                                        tScale = lscale;
-                                        scale = tScale * rot;
-                                        vertexes[1] = (new Vector3((pos.X + scale.X), (pos.Y + scale.Y), (pos.Z + scale.Z)));
-
-                                        // vertexes[1].x = pos.X + vertexes[1].x;
-                                        // vertexes[1].y = pos.Y + vertexes[1].y;
-                                        //vertexes[1].z = pos.Z + vertexes[1].z;
-
-                                        FaceB[0] = vertexes[1];
-                                        FaceA[1] = vertexes[1];
-                                        FaceC[4] = vertexes[1];
-
-                                        tScale = new Vector3(lscale.X, -lscale.Y, -lscale.Z);
-                                        scale = tScale * rot;
-                                        vertexes[2] = (new Vector3((pos.X + scale.X), (pos.Y + scale.Y), (pos.Z + scale.Z)));
-
-                                        //vertexes[2].x = pos.X + vertexes[2].x;
-                                        //vertexes[2].y = pos.Y + vertexes[2].y;
-                                        //vertexes[2].z = pos.Z + vertexes[2].z;
-
-                                        FaceC[0] = vertexes[2];
-                                        FaceD[3] = vertexes[2];
-                                        FaceC[5] = vertexes[2];
-
-                                        tScale = new Vector3(lscale.X, lscale.Y, -lscale.Z);
-                                        scale = tScale * rot;
-                                        vertexes[3] = (new Vector3((pos.X + scale.X), (pos.Y + scale.Y), (pos.Z + scale.Z)));
-
-                                        //vertexes[3].x = pos.X + vertexes[3].x;
-                                        // vertexes[3].y = pos.Y + vertexes[3].y;
-                                        // vertexes[3].z = pos.Z + vertexes[3].z;
-
-                                        FaceD[0] = vertexes[3];
-                                        FaceC[1] = vertexes[3];
-                                        FaceA[5] = vertexes[3];
-
-                                        tScale = new Vector3(-lscale.X, lscale.Y, lscale.Z);
-                                        scale = tScale * rot;
-                                        vertexes[4] = (new Vector3((pos.X + scale.X), (pos.Y + scale.Y), (pos.Z + scale.Z)));
-
-                                        // vertexes[4].x = pos.X + vertexes[4].x;
-                                        // vertexes[4].y = pos.Y + vertexes[4].y;
-                                        // vertexes[4].z = pos.Z + vertexes[4].z;
-
-                                        FaceB[1] = vertexes[4];
-                                        FaceA[2] = vertexes[4];
-                                        FaceD[4] = vertexes[4];
-
-                                        tScale = new Vector3(-lscale.X, lscale.Y, -lscale.Z);
-                                        scale = tScale * rot;
-                                        vertexes[5] = (new Vector3((pos.X + scale.X), (pos.Y + scale.Y), (pos.Z + scale.Z)));
-
-                                        // vertexes[5].x = pos.X + vertexes[5].x;
-                                        // vertexes[5].y = pos.Y + vertexes[5].y;
-                                        // vertexes[5].z = pos.Z + vertexes[5].z;
-
-                                        FaceD[1] = vertexes[5];
-                                        FaceC[2] = vertexes[5];
-                                        FaceB[5] = vertexes[5];
-
-                                        tScale = new Vector3(-lscale.X, -lscale.Y, lscale.Z);
-                                        scale = tScale * rot;
-                                        vertexes[6] = (new Vector3((pos.X + scale.X), (pos.Y + scale.Y), (pos.Z + scale.Z)));
-
-                                        // vertexes[6].x = pos.X + vertexes[6].x;
-                                        // vertexes[6].y = pos.Y + vertexes[6].y;
-                                        // vertexes[6].z = pos.Z + vertexes[6].z;
-
-                                        FaceB[2] = vertexes[6];
-                                        FaceA[3] = vertexes[6];
-                                        FaceB[4] = vertexes[6];
-
-                                        tScale = new Vector3(-lscale.X, -lscale.Y, -lscale.Z);
-                                        scale = tScale * rot;
-                                        vertexes[7] = (new Vector3((pos.X + scale.X), (pos.Y + scale.Y), (pos.Z + scale.Z)));
-
-                                        // vertexes[7].x = pos.X + vertexes[7].x;
-                                        // vertexes[7].y = pos.Y + vertexes[7].y;
-                                        // vertexes[7].z = pos.Z + vertexes[7].z;
-
-                                        FaceD[2] = vertexes[7];
-                                        FaceC[3] = vertexes[7];
-                                        FaceD[5] = vertexes[7];
-                                        #endregion
-
-                                        //int wy = 0;
-
-                                        //bool breakYN = false; // If we run into an error drawing, break out of the
-                                        // loop so we don't lag to death on error handling
-                                        DrawStruct ds = new()
+                                        face workingface = new()
                                         {
-                                            brush = new SolidBrush(mapdotspot),
-                                            //ds.rect = new Rectangle(mapdrawstartX, (255 - mapdrawstartY), mapdrawendX - mapdrawstartX, mapdrawendY - mapdrawstartY);
-
-                                            trns = new face[FaceA.Length]
+                                            pts = working
                                         };
 
-                                        for (int i = 0; i < FaceA.Length; i++)
-                                        {
-                                            Point[] working = new Point[5];
-                                            working[0] = project(hm, FaceA[i], axPos);
-                                            working[1] = project(hm, FaceB[i], axPos);
-                                            working[2] = project(hm, FaceD[i], axPos);
-                                            working[3] = project(hm, FaceC[i], axPos);
-                                            working[4] = project(hm, FaceA[i], axPos);
+                                        ds.trns[i] = workingface;
+                                    }
 
-                                            face workingface = new()
-                                            {
-                                                pts = working
-                                            };
+                                    z_sort.Add(part.LocalId, ds);
+                                    z_localIDs.Add(part.LocalId);
+                                    z_sortheights.Add(pos.Z);
 
-                                            ds.trns[i] = workingface;
-                                        }
-
-                                        z_sort.Add(part.LocalId, ds);
-                                        z_localIDs.Add(part.LocalId);
-                                        z_sortheights.Add(pos.Z);
-
-                                        // for (int wx = mapdrawstartX; wx < mapdrawendX; wx++)
-                                        // {
-                                        //     for (wy = mapdrawstartY; wy < mapdrawendY; wy++)
-                                        //     {
-                                        //         m_log.InfoFormat("[MAPDEBUG]: {0},{1}({2})", wx, (255 - wy),wy);
-                                        //         try
-                                        //         {
-                                        //             // Remember, flip the y!
-                                        //             mapbmp.SetPixel(wx, (255 - wy), mapdotspot);
-                                        //         }
-                                        //         catch (ArgumentException)
-                                        //         {
-                                        //             breakYN = true;
-                                        //         }
-                                        //     }
-                                        //     if (breakYN)
-                                        //         break;
-                                        //     }
-                                        // }
-                                        //}
-                                    } // Object is within 256m Z of terrain
-                                } // object is at least a meter wide
-                            } // loop over group children
-                        } // entitybase is sceneobject group
+                                    // for (int wx = mapdrawstartX; wx < mapdrawendX; wx++)
+                                    // {
+                                    //     for (wy = mapdrawstartY; wy < mapdrawendY; wy++)
+                                    //     {
+                                    //         m_log.InfoFormat("[MAPDEBUG]: {0},{1}({2})", wx, (255 - wy),wy);
+                                    //         try
+                                    //         {
+                                    //             // Remember, flip the y!
+                                    //             mapbmp.SetPixel(wx, (255 - wy), mapdotspot);
+                                    //         }
+                                    //         catch (ArgumentException)
+                                    //         {
+                                    //             breakYN = true;
+                                    //         }
+                                    //     }
+                                    //     if (breakYN)
+                                    //         break;
+                                    //     }
+                                    // }
+                                    //}
+                                } // Object is within 256m Z of terrain
+                            } // object is at least a meter wide
+                        } // loop over group children
                     } // foreach loop over entities
 
                     float[] sortedZHeights = z_sortheights.ToArray();
@@ -611,12 +600,11 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                     {
                         for (int s = 0; s < sortedZHeights.Length; s++)
                         {
-                            if (z_sort.ContainsKey(sortedlocalIds[s]))
+                            if (z_sort.TryGetValue(sortedlocalIds[s], out DrawStruct rectDrawStruct))
                             {
-                                DrawStruct rectDrawStruct = z_sort[sortedlocalIds[s]];
                                 for (int r = 0; r < rectDrawStruct.trns.Length; r++)
                                 {
-                                    g.FillPolygon(rectDrawStruct.brush,rectDrawStruct.trns[r].pts);
+                                    g.FillPolygon(rectDrawStruct.brush, rectDrawStruct.trns[r].pts);
                                 }
                                 //g.FillRectangle(rectDrawStruct.brush , rectDrawStruct.rect);
                             }

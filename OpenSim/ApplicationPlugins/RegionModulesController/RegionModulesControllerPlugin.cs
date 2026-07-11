@@ -56,11 +56,11 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
         private string m_name;
 
         // Internal lists to collect information about modules present
-        private List<TypeExtensionNode> m_nonSharedModules = [];
-        private List<TypeExtensionNode> m_sharedModules = [];
+        private readonly List<TypeExtensionNode> m_nonSharedModules = [];
+        private readonly List<TypeExtensionNode> m_sharedModules = [];
 
         // List of shared module instances, for adding to Scenes
-        private List<ISharedRegionModule> m_sharedInstances = [];
+        private readonly List<ISharedRegionModule> m_sharedInstances = [];
 
         public RegionModulesControllerPlugin()
         {
@@ -83,10 +83,7 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
 
             // Make friendly name
             int pos = id.LastIndexOf(".");
-            if (pos == -1)
-                m_name = id;
-            else
-                m_name = id.Substring(pos + 1);
+            m_name = pos == -1 ? id : id.Substring(pos + 1);
 
             // The [Modules] section in the ini file
             IConfig modulesConfig = m_openSim.ConfigSource.Source.Configs["Modules"];
@@ -143,7 +140,7 @@ namespace OpenSim.ApplicationPlugins.RegionModulesController
                 {
                     module = (ISharedRegionModule)Activator.CreateInstance(node.Type, ctorArgs);
                 }
-                catch
+                catch (TargetInvocationException)
                 {
                     module = (ISharedRegionModule)Activator.CreateInstance(node.Type);
                 }

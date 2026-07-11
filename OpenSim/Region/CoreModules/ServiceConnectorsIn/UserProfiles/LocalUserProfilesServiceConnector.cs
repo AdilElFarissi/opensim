@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
@@ -48,7 +47,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Profile
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private Dictionary<UUID, Scene> regions = [];
+        private readonly Dictionary<UUID, Scene> regions = [];
 
         public IUserProfilesService ServiceModule
         {

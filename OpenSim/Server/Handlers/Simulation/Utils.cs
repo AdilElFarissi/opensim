@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -78,25 +78,21 @@ namespace OpenSim.Server.Handlers.Simulation
         public static OSDMap DeserializeJSONOSMap(IOSHttpRequest httpRequest)
         {
             Stream inputStream = httpRequest.InputStream;
-            Stream innerStream = null;
             try
             {
                 if ((httpRequest.ContentType == "application/x-gzip" || httpRequest.Headers["Content-Encoding"] == "gzip") || (httpRequest.Headers["X-Content-Encoding"] == "gzip"))
                 {
-                    innerStream = inputStream;
-                    inputStream = new GZipStream(innerStream, CompressionMode.Decompress);
+                    using (GZipStream gzipStream = new GZipStream(inputStream, CompressionMode.Decompress))
+                    {
+                        return (OSDMap)OSDParser.DeserializeJson(gzipStream);
+                    }
                 }
                 return (OSDMap)OSDParser.DeserializeJson(inputStream);
             }
-            catch
+            catch (System.Exception ex)
             {
+                m_log.Error($"Error deserializing JSON: {ex.Message}", ex);
                 return null;
-            }
-            finally
-            {
-                if (innerStream != null)
-                    innerStream.Dispose();
-                inputStream.Dispose();
             }
         }
     }

@@ -86,7 +86,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             if (Vertices > 0)
             {
                 buff.Append("verts=");
-                buff.Append(Vertices.ToString());
+                buff.Append(Vertices);
             }
 
             if (Vertices > 0 && HullCount > 0) buff.Append(",");
@@ -94,13 +94,13 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             if (HullCount > 0)
             {
                 buff.Append("nHulls=");
-                buff.Append(HullCount.ToString());
+                buff.Append(HullCount);
                 buff.Append(",");
                 buff.Append("hullVerts=");
                 for (int ii = 0; ii < HullCount; ii++)
                 {
                     if (ii != 0) buff.Append(",");
-                    buff.Append(GetVerticesPerHull(ii).ToString());
+                    buff.Append(GetVerticesPerHull(ii));
                 }
             }
             buff.Append(">");
@@ -110,7 +110,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
     public abstract class BSShape
     {
-        private static string LogHeader = "[BULLETSIM SHAPE]";
+        private static readonly string LogHeader = "[BULLETSIM SHAPE]";
 
         public int referenceCount { get; set; }
         public DateTime lastReferenced { get; set; }
@@ -199,7 +199,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 buff.Append(physShapeInfo.ToString());
             }
             buff.Append(",c=");
-            buff.Append(referenceCount.ToString());
+            buff.Append(referenceCount);
             buff.Append(">");
             return buff.ToString();
         }
@@ -332,7 +332,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
         {
             StringBuilder buff = new(prim.PhysObjectName);
             buff.Append("/pos=");
-            buff.Append(prim.RawPosition.ToString());
+            buff.Append(prim.RawPosition);
             if (pScene != null)
             {
                 buff.Append("/rgn=");
@@ -361,7 +361,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
     // This means allocation and freeing is different than meshes.
     public class BSShapeNative : BSShape
     {
-        private static string LogHeader = "[BULLETSIM SHAPE NATIVE]";
+        private static readonly string LogHeader = "[BULLETSIM SHAPE NATIVE]";
         public BSShapeNative(BulletShape pShape) : base(pShape)
         {
         }
@@ -442,7 +442,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
     // BSShapeMesh is a simple mesh.
     public class BSShapeMesh : BSShape
     {
-        private static string LogHeader = "[BULLETSIM SHAPE MESH]";
+        private static readonly string LogHeader = "[BULLETSIM SHAPE MESH]";
         public static Dictionary<ulong, BSShapeMesh> Meshes = [];
 
         public BSShapeMesh(BulletShape pShape) : base(pShape)
@@ -479,7 +479,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                     retMesh.physShapeInfo = newShape;
                 }
             }
-            physicsScene.DetailLog("{0},BSShapeMesh,getReference,mesh={1},size={2},lod={3}", prim.LocalID, retMesh, prim.Size, lod);
+            physicsScene.DetailLog("{0},BSShapeMesh.getReference,mesh={1},size={2},lod={3}", prim.LocalID, retMesh, prim.Size, lod);
             return retMesh;
         }
         public override BSShape GetReference(BSScene pPhysicsScene, BSPhysObject pPrim)
@@ -588,17 +588,8 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                         int v1 = indices[tri + 0] * 3;
                         int v2 = indices[tri + 1] * 3;
                         int v3 = indices[tri + 2] * 3;
-                    // Check to see if any two of the vertices are the same
-                        if (!( (  verticesAsFloats[v1 + 0] == verticesAsFloats[v2 + 0]
-                               && verticesAsFloats[v1 + 1] == verticesAsFloats[v2 + 1]
-                               && verticesAsFloats[v1 + 2] == verticesAsFloats[v2 + 2])
-                            || (  verticesAsFloats[v2 + 0] == verticesAsFloats[v3 + 0]
-                               && verticesAsFloats[v2 + 1] == verticesAsFloats[v3 + 1]
-                               && verticesAsFloats[v2 + 2] == verticesAsFloats[v3 + 2])
-                            || (  verticesAsFloats[v1 + 0] == verticesAsFloats[v3 + 0]
-                               && verticesAsFloats[v1 + 1] == verticesAsFloats[v3 + 1]
-                               && verticesAsFloats[v1 + 2] == verticesAsFloats[v3 + 2]) )
-                        )
+                        // Check to see if any two of the vertices are the same
+                        if (!IsTriangleDegenerate(verticesAsFloats, v1, v2, v3))
                         {
                             // None of the vertices of the triangles are the same. This is a good triangle;
                             indices[realIndicesIndex + 0] = indices[tri + 0];
@@ -627,6 +618,20 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 
             return newShape;
         }
+
+        private static bool IsTriangleDegenerate(float[] vertices, int v1, int v2, int v3)
+        {
+            const float epsilon = 1e-6f;
+            return (Math.Abs(vertices[v1 + 0] - vertices[v2 + 0]) < epsilon &&
+                    Math.Abs(vertices[v1 + 1] - vertices[v2 + 1]) < epsilon &&
+                    Math.Abs(vertices[v1 + 2] - vertices[v2 + 2]) < epsilon) ||
+                   (Math.Abs(vertices[v2 + 0] - vertices[v3 + 0]) < epsilon &&
+                    Math.Abs(vertices[v2 + 1] - vertices[v3 + 1]) < epsilon &&
+                    Math.Abs(vertices[v2 + 2] - vertices[v3 + 2]) < epsilon) ||
+                   (Math.Abs(vertices[v1 + 0] - vertices[v3 + 0]) < epsilon &&
+                    Math.Abs(vertices[v1 + 1] - vertices[v3 + 1]) < epsilon &&
+                    Math.Abs(vertices[v1 + 2] - vertices[v3 + 2]) < epsilon);
+        }
     }
 
     // ============================================================================================================
@@ -636,7 +641,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
     public class BSShapeHull : BSShape
     {
     #pragma warning disable 414
-        private static string LogHeader = "[BULLETSIM SHAPE HULL]";
+        private static readonly string LogHeader = "[BULLETSIM SHAPE HULL]";
     #pragma warning restore 414
 
         public static Dictionary<ulong, BSShapeHull> Hulls = [];
@@ -674,7 +679,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                     retHull.physShapeInfo = newShape;
                 }
             }
-            physicsScene.DetailLog("{0},BSShapeHull,getReference,hull={1},size={2},lod={3}", prim.LocalID, retHull, prim.Size, lod);
+            physicsScene.DetailLog("{0},BSShapeHull.getReference,hull={1},size={2},lod={3}", prim.LocalID, retHull, prim.Size, lod);
             return retHull;
         }
         public override BSShape GetReference(BSScene pPhysicsScene, BSPhysObject pPrim)
@@ -964,7 +969,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
     //    meshes. Used by BulletSim for complex shapes like linksets.
     public class BSShapeCompound : BSShape
     {
-        private static string LogHeader = "[BULLETSIM SHAPE COMPOUND]";
+        private static readonly string LogHeader = "[BULLETSIM SHAPE COMPOUND]";
         public static Dictionary<string, BSShapeCompound> CompoundShapes = [];
 
         public BSShapeCompound(BulletShape pShape) : base(pShape)
@@ -1110,7 +1115,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
     public class BSShapeConvexHull : BSShape
     {
     #pragma warning disable 414
-        private static string LogHeader = "[BULLETSIM SHAPE CONVEX HULL]";
+        private static readonly string LogHeader = "[BULLETSIM SHAPE CONVEX HULL]";
     #pragma warning restore 414
 
         public static Dictionary<ulong, BSShapeConvexHull> ConvexHulls = [];
@@ -1123,7 +1128,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             float lod;
             ulong newMeshKey = BSShape.ComputeShapeKey(prim.Size, prim.BaseShape, out lod);
 
-            physicsScene.DetailLog("{0},BSShapeConvexHull,getReference,newKey={1},size={2},lod={3}",
+            physicsScene.DetailLog("{0},BSShapeConvexHull.getReference,newKey={1},size={2},lod={3}",
                                     prim.LocalID, newMeshKey.ToString("X"), prim.Size, lod);
 
             BSShapeConvexHull retConvexHull = null;
@@ -1212,7 +1217,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
     public class BSShapeGImpact : BSShape
     {
     #pragma warning disable 414
-        private static string LogHeader = "[BULLETSIM SHAPE GIMPACT]";
+        private static readonly string LogHeader = "[BULLETSIM SHAPE GIMPACT]";
     #pragma warning restore 414
 
         public static Dictionary<ulong, BSShapeGImpact> GImpacts = [];
@@ -1325,7 +1330,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
     public class BSShapeAvatar : BSShape
     {
     #pragma warning disable 414
-        private static string LogHeader = "[BULLETSIM SHAPE AVATAR]";
+        private static readonly string LogHeader = "[BULLETSIM SHAPE AVATAR]";
     #pragma warning restore 414
 
         public BSShapeAvatar()

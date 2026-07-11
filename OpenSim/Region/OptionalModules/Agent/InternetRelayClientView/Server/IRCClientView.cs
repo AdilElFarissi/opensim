@@ -1,36 +1,10 @@
-/*
- * Copyright (c) Contributors, http://opensimulator.org/
- * See CONTRIBUTORS.TXT for a full list of copyright holders.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the OpenSimulator Project nor the
- *       names of its contributors may be used to endorse or promote products
- *       derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE DEVELOPERS ``AS IS'' AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using log4net;
 using OpenMetaverse;
@@ -108,7 +82,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         {
             try
             {
-                string strbuf = string.Empty;
+                StringBuilder strbuf = new StringBuilder();
 
                 while (m_connected && m_client.Connected)
                 {
@@ -117,13 +91,14 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
                     int count = m_client.GetStream().Read(buf, 0, buf.Length);
                     string line = Util.UTF8.GetString(buf, 0, count);
 
-                    strbuf += line;
+                    strbuf.Append(line);
 
-                    string message = ExtractMessage(strbuf);
+                    string message = ExtractMessage(strbuf.ToString());
                     if (message != null)
                     {
                         // Remove from buffer
-                        strbuf = strbuf.Remove(0, message.Length);
+                        strbuf.Clear();
+                        strbuf.Append(message.Substring(message.Length));
 
                         m_log.Info("[IRCd] Recieving <<< " + message);
                         message = message.Trim();
@@ -135,7 +110,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
                     else
                     {
                         //m_log.Info("[IRCd] Recieved data, but not enough to make a message. BufLen is " + strbuf.Length +
-                        //           "[" + strbuf + "]");
+                        //           [" + strbuf + "]");
                         if (strbuf.Length == 0)
                         {
                             m_connected = false;
@@ -224,7 +199,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
                     case "USERHOST":
                         string[] userhostArgs = ExtractParameters(message);
-                        if (userhostArgs[0] == ":" + m_nick)
+                        if (userhostArgs.Length > 0 && userhostArgs[0] == ":" + m_nick)
                         {
                             SendServerCommand("302 :" + m_nick + "=+" + m_nick + "@" +
                                         ((IPEndPoint) m_client.Client.RemoteEndPoint).Address);
@@ -445,7 +420,7 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
                         nom[i] = ' ';
                 }
 
-                SendServerCommand("393 :" + nom + " " + term + " " + host + "");
+                SendServerCommand("393 :" + new string(nom) + " " + new string(term) + " " + new string(host) + "");
             }
 
             SendServerCommand("394 :End of users");
@@ -1172,168 +1147,6 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
 
         }
 
-        public void SendEconomyData(float EnergyEfficiency, int ObjectCapacity, int ObjectCount, int PriceEnergyUnit, int PriceGroupCreate, int PriceObjectClaim, float PriceObjectRent, float PriceObjectScaleFactor, int PriceParcelClaim, float PriceParcelClaimFactor, int PriceParcelRent, int PricePublicObjectDecay, int PricePublicObjectDelete, int PriceRentLight, int PriceUpload, int TeleportMinPrice, float TeleportPriceExponent)
-        {
-
-        }
-
-        public void SendAvatarPickerReply(UUID QueryID, List<UserData> users)
-        {
-
-        }
-
-        public void SendAgentDataUpdate(UUID agentid, UUID activegroupid, string firstname, string lastname, ulong grouppowers, string groupname, string grouptitle)
-        {
-
-        }
-
-        public void SendPreLoadSound(UUID objectID, UUID ownerID, UUID soundID)
-        {
-
-        }
-
-        public void SendPlayAttachedSound(UUID soundID, UUID objectID, UUID ownerID, float gain, byte flags)
-        {
-
-        }
-
-        public void SendTriggeredSound(UUID soundID, UUID ownerID, UUID objectID, UUID parentID, ulong handle, Vector3 position, float gain)
-        {
-
-        }
-
-        public void SendAttachedSoundGainChange(UUID objectID, float gain)
-        {
-
-        }
-
-        public void SendNameReply(UUID profileId, string firstname, string lastname)
-        {
-
-        }
-
-        public void SendAlertMessage(string message)
-        {
-            IRC_SendChannelPrivmsg("Alert",message);
-        }
-
-        public void SendAgentAlertMessage(string message, bool modal)
-        {
-
-        }
-
-        public void SendAlertMessage(string message, string info)
-        {
-
-        }
-
-        public void SendLoadURL(string objectname, UUID objectID, UUID ownerID, bool groupOwned, string message, string url)
-        {
-            IRC_SendChannelPrivmsg(objectname,url);
-        }
-
-        public void SendDialog(string objectname, UUID objectID, UUID ownerID, string ownerFirstName, string ownerLastName, string msg, UUID textureID, int ch, string[] buttonlabels)
-        {
-        }
-
-        public void SendViewerTime(Vector3 sunDir, float sunphase)
-        {
-        }
-
-        public void SendViewerEffect(ViewerEffectPacket.EffectBlock[] effectBlocks)
-        {
-        }
-
-        public void SendAvatarProperties(UUID avatarID, string aboutText, string bornOn, byte[] membershipType, string flAbout, uint flags, UUID flImageID, UUID imageID, string profileURL, UUID partnerID)
-        {
-
-        }
-
-        public void SendScriptQuestion(UUID taskID, string taskName, string ownerName, UUID itemID, int question)
-        {
-
-        }
-
-        public void SendHealth(float health)
-        {
-
-        }
-
-        public void SendEstateList(UUID invoice, int code, UUID[] Data, uint estateID)
-        {
-
-        }
-
-        public void SendBannedUserList(UUID invoice, EstateBan[] banlist, uint estateID)
-        {
-
-        }
-
-        public void SendRegionInfoToEstateMenu(RegionInfoForEstateMenuArgs args)
-        {
-
-        }
-
-        public void SendEstateCovenantInformation(UUID covenant)
-        {
-
-        }
-
-        public void SendDetailedEstateData(UUID invoice, string estateName, uint estateID, uint parentEstate, uint estateFlags, uint sunPosition, UUID covenant, uint covenantChanged, string abuseEmail, UUID estateOwner)
-        {
-
-        }
-
-        public void SendLandProperties(int sequence_id, bool snap_selection, int request_result, ILandObject lo, float simObjectBonusFactor, int parcelObjectCapacity, int simObjectCapacity, uint regionFlags)
-        {
-
-        }
-
-        public void SendLandAccessListData(List<LandAccessEntry> accessList, uint accessFlag, int localLandID)
-        {
-
-        }
-
-        public void SendForceClientSelectObjects(List<uint> objectIDs)
-        {
-
-        }
-
-        public void SendCameraConstraint(Vector4 ConstraintPlane)
-        {
-
-        }
-
-        public void SendLandObjectOwners(LandData land, List<UUID> groups, Dictionary<UUID, int> ownersAndCount)
-        {
-
-        }
-
-        public void SendLandParcelOverlay(byte[] data, int sequence_id)
-        {
-
-        }
-
-        public void SendParcelMediaCommand(uint flags, ParcelMediaCommandEnum command, float time)
-        {
-
-        }
-
-        public void SendParcelMediaUpdate(string mediaUrl, UUID mediaTextureID, byte autoScale, string mediaType, string mediaDesc, int mediaWidth, int mediaHeight, byte mediaLoop)
-        {
-
-        }
-
-        public void SendAssetUploadCompleteMessage(sbyte AssetType, bool Success, UUID AssetFullID)
-        {
-
-        }
-
-        public void SendConfirmXfer(ulong xferID, uint PacketID)
-        {
-
-        }
-
         public void SendXferRequest(ulong XferID, short AssetType, UUID vFileID, byte FilePath, byte[] FileName)
         {
 
@@ -1756,10 +1569,6 @@ namespace OpenSim.Region.OptionalModules.Agent.InternetRelayClientView.Server
         }
 
         public void SendSelectedPartsProprieties(List<ISceneEntity> parts)
-        {
-        }
-
-        public void SendPartPhysicsProprieties(ISceneEntity entity)
         {
         }
 

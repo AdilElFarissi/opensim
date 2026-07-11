@@ -28,6 +28,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Text;
 using OpenMetaverse;
 
 namespace OpenSim.Framework
@@ -119,7 +120,7 @@ namespace OpenSim.Framework
         {
             get { return m_UseGlobalTime; }
             //set { m_UseGlobalTime = value; }
-            set { m_UseGlobalTime = false; }
+            set { m_UseGlobalTime = value; }
         }
 
         private bool m_FixedSun = false;
@@ -127,7 +128,7 @@ namespace OpenSim.Framework
         {
             get { return m_FixedSun; }
             // set { m_FixedSun = value; }
-            set { m_FixedSun = false; }
+            set { m_FixedSun = value; }
         }
 
         private double m_SunPosition = 0.0;
@@ -135,7 +136,7 @@ namespace OpenSim.Framework
         {
             get { return m_SunPosition; }
             //set { m_SunPosition = value; }
-            set { m_SunPosition = 0; }
+            set { m_SunPosition = value; }
         }
 
         private bool m_AllowVoice = true;
@@ -222,7 +223,7 @@ namespace OpenSim.Framework
         public string AbuseEmail
         {
             get { return m_AbuseEmail; }
-            set { m_AbuseEmail= value; }
+            set { m_AbuseEmail = value; }
         }
 
         private UUID m_EstateOwner = UUID.Zero;
@@ -253,7 +254,7 @@ namespace OpenSim.Framework
         public UUID[] EstateManagers
         {
             get { return l_EstateManagers.ToArray(); }
-            set { l_EstateManagers = [.. value]; }
+            set { l_EstateManagers = [..value]; }
         }
 
         private List<EstateBan> l_EstateBans = [];
@@ -261,21 +262,21 @@ namespace OpenSim.Framework
         public EstateBan[] EstateBans
         {
             get { return l_EstateBans.ToArray(); }
-            set { l_EstateBans = [.. value]; }
+            set { l_EstateBans = [..value]; }
         }
 
         private List<UUID> l_EstateAccess = [];
         public UUID[] EstateAccess
         {
             get { return l_EstateAccess.ToArray(); }
-            set { l_EstateAccess = [.. value]; }
+            set { l_EstateAccess = [..value]; }
         }
 
         private List<UUID> l_EstateGroups = [];
         public UUID[] EstateGroups
         {
             get { return l_EstateGroups.ToArray(); }
-            set { l_EstateGroups = [.. value]; }
+            set { l_EstateGroups = [..value]; }
         }
 
         public bool DoDenyMinors = true;
@@ -361,10 +362,9 @@ namespace OpenSim.Framework
         {
             if (!IsEstateManagerOrOwner(avatarID))
             {
-                foreach (EstateBan ban in l_EstateBans)
+                foreach (EstateBan ban in l_EstateBans.Where(b => b.BannedUserID.Equals(avatarID)))
                 {
-                    if (ban.BannedUserID.Equals(avatarID))
-                        return true;
+                    return true;
                 }
             }
             return false;
@@ -374,27 +374,14 @@ namespace OpenSim.Framework
         {
             if (!IsEstateManagerOrOwner(avatarID))
             {
-                foreach (EstateBan ban in l_EstateBans)
-                {
-                    if (ban.BannedUserID.Equals(avatarID))
-                        return true;
-                }
+                if (l_EstateBans.Any(b => b.BannedUserID.Equals(avatarID)))
+                    return true;
 
                 if (!HasAccess(avatarID))
                 {
-                    if (DenyMinors)
+                    if ((DenyMinors && (userFlags & 32) == 0) || (DenyAnonymous && (userFlags & 4) == 0))
                     {
-                        if ((userFlags & 32) == 0)
-                        {
-                            return true;
-                        }
-                    }
-                    if (DenyAnonymous)
-                    {
-                        if ((userFlags & 4) == 0)
-                        {
-                            return true;
-                        }
+                        return true;
                     }
                 }
             }
@@ -421,9 +408,8 @@ namespace OpenSim.Framework
 
         public void RemoveBan(UUID avatarID)
         {
-            foreach (EstateBan ban in new List<EstateBan>(l_EstateBans))
-                if (ban.BannedUserID == avatarID)
-                    l_EstateBans.Remove(ban);
+            foreach (EstateBan ban in new List<EstateBan>(l_EstateBans).Where(b => b.BannedUserID == avatarID))
+                l_EstateBans.Remove(ban);
         }
 
         public bool HasAccess(UUID user)
@@ -483,7 +469,10 @@ namespace OpenSim.Framework
                 Dictionary<string, object> bans = [];
                 int i = 0;
                 foreach (EstateBan ban in EstateBans)
-                    bans["ban" + i++] = ban.ToMap();
+                {
+                    bans["ban" + i] = ban.ToMap();
+                    i++;
+                }
                 map["EstateBans"] = bans;
             }
 
@@ -497,21 +486,21 @@ namespace OpenSim.Framework
         public override string ToString()
         {
             Dictionary<string, object> map = ToMap();
-            string result = string.Empty;
+            StringBuilder result = new StringBuilder();
 
             foreach (KeyValuePair<string, object> kvp in map)
             {
                 if (kvp.Key == "EstateBans")
                 {
-                    result += "EstateBans:" + Environment.NewLine;
+                    result.AppendLine("EstateBans:");
                     foreach (KeyValuePair<string, object> ban in (Dictionary<string, object>)kvp.Value)
-                        result += ban.Value.ToString();
+                        result.AppendLine(ban.Value.ToString());
                 }
                 else
-                    result += string.Format("{0}: {1} {2}", kvp.Key, kvp.Value.ToString(), Environment.NewLine);
+                    result.AppendLine($"{kvp.Key}: {kvp.Value}");
             }
 
-            return result;
+            return result.ToString();
         }
 
         public EstateSettings(Dictionary<string, object> map)
@@ -555,25 +544,23 @@ namespace OpenSim.Framework
                 if(oEstateBans is string bansmap)
                 {
                     // JSON encoded bans map
-                    Dictionary<string, EstateBan> bdata = [];
                     try
                     {
                         // bypass libovm, we dont need even more useless high level maps
                         // this should only be called once.. but no problem, i hope
                         // (other uses may need more..)
                         LitJson.JsonMapper.RegisterImporter<string, UUID>((input) => new UUID(input));
-                        bdata = LitJson.JsonMapper.ToObject<Dictionary<string,EstateBan>>(bansmap);
+                        Dictionary<string, EstateBan> bdata = LitJson.JsonMapper.ToObject<Dictionary<string, EstateBan>>(bansmap);
+                        EstateBan[] jbans = new EstateBan[bdata.Count];
+                        bdata.Values.CopyTo(jbans,0);
+
+                        PropertyInfo jbansProperty = this.GetType().GetProperty("EstateBans", BindingFlags.Public | BindingFlags.Instance);
+                        jbansProperty.SetValue(this, jbans, null);
                     }
-                    //catch(Exception e)
                     catch
                     {
                         return;
                     }
-                    EstateBan[] jbans = new EstateBan[bdata.Count];
-                    bdata.Values.CopyTo(jbans,0);
-
-                    PropertyInfo jbansProperty = this.GetType().GetProperty("EstateBans", BindingFlags.Public | BindingFlags.Instance);
-                    jbansProperty.SetValue(this, jbans, null);
                 }
                 else
                 {

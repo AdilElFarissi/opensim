@@ -45,10 +45,10 @@ namespace OpenSim.Region.PhysicsModule.BasicPhysics
     /// of physics plugin is needed.
     /// </remarks>
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "BasicPhysicsScene")]
-    public class BasicScene : PhysicsScene, INonSharedRegionModule
+    public class BasicScene : physicsScene, INonSharedRegionModule
     {
-        private List<BasicActor> _actors = [];
-        private List<BasicPhysicsPrim> _prims = [];
+        private readonly List<BasicActor> _actors = [];
+        private readonly List<BasicPhysicsPrim> _prims = [];
         private float[] _heightMap;
         private Vector3 m_regionExtent;
 

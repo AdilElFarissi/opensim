@@ -36,6 +36,9 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.World.LegacyMap
 {
+    /// <summary>
+    /// Renders map tile terrain with shading effects based on height differences.
+    /// </summary>
     public class ShadedMapTileRenderer : IMapTileTerrainRenderer
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -45,6 +48,11 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
         private IConfigSource m_config;
         private Color m_color_water;
 
+        /// <summary>
+        /// Initializes the renderer with the scene and configuration source.
+        /// </summary>
+        /// <param name="scene">The scene containing the heightmap data.</param>
+        /// <param name="config">The configuration source for map settings.</param>
         public void Initialise(Scene scene, IConfigSource config)
         {
             m_scene = scene;
@@ -54,6 +62,10 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
             m_color_water = System.Drawing.ColorTranslator.FromHtml(Util.GetConfigVarFromSections<string>(m_config, "MapColorWater", configSections, "#1D475F"));
         }
 
+        /// <summary>
+        /// Converts terrain heightmap data to a bitmap with shading applied.
+        /// </summary>
+        /// <param name="mapbmp">The bitmap to render the terrain into.</param>
         public void TerrainToBitmap(Bitmap mapbmp)
         {
             m_log.DebugFormat("{0} Generating Maptile Step 1: Terrain", LogHeader);
@@ -77,7 +89,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
             {
                 for (int y = 0; y < hm.Height; y++)
                 {
-                    float hmval = (float)hm[x, y];
+                    float hmval = hm[x, y];
                     if (hmval < low)
                         low = hmval;
                     if (hmval > high)
@@ -94,7 +106,7 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                     // Y flip the cordinates for the bitmap: hf origin is lower left, bm origin is upper left
                     int yr = ((int)hm.Height - 1) - y;
 
-                    float heightvalue = (float)hm[x, y];
+                    float heightvalue = hm[x, y];
 
                     if (heightvalue > waterHeight)
                     {
@@ -121,12 +133,12 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                             // Shade the terrain for shadows
                             if (x < (hm.Width - 1) && yr < (hm.Height - 1))
                             {
-                                float hfvalue = (float)hm[x, y];
+                                float hfvalue = hm[x, y];
                                 float hfvaluecompare = 0f;
 
                                 if ((x + 1 < hm.Width) && (y + 1 < hm.Height))
                                 {
-                                    hfvaluecompare = (float)hm[x + 1, y + 1]; // light from north-east => look at land height there
+                                    hfvaluecompare = hm[x + 1, y + 1]; // light from north-east => look at land height there
                                 }
                                 if (float.IsInfinity(hfvalue) || float.IsNaN(hfvalue))
                                     hfvalue = 0f;
@@ -144,14 +156,14 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                                 {
                                     // hfdiffi = Math.Abs((int)((hfdiff * 4) + (hfdiff * 0.5))) + 1;
                                     hfdiffi = Math.Abs((int)(hfdiff * 4.5f)) + 1;
-                                    if (hfdiff % 1f != 0)
+                                    if (Math.Abs(hfdiff % 1f) > float.Epsilon)
                                     {
                                         // hfdiffi = hfdiffi + Math.Abs((int)(((hfdiff % 1) * 0.5f) * 10f) - 1);
                                         hfdiffi = hfdiffi + Math.Abs((int)((hfdiff % 1f) * 5f) - 1);
                                     }
 
                                     hfdiffihighlight = Math.Abs((int)((hfdiff * highlightfactor) * 4.5f)) + 1;
-                                    if (hfdiff % 1f != 0)
+                                    if (Math.Abs((hfdiff * highlightfactor) % 1f) > float.Epsilon)
                                     {
                                         // hfdiffi = hfdiffi + Math.Abs((int)(((hfdiff % 1) * 0.5f) * 10f) - 1);
                                         hfdiffihighlight = hfdiffihighlight + Math.Abs((int)(((hfdiff * highlightfactor) % 1f) * 5f) - 1);
@@ -187,20 +199,17 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                                     // we use floats, colors use bytes, so shrink are space down to
                                     // 0-255
 
-                                    if (ShadowDebugContinue)
+                                    if (ShadowDebugContinue && (x - 1 > 0) && (yr + 1 < hm.Height))
                                     {
-                                        if ((x - 1 > 0) && (yr + 1 < hm.Height))
-                                        {
-                                            color = mapbmp.GetPixel(x - 1, yr + 1);
-                                            int r = color.R;
-                                            int g = color.G;
-                                            int b = color.B;
-                                            color = Color.FromArgb((r - hfdiffi > 0) ? r - hfdiffi : 0,
-                                                                   (g - hfdiffi > 0) ? g - hfdiffi : 0,
-                                                                   (b - hfdiffi > 0) ? b - hfdiffi : 0);
+                                        color = mapbmp.GetPixel(x - 1, yr + 1);
+                                        int r = color.R;
+                                        int g = color.G;
+                                        int b = color.B;
+                                        color = Color.FromArgb((r - hfdiffi > 0) ? r - hfdiffi : 0,
+                                                               (g - hfdiffi > 0) ? g - hfdiffi : 0,
+                                                               (b - hfdiffi > 0) ? b - hfdiffi : 0);
 
-                                            mapbmp.SetPixel(x-1, yr+1, color);
-                                        }
+                                        mapbmp.SetPixel(x-1, yr+1, color);
                                     }
                                 }
                             }
@@ -228,8 +237,6 @@ namespace OpenSim.Region.CoreModules.World.LegacyMap
                             heightvalue = 19f;
                         else if (heightvalue < 0f)
                             heightvalue = 0f;
-
-                        heightvalue = 100f - (heightvalue * 100f) / 19f;
 
                         try
                         {
