@@ -111,8 +111,8 @@ jobs:
           fixed_count = 0
 
           already_patched = set()
-          if os.path.exists(already_patched.json):
-              with open("already_patched.json", "r") as f_exclude_r:
+          if os.path.exists(patched_files.json):
+              with open("patched_files.json", "r") as f_exclude_r:
                   already_patched = set(json.load(f_exclude_r))
 
           vulnerabilities_by_file = {}
@@ -297,7 +297,7 @@ jobs:
 
           print(f"Code repair cycle completed. Total files safely patched: {fixed_count}")
 
-          with open(already_patched.json, "w") as f_exclude_w:
+          with open(patched_files.json, "w") as f_exclude_w:
               json.dump(list(already_patched), f_exclude_w)
           
           EOF
