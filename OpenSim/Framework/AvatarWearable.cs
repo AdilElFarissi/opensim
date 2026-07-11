@@ -26,6 +26,7 @@
  */
 
 using System.Collections.Generic;
+using System.Linq;
 using OpenMetaverse;
 using OpenMetaverse.StructuredData;
 
@@ -194,13 +195,10 @@ namespace OpenSim.Framework
         {
             UUID itemID = UUID.Zero;
 
-            foreach (KeyValuePair<UUID, UUID> kvp in m_items)
+            KeyValuePair<UUID, UUID> kvp = m_items.FirstOrDefault(kvp => kvp.Value == assetID);
+            if (kvp.Key != UUID.Zero)
             {
-                if (kvp.Value == assetID)
-                {
-                    itemID = kvp.Key;
-                    break;
-                }
+                itemID = kvp.Key;
             }
 
             if (!itemID.IsZero())

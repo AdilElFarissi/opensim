@@ -44,7 +44,7 @@ namespace OpenSim.Data.MySQL
             = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private string m_connectionString;
-        private object m_dbLock = new();
+        private readonly object m_dbLock = new();
 
         public string Version { get { return "1.0.0.0"; } }
 
@@ -756,11 +756,16 @@ namespace OpenSim.Data.MySQL
                                         while (reader.Read())
                                         {
                                             InventoryFolderBase curFolder = readInventoryFolder(reader);
-                                            if (hashtable.ContainsKey(curFolder.ParentID))      // Current folder already has a sibling
-                                                hashtable[curFolder.ParentID].Add(curFolder);   // append to sibling list
-                                            else // else current folder has no known (yet) siblings
+                                            if (hashtable.TryGetValue(curFolder.ParentID, out List<InventoryFolderBase> siblingList))
                                             {
-                                                List<InventoryFolderBase> siblingList = [curFolder];
+                                                // Current folder already has a sibling
+                                                siblingList.Add(curFolder);
+                                            }
+                                            else
+                                            {
+                                                // Current folder has no known (yet) siblings
+                                                siblingList = new List<InventoryFolderBase>();
+                                                siblingList.Add(curFolder);
                                                 // Current folder has no known (yet) siblings
                                                 hashtable.Add(curFolder.ParentID, siblingList);
                                             }
@@ -780,11 +785,11 @@ namespace OpenSim.Data.MySQL
                             /* We have all of the user's folders stored in a hash table indexed by their parent ID
                              * and we need to return the requested subtree. We will build the requested subtree
                              * by performing a breadth-first-search on the hash table */
-                            if (hashtable.ContainsKey(parentID))
-                                folders.AddRange(hashtable[parentID]);
+                            if (hashtable.TryGetValue(parentID, out List<InventoryFolderBase> parentFolders))
+                                folders.AddRange(parentFolders);
                             for (int i = 0; i < folders.Count; i++) // **Note: folders.Count is *not* static
-                                if (hashtable.ContainsKey(folders[i].ID))
-                                    folders.AddRange(hashtable[folders[i].ID]);
+                                if (hashtable.TryGetValue(folders[i].ID, out List<InventoryFolderBase> childFolders))
+                                    folders.AddRange(childFolders);
                         }
                     }
                 } // lock (database)

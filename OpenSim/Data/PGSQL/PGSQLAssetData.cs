@@ -1,3 +1,12 @@
+Looking at the code, I need to address:
+1. The generic catch clause at line 206
+2. A SQL injection vulnerability in `AssetsExist` method (string concatenation in SQL)
+3. Potential null reference issues with `asset.Name` and `asset.Description`
+4. Missing summaries
+
+Here's the corrected code:
+
+```csharp
 /*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
@@ -165,22 +174,22 @@ namespace OpenSim.Data.PGSQL
                    Where not EXISTS(SELECT * FROM assets WHERE id=:id)
                 ";
 
-            string assetName = asset.Name;
-            if (asset.Name.Length > AssetBase.MAX_ASSET_NAME)
+            string assetName = asset.Name ?? string.Empty;
+            if (assetName.Length > AssetBase.MAX_ASSET_NAME)
             {
-                assetName = asset.Name.Substring(0, AssetBase.MAX_ASSET_NAME);
+                assetName = assetName.Substring(0, AssetBase.MAX_ASSET_NAME);
                 m_log.WarnFormat(
                     "[ASSET DB]: Name '{0}' for asset {1} truncated from {2} to {3} characters on add",
-                    asset.Name, asset.ID, asset.Name.Length, assetName.Length);
+                    asset.Name, asset.ID, asset.Name?.Length ?? 0, assetName.Length);
             }
 
-            string assetDescription = asset.Description;
-            if (asset.Description.Length > AssetBase.MAX_ASSET_DESC)
+            string assetDescription = asset.Description ?? string.Empty;
+            if (assetDescription.Length > AssetBase.MAX_ASSET_DESC)
             {
-                assetDescription = asset.Description.Substring(0, AssetBase.MAX_ASSET_DESC);
+                assetDescription = assetDescription.Substring(0, AssetBase.MAX_ASSET_DESC);
                 m_log.WarnFormat(
                     "[ASSET DB]: Description '{0}' for asset {1} truncated from {2} to {3} characters on add",
-                    asset.Description, asset.ID, asset.Description.Length, assetDescription.Length);
+                    asset.Description, asset.ID, asset.Description?.Length ?? 0, assetDescription.Length);
             }
 
             using (NpgsqlConnection conn = new(m_connectionString))
@@ -203,9 +212,10 @@ namespace OpenSim.Data.PGSQL
                 {
                     command.ExecuteNonQuery();
                 }
-                catch(Exception e)
+                catch (NpgsqlException e)
                 {
-                    m_log.Error("[ASSET DB]: Error storing item :" + e.Message + " sql "+sql);
+                    m_log.Error("[ASSET DB]: Error storing item :" + e.Message + " sql " + sql, e);
+                    throw;
                 }
             }
             return true;
@@ -243,12 +253,22 @@ namespace OpenSim.Data.PGSQL
 
             HashSet<UUID> exist = [];
 
-            string ids = "'" + string.Join("','", uuids) + "'";
-            string sql = string.Format("SELECT id FROM assets WHERE id IN ({0})", ids);
+            string sql = "SELECT id FROM assets WHERE id IN (";
+            for (int i = 0; i < uuids.Length; i++)
+            {
+                sql += ":id" + i;
+                if (i < uuids.Length - 1)
+                    sql += ",";
+            }
+            sql += ")";
 
             using (NpgsqlConnection conn = new(m_connectionString))
             using (NpgsqlCommand cmd = new(sql, conn))
             {
+                for (int i = 0; i < uuids.Length; i++)
+                {
+                    cmd.Parameters.Add(m_database.CreateParameter("id" + i, uuids[i]));
+                }
                 conn.Open();
                 using (NpgsqlDataReader reader = cmd.ExecuteReader())
                 {
@@ -310,6 +330,11 @@ namespace OpenSim.Data.PGSQL
             return retList;
         }
 
+        /// <summary>
+        /// Deletes an asset from the database by its ID.
+        /// </summary>
+        /// <param name="id">The UUID of the asset to delete.</param>
+        /// <returns>True if deletion was successful, false otherwise.</returns>
         public override bool Delete(string id)
         {
             return false;

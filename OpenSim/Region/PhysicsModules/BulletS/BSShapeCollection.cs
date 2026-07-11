@@ -33,14 +33,14 @@ namespace OpenSim.Region.PhysicsModule.BulletS
     public sealed class BSShapeCollection : IDisposable
     {
 #pragma warning disable 414
-        private static string LogHeader = "[BULLETSIM SHAPE COLLECTION]";
+        private static readonly string LogHeader = "[BULLETSIM SHAPE COLLECTION]";
 #pragma warning restore 414
 
         private BSScene m_physicsScene { get; set; }
 	    
-        private object m_collectionActivityLock = new();
+        private readonly object m_collectionActivityLock = new();
 	    
-        private bool DDetail = false;
+        private readonly bool DDetail = false;
 	    
         public BSShapeCollection(BSScene physScene)
         {
@@ -184,7 +184,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
 	    
                 // It doesn't look like Bullet scales native spheres so make sure the scales are all equal
                 if ((pbs.ProfileShape == ProfileShape.HalfCircle && pbs.PathCurve == (byte)Extrusion.Curve1)
-                                    && pbs.Scale.X == pbs.Scale.Y && pbs.Scale.Y == pbs.Scale.Z)
+                                    && OMV.Vector3.ApproximatelyEquals(pbs.Scale, new OMV.Vector3(pbs.Scale.X, pbs.Scale.X, pbs.Scale.X)))
                 {
                     haveShape = true;
                     if (forceRebuild
@@ -204,9 +204,9 @@ namespace OpenSim.Region.PhysicsModule.BulletS
                 {
                     haveShape = true;
                     if (forceRebuild
-                            || prim.Scale != scaleOfExistingShape
+                            || !OMV.Vector3.ApproximatelyEquals(prim.Scale, scaleOfExistingShape)
                             || prim.PhysShape.ShapeType != BSPhysicsShapeType.SHAPE_BOX
-                            )
+                        )
                     {
                         DereferenceExistingShape(prim, shapeCallback);
                         prim.PhysShape = BSShapeNative.GetReference(m_physicsScene, prim,
@@ -373,7 +373,7 @@ namespace OpenSim.Region.PhysicsModule.BulletS
             // If not a solid object, body is a GhostObject. Otherwise a RigidBody.
             if (!mustRebuild)
             {
-                CollisionObjectTypes bodyType = (CollisionObjectTypes)m_physicsScene.PE.GetBodyType(prim.PhysBody);
+                CollisionObjectTypes bodyType = m_physicsScene.PE.GetBodyType(prim.PhysBody);
                 if (prim.IsSolid && bodyType != CollisionObjectTypes.CO_RIGID_BODY
                     || !prim.IsSolid && bodyType != CollisionObjectTypes.CO_GHOST_OBJECT)
                 {

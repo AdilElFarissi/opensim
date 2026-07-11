@@ -46,7 +46,7 @@ namespace OpenSim.Region.ClientStack.LindenUDP
         /// </summary>
         private readonly Dictionary<PacketType, Stack<Packet>> pool = [];
 
-        private static Dictionary<Type, Stack<object>> DataBlocks = [];
+        private static readonly Dictionary<Type, Stack<object>> DataBlocks = [];
 
         public static PacketPool Instance
         {
@@ -220,13 +220,10 @@ namespace OpenSim.Region.ClientStack.LindenUDP
             lock (pool)
             {
                 ref Stack<Packet> spkt = ref CollectionsMarshal.GetValueRefOrAddDefault(pool, type, out bool exists);
-                if (exists && spkt.Count < 50)
+                if (!exists || spkt.Count >= 50)
                 {
-                    spkt.Push(packet);
-                    return;
+                    spkt = new Stack<Packet>();
                 }
-
-                spkt = new Stack<Packet>();
                 spkt.Push(packet);
             }
         }

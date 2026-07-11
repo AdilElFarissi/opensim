@@ -36,24 +36,43 @@ using Caps = OpenSim.Framework.Capabilities.Caps;
 
 namespace OpenSim.Capabilities.Handlers
 {
+    /// <summary>
+    /// Handles mesh retrieval requests by fetching mesh assets from the asset service.
+    /// Supports both full mesh retrieval and HTTP range requests for partial content.
+    /// </summary>
     public class GetMeshHandler
     {
         private static readonly ILog m_log =
                    LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private IAssetService m_assetService;
+        private readonly IAssetService m_assetService;
 
-        public const string DefaultFormat = "vnd.ll.mesh";
-
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GetMeshHandler"/> class with the specified asset service.
+        /// </summary>
+        /// <param name="assService">The asset service used to retrieve mesh assets.</param>
         public GetMeshHandler(IAssetService assService)
         {
             m_assetService = assService;
         }
+
+        /// <summary>
+        /// Handles a basic mesh retrieval request without agent context.
+        /// </summary>
+        /// <param name="request">The request hashtable containing mesh_id and headers.</param>
+        /// <returns>A hashtable containing the response data including status code and mesh content.</returns>
         public Hashtable Handle(Hashtable request)
         {
             return ProcessGetMesh(request, UUID.Zero, null);
         }
 
+        /// <summary>
+        /// Processes a mesh retrieval request with agent context and capabilities.
+        /// </summary>
+        /// <param name="request">The request hashtable containing mesh_id and headers.</param>
+        /// <param name="AgentId">The UUID of the agent making the request.</param>
+        /// <param name="cap">The capabilities associated with this request.</param>
+        /// <returns>A hashtable containing the response data including status code, mesh content, and optional headers.</returns>
         public Hashtable ProcessGetMesh(Hashtable request, UUID AgentId, Caps cap)
         {
             Hashtable responsedata = [];
@@ -77,11 +96,11 @@ namespace OpenSim.Capabilities.Handlers
                 return responsedata;
 
             UUID meshID = UUID.Zero;
-            if(!UUID.TryParse(meshStr, out meshID))
+            if (!UUID.TryParse(meshStr, out meshID))
                 return responsedata;
 
             AssetBase mesh = m_assetService.Get(meshID.ToString());
-            if(mesh == null)
+            if (mesh == null)
             {
                 responsedata["int_response_code"] = (int)System.Net.HttpStatusCode.NotFound;
                 responsedata["str_response_string"] = "Mesh not found.";
@@ -96,10 +115,14 @@ namespace OpenSim.Capabilities.Handlers
 
             string range = string.Empty;
 
-            if (((Hashtable)request["headers"])["range"] != null)
-               range = (string)((Hashtable)request["headers"])["range"];
-            else if (((Hashtable)request["headers"])["Range"] != null)
-                range = (string)((Hashtable)request["headers"])["Range"];
+            Hashtable headers = request["headers"] as Hashtable;
+            if (headers != null)
+            {
+                if (headers["range"] != null)
+                    range = headers["range"].ToString();
+                else if (headers["Range"] != null)
+                    range = headers["Range"].ToString();
+            }
 
             responsedata["content_type"] = "application/vnd.ll.mesh";
             if (string.IsNullOrEmpty(range))
@@ -127,11 +150,11 @@ namespace OpenSim.Capabilities.Handlers
                 int len = end - start + 1;
 
                 //m_log.Debug("Serving " + start + " to " + end + " of " + texture.Data.Length + " bytes for texture " + texture.ID);
-                Hashtable headers = new()
+                Hashtable responseHeaders = new()
                 {
                     ["Content-Range"] = string.Format("bytes {0}-{1}/{2}", start, end, mesh.Data.Length)
                 };
-                responsedata["headers"] = headers;
+                responsedata["headers"] = responseHeaders;
                 responsedata["int_response_code"] = (int)System.Net.HttpStatusCode.PartialContent;
 
                 byte[] d = new byte[len];

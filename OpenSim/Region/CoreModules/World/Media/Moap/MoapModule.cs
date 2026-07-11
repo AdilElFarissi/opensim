@@ -269,8 +269,9 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap
                         omm.Request.GetType());
                 }
             }
-            catch
+            catch (Exception e)
             {
+                m_log.Error("[MOAP]: Exception in HandleObjectMediaMessage", e);
             }
             httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
             return;
@@ -480,67 +481,55 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap
                 bool bad = true;
                 MediaEntry me = null;
 
-                while (true)
+                if (part == null)
                 {
-                    if (null == part)
-                    {
-                        m_log.WarnFormat(
-                            "[MOAP]: Received an ObjectMediaNavigateMessage for prim {0} but this doesn't exist in region {1}",
-                            primId, m_scene.RegionInfo.RegionName);
-                    }
-
-                    if (!m_scene.Permissions.CanInteractWithPrimMedia(agentId, part.UUID, omn.Face))
-                        break;
-
-                    //m_log.DebugFormat(
-                    //    "[MOAP]: Received request to update media entry for face {0} on prim {1} {2} to {3}",
-                    //        omn.Face, part.Name, part.UUID, omn.URL);
-
-                    // If media has never been set for this prim, then just return.
-                    if (null == part.Shape.Media)
-                        break;
-
+                    m_log.WarnFormat(
+                        "[MOAP]: Received an ObjectMediaNavigateMessage for prim {0} but this doesn't exist in region {1}",
+                        primId, m_scene.RegionInfo.RegionName);
+                }
+                else if (!m_scene.Permissions.CanInteractWithPrimMedia(agentId, part.UUID, omn.Face))
+                {
+                    // Permission denied
+                }
+                else if (part.Shape.Media == null)
+                {
+                    // Media not set up for this prim
+                }
+                else
+                {
                     lock (part.Shape.Media)
                         me = part.Shape.Media[omn.Face];
 
-                    // Do the same if media has not been set up for a specific face
-                    if (null == me)
-                        break;
-
-                    if (me.EnableWhiteList)
+                    if (me == null)
                     {
-                        if (!CheckUrlAgainstWhitelist(omn.URL, me.WhiteList))
-                        {
-                            //m_log.DebugFormat(
-                            //    "[MOAP]: Blocking change of face {0} on prim {1} {2} to {3} since it's not on the enabled whitelist",
-                            //    omn.Face, part.Name, part.UUID, omn.URL);
-                            break;
-                        }
+                        // Media not set up for this face
                     }
-                    bad = false;
-                    break;
+                    else if (me.EnableWhiteList && !CheckUrlAgainstWhitelist(omn.URL, me.WhiteList))
+                    {
+                        // URL not on whitelist
+                    }
+                    else
+                    {
+                        me.CurrentURL = omn.URL;
+
+                        UpdateMediaUrl(part, agentId);
+
+                        part.ParentGroup.HasGroupChanged = true;
+                        part.ScheduleFullUpdate();
+
+                        part.TriggerScriptChangedEvent(Changed.MEDIA);
+
+                        httpResponse.RawBuffer = Util.UTF8.GetBytes(OSDParser.SerializeLLSDXmlString(new OSD()));
+                        httpResponse.StatusCode = (int)HttpStatusCode.OK;
+                        return;
+                    }
                 }
 
-                if(bad)
-                {
-                    httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
-                    return;
-                }
-
-                me.CurrentURL = omn.URL;
-
-                UpdateMediaUrl(part, agentId);
-
-                part.ParentGroup.HasGroupChanged = true;
-                part.ScheduleFullUpdate();
-
-                part.TriggerScriptChangedEvent(Changed.MEDIA);
-
-                httpResponse.RawBuffer = Util.UTF8.GetBytes(OSDParser.SerializeLLSDXmlString(new OSD()));
-                httpResponse.StatusCode = (int)HttpStatusCode.OK;
+                httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
             }
-            catch
+            catch (Exception e)
             {
+                m_log.Error("[MOAP]: Exception in HandleObjectMediaNavigateMessage", e);
                 httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
                 httpResponse.RawBuffer = null;
             }
@@ -579,7 +568,7 @@ namespace OpenSim.Region.CoreModules.World.Media.Moap
             {
                 string rawVersion = part.MediaUrl.Substring(5, 10);
                 int version = int.Parse(rawVersion);
-                part.MediaUrl = string.Format("x-mv:{0:D10}/{1}", ++version, updateId);
+                part.MediaUrl = string.Format("x-mv:{0:D10}/{1}", version + 1, updateId);
             }
 
             //m_log.DebugFormat("[MOAP]: Storing media url [{0}] in prim {1} {2}", part.MediaUrl, part.Name, part.UUID);

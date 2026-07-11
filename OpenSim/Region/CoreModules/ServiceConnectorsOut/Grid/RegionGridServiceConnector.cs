@@ -304,7 +304,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
             if (inCache)
                 return rinfo;
 
-            var ruri = new RegionURI(name, m_ThisGridInfo);
+            RegionURI ruri = new RegionURI(name, m_ThisGridInfo);
             return GetRegionByURI(scopeID, ruri);
         }
 
@@ -349,7 +349,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
 
         public List<GridRegion> GetRegionsByName(UUID scopeID, string name, int maxNumber)
         {
-            var ruri = new RegionURI(name, m_ThisGridInfo);
+            RegionURI ruri = new RegionURI(name, m_ThisGridInfo);
             return GetRegionsByURI(scopeID, ruri, maxNumber);
         }
 
@@ -374,7 +374,7 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Grid
                 {
                     m_log.InfoFormat("[REMOTE GRID CONNECTOR] returned default regions {0}, ...", grinfos[0].RegionName);
                     // only return first
-                    grinfo = [grinfos[0]];
+                    grinfo = new List<GridRegion> { grinfos[0] };
                 }
             }
             else

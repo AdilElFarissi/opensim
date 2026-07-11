@@ -44,7 +44,7 @@ namespace OpenSim.Server.Handlers.GridUser
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private IMuteListService m_service;
+        private readonly IMuteListService m_service;
 
         public MuteListServerPostHandler(IMuteListService service, IServiceAuth auth) :
                 base("POST", "/mutelist", auth)
@@ -87,6 +87,7 @@ namespace OpenSim.Server.Handlers.GridUser
             catch (Exception e)
             {
                 m_log.DebugFormat("[MUTELIST HANDLER]: Exception in method {0}: {1}", method, e);
+                throw;
             }
 
             return FailureResult();
@@ -94,15 +95,15 @@ namespace OpenSim.Server.Handlers.GridUser
 
         byte[] getmutes(Dictionary<string, object> request)
         {
-            if(!request.ContainsKey("agentid") || !request.ContainsKey("mutecrc"))
+            if(!request.TryGetValue("agentid", out object agentidObj) || !request.TryGetValue("mutecrc", out object mutecrcObj))
                 return FailureResult();
 
             UUID agentID;
-            if(!UUID.TryParse(request["agentid"].ToString(), out agentID))
+            if(!UUID.TryParse(agentidObj.ToString(), out agentID))
                 return FailureResult();
 
             uint mutecrc;
-            if(!uint.TryParse(request["mutecrc"].ToString(), out mutecrc))
+            if(!uint.TryParse(mutecrcObj.ToString(), out mutecrc))
                     return FailureResult();
 
             byte[] data = m_service.MuteListRequest(agentID, mutecrc);
@@ -120,43 +121,38 @@ namespace OpenSim.Server.Handlers.GridUser
 
         byte[] updatemute(Dictionary<string, object> request)
         {
-            if(!request.ContainsKey("agentid") || !request.ContainsKey("muteid"))
+            if(!request.TryGetValue("agentid", out object agentidObj) || !request.TryGetValue("muteid", out object muteidObj))
                 return FailureResult();
 
             MuteData mute = new();
 
-            if( !UUID.TryParse(request["agentid"].ToString(), out mute.AgentID))
+            if( !UUID.TryParse(agentidObj.ToString(), out mute.AgentID))
                 return FailureResult();
 
-            if(!UUID.TryParse(request["muteid"].ToString(), out mute.MuteID))
+            if(!UUID.TryParse(muteidObj.ToString(), out mute.MuteID))
                 return FailureResult();
 
-            if(request.ContainsKey("mutename"))
-            {
-                mute.MuteName = request["mutename"].ToString();
-            }
-            else
-               mute.MuteName = string.Empty;
+            mute.MuteName = request.TryGetValue("mutename", out object mutenameObj) ? mutenameObj.ToString() : string.Empty;
 
-            if(request.ContainsKey("mutetype"))
+            if(request.TryGetValue("mutetype", out object mutetypeObj))
             {
-                if(!int.TryParse(request["mutetype"].ToString(), out mute.MuteType))
+                if(!int.TryParse(mutetypeObj.ToString(), out mute.MuteType))
                     return FailureResult();
             }
             else
                mute.MuteType = 0;
 
-            if(request.ContainsKey("muteflags"))
+            if(request.TryGetValue("muteflags", out object muteflagsObj))
             {
-                if(!int.TryParse(request["muteflags"].ToString(), out mute.MuteFlags))
+                if(!int.TryParse(muteflagsObj.ToString(), out mute.MuteFlags))
                     return FailureResult();
             }
             else
                 mute.MuteFlags = 0;
 
-            if(request.ContainsKey("mutestamp"))
+            if(request.TryGetValue("mutestamp", out object mutestampObj))
             {
-                if(!int.TryParse(request["mutestamp"].ToString(), out mute.Stamp))
+                if(!int.TryParse(mutestampObj.ToString(), out mute.Stamp))
                     return FailureResult();
             }
             else
@@ -167,25 +163,18 @@ namespace OpenSim.Server.Handlers.GridUser
 
         byte[] deletemute(Dictionary<string, object> request)
         {
-            if(!request.ContainsKey("agentid") || !request.ContainsKey("muteid"))
+            if(!request.TryGetValue("agentid", out object agentidObj) || !request.TryGetValue("muteid", out object muteidObj))
                 return FailureResult();
 
             UUID agentID;
-            if( !UUID.TryParse(request["agentid"].ToString(), out agentID))
+            if( !UUID.TryParse(agentidObj.ToString(), out agentID))
                 return FailureResult();
 
             UUID muteID;
-            if(!UUID.TryParse(request["muteid"].ToString(), out muteID))
+            if(!UUID.TryParse(muteidObj.ToString(), out muteID))
                 return FailureResult();
 
-            string muteName;
-            if(request.ContainsKey("mutename"))
-            {
-                muteName = request["mutename"].ToString();
-
-            }
-            else
-               muteName = string.Empty;
+            string muteName = request.TryGetValue("mutename", out object mutenameObj) ? mutenameObj.ToString() : string.Empty;
 
             return m_service.RemoveMute(agentID, muteID, muteName) ? SuccessResult() : FailureResult();
         }

@@ -1,3 +1,6 @@
+Here's the corrected source code with all vulnerabilities addressed:
+
+```csharp
 /*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
@@ -141,10 +144,10 @@ namespace OpenSim.Services.LLLoginService
                 {
                     m_AllowedClientsRegex = new Regex(AllowedClients, RegexOptions.Compiled | RegexOptions.IgnoreCase);
                 }
-                catch
+                catch (ArgumentException ex)
                 {
                     m_AllowedClientsRegex = null;
-                    m_log.Error("[GATEKEEPER SERVICE]: failed to parse AllowedClients");
+                    m_log.Error("[GATEKEEPER SERVICE]: failed to parse AllowedClients", ex);
                 }
             }
 
@@ -155,10 +158,10 @@ namespace OpenSim.Services.LLLoginService
                 {
                     m_DeniedClientsRegex = new Regex(DeniedClients, RegexOptions.Compiled | RegexOptions.IgnoreCase);
                 }
-                catch
+                catch (ArgumentException ex)
                 {
                     m_DeniedClientsRegex = null;
-                    m_log.Error("[GATEKEEPER SERVICE]: failed to parse DeniedClients");
+                    m_log.Error("[GATEKEEPER SERVICE]: failed to parse DeniedClients", ex);
                 }
             }
 
@@ -174,9 +177,10 @@ namespace OpenSim.Services.LLLoginService
                     using (WebClient client = new())
                         m_WelcomeMessage = client.DownloadString(m_MessageUrl);
                 }
-                catch               
+                catch (WebException ex)
                 {
                     m_WelcomeMessage = null;
+                    m_log.Warn($"Failed to download welcome message from {m_MessageUrl}", ex);
                 }
             }
 
@@ -315,7 +319,7 @@ namespace OpenSim.Services.LLLoginService
                     return response;
                 }
             }
-            catch (Exception e)
+            catch (Exception e) when (!(e is OperationCanceledException || e is OutOfMemoryException))
             {
                 m_log.Error("[LLOGIN SERVICE]: SetLevel failed, exception " + e.ToString());
                 return response;
@@ -346,11 +350,7 @@ namespace OpenSim.Services.LLLoginService
                 //
                 // Check client
                 //
-                string clientNameToCheck;
-                if(clientVersion.Contains(' '))
-                    clientNameToCheck = clientVersion;
-                else
-                    clientNameToCheck = channel + " " + clientVersion;
+                string clientNameToCheck = clientVersion.Contains(' ') ? clientVersion : $"{channel} {clientVersion}";
 
                 if (m_AllowedClientsRegex is not null)
                 {
@@ -384,24 +384,16 @@ namespace OpenSim.Services.LLLoginService
                     }
                 }
 
-                if (!string.IsNullOrWhiteSpace(m_DeniedMacs))
+                if (!string.IsNullOrWhiteSpace(m_DeniedMacs) && m_DeniedMacs.Contains(curMac))
                 {
-                    //m_log.InfoFormat("[LLOGIN SERVICE]: Checking users Mac {0} against list of denied macs {1} ...", curMac, m_DeniedMacs);
-                    if (m_DeniedMacs.Contains(curMac))
-                    {
-                        m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: client with mac {0} is denied", curMac);
-                        return LLFailedLoginResponse.LoginBlockedProblem;
-                    }
+                    m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: client with mac {0} is denied", curMac);
+                    return LLFailedLoginResponse.LoginBlockedProblem;
                 }
 
-                if (!string.IsNullOrWhiteSpace(m_DeniedID0s))
+                if (!string.IsNullOrWhiteSpace(m_DeniedID0s) && m_DeniedID0s.Contains(id0))
                 {
-                    //m_log.InfoFormat("[LLOGIN SERVICE]: Checking users Mac {0} against list of denied macs {1} ...", curMac, m_DeniedMacs);
-                    if (m_DeniedID0s.Contains(id0))
-                    {
-                        m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: client with ido {0} is denied", id0);
-                        return LLFailedLoginResponse.LoginBlockedProblem;
-                    }
+                    m_log.InfoFormat("[LLOGIN SERVICE]: Login failed, reason: client with ido {0} is denied", id0);
+                    return LLFailedLoginResponse.LoginBlockedProblem;
                 }
 
                 //
@@ -476,10 +468,10 @@ namespace OpenSim.Services.LLLoginService
                             m_log.InfoFormat(
                                 "[LLOGIN SERVICE]: Login failed for {0} {1}, reason: already logged in",
                                 firstName, lastName);
+                            return LLFailedLoginResponse.AlreadyLoggedInProblem;
                         }
-                        m_GridUserService.LoggedOut(PrincipalIDstr, scopeID, guinfo.LastRegionID, guinfo.LastPosition, guinfo.LastLookAt);
-                        return LLFailedLoginResponse.AlreadyLoggedInProblem;
                     }
+                    m_GridUserService.LoggedOut(PrincipalIDstr, scopeID, guinfo.LastRegionID, guinfo.LastPosition, guinfo.LastLookAt);
                 }
 
                 //
@@ -498,7 +490,7 @@ namespace OpenSim.Services.LLLoginService
                 m_HGInventoryService?.GetRootFolder(account.PrincipalID);
 
                 List<InventoryFolderBase> inventorySkel = m_InventoryService.GetInventorySkeleton(account.PrincipalID);
-                if (m_RequireInventory && inventorySkel is null || inventorySkel.Count == 0)
+                if (m_RequireInventory && (inventorySkel is null || inventorySkel.Count == 0))
                 {
                     m_log.InfoFormat(
                         "[LLOGIN SERVICE]: Login failed, for {0} {1}, reason: unable to retrieve user inventory",
@@ -544,9 +536,9 @@ namespace OpenSim.Services.LLLoginService
                         if (home is null)
                         {
                             if (startLocation.Equals("home"))
-                            m_log.WarnFormat(
-                                "[LLOGIN SERVICE]: User {0} tried to login to a 'home' start location with ID {1} but this was not found.",
-                                account.Name, guinfo.HomeRegionID);
+                                m_log.WarnFormat(
+                                    "[LLOGIN SERVICE]: User {0} tried to login to a 'home' start location with ID {1} but this was not found.",
+                                    account.Name, guinfo.HomeRegionID);
                         }
                     }
                 }
@@ -567,7 +559,7 @@ namespace OpenSim.Services.LLLoginService
                 GridRegion destination = FindDestination(account, scopeID, guinfo, session, startLocation, home, out GridRegion gatekeeper, out where, out position, out lookAt, out TeleportFlags flags);
                 if (destination is null)
                 {
-                    m_PresenceService.LogoutAgent(session);
+                    m_PresenceService?.LogoutAgent(session);
 
                     m_log.InfoFormat(
                         "[LLOGIN SERVICE]: Login failed for {0} {1}, reason: destination not found",
@@ -586,11 +578,7 @@ namespace OpenSim.Services.LLLoginService
                 //
                 // Get the avatar
                 //
-                AvatarAppearance avatar = null;
-                if (m_AvatarService is not null)
-                {
-                    avatar = m_AvatarService.GetAppearance(account.PrincipalID);
-                }
+                AvatarAppearance avatar = m_AvatarService?.GetAppearance(account.PrincipalID);
 
                 //
                 // Instantiate/get the simulation interface and launch an agent at the destination
@@ -601,7 +589,7 @@ namespace OpenSim.Services.LLLoginService
                 destination = dest;
                 if (aCircuit == null)
                 {
-                    m_PresenceService.LogoutAgent(session);
+                    m_PresenceService?.LogoutAgent(session);
                     m_log.InfoFormat("[LLOGIN SERVICE]: Login failed for {0} {1}, reason: {2}", firstName, lastName, reason);
                     return new LLFailedLoginResponse("key", reason, "false");
 
@@ -611,33 +599,27 @@ namespace OpenSim.Services.LLLoginService
                 guinfo = m_GridUserService.LoggedIn(PrincipalIDstr);
 
                 // Get Friends list
-                FriendInfo[] friendsList = Array.Empty<FriendInfo>();
-                if (m_FriendsService is not null)
-                {
-                    friendsList = m_FriendsService.GetFriends(account.PrincipalID);
-                    //m_log.DebugFormat("[LLOGIN SERVICE]: Retrieved {0} friends", friendsList.Length);
-                }
+                FriendInfo[] friendsList = m_FriendsService?.GetFriends(account.PrincipalID) ?? Array.Empty<FriendInfo>();
 
                 //
                 // Finally, fill out the response and return it
     
-                processedMessage = m_WelcomeMessage.Replace("<USERNAME>", firstName + " " + lastName);
+                processedMessage = m_WelcomeMessage.Replace("<USERNAME>", $"{firstName} {lastName}");
 
                 // Get active gestures
                 List<InventoryItemBase> gestures = m_InventoryService.GetActiveGestures(account.PrincipalID);
-                //m_log.DebugFormat("[LLOGIN SERVICE]: {0} active gestures", gestures.Count);
 
                 LLLoginResponse response = new(
                         account, aCircuit, guinfo, destination, inventorySkel, friendsList, m_LibraryService,
                         where, startLocation, position, lookAt, gestures, processedMessage, home, clientIP,
                         m_MapTileURL, m_ProfileURL, m_OpenIDURL, m_SearchURL, m_Currency, m_DSTZone,
-                        m_DestinationGuide, m_AvatarPicker, realID, m_ClassifiedFee,m_MaxAgentGroups);
+                        m_DestinationGuide, m_AvatarPicker, realID, m_ClassifiedFee, m_MaxAgentGroups);
 
                     m_log.DebugFormat("[LLOGIN SERVICE]: All clear. Sending login response to {0} {1}", firstName, lastName);
 
                     return response;
                }
-            catch (Exception e)
+            catch (Exception e) when (!(e is OperationCanceledException || e is OutOfMemoryException))
             {
                 m_log.WarnFormat("[LLOGIN SERVICE]: Exception processing login for {0} {1}: {2} {3}", firstName, lastName, e.ToString(), e.StackTrace);
                 m_PresenceService?.LogoutAgent(session);
@@ -904,7 +886,7 @@ namespace OpenSim.Services.LLLoginService
                 hostName = uri.Host;
                 port = uri.Port;
             }
-            catch
+            catch (UriFormatException)
             {
                 m_log.WarnFormat("[LLLogin SERVICE]: Unable to parse GatekeeperURL {0}", url);
             }

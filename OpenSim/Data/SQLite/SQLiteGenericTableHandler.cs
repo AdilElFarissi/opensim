@@ -48,6 +48,7 @@ namespace OpenSim.Data.SQLite
 
         protected static SQLiteConnection m_Connection;
         private static bool m_initialized;
+        private static readonly object m_lock = new();
 
         protected virtual Assembly Assembly
         {
@@ -61,24 +62,30 @@ namespace OpenSim.Data.SQLite
 
             if (!m_initialized)
             {
-                m_Connection = new SQLiteConnection(connectionString);
-                //Console.WriteLine(string.Format("OPENING CONNECTION FOR {0} USING {1}", storeName, connectionString));
-                m_Connection.Open();
-
-                if (storeName != string.Empty)
+                lock (m_lock)
                 {
-                    //SQLiteConnection newConnection =
-                    //        (SQLiteConnection)((ICloneable)m_Connection).Clone();
-                    //newConnection.Open();
+                    if (!m_initialized)
+                    {
+                        m_Connection = new SQLiteConnection(connectionString);
+                        //Console.WriteLine(string.Format("OPENING CONNECTION FOR {0} USING {1}", storeName, connectionString));
+                        m_Connection.Open();
 
-                    //Migration m = new Migration(newConnection, Assembly, storeName);
-                    Migration m = new(m_Connection, Assembly, storeName);
-                    m.Update();
-                    //newConnection.Close();
-                    //newConnection.Dispose();
+                        if (storeName != string.Empty)
+                        {
+                            //SQLiteConnection newConnection =
+                            //        (SQLiteConnection)((ICloneable)m_Connection).Clone();
+                            //newConnection.Open();
+
+                            //Migration m = new Migration(newConnection, Assembly, storeName);
+                            Migration m = new(m_Connection, GetType().Assembly, storeName);
+                            m.Update();
+                            //newConnection.Close();
+                            //newConnection.Dispose();
+                        }
+
+                        m_initialized = true;
+                    }
                 }
-
-                m_initialized = true;
             }
 
             Type t = typeof(T);
@@ -164,7 +171,7 @@ namespace OpenSim.Data.SQLite
                     if (m_Fields[name].GetValue(row) is bool)
                     {
                         int v = Convert.ToInt32(reader[name]);
-                        m_Fields[name].SetValue(row, v != 0 ? true : false);
+                        m_Fields[name].SetValue(row, v != 0);
                     }
                     else if (m_Fields[name].GetValue(row) is UUID)
                     {

@@ -53,7 +53,7 @@ namespace OpenSim.Data.MySQL
         /// </summary>
         private const int DaysBetweenAccessTimeUpdates = 30;
 
-        private bool m_enableCompression = false;
+        private readonly bool m_enableCompression = false;
         private string m_connectionString;
 
         #region IPlugin Members
@@ -176,7 +176,10 @@ namespace OpenSim.Data.MySQL
                 {
                     UpdateAccessTime(asset.Metadata, accessTime);
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    m_log.Error("[MYSQL XASSET DATA]: Failure updating access time", ex);
+                }
             }
 
             if (m_enableCompression && asset.Data != null)
@@ -231,18 +234,18 @@ namespace OpenSim.Data.MySQL
                             asset.Description, asset.ID, asset.Description.Length, assetDescription.Length);
                     }
 
-                    byte[] data;
-                    if (m_enableCompression)
-                    {
-                        using MemoryStream inMs = new(asset.Data);
-                        using MemoryStream outputStream = new();
-                        using GZipStream compressionStream = new(outputStream, CompressionMode.Compress);
-                        inMs.CopyTo(compressionStream);
-                        compressionStream.Flush();
-                        data = outputStream.ToArray();
-                    }
-                    else
-                        data = asset.Data;
+                    byte[] data = m_enableCompression
+                        ? (using (MemoryStream inMs = new(asset.Data))
+                            {
+                                using (MemoryStream outputStream = new());
+                                using (GZipStream compressionStream = new(outputStream, CompressionMode.Compress))
+                                {
+                                    inMs.CopyTo(compressionStream);
+                                    compressionStream.Flush();
+                                    return outputStream.ToArray();
+                                }
+                            })
+                        : asset.Data;
 
                     byte[] hash = SHA256.HashData(data);
 
@@ -343,7 +346,7 @@ namespace OpenSim.Data.MySQL
                         cmd.ExecuteNonQuery();
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
                     m_log.ErrorFormat(
                         "[XASSET MYSQL DB]: Failure updating access_time for asset {0} with name {1}",
