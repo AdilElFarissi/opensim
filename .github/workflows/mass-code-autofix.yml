@@ -310,7 +310,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "style: resolve static security vulnerabilities via OpenRouter AI"
           title: "🤖 Automated OpenRouter Security Patch"
-          body-path: pr_description.txt
+          body-path: pr_details.txt
           branch: openrouter-ai-patches-rev1
           base: 'master'
           delete-branch: true
