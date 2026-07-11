@@ -10,11 +10,11 @@ You are an automated code repair agent fixing vulnerabilities and bugs in OpenSi
 ## 2. Network & Serialization Boundaries
 * **Protocol Compatibility**: OpenSimulator interacts with legacy client viewers (like Second Life viewers) using fixed UDP/TCP packet structures. Do not alter packet serialization layouts or byte orderings when fixing buffer overflows or input validation bugs.
 * **No Breaking API Changes**: Do not change public method signatures or data contracts in the `OpenSim.Framework` or `OpenSim.Region.Framework` namespaces, as third-party modules rely on them.
-*  **Change WebHttpRequest to HttpClient**: Always replace WebHttpRequest and similar functions with HttpClient. The HttpClient must be initialized using the GetNewGlobalHttpClient(timeout) method from OpenSim/Framework/WebUtil.cs.
+*  **Change WebHttpRequest to HttpClient**: Always replace `WebHttpRequest` and similar functions with `HttpClient`. The HttpClient must be initialized using the `GetNewGlobalHttpClient()` method from `OpenSim/Framework/WebUtil.cs`.
 
 ## 3. Code Style & Generation Constraints
 * **Respect Prebuild Blueprints**: Do not manually modify `.csproj` or `.sln` files. All project structures are driven dynamically by `prebuild.xml`. If a dependency change is required, modify `prebuild.xml` instead.
 * **Logging Standards**: When fixing error handling or catch blocks, use the internal Log4Net interface (`m_log.Error(...)`). Do not use `Console.WriteLine` or standard System.Diagnostics tracing.
 * **Null Safety**: Prioritize modern C# 8+ null-coalescing operators (`??=`) and patterns, but ensure compatibility with existing legacy type checking systems used across the codebase.
-* ** Check Breaking Changes**: Check the method references if the current change break something where the method is used and rework the fix if is the case.
+* **Check Breaking Changes**: Check the method references if the current change break something where the method is used and rework the fix if is the case.
 * **Add Missing Summary**: If the context method doesn't have a summary, add a short summary explaining the method, its parameters, the expected return value, and exceptions.

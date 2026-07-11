@@ -35,7 +35,7 @@ jobs:
         uses: github/codeql-action/init@v4
         with:
           languages: 'csharp'
-          queries: security-extended,security-and-quality 
+          queries: security-extended 
 
       - name: Restore Dependencies & Build
         run: |
@@ -88,6 +88,7 @@ jobs:
           import re
           import time
           from openai import OpenAI
+          from openai import APIStatusError
 
           client = OpenAI(
               base_url="https://openrouter.ai/api/v1",
@@ -100,7 +101,7 @@ jobs:
                   #rules = f.read()
 
           if not os.path.exists("csharp.sarif"):
-              print("Critical: codeql-results.sarif was not found on disk.")
+              print("Critical: csharp.sarif was not found on disk.")
               exit(0)
 
           with open("csharp.sarif", "r") as f:
@@ -108,6 +109,12 @@ jobs:
 
           runs = sarif_data.get("runs", [])
           fixed_count = 0
+
+          if os.path.exists(already_patched.json):
+              with open("already_patched.json", "r") as f_exclude_r:
+                  already_patched = set(json.load(f_exclude_r))
+          else:
+              already_patched = set()
 
           vulnerabilities_by_file = {}
           files2patch = set()
@@ -150,11 +157,21 @@ jobs:
           with open("pr_details.txt", "w", encoding="utf-8") as f_details:
               f_details.write(pr_body_details)
 
-          MAX_ALERTS_PER_FILE = 10
+          MAX_ALERTS_PER_FILE = 20
+
+          stop_all_processing = False
 
           for file in files2patch:
+              if stop_all_processing:
+                  print("🛑 Processing stopped globally due to Rate Limit conditions.")
+                  break
+
               if not os.path.exists(file):
                   print(f"⚠️ File not found on local disk : {file}")
+                  continue
+
+              if file in already_patched:
+                  print(f"⚠️ This file is already patched : {file}")
                   continue
 
               print(f"🤖 AI processing for the file : {file}")
@@ -184,13 +201,14 @@ jobs:
               fixed_file_content = None
 
               models_pool = [
-                  "nvidia/nemotron-3-super-120b-a12b:free"
+                  "poolside/laguna-xs-2.1:free"
               ]
 
               for current_model in models_pool:
                   try:
                       print(f"  -> Attempting fix using model: {current_model}")
-                      response = client.chat.completions.create(
+                      
+                      raw_response = client.chat.completions.with_raw_response.create(
                           model=current_model,
                           messages=[
                               {
@@ -204,6 +222,15 @@ jobs:
                           ]
                       )
 
+                      limit = raw_response.headers.get("x-ratelimit-limit")
+                      remaining = raw_response.headers.get("x-ratelimit-remaining")
+                      
+                      if remaining is not None and str(remaining).strip() == "0":
+                          print(f"\n ⚠️ [PREVENTIVE STOP] Quota reached (X-RateLimit-Remaining: 0). Total Limit: {limit}")
+                          stop_all_processing = True
+                      
+                      response = raw_response.parse()
+
                       if hasattr(response, 'choices') and len(response.choices) > 0:
                           raw_content = response.choices[0].message.content
                       elif isinstance(response, dict) and "choices" in response:
@@ -213,6 +240,8 @@ jobs:
 
                       if not raw_content:
                           print(f"  ⚠️ Empty response from {current_model}")
+                          if stop_all_processing: 
+                              break
                           continue
 
                       cleaned_check = raw_content.lower().strip()
@@ -220,6 +249,8 @@ jobs:
                       if "<html" in cleaned_check or "<a href=" in cleaned_check or "<!doctype" in cleaned_check or "next/static" in cleaned_check:
                           print(f"  ⚠️ Model {current_model} was blocked by an OpenRouter server HTML error page. Switching model...")
                           time.sleep(5)
+                          if stop_all_processing: 
+                              break
                           continue
                           
                       cleaned_code = re.sub(r'^```(?:csharp)?\n', '', raw_content, flags=re.IGNORECASE)
@@ -230,9 +261,28 @@ jobs:
                           print(f"  🎉 Valid response successfully retrieved from {current_model} !")
                           break
                                   
+                  except APIStatusError as e:
+                      err_headers = getattr(e, 'headers', {})
+                      err_remaining = err_headers.get("x-ratelimit-remaining")
+                      err_limit = err_headers.get("x-ratelimit-limit")
+
+                      if e.status_code == 429 or (err_remaining is not None and str(err_remaining).strip() == "0"):
+                          print(f"\n🚨 [RATE LIMIT TRIGGERED] Code: {e.status_code}")
+                          print(f"Headers -> Limit: {err_limit} | Remaining: {err_remaining}")
+                          print(f"Message: {e.message}")
+                          stop_all_processing = True
+                          break
+                      else:
+                          print(f"  ⚠️ API Error ({e.status_code}) with {current_model}: {e.message}. Trying fallback...")
+                          time.sleep(5)
+
                   except Exception as e:
                       print(f"  ⚠️ Connection issue with {current_model}: {str(e)}. Trying fallback...")
                       time.sleep(5)
+
+              if stop_all_processing:
+                  print(f"❌ Stopped before saving {file}. Exiting loop entirely.")
+                  break
 
               if fixed_file_content:                              
                   with open(file, "w", encoding="utf-8") as f_code_w:
@@ -240,22 +290,20 @@ jobs:
                         
                   print(f"✅ Successfully patched local file: {file}")
                   fixed_count += 1
+                  already_patched.add(file)
                   time.sleep(5)
               else:
                   print(f"❌ Failed to patch {file} with all models.")
+                  already_patched.discard(file)
 
           print(f"Code repair cycle completed. Total files safely patched: {fixed_count}")
+
+          with open(already_patched.json, "w") as f_exclude_w:
+              json.dump(list(already_patched), f_exclude_w)
+          
           EOF
           python fix_code.py
           rm fix_code.py
-      
-      - name: Prepare Pull Request Body Text
-        run: |
-          cat << 'EOF' > pr_description.txt
-          This PR automatically fixes static analysis alerts detected by CodeQL.
-
-          ${{ steps.pr_details.outputs.body }}
-          EOF
 
       - name: Create Pull Request with AI Fixes
         uses: peter-evans/create-pull-request@v6
@@ -264,6 +312,6 @@ jobs:
           commit-message: "style: resolve static security vulnerabilities via OpenRouter AI"
           title: "🤖 Automated OpenRouter Security Patch"
           body-path: pr_description.txt
-          branch: openrouter-ai-patches
+          branch: openrouter-ai-patches-rev1
           base: 'master'
           delete-branch: true
