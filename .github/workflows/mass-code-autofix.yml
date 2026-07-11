@@ -46,13 +46,13 @@ jobs:
         uses: github/codeql-action/analyze@v4
         with:
           category: "/language:csharp"
-          output: "./"
+          output: "./codeql-directory"
 
       - name: Share CodeQL SARIF Artifact
         uses: actions/upload-artifact@v4
         with:
           name: codeql-sarif-report
-          path: ./
+          path: "./codeql-directory/"
 
   codeql-autofix:
     name: OpenRouter Free Fix To CodeQL Scan Results
