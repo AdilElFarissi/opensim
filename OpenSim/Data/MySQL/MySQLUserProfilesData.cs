@@ -1008,7 +1008,7 @@ namespace OpenSim.Data.MySQL
                         cmd.Parameters.AddWithValue("?UserId", props.UserId.ToString());
                         cmd.Parameters.AddWithValue("?TagId", props.TagId.ToString());
                         cmd.Parameters.AddWithValue("?DataKey", props.DataKey.ToString());
-                        cmd.Parameters.AddWithValue("?DataVal", props.DataKey.ToString());
+                        cmd.Parameters.AddWithValue("?DataVal", props.DataVal.ToString());
 
                         cmd.ExecuteNonQuery();
                     }
