@@ -61,6 +61,8 @@ namespace OpenSim.Region.Framework.Interfaces
         // Merge some terrain into this channel
         void Merge(ITerrainChannel newTerrain, Vector3 displacement, float radianRotation, Vector2 rotationDisplacement);
 
+        /// <summary>
+        /// Merge some terrain into this channel with bounding parameters.
         /// </summary>
         /// <param name="newTerrain"></param>
         /// <param name="displacement">&lt;x, y, z&gt;</param>

@@ -70,31 +70,59 @@ namespace OpenSim.Framework
             set { _version = value; }
         }
 
+        /// <summary>
+        /// Default constructor
+        /// </summary>
         public InventoryFolderBase()
         {
         }
 
+        /// <summary>
+        /// Constructor with folder ID
+        /// </summary>
+        /// <param name="id">Folder UUID</param>
         public InventoryFolderBase(UUID id) : this()
         {
             ID = id;
         }
 
+        /// <summary>
+        /// Constructor with folder ID and owner
+        /// </summary>
+        /// <param name="id">Folder UUID</param>
+        /// <param name="owner">Owner UUID</param>
         public InventoryFolderBase(UUID id, UUID owner) : this(id)
         {
             Owner = owner;
         }
 
+        /// <summary>
+        /// Constructor with folder ID, name, owner and parent folder
+        /// </summary>
+        /// <param name="id">Folder UUID</param>
+        /// <param name="name">Folder name</param>
+        /// <param name="owner">Owner UUID</param>
+        /// <param name="parent">Parent folder UUID</param>
         public InventoryFolderBase(UUID id, string name, UUID owner, UUID parent) : this(id, owner)
         {
             Name = name;
-            ParentID = parent;
+            _parentID = parent;
         }
 
+        /// <summary>
+        /// Constructor with full folder parameters
+        /// </summary>
+        /// <param name="id">Folder UUID</param>
+        /// <param name="name">Folder name</param>
+        /// <param name="owner">Owner UUID</param>
+        /// <param name="type">Folder type</param>
+        /// <param name="parent">Parent folder UUID</param>
+        /// <param name="version">Folder version</param>
         public InventoryFolderBase(
             UUID id, string name, UUID owner, short type, UUID parent, ushort version) : this(id, name, owner, parent)
         {
-            Type = type;
-            Version = version;
+            _type = type;
+            _version = version;
         }
     }
 }

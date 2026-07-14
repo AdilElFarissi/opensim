@@ -122,7 +122,7 @@ namespace OpenSim.Server.Handlers.Simulation
             {
                 aCircuit.UnpackAgentCircuitData(args);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is FormatException || ex is ArgumentException || ex is NullReferenceException)
             {
                 m_log.InfoFormat("[AGENT HANDLER]: exception on unpacking ChildCreate message {0}", ex.Message);
                 response.StatusCode = (int)HttpStatusCode.BadRequest;
@@ -184,7 +184,9 @@ namespace OpenSim.Server.Handlers.Simulation
                 UUID.TryParse(tmpOSD.AsString(), out data.uuid);
 
             if (args.TryGetValue("destination_name", out tmpOSD) && tmpOSD != null)
-                data.name = tmpOSD.ToString();
+                data.name = tmpOSD.AsString();
+            else
+                data.name = tmpOSD?.AsString();
 
             if (args.TryGetValue("teleport_flags", out tmpOSD) && tmpOSD != null)
                 data.flags = tmpOSD.AsUInteger();
@@ -208,7 +210,7 @@ namespace OpenSim.Server.Handlers.Simulation
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private ISimulationService m_SimulationService;
+        private readonly ISimulationService m_SimulationService;
         protected bool m_Proxy = false;
 
         public AgentSimpleHandler(ISimulationService service) : base("/agent")
@@ -365,11 +367,11 @@ namespace OpenSim.Server.Handlers.Simulation
             float outboundVersion = 0f;
             float inboundVersion = 0f;
 
-            if (minVersionProvided == 0f) // string version or older
+            if (minVersionProvided < float.Epsilon) // string version or older
             {
                 // If there is no version in the packet at all we're looking at 0.6 or
                 // even more ancient. Refuse it.
-                if (theirVersion == 0f)
+                if (theirVersion < float.Epsilon)
                 {
                     resp["success"] = OSD.FromBoolean(false);
                     resp["reason"] = OSD.FromString("Your region is running a old version of opensim no longer supported. Consider updating it");
@@ -384,7 +386,7 @@ namespace OpenSim.Server.Handlers.Simulation
                 {
                     resp["success"] = OSD.FromBoolean(false);
                     resp["reason"] = OSD.FromString(string.Format("Your region protocol version is {0} and we accept only {1} - {2}. No version overlap.", theirVersion, VersionInfo.SimulationServiceVersionAcceptedMin, VersionInfo.SimulationServiceVersionAcceptedMax));
-                    httpResponse.RawBuffer = Util.UTF8.GetBytes(OSDParser.SerializeJsonString(resp, true));
+                    httpResponse.RawBuffer = Util.UTF8.GetBytes(Util.UTF8.GetBytes(OSDParser.SerializeJsonString(resp, true)));
                     return;
                 }
             }
@@ -435,7 +437,7 @@ namespace OpenSim.Server.Handlers.Simulation
             // We're sending the version numbers down to the local connector to do the varregion check.
             ctx.InboundVersion = inboundVersion;
             ctx.OutboundVersion = outboundVersion;
-            if (minVersionProvided == 0f)
+            if (minVersionProvided < float.Epsilon)
             {
                 ctx.InboundVersion = version;
                 ctx.OutboundVersion = version;
@@ -518,7 +520,7 @@ namespace OpenSim.Server.Handlers.Simulation
             {
                 aCircuit.UnpackAgentCircuitData(args);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is FormatException || ex is ArgumentException || ex is NullReferenceException)
             {
                 m_log.InfoFormat("[AGENT HANDLER]: exception on unpacking ChildCreate message {0}", ex.Message);
                 httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
@@ -582,7 +584,9 @@ namespace OpenSim.Server.Handlers.Simulation
                 UUID.TryParse(tmpOSD.AsString(), out data.uuid);
 
             if (args.TryGetValue("destination_name", out tmpOSD) && tmpOSD != null)
-                data.name = tmpOSD.ToString();
+                data.name = tmpOSD.AsString();
+            else
+                data.name = tmpOSD?.AsString();
 
             if (args.TryGetValue("teleport_flags", out tmpOSD) && tmpOSD != null)
                 data.flags = tmpOSD.AsUInteger();
@@ -618,7 +622,7 @@ namespace OpenSim.Server.Handlers.Simulation
             if (args.TryGetValue("destination_uuid", out tmpOSD) && tmpOSD != null)
                 UUID.TryParse(tmpOSD.AsString(), out uuid);
             if (args.TryGetValue("destination_name", out tmpOSD) && tmpOSD != null)
-                regionname = tmpOSD.ToString();
+                regionname = tmpOSD.AsString();
             if (args.TryGetValue("context", out tmpOSD) && tmpOSD is OSDMap)
                 ctx.Unpack((OSDMap)tmpOSD);
 
@@ -647,7 +651,7 @@ namespace OpenSim.Server.Handlers.Simulation
                 {
                     agent.Unpack(args, m_SimulationService.GetScene(destination.RegionID), ctx);
                 }
-                catch (Exception ex)
+                catch (Exception ex) when (ex is FormatException || ex is ArgumentException || ex is NullReferenceException)
                 {
                     m_log.InfoFormat("[AGENT HANDLER]: exception on unpacking ChildAgentUpdate message {0}", ex.Message);
                     httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
@@ -666,7 +670,7 @@ namespace OpenSim.Server.Handlers.Simulation
                 {
                     agent.Unpack(args, m_SimulationService.GetScene(destination.RegionID), ctx);
                 }
-                catch (Exception ex)
+                catch (Exception ex) when (ex is FormatException || ex is ArgumentException || ex is NullReferenceException)
                 {
                     m_log.InfoFormat("[AGENT HANDLER]: exception on unpacking ChildAgentUpdate message {0}", ex.Message);
                     httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;

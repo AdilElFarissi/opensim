@@ -119,7 +119,7 @@ namespace OpenSim.Framework
         // If entering avatar has no specific coords, this is where they land
         public Vector3 DefaultLandingPoint = new(128, 128, 30);
 
-        private Dictionary<string, string> m_extraSettings = [];
+        private readonly Dictionary<string, string> m_extraSettings = [];
 
         // Apparently, we're applying the same estatesettings regardless of whether it's local or remote.
 
@@ -178,8 +178,9 @@ namespace OpenSim.Framework
 
                 return;
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                m_log.ErrorFormat("{0} Failed to load region config from {1}: {2}", LogHeader, filename, e.Message);
             }
         }
 
@@ -190,8 +191,12 @@ namespace OpenSim.Framework
             XmlElement elem = (XmlElement)xmlNode;
             string name = elem.GetAttribute("Name");
             string xmlstr = "<Nini>" + xmlNode.OuterXml + "</Nini>";
-            XmlConfigSource source = new(XmlReader.Create(new StringReader(xmlstr)));
-            ReadNiniConfig(source, name);
+            using (StringReader stringReader = new(xmlstr))
+            using (XmlReader xmlReader = XmlReader.Create(stringReader))
+            {
+                XmlConfigSource source = new(xmlReader);
+                ReadNiniConfig(source, name);
+            }
 
             m_serverURI = string.Empty;
         }
@@ -286,7 +291,7 @@ namespace OpenSim.Framework
 
         public byte AccessLevel
         {
-            get { return (byte)Util.ConvertMaturityToAccessLevel((uint)RegionSettings.Maturity); }
+            get { return Util.ConvertMaturityToAccessLevel((uint)RegionSettings.Maturity); }
         }
 
         public string RegionType
@@ -317,18 +322,10 @@ namespace OpenSim.Framework
         public string ServerURI
         {
             get {
-                if ( m_serverURI != string.Empty ) {
-                    return m_serverURI;
-                } else {
-                    return "http://" + m_externalHostName + ":" + m_httpPort + "/";
-                }
+                return m_serverURI != string.Empty ? m_serverURI : "http://" + m_externalHostName + ":" + m_httpPort + "/";
             }
             set {
-                if ( value.EndsWith("/") ) {
-                    m_serverURI = value;
-                } else {
-                    m_serverURI = value + '/';
-                }
+                m_serverURI = value.EndsWith("/") ? value : value + '/';
             }
         }
 

@@ -51,9 +51,9 @@ namespace OpenSim.Framework
         private int cE = 0;
 
         private string configurationDescription = string.Empty;
-        private string configurationFilename = string.Empty;
-        private XmlNode configurationFromXMLNode = null;
-        private List<ConfigurationOption> configurationOptions = [];
+        private readonly string configurationFilename = string.Empty;
+        private readonly XmlNode configurationFromXMLNode = null;
+        private readonly List<ConfigurationOption> configurationOptions = new List<ConfigurationOption>();
         private IGenericConfig configurationPlugin = null;
 
         /// <summary>
@@ -61,10 +61,10 @@ namespace OpenSim.Framework
         /// </summary>
         private string configurationPluginFilename = "OpenSim.Framework.Configuration.XML.dll";
 
-        private ConfigurationOptionsLoad loadFunction;
+        private readonly ConfigurationOptionsLoad loadFunction;
         private ConfigurationOptionResult resultFunction;
 
-        private bool useConsoleToPromptOnError = true;
+        private readonly bool useConsoleToPromptOnError = true;
 
         public ConfigurationMember(string configuration_filename, string configuration_description,
                                    ConfigurationOptionsLoad load_function, ConfigurationOptionResult result_function, bool use_console_to_prompt_on_error)
@@ -212,7 +212,7 @@ namespace OpenSim.Framework
                 {
                     m_log.WarnFormat("[CONFIG] Not using {0}: {1}",
                             configurationFilename,
-                            e.Message.ToString());
+                            e.Message);
                     //m_log.Error("Error loading " + configurationFilename + ": " + e.ToString());
                     useFile = false;
                 }
@@ -226,7 +226,6 @@ namespace OpenSim.Framework
                 }
 
                 m_log.Info("XML Configuration Filename is not valid; will not save to the file.");
-                useFile = false;
             }
 
             foreach (ConfigurationOption configOption in configurationOptions)
@@ -235,7 +234,7 @@ namespace OpenSim.Framework
                 object return_result = null;
                 string errorMessage = string.Empty;
                 bool ignoreNextFromConfig = false;
-                while (convertSuccess == false)
+                while (!convertSuccess)
                 {
                     string console_result = string.Empty;
                     string attribute = null;
@@ -253,7 +252,7 @@ namespace OpenSim.Framework
 
                     if (attribute == null)
                     {
-                        if (configOption.configurationUseDefaultNoPrompt || useConsoleToPromptOnError == false)
+                        if (configOption.configurationUseDefaultNoPrompt || !useConsoleToPromptOnError)
                         {
                             console_result = configOption.configurationDefault;
                         }

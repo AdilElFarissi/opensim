@@ -34,22 +34,46 @@ using OpenSim.Framework.Servers.HttpServer;
 
 namespace OpenSim.Region.Framework.Scenes
 {
+    /// <summary>
+    /// Handler for providing region statistics in a simple stream format.
+    /// </summary>
     public class RegionStatsSimpleHandler : SimpleStreamHandler
     {
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private string osXStatsURI = string.Empty;
+        /// <summary>
+        /// URI for OSStats endpoint.
+        /// </summary>
+        private readonly string osXStatsURI = string.Empty;
         //private string osSecret = String.Empty;
-        private OpenSim.Framework.RegionInfo regionInfo;
+        /// <summary>
+        /// Region information for the handler.
+        /// </summary>
+        private readonly OpenSim.Framework.RegionInfo regionInfo;
+        /// <summary>
+        /// Local time zone name.
+        /// </summary>
         public string localZone = TimeZoneInfo.Local.StandardName;
+        /// <summary>
+        /// UTC offset for local time zone.
+        /// </summary>
         public TimeSpan utcOffset = TimeZoneInfo.Local.GetUtcOffset(DateTime.Now);
 
+        /// <summary>
+        /// Initializes a new instance of the RegionStatsSimpleHandler class.
+        /// </summary>
+        /// <param name="region_info">Region information to use for statistics.</param>
         public RegionStatsSimpleHandler(RegionInfo region_info) : base("/" + Util.SHA1Hash(region_info.regionSecret))
         {
             regionInfo = region_info;
             osXStatsURI = Util.SHA1Hash(regionInfo.osSecret);
         }
 
+        /// <summary>
+        /// Processes the HTTP request and writes the response.
+        /// </summary>
+        /// <param name="httpRequest">Incoming HTTP request.</param>
+        /// <param name="httpResponse">HTTP response to write to.</param>
         protected override void ProcessRequest(IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             if (regionInfo == null)
@@ -66,6 +90,10 @@ namespace OpenSim.Region.Framework.Scenes
             httpResponse.RawBuffer = Util.UTF8.GetBytes(Report());
         }
 
+        /// <summary>
+        /// Generates the statistics report as a JSON string.
+        /// </summary>
+        /// <returns>JSON formatted statistics report.</returns>
         private string Report()
         {
             OSDMap args = new(30)
@@ -86,17 +114,36 @@ namespace OpenSim.Region.Framework.Scenes
          }
     }
 
+    /// <summary>
+    /// Legacy handler for providing region statistics. This will be removed in future versions.
+    /// </summary>
     // legacy do not use. This will removed in future
     public class RegionStatsHandler : BaseStreamHandler
     {
         //private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private string osXStatsURI = string.Empty;
+        /// <summary>
+        /// URI for OSStats endpoint.
+        /// </summary>
+        private readonly string osXStatsURI = string.Empty;
         //private string osSecret = String.Empty;
-        private OpenSim.Framework.RegionInfo regionInfo;
+        /// <summary>
+        /// Region information for the handler.
+        /// </summary>
+        private readonly OpenSim.Framework.RegionInfo regionInfo;
+        /// <summary>
+        /// Local time zone name.
+        /// </summary>
         public string localZone = TimeZoneInfo.Local.StandardName;
+        /// <summary>
+        /// UTC offset for local time zone.
+        /// </summary>
         public TimeSpan utcOffset = TimeZoneInfo.Local.GetUtcOffset(DateTime.Now);
 
+        /// <summary>
+        /// Initializes a new instance of the RegionStatsHandler class.
+        /// </summary>
+        /// <param name="region_info">Region information to use for statistics.</param>
         public RegionStatsHandler(RegionInfo region_info)
             : base("GET", "/" + Util.SHA1Hash(region_info.regionSecret), "RegionStats", "Region Statistics")
         {
@@ -104,17 +151,32 @@ namespace OpenSim.Region.Framework.Scenes
             osXStatsURI = Util.SHA1Hash(regionInfo.osSecret);
         }
 
+        /// <summary>
+        /// Processes the HTTP request and returns the response bytes.
+        /// </summary>
+        /// <param name="path">Request path.</param>
+        /// <param name="request">Request stream.</param>
+        /// <param name="httpRequest">Incoming HTTP request.</param>
+        /// <param name="httpResponse">HTTP response to write to.</param>
+        /// <returns>Response bytes.</returns>
         protected override byte[] ProcessRequest(
             string path, Stream request, IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
             return Util.UTF8.GetBytes(Report());
         }
 
+        /// <summary>
+        /// Gets the content type for the response.
+        /// </summary>
         public override string ContentType
         {
             get { return "text/plain"; }
         }
 
+        /// <summary>
+        /// Generates the statistics report as a JSON string.
+        /// </summary>
+        /// <returns>JSON formatted statistics report.</returns>
         private string Report()
         {
             OSDMap args = new(30)

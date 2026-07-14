@@ -27,6 +27,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using log4net;
 using Nini.Config;
@@ -169,15 +170,12 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                         return true;
                     // We need to preload the user management cache with the names
                     // of foreign friends, just like we do with SOPs' creators
-                    foreach (FriendInfo finfo in FriendData.Friends)
+                    foreach (FriendInfo finfo in FriendData.Friends.Where(f => f.TheirFlags != -1))
                     {
-                        if (finfo.TheirFlags != -1)
+                        if (Util.ParseFullUniversalUserIdentifier(finfo.Friend, out UUID id, out string url, out string first, out string last))
                         {
-                            if (Util.ParseFullUniversalUserIdentifier(finfo.Friend, out UUID id, out string url, out string first, out string last))
-                            {
-                                //m_log.DebugFormat("[HGFRIENDS MODULE]: caching {0}", finfo.Friend);
-                                uMan.AddUser(id,first,last, url);
-                            }
+                            //m_log.DebugFormat("[HGFRIENDS MODULE]: caching {0}", finfo.Friend);
+                            uMan.AddUser(id,first,last, url);
                         }
                     }
 
@@ -203,11 +201,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                     if (account is null) // foreign
                     {
                         FriendInfo[] friends = GetFriendsFromCache(client.AgentId);
-                        foreach (FriendInfo f in friends)
+                        foreach (FriendInfo f in friends.Where(f => f.TheirFlags != -1))
                         {
                             int rights = f.TheirFlags;
-                            if(rights != -1 )
-                                client.SendChangeUserRights(new UUID(f.Friend), client.AgentId, rights);
+                            client.SendChangeUserRights(new UUID(f.Friend), client.AgentId, rights);
                         }
                     }
                 }
@@ -222,15 +219,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             //m_log.DebugFormat("[HGFRIENDS MODULE]: Entering GetOnlineFriends for {0}", userID);
 
             List<string> fList = [];
-            foreach (string s in friendList)
-            {
-                if (s.Length < 36)
-                    m_log.WarnFormat(
-                        "[HGFRIENDS MODULE]: Ignoring friend {0} ({1} chars) for {2} since identifier too short",
-                        s, s.Length, userID);
-                else
-                    fList.Add(s.Substring(0, 36));
-            }
+            foreach (string s in friendList.Where(s => s.Length >= 36))
+                fList.Add(s.Substring(0, 36));
 
             // FIXME: also query the presence status of friends in other grids (like in HGStatusNotifier.Notify())
 
@@ -266,21 +256,14 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             Dictionary<string, List<FriendInfo>> friendsPerDomain = [];
             foreach (FriendInfo friend in friendList)
             {
-                if (UUID.TryParse(friend.Friend, out UUID friendID))
-                {
-                    if (LocalStatusNotification(userID, friendID, online))
-                        continue;
-                    locallst.Add(friend);
-                }
-                else
+                if (UUID.TryParse(friend.Friend, out UUID friendID) && LocalStatusNotification(userID, friendID, online))
+                    continue;
+                    
+                if (!UUID.TryParse(friend.Friend, out friendID))
                 {
                     // it's a foreign friend
-                    if (Util.ParseUniversalUserIdentifier(friend.Friend, out friendID, out string url))
+                    if (Util.ParseUniversalUserIdentifier(friend.Friend, out friendID, out string url) && !LocalStatusNotification(userID, friendID, online))
                     {
-                        // Let's try our luck in the local sim. Who knows, maybe it's here
-                        if (LocalStatusNotification(userID, friendID, online))
-                            continue;
-
                         if (!friendsPerDomain.TryGetValue(url, out List<FriendInfo> lst))
                         {
                             lst = [];
@@ -288,6 +271,10 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                         }
                         lst.Add(friend);
                     }
+                }
+                else
+                {
+                    locallst.Add(friend);
                 }
             }
 
@@ -351,11 +338,8 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             if(friends.Length > 0)
             {
                 string friendIDstr = friendID.ToString();
-                foreach (FriendInfo fi in friends)
-                {
-                    if (fi.Friend.StartsWith(friendIDstr))
-                        return fi;
-                }
+                foreach (FriendInfo fi in friends.Where(f => f.Friend.StartsWith(friendIDstr)))
+                    return fi;
             }
             return null;
         }
@@ -512,25 +496,24 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
                 if (friendUUI.Length == 0)
                 {
                     finfos = GetFriendsFromCache(agentID);
-                    foreach (FriendInfo finfo in finfos)
+                    foreach (FriendInfo finfo in finfos.Where(f => f.TheirFlags == -1))
                     {
-                        if (finfo.TheirFlags == -1)
+                        if (finfo.Friend.StartsWith(friendID.ToString()))
                         {
-                            if (finfo.Friend.StartsWith(friendID.ToString()))
-                            {
-                                friendUUI = finfo.Friend;
-                                theFriendUUID = friendUUI;
+                            friendUUI = finfo.Friend;
+                            theFriendUUID = friendUUI;
 
-                                // If it's confirming the friendship, we already have the full UUI with the secret
-                                if (Util.ParseFullUniversalUserIdentifier(theFriendUUID, out UUID utmp, out string url,
-                                            out string first, out string last))
-                                {
-                                    agentUUID = agentUUI + ";" + secret;
-                                    m_uMan.AddUser(utmp, first, last, url);
-                                }
-                                confirming = true;
-                                break;
+                            // If it's confirming the friendship, we already have the full UUI with the secret
+                            if (Util.ParseFullUniversalUserIdentifier(theFriendUUID, out UUID utmp, out string url,
+                                        out string first, out string last))
+                            {
+                                agentUUID = Util.ParseFullUniversalUserIdentifier(theFriendUUID, out _, out _, out _, out _, out _))
+                                    ? agentUUI + ";" + secret
+                                    : agentUUID;
+                                m_uMan.AddUser(utmp, first, last, url);
                             }
+                            confirming = true;
+                            break;
                         }
                     }
                     if (!confirming)
@@ -637,17 +620,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             {
                 string a1str = a1.ToString();
                 string a2str = a2.ToString();
-                foreach (FriendInfo f in finfos)
+                foreach (FriendInfo f in finfos.Where(f => f.TheirFlags == -1 && f.Friend.StartsWith(a2str)))
                 {
-                    if (f.TheirFlags == -1)
-                    {
-                        if (f.Friend.StartsWith(a2str))
-                        {
-                            FriendsService.Delete(a1, f.Friend);
-                            // and also the converse
-                            FriendsService.Delete(f.Friend, a1str);
-                        }
-                    }
+                    FriendsService.Delete(a1, f.Friend);
+                    // and also the converse
+                    FriendsService.Delete(f.Friend, a1str);
                 }
             }
 
@@ -656,17 +633,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
             {
                 string a1str2 = a1.ToString();
                 string a2str2 = a2.ToString();
-                foreach (FriendInfo f in finfos)
+                foreach (FriendInfo f in finfos.Where(f => f.TheirFlags == -1 && f.Friend.StartsWith(a1str2)))
                 {
-                    if (f.TheirFlags == -1)
-                    {
-                        if (f.Friend.StartsWith(a1str2))
-                        {
-                            FriendsService.Delete(a2, f.Friend);
-                            // and also the converse
-                            FriendsService.Delete(f.Friend, a2str2);
-                        }
-                    }
+                    FriendsService.Delete(a2, f.Friend);
+                    // and also the converse
+                    FriendsService.Delete(f.Friend, a2str2);
                 }
             }
         }
@@ -742,7 +713,7 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
         {
             // Let's see if the user is here by any chance
             FriendInfo[] finfos = GetFriendsFromCache(localUser);
-            if (finfos != EMPTY_FRIENDS) // friend is here, cool
+            if (finfos is not EMPTY_FRIENDS) // friend is here, cool
             {
                 FriendInfo finfo = GetFriend(finfos, foreignUser);
                 if (finfo != null)
@@ -766,11 +737,11 @@ namespace OpenSim.Region.CoreModules.Avatar.Friends
 
         private void Delete(UUID foreignUser, UUID localUser, string uui)
         {
-            if (Util.ParseFullUniversalUserIdentifier(uui, out UUID _, out string _, out string _, out string url, out string secret))
+            if (Util.ParseFullUniversalUserIdentifier(uui, out UUID _, out string _, out string _, out string url, out string _, out string _))
             {
                 m_log.DebugFormat("[HGFRIENDS MODULE]: Deleting friendship from {0}", url);
                 HGFriendsServicesConnector friendConn = new(url);
-                friendConn.DeleteFriendship(foreignUser, localUser, secret);
+                friendConn.DeleteFriendship(foreignUser, localUser, _);
             }
         }
 

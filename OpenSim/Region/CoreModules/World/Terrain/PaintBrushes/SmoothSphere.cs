@@ -26,13 +26,31 @@
  */
 
 using OpenSim.Region.Framework.Interfaces;
+using System;
 
 namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
 {
+    /// <summary>
+    /// Provides a smooth sphere painting effect for terrain modification.
+    /// </summary>
     public class SmoothSphere : ITerrainPaintableEffect
     {
         #region ITerrainPaintableEffect Members
 
+        /// <summary>
+        /// Applies a smooth sphere effect to the terrain map.
+        /// </summary>
+        /// <param name="map">The terrain channel to modify.</param>
+        /// <param name="mask">A boolean mask indicating where to apply the effect.</param>
+        /// <param name="rx">The X coordinate of the effect center.</param>
+        /// <param name="ry">The Y coordinate of the effect center.</param>
+        /// <param name="rz">The Z coordinate of the effect center.</param>
+        /// <param name="size">The size of the effect area.</param>
+        /// <param name="strength">The strength of the effect (clamped to 1.0).</param>
+        /// <param name="startX">The starting X coordinate of the operation area.</param>
+        /// <param name="endX">The ending X coordinate of the operation area.</param>
+        /// <param name="startY">The starting Y coordinate of the operation area.</param>
+        /// <param name="endY">The ending Y coordinate of the operation area.</param>
         public void PaintEffect(ITerrainChannel map, bool[,] mask, float rx, float ry, float rz,
             float size, float strength, int startX, int endX, int startY, int endY)
         {
@@ -91,10 +109,10 @@ namespace OpenSim.Region.CoreModules.World.Terrain.PaintBrushes
                 for (int y = startY, j = 0; y <= endY; y++, j++)
                 {
                     float tz = tweak[i, j];
-                    if(tz != 0.0)
+                    if(Math.Abs(tz) > 1e-6f)
                     {
                         float newz = map[x, y] - tz;
-                        if (newz > 0.0)
+                        if (newz > 0.0f)
                             map[x, y] = newz;
                     }
                 }

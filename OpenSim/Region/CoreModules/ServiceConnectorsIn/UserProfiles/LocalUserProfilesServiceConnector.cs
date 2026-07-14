@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
@@ -43,23 +42,35 @@ using OpenMetaverse;
 
 namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Profile
 {
+    /// <summary>
+    /// Local user profiles service connector module.
+    /// </summary>
     [Extension(Path = "/OpenSim/RegionModules", NodeName = "RegionModule", Id = "LocalUserProfilesServicesConnector")]
     public class LocalUserProfilesServicesConnector : ISharedRegionModule
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private Dictionary<UUID, Scene> regions = [];
+        private readonly Dictionary<UUID, Scene> regions = [];
 
+        /// <summary>
+        /// Gets the user profiles service module.
+        /// </summary>
         public IUserProfilesService ServiceModule
         {
             get; private set;
         }
 
-         public bool Enabled
+        /// <summary>
+        /// Gets a value indicating whether this module is enabled.
+        /// </summary>
+        public bool Enabled
         {
             get; private set;
         }
 
+        /// <summary>
+        /// Gets the name of this module.
+        /// </summary>
         public string Name
         {
             get
@@ -68,27 +79,44 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Profile
             }
         }
 
+        /// <summary>
+        /// Gets the configuration name for this module.
+        /// </summary>
         public string ConfigName
         {
             get; private set;
         }
 
+        /// <summary>
+        /// Gets the type of interface this module replaces.
+        /// </summary>
         public Type ReplaceableInterface
         {
             get { return null; }
         }
 
+        /// <summary>
+        /// Initializes a new instance of the LocalUserProfilesServicesConnector class.
+        /// </summary>
         public LocalUserProfilesServicesConnector()
         {
             //m_log.Debug("[LOCAL USERPROFILES SERVICE CONNECTOR]: LocalUserProfileServicesConnector no params");
         }
 
+        /// <summary>
+        /// Initializes a new instance of the LocalUserProfilesServicesConnector class with the specified configuration source.
+        /// </summary>
+        /// <param name="source">The configuration source.</param>
         public LocalUserProfilesServicesConnector(IConfigSource source)
         {
             //m_log.Debug("[LOCAL USERPROFILES SERVICE CONNECTOR]: LocalUserProfileServicesConnector instantiated directly.");
             InitialiseService(source);
         }
 
+        /// <summary>
+        /// Initializes the service with the specified configuration source.
+        /// </summary>
+        /// <param name="source">The configuration source.</param>
         public void InitialiseService(IConfigSource source)
         {
             ConfigName = "UserProfilesService";
@@ -155,6 +183,9 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Profile
 
         #region ISharedRegionModule implementation
 
+        /// <summary>
+        /// Performs post-initialization tasks.
+        /// </summary>
         public void PostInitialise()
         {
             if(!Enabled)
@@ -165,6 +196,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Profile
 
         #region IRegionModuleBase implementation
 
+        /// <summary>
+        /// Initializes the module with the specified configuration source.
+        /// </summary>
+        /// <param name="source">The configuration source.</param>
         public void Initialise(IConfigSource source)
         {
             IConfig moduleConfig = source.Configs["Modules"];
@@ -179,11 +214,18 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Profile
             }
         }
 
+        /// <summary>
+        /// Closes the module.
+        /// </summary>
         public void Close()
         {
             return;
         }
 
+        /// <summary>
+        /// Adds a region to this module.
+        /// </summary>
+        /// <param name="scene">The scene representing the region.</param>
         public void AddRegion(Scene scene)
         {
             if (!Enabled)
@@ -198,6 +240,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Profile
             }
         }
 
+        /// <summary>
+        /// Removes a region from this module.
+        /// </summary>
+        /// <param name="scene">The scene representing the region.</param>
         public void RemoveRegion(Scene scene)
         {
             if (!Enabled)
@@ -210,6 +256,10 @@ namespace OpenSim.Region.CoreModules.ServiceConnectorsOut.Profile
             }
         }
 
+        /// <summary>
+        /// Called when a region is loaded.
+        /// </summary>
+        /// <param name="scene">The scene representing the region.</param>
         public void RegionLoaded(Scene scene)
         {
             if (!Enabled)

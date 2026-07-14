@@ -108,7 +108,8 @@ namespace OSHttpServer
         {
             get 
             {
-                return _items.ContainsKey(id) ? _items[id] : null;
+                RequestCookie cookie;
+                return _items.TryGetValue(id, out cookie) ? cookie : null;
             }
         }
         /// <summary>
@@ -154,9 +155,6 @@ namespace OSHttpServer
         {
             lock (_items)
             {
-                if (!_items.ContainsKey(cookieName))
-                    return;
-
                 _items.Remove(cookieName);
             }
         }

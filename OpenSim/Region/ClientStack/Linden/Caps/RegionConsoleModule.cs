@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Net;
+using System.Text;
 using Nini.Config;
 using Mono.Addins;
 using OpenMetaverse;
@@ -50,8 +51,8 @@ namespace OpenSim.Region.ClientStack.Linden
 //            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private Scene m_scene;
-        private IEventQueue m_eventQueue;
-        private Commands m_commands = new();
+        private readonly IEventQueue m_eventQueue;
+        private readonly Commands m_commands = new();
         public ICommands Commands { get { return m_commands; } }
 
         ConcurrentDictionary<UUID, OnOutputDelegate> currentConsoles = new();
@@ -145,14 +146,14 @@ namespace OpenSim.Region.ClientStack.Linden
 
             List<string> help = Commands.GetHelp(cmd);
 
-            string reply = string.Empty;
+            StringBuilder replyBuilder = new StringBuilder();
 
             foreach (string s in help)
             {
-                reply += s + "\n";
+                replyBuilder.AppendLine(s);
             }
 
-            SendConsoleOutput(agentID, reply);
+            SendConsoleOutput(agentID, replyBuilder.ToString());
         }
 
         public void AddCommand(string module, bool shared, string command, string help, string longhelp, CommandDelegate fn)
@@ -166,10 +167,10 @@ namespace OpenSim.Region.ClientStack.Linden
 //        private static readonly ILog m_log =
 //            LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private RegionConsoleModule m_consoleModule;
-        private UUID m_agentID;
-        private bool m_isGod;
-        private Scene m_scene;
+        private readonly RegionConsoleModule m_consoleModule;
+        private readonly UUID m_agentID;
+        private readonly bool m_isGod;
+        private readonly Scene m_scene;
         private bool m_consoleIsOn = false;
 
         public ConsoleHandler(string path, string name, UUID agentID, RegionConsoleModule module, Scene scene)
@@ -209,8 +210,9 @@ namespace OpenSim.Region.ClientStack.Linden
             {
                 osd = OSDParser.DeserializeLLSDXml(httpRequest.InputStream);
             }
-            catch
+            catch (Exception e)
             {
+                m_consoleModule.SendConsoleOutput(m_agentID, $"Error parsing command: {e.Message}");
                 httpResponse.StatusCode = (int)HttpStatusCode.BadRequest;
                 return;
             }
@@ -234,7 +236,7 @@ namespace OpenSim.Region.ClientStack.Linden
                 return;
             }
 
-            if (m_consoleIsOn == false && m_consoleModule.RunCommand(osd.AsString().Trim(), m_agentID))
+            if (!m_consoleIsOn && m_consoleModule.RunCommand(osd.AsString().Trim(), m_agentID))
                 return;
 
             if (m_isGod && m_consoleIsOn)

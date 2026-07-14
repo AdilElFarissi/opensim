@@ -35,6 +35,9 @@ using OpenSim.Region.Framework.Scenes;
 
 namespace OpenSim.Region.CoreModules.World.Land
 {
+    /// <summary>
+    /// Implementation of the land channel interface for managing land parcels in a scene.
+    /// </summary>
     public class LandChannel : ILandChannel
     {
         #region Constants
@@ -74,9 +77,12 @@ namespace OpenSim.Region.CoreModules.World.Land
 
         #endregion
 
-        private readonly LandManagementModule m_landManagementModule;
+        private readonly ILandManagementModule m_landManagementModule;
 
         private float m_BanLineSafeHeight = 100.0f;
+        /// <summary>
+        /// Gets the safe height for the ban line.
+        /// </summary>
         public float BanLineSafeHeight
         {
             get
@@ -85,14 +91,16 @@ namespace OpenSim.Region.CoreModules.World.Land
             }
             private set
             {
-                if (value >= 20f && value <= 5000f)
-                    m_BanLineSafeHeight = value;
-                else
-                    m_BanLineSafeHeight = 100.0f;
+                m_BanLineSafeHeight = (value >= 20f && value <= 5000f) ? value : 100.0f;
             }
         }
 
-        public LandChannel(Scene scene, LandManagementModule landManagementMod)
+        /// <summary>
+        /// Initializes a new instance of the LandChannel class.
+        /// </summary>
+        /// <param name="scene">The scene associated with this land channel.</param>
+        /// <param name="landManagementMod">The land management module for handling land operations.</param>
+        public LandChannel(Scene scene, ILandManagementModule landManagementMod)
         {
             m_landManagementModule = landManagementMod;
             if(landManagementMod is not null)
@@ -100,120 +108,225 @@ namespace OpenSim.Region.CoreModules.World.Land
         }
 
         #region ILandChannel Members
+        /// <summary>
+        /// Gets the land object at the specified coordinates.
+        /// </summary>
+        /// <param name="x_float">The x coordinate as a float.</param>
+        /// <param name="y_float">The y coordinate as a float.</param>
+        /// <returns>The land object at the specified location, or null if not found.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ILandObject GetLandObject(float x_float, float y_float)
         {
             return m_landManagementModule?.GetLandObject(x_float, y_float);
         }
 
+        /// <summary>
+        /// Gets the land object with the specified local ID.
+        /// </summary>
+        /// <param name="localID">The local ID of the land object.</param>
+        /// <returns>The land object with the specified ID, or null if not found.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ILandObject GetLandObject(int localID)
         {
             return m_landManagementModule?.GetLandObject(localID);
         }
 
+        /// <summary>
+        /// Gets the land object with the specified global ID.
+        /// </summary>
+        /// <param name="GlobalID">The global UUID of the land object.</param>
+        /// <returns>The land object with the specified ID, or null if not found.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ILandObject GetLandObject(UUID GlobalID)
         {
             return m_landManagementModule?.GetLandObject(GlobalID);
         }
 
+        /// <summary>
+        /// Gets the land object at the specified position.
+        /// </summary>
+        /// <param name="position">The 3D position of the land object.</param>
+        /// <returns>The land object at the specified position, or null if not found.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ILandObject GetLandObject(Vector3 position)
         {
             return GetLandObject(position.X, position.Y);
         }
 
+        /// <summary>
+        /// Gets the land object at the specified integer coordinates.
+        /// </summary>
+        /// <param name="x">The x coordinate.</param>
+        /// <param name="y">The y coordinate.</param>
+        /// <returns>The land object at the specified location, or null if not found.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ILandObject GetLandObject(int x, int y)
         {
             return m_landManagementModule?.GetLandObject(x, y);
         }
 
+        /// <summary>
+        /// Gets the land object clipped to the XY coordinates.
+        /// </summary>
+        /// <param name="x">The x coordinate.</param>
+        /// <param name="y">The y coordinate.</param>
+        /// <returns>The land object at the clipped coordinates, or null if not found.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ILandObject GetLandObjectClippedXY(float x, float y)
         {
             return m_landManagementModule?.GetLandObjectClippedXY(x, y);
         }
 
+        /// <summary>
+        /// Gets all parcels in the scene.
+        /// </summary>
+        /// <returns>A list of all parcels.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public List<ILandObject> AllParcels()
         {
             return m_landManagementModule is not null ? m_landManagementModule.AllParcels() : [];
         }
 
+        /// <summary>
+        /// Clears all land data.
+        /// </summary>
+        /// <param name="setupDefaultParcel">Whether to set up a default parcel after clearing.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear(bool setupDefaultParcel)
         {
              m_landManagementModule?.Clear(setupDefaultParcel);
         }
 
+        /// <summary>
+        /// Gets parcels near the specified position.
+        /// </summary>
+        /// <param name="position">The position to search near.</param>
+        /// <returns>A list of parcels near the specified position.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public List<ILandObject> ParcelsNearPoint(Vector3 position)
         {
             return m_landManagementModule is not null ? m_landManagementModule.ParcelsNearPoint(position) : [];
         }
 
+        /// <summary>
+        /// Checks whether forceful bans are allowed.
+        /// </summary>
+        /// <returns>True if forceful bans are allowed, false otherwise.</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsForcefulBansAllowed()
         {
             return m_landManagementModule is not null && m_landManagementModule.AllowedForcefulBans;
         }
 
+        /// <summary>
+        /// Updates the land object with the specified data.
+        /// </summary>
+        /// <param name="localID">The local ID of the land object.</param>
+        /// <param name="data">The land data to update.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void UpdateLandObject(int localID, LandData data)
         {
             m_landManagementModule?.UpdateLandObject(localID, data);
         }
 
+        /// <summary>
+        /// Sends the parcels overlay to the specified client.
+        /// </summary>
+        /// <param name="client">The client to send the overlay to.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SendParcelsOverlay(IClientAPI client)
         {
             m_landManagementModule?.SendParcelOverlay(client);
         }
 
+        /// <summary>
+        /// Joins land parcels.
+        /// </summary>
+        /// <param name="start_x">The starting x coordinate.</param>
+        /// <param name="start_y">The starting y coordinate.</param>
+        /// <param name="end_x">The ending x coordinate.</param>
+        /// <param name="end_y">The ending y coordinate.</param>
+        /// <param name="attempting_user_id">The UUID of the user attempting the join.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Join(int start_x, int start_y, int end_x, int end_y, UUID attempting_user_id)
         {
             m_landManagementModule?.Join(start_x, start_y, end_x, end_y, attempting_user_id);
         }
 
+        /// <summary>
+        /// Subdivides land parcels.
+        /// </summary>
+        /// <param name="start_x">The starting x coordinate.</param>
+        /// <param name="start_y">The starting y coordinate.</param>
+        /// <param name="end_x">The ending x coordinate.</param>
+        /// <param name="end_y">The ending y coordinate.</param>
+        /// <param name="attempting_user_id">The UUID of the user attempting the subdivision.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Subdivide(int start_x, int start_y, int end_x, int end_y, UUID attempting_user_id)
         {
             m_landManagementModule?.Subdivide(start_x, start_y, end_x, end_y, attempting_user_id);
         }
 
+        /// <summary>
+        /// Returns objects in a parcel to their owners.
+        /// </summary>
+        /// <param name="localID">The local ID of the parcel.</param>
+        /// <param name="returnType">The type of objects to return.</param>
+        /// <param name="agentIDs">The UUIDs of agents whose objects are being returned.</param>
+        /// <param name="taskIDs">The UUIDs of tasks (objects) being returned.</param>
+        /// <param name="remoteClient">The client making the request.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ReturnObjectsInParcel(int localID, uint returnType, UUID[] agentIDs, UUID[] taskIDs, IClientAPI remoteClient)
         {
             m_landManagementModule?.ReturnObjectsInParcel(localID, returnType, agentIDs, taskIDs, remoteClient);
         }
 
+        /// <summary>
+        /// Sets the override delegate for parcel object max prim count.
+        /// </summary>
+        /// <param name="overrideDel">The delegate to override the max prim count.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void setParcelObjectMaxOverride(overrideParcelMaxPrimCountDelegate overrideDel)
         {
             m_landManagementModule?.setParcelObjectMaxOverride(overrideDel);
         }
 
+        /// <summary>
+        /// Sets the override delegate for simulator object max prim count.
+        /// </summary>
+        /// <param name="overrideDel">The delegate to override the max prim count.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void setSimulatorObjectMaxOverride(overrideSimulatorMaxPrimCountDelegate overrideDel)
         {
             m_landManagementModule?.setSimulatorObjectMaxOverride(overrideDel);
         }
 
+        /// <summary>
+        /// Sets the other clean time for a parcel.
+        /// </summary>
+        /// <param name="remoteClient">The client making the request.</param>
+        /// <param name="localID">The local ID of the parcel.</param>
+        /// <param name="otherCleanTime">The clean time to set.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetParcelOtherCleanTime(IClientAPI remoteClient, int localID, int otherCleanTime)
         {
             m_landManagementModule?.SetParcelOtherCleanTime(remoteClient, localID, otherCleanTime);
         }
 
+        /// <summary>
+        /// Sends the client initial land information.
+        /// </summary>
+        /// <param name="remoteClient">The client to send information to.</param>
+        /// <param name="overlay">Whether to include overlay information.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void sendClientInitialLandInfo(IClientAPI remoteClient, bool overlay)
         {
             m_landManagementModule?.sendClientInitialLandInfo(remoteClient, overlay);
         }
 
+        /// <summary>
+        /// Clears all environments from all parcels.
+        /// </summary>
         public void ClearAllEnvironments()
         {
             List<ILandObject> parcels = AllParcels();

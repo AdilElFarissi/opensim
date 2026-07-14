@@ -214,23 +214,22 @@ TD.align_top { vertical-align: top; }
                                 AVG(avg_sim_fps) as savg_sim_fps, AVG(avg_ping) as sav_ping, SUM(n_out_kb) as num_in_kb,
                                 SUM(n_out_pk) as num_in_packets, SUM(n_in_kb) as num_out_kb, SUM(n_in_pk) as num_out_packets, AVG(mem_use) as sav_mem_use
                                 FROM stats_session_data;";
-                SQLiteCommand cmd = new(SQL, db);
-                SQLiteDataReader sdr = cmd.ExecuteReader();
-                if (sdr.HasRows)
+                using (SQLiteCommand cmd = new(SQL, db))
+                using (SQLiteDataReader sdr = cmd.ExecuteReader())
                 {
-                    sdr.Read();
-                    returnstruct.total_num_users = Convert.ToInt32(sdr["agents"]);
-                    returnstruct.total_num_sessions = Convert.ToInt32(sdr["sessions"]);
-                    returnstruct.avg_client_fps = Convert.ToSingle(sdr["client_fps"]);
-                    returnstruct.avg_sim_fps = Convert.ToSingle(sdr["savg_sim_fps"]);
-                    returnstruct.avg_ping = Convert.ToSingle(sdr["sav_ping"]);
-                    returnstruct.total_kb_out = Convert.ToSingle(sdr["num_out_kb"]);
-                    returnstruct.total_kb_in = Convert.ToSingle(sdr["num_in_kb"]);
-                    returnstruct.avg_client_mem_use = Convert.ToSingle(sdr["sav_mem_use"]);
-
+                    if (sdr.HasRows)
+                    {
+                        sdr.Read();
+                        returnstruct.total_num_users = Convert.ToInt32(sdr["agents"]);
+                        returnstruct.total_num_sessions = Convert.ToInt32(sdr["sessions"]);
+                        returnstruct.avg_client_fps = Convert.ToSingle(sdr["client_fps"]);
+                        returnstruct.avg_sim_fps = Convert.ToSingle(sdr["savg_sim_fps"]);
+                        returnstruct.avg_ping = Convert.ToSingle(sdr["sav_ping"]);
+                        returnstruct.total_kb_out = Convert.ToSingle(sdr["num_out_kb"]);
+                        returnstruct.total_kb_in = Convert.ToSingle(sdr["num_in_kb"]);
+                        returnstruct.avg_client_mem_use = Convert.ToSingle(sdr["sav_mem_use"]);
+                    }
                 }
-                sdr.Close();
-                cmd.Dispose();
             }
 
             return returnstruct;

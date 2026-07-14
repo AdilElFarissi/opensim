@@ -68,14 +68,24 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
         #endregion Constants
 
         private static readonly ILog m_log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType.Name);
-        private static string LogHeader = "[WARP3D TERRAIN SPLAT]";
+        private static readonly string LogHeader = "[WARP3D TERRAIN SPLAT]";
 
         /// <summary>
         /// Builds a composited terrain texture given the region texture
         /// and heightmap settings
         /// </summary>
         /// <param name="terrain">Terrain heightmap</param>
-        /// <param name="regionInfo">Region information including terrain texture parameters</param>
+        /// <param name="textureIDs">UUIDs of the terrain textures for each layer</param>
+        /// <param name="startHeights">Start heights for each terrain layer</param>
+        /// <param name="heightRanges">Height ranges for each terrain layer</param>
+        /// <param name="regionPositionX">X position of the region</param>
+        /// <param name="regionPositionY">Y position of the region</param>
+        /// <param name="assetService">Asset service for fetching textures</param>
+        /// <param name="decoder">JPEG2000 decoder for texture decoding</param>
+        /// <param name="textureTerrain">Whether to texture the terrain</param>
+        /// <param name="averagetextureTerrain">Whether to average terrain textures</param>
+        /// <param name="twidth">Output texture width</param>
+        /// <param name="theight">Output texture height</param>
         /// <returns>A 256x256 square RGB texture ready for rendering</returns>
         /// <remarks>Based on the algorithm described at http://opensimulator.org/wiki/Terrain_Splatting
         /// Note we create a 256x256 dimension texture even if the actual terrain is larger.
@@ -112,7 +122,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                     for(int i = 0; i < 4; i++)
                     {
                         // asset cache indexes are strings
-                        string cacheName = "MAP" + textureIDs[i].ToString();
+                        string cacheName = "MAP" + textureIDs[i];
 
                         // Try to fetch a cached copy of the decoded/resized version of this texture
                         AssetBase asset = assetService.GetCached(cacheName);
@@ -130,7 +140,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                                     detailTexture[i] = null;
                                 }
                             }
-                            catch(Exception ex)
+                            catch(Exception ex) when (ex is FormatException || ex is ArgumentException || ex is InvalidOperationException)
                             {
                                 m_log.Warn("Failed to decode cached terrain patch texture" + textureIDs[i] + "): " + ex.Message);
                             }
@@ -147,7 +157,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                                     detailTexture[i] = (Bitmap)J2kImage.FromBytes(asset.Data, null, false, 8);
                                     //detailTexture[i] = (Bitmap)decoder.DecodeToImage(asset.Data);
                                 }
-                                catch(Exception ex)
+                                catch(Exception ex) when (ex is FormatException || ex is ArgumentException || ex is InvalidOperationException)
                                 {
                                     m_log.Warn("Failed to decode terrain texture " + asset.ID + ": " + ex.Message);
                                 }
@@ -278,8 +288,8 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
             }
             #region Layer Map
 
-            float xFactor = terrain.Width / twidth;
-            float yFactor = terrain.Height / theight;
+            float xFactor = (float)terrain.Width / twidth;
+            float yFactor = (float)terrain.Height / theight;
 
             #endregion Layer Map
 
@@ -329,10 +339,7 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                             // Select two textures
                             l0 = (int)layer;
                             layerDiff = layer - l0;
-                            if (l0 >= 2)
-                                l1 = 3;
-                            else
-                                l1 = l0 + 1;
+                            l1 = l0 >= 2 ? 3 : l0 + 1;
 
                             a = mapColorsRed[l0];                         
                             b = mapColorsRed[l1];
@@ -399,12 +406,8 @@ namespace OpenSim.Region.CoreModules.World.Warp3DMap
                             aG = ptr[1];
                             aR = ptr[2];
 
-                            if(l0 >= 2 )
-                                l0 = 3;
-                            else
-                                l0++;
-
-                            ptr = (byte*)datas[l0].Scan0.ToPointer() + patchOffset;
+                            int l1 = l0 >= 2 ? 3 : l0 + 1;
+                            ptr = (byte*)datas[l1].Scan0.ToPointer() + patchOffset;
                             bB = ptr[0];
                             bG = ptr[1];
                             bR = ptr[2];

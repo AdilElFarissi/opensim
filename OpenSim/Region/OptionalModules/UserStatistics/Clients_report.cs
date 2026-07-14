@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) Contributors, http://opensimulator.org/
  * See CONTRIBUTORS.TXT for a full list of copyright holders.
  *
@@ -28,6 +28,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Data.SQLite;
 using OpenMetaverse;
@@ -94,63 +95,67 @@ namespace OpenSim.Region.UserStatistics
             {
                 string sql = "select count(distinct region_id) as regcnt from stats_session_data";
 
-                SQLiteCommand cmd = new(sql, dbConn);
-                SQLiteDataReader sdr = cmd.ExecuteReader();
-                if (sdr.HasRows)
+                using (SQLiteCommand cmd = new(sql, dbConn))
                 {
-                    sdr.Read();
-                    totalregions = Convert.ToInt32(sdr["regcnt"]);
+                    using (SQLiteDataReader sdr = cmd.ExecuteReader())
+                    {
+                        if (sdr.HasRows)
+                        {
+                            sdr.Read();
+                            totalregions = Convert.ToInt32(sdr["regcnt"]);
+                        }
+                    }
                 }
-                sdr.Close();
-                cmd.Dispose();
 
                 sql =
                     "select client_version, count(*) as cnt, avg(avg_sim_fps) as simfps from stats_session_data group by client_version order by count(*) desc LIMIT 10;";
 
-                cmd = new SQLiteCommand(sql, dbConn);
-                sdr = cmd.ExecuteReader();
-                if (sdr.HasRows)
+                using (SQLiteCommand cmd = new SQLiteCommand(sql, dbConn))
                 {
-                    while (sdr.Read())
+                    using (SQLiteDataReader sdr = cmd.ExecuteReader())
                     {
-                        ClientVersionData udata = new()
+                        if (sdr.HasRows)
                         {
-                            version = sdr["client_version"].ToString(),
-                            count = Convert.ToInt32(sdr["cnt"]),
-                            fps = Convert.ToSingle(sdr["simfps"])
-                        };
-                        clidata.Add(udata);
-                        totalclients += udata.count;
+                            while (sdr.Read())
+                            {
+                                ClientVersionData udata = new()
+                                {
+                                    version = sdr["client_version"].ToString(),
+                                    count = Convert.ToInt32(sdr["cnt"]),
+                                    fps = Convert.ToSingle(sdr["simfps"])
+                                };
+                                clidata.Add(udata);
+                                totalclients += udata.count;
 
+                            }
+                        }
                     }
                 }
-                sdr.Close();
-                cmd.Dispose();
 
                 if (totalregions > 1)
                 {
                     sql =
                         "select region_id, client_version, count(*) as cnt, avg(avg_sim_fps) as simfps from stats_session_data group by region_id, client_version order by region_id, count(*) desc;";
-                    cmd = new SQLiteCommand(sql, dbConn);
-
-                    sdr = cmd.ExecuteReader();
-
-                    if (sdr.HasRows)
+                    using (SQLiteCommand cmd = new SQLiteCommand(sql, dbConn))
                     {
-                        while (sdr.Read())
+                        using (SQLiteDataReader sdr = cmd.ExecuteReader())
                         {
-                            ClientVersionData udata = new()
+                            if (sdr.HasRows)
                             {
-                                version = sdr["client_version"].ToString(),
-                                count = Convert.ToInt32(sdr["cnt"]),
-                                fps = Convert.ToSingle(sdr["simfps"]),
-                                region_id = UUID.Parse(sdr["region_id"].ToString())
-                            };
-                            cliRegData.Add(udata);
+                                while (sdr.Read())
+                                {
+                                    ClientVersionData udata = new()
+                                    {
+                                        version = sdr["client_version"].ToString(),
+                                        count = Convert.ToInt32(sdr["cnt"]),
+                                        fps = Convert.ToSingle(sdr["simfps"]),
+                                        region_id = UUID.Parse(sdr["region_id"].ToString())
+                                    };
+                                    cliRegData.Add(udata);
+                                }
+                            }
                         }
                     }
-                    sdr.Close();
-                    cmd.Dispose();
                 }
             }
 
@@ -300,13 +305,10 @@ TD.align_top { vertical-align: top; }
         public string regionNamefromUUID(List<Scene> scenes, UUID region_id)
         {
             string returnstring = string.Empty;
-            foreach (Scene sn in scenes)
+            foreach (Scene sn in scenes.Where(sn => region_id == sn.RegionInfo.originRegionID))
             {
-                if (region_id == sn.RegionInfo.originRegionID)
-                {
-                    returnstring = sn.RegionInfo.RegionName;
-                    break;
-                }
+                returnstring = sn.RegionInfo.RegionName;
+                break;
             }
 
             if (returnstring.Length == 0)

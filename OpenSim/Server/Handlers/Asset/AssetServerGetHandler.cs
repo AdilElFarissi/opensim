@@ -39,19 +39,32 @@ using OpenSim.Framework.Servers.HttpServer;
 
 namespace OpenSim.Server.Handlers.Asset
 {
+    /// <summary>
+    /// Handles GET requests for assets.
+    /// </summary>
     public class AssetServerGetHandler : BaseStreamHandler
     {
         private static readonly ILog m_log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        private IAssetService m_AssetService;
-        private string m_RedirectURL;
+        private readonly IAssetService m_AssetService;
+        private readonly string m_RedirectURL;
 
+        /// <summary>
+        /// Initializes a new instance of the AssetServerGetHandler class with the specified asset service.
+        /// </summary>
+        /// <param name="service">The asset service to use for retrieving assets.</param>
         public AssetServerGetHandler(IAssetService service) :
                 base("GET", "/assets")
         {
             m_AssetService = service;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the AssetServerGetHandler class with the specified asset service, authentication, and redirect URL.
+        /// </summary>
+        /// <param name="service">The asset service to use for retrieving assets.</param>
+        /// <param name="auth">The service authentication handler.</param>
+        /// <param name="redirectURL">The URL to redirect to when an asset is not found.</param>
         public AssetServerGetHandler(IAssetService service, IServiceAuth auth, string redirectURL) :
             base("GET", "/assets", auth)
         {
@@ -61,6 +74,14 @@ namespace OpenSim.Server.Handlers.Asset
                 m_RedirectURL = m_RedirectURL.TrimEnd('/');
         }
 
+        /// <summary>
+        /// Processes the HTTP GET request for retrieving assets.
+        /// </summary>
+        /// <param name="path">The request path.</param>
+        /// <param name="request">The input stream of the request.</param>
+        /// <param name="httpRequest">The HTTP request object.</param>
+        /// <param name="httpResponse">The HTTP response object.</param>
+        /// <returns>The byte array containing the response data.</returns>
         protected override byte[] ProcessRequest(string path, Stream request,
                 IOSHttpRequest httpRequest, IOSHttpResponse httpResponse)
         {
