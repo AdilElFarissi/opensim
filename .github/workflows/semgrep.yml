@@ -14,10 +14,10 @@ on:
   push:
     branches: [ "master" ]
   pull_request:
-    # The branches below must be a subset of the branches above
     branches: [ "master" ]
   schedule:
     - cron: '32 4 * * 6'
+  workflow_dispatch: 
 
 permissions:
   contents: read
@@ -25,25 +25,34 @@ permissions:
 jobs:
   semgrep:
     permissions:
-      contents: read # for actions/checkout to fetch code
-      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
-      actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
+      contents: read 
+      security-events: write 
+      actions: read 
     name: Scan
     runs-on: ubuntu-latest
     steps:
-      # Checkout project source
+      # 1. Checkout project source
       - uses: actions/checkout@v4
 
-      # Scan code using project's configuration on https://semgrep.dev/manage
+      # 2. Scan code and generate the SARIF file
       - uses: returntocorp/semgrep-action@fcd5ab7459e8d91cb1777481980d1b18b4fc6735
         with:
           publishToken: ${{ secrets.SEMGREP_APP_TOKEN }}
           publishDeployment: ${{ secrets.SEMGREP_DEPLOYMENT_ID }}
           generateSarif: "1"
 
-      # Upload SARIF file generated in previous step
-      - name: Upload SARIF file
+      # 3. Upload SARIF to GitHub Security Dashboard (Code scanning)
+      - name: Upload SARIF to Security Tab
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: semgrep.sarif
         if: always()
+
+      # 4. Force save the file as a downloadable GitHub Action Artifact
+      - name: Save SARIF as Downloadable Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-sarif-file
+          path: semgrep.sarif
+        if: always()
+
