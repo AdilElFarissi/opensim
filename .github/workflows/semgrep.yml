@@ -39,7 +39,6 @@ jobs:
 
       # 2. Scan code and write explicitly to semgrep.sarif
       - name: Run Semgrep CLI
-        continue-on-error: true
         run: |
           semgrep ci \
             --sarif \
