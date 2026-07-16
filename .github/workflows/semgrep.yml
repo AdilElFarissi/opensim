@@ -28,25 +28,32 @@ jobs:
       actions: read 
     name: scan
     runs-on: ubuntu-latest
+    
+    # We use the official Semgrep Docker image directly to guarantee consistency
+    container:
+      image: semgrep/semgrep:latest
+
     steps:
       # 1. Checkout project source
       - uses: actions/checkout@v4
 
-      # 2. Scan code and generate the SARIF file
-      - uses: returntocorp/semgrep-action@v1
-        with:
-          publishToken: ${{ secrets.SEMGREP_APP_TOKEN }}
-          publishDeployment: ${{ secrets.SEMGREP_DEPLOYMENT_ID }}
-          generateSarif: "1"
-          # FORCE THE OUTPUT FILE NAME HERE
-          sarifFile: "semgrep.sarif" 
-          config: "p/default p/security-audit"
+      # 2. Scan code and write explicitly to semgrep.sarif
+      - name: Run Semgrep CLI
+        run: |
+          semgrep ci \
+            --sarif \
+            --output=semgrep.sarif \
+            --config=p/default \
+            --config=p/security-audit
+        env:
+          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+          SEMGREP_DEPLOYMENT_ID: ${{ secrets.SEMGREP_DEPLOYMENT_ID }}
 
       # 3. Upload SARIF to GitHub security dashboard
       - name: Upload SARIF to Security Tab
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: "semgrep.sarif"
+          sarif_file: semgrep.sarif
         if: always()
 
       # 4. Save the file as a downloadable GitHub Action artifact
@@ -54,6 +61,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: semgrep-sarif-file
-          path: "semgrep.sarif"
+          path: semgrep.sarif
         if: always()
 
